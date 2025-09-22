@@ -7,12 +7,12 @@
 package fs
 
 import (
-	"errors"
-	"github.com/hopeio/gox/errors/multierr"
 	"io/fs"
 	"iter"
 	"os"
 	"path/filepath"
+
+	"go.uber.org/multierr"
 )
 
 type RangeCallback = func(dir string, entry os.DirEntry) error
@@ -141,20 +141,19 @@ func WalkDir(root string, fn fs.WalkDirFunc) error {
 	return filepath.WalkDir(root, fn)
 }
 
-func All(path string) (iter.Seq[os.DirEntry], *multierr.MultiError) {
-	errs := multierr.New()
+func All(path string) (iter.Seq[os.DirEntry], error) {
 	dirs, err := os.ReadDir(path)
 	if err != nil {
-		return nil, errs
+		return nil, err
 	}
+	var errs error
 	return func(yield func(os.DirEntry) bool) {
 		for _, dir := range dirs {
 			if dir.IsDir() {
 				it, err := All(path + PathSeparator + dir.Name())
-				if err.HasErrors() {
-					errs.Merge(err)
+				if err != nil {
+					errs = multierr.Append(errs, err)
 				}
-				errs.Append(errors.New("test"))
 				for entry := range it {
 					if !yield(entry) {
 						return

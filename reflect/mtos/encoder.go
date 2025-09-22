@@ -3,9 +3,11 @@ package mtos
 import (
 	"errors"
 	"fmt"
-	"go.uber.org/multierr"
+
 	"reflect"
 	"strconv"
+
+	"go.uber.org/multierr"
 )
 
 type encoderFunc func(reflect.Value) string
@@ -95,7 +97,7 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 
 		// Encode struct pointer types if the field is a valid pointer and a struct.
 		if isValidStructPointer(v.Field(i)) {
-			e.encode(v.Field(i).Elem(), dst)
+			errs = multierr.Append(errs, e.encode(v.Field(i).Elem(), dst))
 			continue
 		}
 
@@ -113,7 +115,7 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 		}
 
 		if v.Field(i).Type().Kind() == reflect.Struct {
-			e.encode(v.Field(i), dst)
+			errs = multierr.Append(errs, e.encode(v.Field(i), dst))
 			continue
 		}
 
@@ -122,7 +124,7 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 		}
 
 		if encFunc == nil {
-			multierr.Append(errs, fmt.Errorf("schema: encoder not found for %v", v.Field(i)))
+			errs = multierr.Append(errs, fmt.Errorf("schema: encoder not found for %v", v.Field(i)))
 			continue
 		}
 

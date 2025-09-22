@@ -6,19 +6,19 @@
 
 package retry
 
-import "github.com/hopeio/gox/errors/multierr"
+import "go.uber.org/multierr"
 
 func RunTimes(times int, f func(int) error) error {
-	var err error
+	var errs error
 	for i := 0; i < times; i++ {
-		err1 := f(i)
-		if err1 == nil {
+		err := f(i)
+		if err == nil {
 			return nil
 		}
-		err = multierr.Append(err, err1)
+		errs = multierr.Append(errs, err)
 	}
 
-	return err
+	return errs
 }
 
 func Run(f func(int) bool) {

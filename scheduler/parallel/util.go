@@ -7,8 +7,8 @@
 package parallel
 
 import (
-	"github.com/hopeio/gox/errors/multierr"
 	"github.com/hopeio/gox/types"
+	"go.uber.org/multierr"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -19,13 +19,13 @@ func RunIgnoreError(tasks []types.FuncReturnErr) error {
 			ch <- task()
 		}()
 	}
-	var errs multierr.MultiError
+	var errs error
 	for err := range ch {
 		if err != nil {
-			errs.Append(err)
+			errs = multierr.Append(errs, err)
 		}
 	}
-	return errs.Error()
+	return errs
 }
 
 func Run(tasks []types.FuncReturnErr) error {
