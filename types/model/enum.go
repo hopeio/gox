@@ -6,7 +6,7 @@
 
 package model
 
-import "github.com/hopeio/gox/datax/database/datatypes"
+import "github.com/hopeio/gox/dataaccess/database/datatypes"
 
 type Enum struct {
 	ID    uint   `json:"id" gorm:"primaryKey"`
