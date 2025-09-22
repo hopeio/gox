@@ -8,7 +8,7 @@ package upload
 
 import (
 	"fmt"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/os/fs"
 	"io"
@@ -39,7 +39,7 @@ func Upload(dir string) http.HandlerFunc {
 			return
 		}
 
-		start, end, total, err := httpi.ParseContentRange(rangeHeader)
+		start, end, total, err := httpx.ParseContentRange(rangeHeader)
 		if err != nil {
 			http.Error(w, "failed to parse range header", http.StatusBadRequest)
 			return

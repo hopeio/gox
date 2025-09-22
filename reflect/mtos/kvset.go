@@ -4,7 +4,7 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"reflect"
 	"strings"
 	"time"
@@ -166,7 +166,7 @@ func SetValueByStringWithStructField(value reflect.Value, field *reflect.StructF
 		tuV, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
 	}
 	if ok {
-		return tuV.UnmarshalText(stringsi.ToBytes(val))
+		return tuV.UnmarshalText(stringsx.ToBytes(val))
 	}
 	switch kind := value.Kind(); kind {
 	case reflect.Int:
@@ -223,9 +223,9 @@ func SetValueByStringWithStructField(value reflect.Value, field *reflect.StructF
 		case time.Time:
 			return setTimeField(val, field, value)
 		}
-		return json.Unmarshal(stringsi.ToBytes(val), value.Addr().Interface())
+		return json.Unmarshal(stringsx.ToBytes(val), value.Addr().Interface())
 	case reflect.Map:
-		return json.Unmarshal(stringsi.ToBytes(val), value.Addr().Interface())
+		return json.Unmarshal(stringsx.ToBytes(val), value.Addr().Interface())
 	default:
 		return errUnknownType
 	}

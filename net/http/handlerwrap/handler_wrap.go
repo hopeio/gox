@@ -4,14 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/hopeio/gox/errors/errcode"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/binding"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/types"
 	"net/http"
 )
 
-type Service[REQ, RES any] func(ctx ReqResp, req REQ) (RES, *httpi.ErrRep)
+type Service[REQ, RES any] func(ctx ReqResp, req REQ) (RES, *httpx.ErrRep)
 
 type warpKey struct{}
 
@@ -35,7 +35,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		req := new(REQ)
 		err := binding.Bind(r, req)
 		if err != nil {
-			httpi.RespErrCodeMsg(w, errcode.InvalidArgument, err.Error())
+			httpx.RespErrCodeMsg(w, errcode.InvalidArgument, err.Error())
 			return
 		}
 		res, errRep := service(ReqResp{r, w}, req)
@@ -44,11 +44,11 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			return
 		}
 		anyres := any(res)
-		if httpres, ok := anyres.(httpi.ICommonResponseTo); ok {
-			httpres.CommonResponse(httpi.CommonResponseWriter{ResponseWriter: w})
+		if httpres, ok := anyres.(httpx.ICommonResponseTo); ok {
+			httpres.CommonResponse(httpx.CommonResponseWriter{ResponseWriter: w})
 			return
 		}
-		if httpres, ok := anyres.(httpi.IHttpResponseTo); ok {
+		if httpres, ok := anyres.(httpx.IHttpResponseTo); ok {
 			httpres.Response(w)
 			return
 		}
@@ -60,20 +60,20 @@ func HandlerWrapCompatibleGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES
 		req := new(REQ)
 		err := binding.Bind(r, req)
 		if err != nil {
-			httpi.RespSuccessData(w, errcode.InvalidArgument.Wrap(err))
+			httpx.RespSuccessData(w, errcode.InvalidArgument.Wrap(err))
 			return
 		}
 		res, err := method(WarpContext(ReqResp{r, w}), req)
 		if err != nil {
-			httpi.ErrRepFrom(err).Response(w)
+			httpx.ErrRepFrom(err).Response(w)
 			return
 		}
 		anyres := any(res)
-		if httpres, ok := anyres.(httpi.ICommonResponseTo); ok {
-			httpres.CommonResponse(httpi.CommonResponseWriter{w})
+		if httpres, ok := anyres.(httpx.ICommonResponseTo); ok {
+			httpres.CommonResponse(httpx.CommonResponseWriter{w})
 			return
 		}
-		if httpres, ok := anyres.(httpi.IHttpResponseTo); ok {
+		if httpres, ok := anyres.(httpx.IHttpResponseTo); ok {
 			httpres.Response(w)
 			return
 		}

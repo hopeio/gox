@@ -11,7 +11,7 @@ import (
 	"github.com/hopeio/gox/net/http/binding"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/reflect/mtos"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"net/http"
 )
 
@@ -36,7 +36,7 @@ func (s RequestSource) Header() mtos.Setter {
 }
 
 func (s RequestSource) Form() mtos.Setter {
-	contentType := stringsi.FromBytes(s.Request().Header.Peek(consts.HeaderContentType))
+	contentType := stringsx.FromBytes(s.Request().Header.Peek(consts.HeaderContentType))
 	if contentType == consts.ContentTypeForm {
 		return (*ArgsSource)(s.Request().PostArgs())
 	}

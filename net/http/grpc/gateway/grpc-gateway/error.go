@@ -12,7 +12,7 @@ import (
 	"github.com/hopeio/gox/errors/errcode"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
 	"io"
@@ -23,7 +23,7 @@ import (
 func RoutingErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, httpStatus int) {
 	w.WriteHeader(httpStatus)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
-	w.Write(stringsi.ToBytes(http.StatusText(httpStatus)))
+	w.Write(stringsx.ToBytes(http.StatusText(httpStatus)))
 }
 
 func CustomHttpError(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {

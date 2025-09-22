@@ -7,7 +7,7 @@
 package binary
 
 import (
-	reflecti "github.com/hopeio/gox/reflect"
+	reflectx "github.com/hopeio/gox/reflect"
 	"reflect"
 	"unsafe"
 )
@@ -27,7 +27,7 @@ func StructToBytes(s interface{}) []byte {
 	var x reflect.SliceHeader
 	x.Len = sizeOfStruct
 	x.Cap = sizeOfStruct
-	x.Data = uintptr((*reflecti.Eface)(unsafe.Pointer(&s)).Value)
+	x.Data = uintptr((*reflectx.Eface)(unsafe.Pointer(&s)).Value)
 	return *(*[]byte)(unsafe.Pointer(&x))
 }
 

@@ -15,10 +15,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/andybalholm/brotli"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	url2 "github.com/hopeio/gox/net/url"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/gox/strings/unicode"
 	"github.com/klauspost/compress/zstd"
 	"io"
@@ -59,11 +59,11 @@ func (req *Request) Client(c *Client) *Request {
 	return req
 }
 
-func (req *Request) Header(header httpi.Header) *Request {
+func (req *Request) Header(header httpx.Header) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
 	}
-	httpi.HeaderIntoHttpHeader(header, req.header)
+	httpx.HeaderIntoHttpHeader(header, req.header)
 	return req
 }
 
@@ -162,7 +162,7 @@ func (req *Request) Do(param, response any) error {
 		if param != nil {
 			switch paramType := param.(type) {
 			case string:
-				reqBody = stringsi.ToBytes(paramType)
+				reqBody = stringsx.ToBytes(paramType)
 			case []byte:
 				reqBody = paramType
 			case io.Reader:
@@ -181,7 +181,7 @@ func (req *Request) Do(param, response any) error {
 					switch req.contentType {
 					case ContentTypeForm:
 						params := url2.QueryParam(param)
-						reqBody = stringsi.ToBytes(params)
+						reqBody = stringsx.ToBytes(params)
 					default:
 						reqBody, err = json.Marshal(param)
 						if err != nil {
@@ -209,7 +209,7 @@ func (req *Request) Do(param, response any) error {
 		request.Header = req.header
 	}
 	request.Header.Set(consts.HeaderContentType, req.contentType.String())
-	httpi.CopyHttpHeader(request.Header, c.header)
+	httpx.CopyHttpHeader(request.Header, c.header)
 
 Retry:
 	if reqTimes > 0 {

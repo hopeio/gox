@@ -11,9 +11,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/hopeio/gox/log"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -87,7 +87,7 @@ func NewMultipart(param, name, contentType string, reader io.Reader) *Multipart 
 
 func (f *Multipart) setHeader(header textproto.MIMEHeader) {
 	var contentDispositionValue string
-	if stringsi.IsEmpty(f.Name) {
+	if stringsx.IsEmpty(f.Name) {
 		contentDispositionValue = fmt.Sprintf(consts.FormDataFieldTmpl, escapeQuotes(f.Param))
 	} else {
 		contentDispositionValue = fmt.Sprintf(consts.FormDataFileTmpl,
@@ -95,7 +95,7 @@ func (f *Multipart) setHeader(header textproto.MIMEHeader) {
 	}
 	header.Set(consts.HeaderContentDisposition, contentDispositionValue)
 
-	if !stringsi.IsEmpty(f.ContentType) {
+	if !stringsx.IsEmpty(f.ContentType) {
 		header.Set(ContentTypeKey, f.ContentType)
 	}
 }
@@ -201,7 +201,7 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 		return err
 	}
 	d := r.uploader
-	httpi.CopyHttpHeader(req.Header, d.header)
+	httpx.CopyHttpHeader(req.Header, d.header)
 	for _, opt := range d.httpRequestOptions {
 		opt(req)
 	}
@@ -271,7 +271,7 @@ func (r *UploadReq) UploadMultipartChunked(formData map[string]string, file Mult
 				total = end + 1
 			}
 			req.Body = io.NopCloser(bytes.NewReader(buf[0:size]))
-			req.Header.Set(consts.HeaderContentRange, httpi.FormatContentRange(start, end, total))
+			req.Header.Set(consts.HeaderContentRange, httpx.FormatContentRange(start, end, total))
 			resp, err := u.httpClient.Do(req)
 			if err != nil {
 				return err
@@ -334,7 +334,7 @@ func (r *UploadReq) UploadRaw(reader io.Reader, name string) error {
 	if r.header != nil {
 		req.Header = r.header
 	}
-	httpi.CopyHttpHeader(req.Header, u.header)
+	httpx.CopyHttpHeader(req.Header, u.header)
 	name = escapeQuotes(name)
 	req.Header.Set(consts.HeaderContentType, consts.ContentTypeOctetStream)
 	req.Header.Set(consts.HeaderContentDisposition, fmt.Sprintf(consts.FormDataFileTmpl,
@@ -373,7 +373,7 @@ func (r *UploadReq) UploadRawChunked(reader io.Reader, name string) error {
 				total = end + 1
 			}
 			req.Body = io.NopCloser(bytes.NewReader(buf[0:nr]))
-			req.Header.Set(consts.HeaderContentRange, httpi.FormatContentRange(start, end, total))
+			req.Header.Set(consts.HeaderContentRange, httpx.FormatContentRange(start, end, total))
 			resp, err := u.httpClient.Do(req)
 			if err != nil {
 				return err

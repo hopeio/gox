@@ -7,7 +7,7 @@
 package structtag
 
 import (
-	reflecti "github.com/hopeio/gox/reflect/mtos"
+	"github.com/hopeio/gox/reflect/mtos"
 	"reflect"
 	"strings"
 )
@@ -106,7 +106,7 @@ func ParseSettingTagIntoStruct(tag string, sep byte, settings any) error {
 			name = structField.Name
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := reflecti.SetValueByString(settingsValue.Field(i), flagtag)
+			err := mtos.SetValueByString(settingsValue.Field(i), flagtag)
 			if err != nil {
 				return err
 			}

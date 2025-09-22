@@ -2,7 +2,7 @@ package eflag
 
 import (
 	"errors"
-	reflecti "github.com/hopeio/gox/reflect"
+	reflectx "github.com/hopeio/gox/reflect"
 	"github.com/hopeio/gox/reflect/converter"
 	"github.com/hopeio/gox/reflect/mtos"
 	"github.com/hopeio/gox/reflect/structtag"
@@ -56,7 +56,7 @@ func Bind(args []string, v any) error {
 }
 
 func AddFlag(commandLine *pflag.FlagSet, v any) error {
-	fcValue := reflecti.DerefValue(reflect.ValueOf(v))
+	fcValue := reflectx.DerefValue(reflect.ValueOf(v))
 	if !fcValue.IsValid() {
 		return errors.New("invalid value")
 	}
@@ -74,7 +74,7 @@ func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) er
 		fieldValue := fcValue.Field(i)
 		kind := fieldValue.Kind()
 		if kind == reflect.Pointer || kind == reflect.Interface {
-			fieldValue = reflecti.DerefValue(fieldValue)
+			fieldValue = reflectx.DerefValue(fieldValue)
 			kind = fieldValue.Kind()
 			if !fieldValue.IsValid() {
 				continue

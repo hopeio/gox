@@ -10,7 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/types/param"
 	"net/http"
@@ -347,7 +347,7 @@ func (s *Server) token(data map[string]interface{}, header http.Header, statusCo
 	wheader.Set("Cache-Control", "no-store")
 	wheader.Set("Pragma", "no-cache")
 
-	httpi.CopyHttpHeader(wheader, header)
+	httpx.CopyHttpHeader(wheader, header)
 
 	jdata, _ := json.Marshal(data)
 	w.Write(jdata)

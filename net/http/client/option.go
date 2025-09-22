@@ -7,7 +7,7 @@
 package client
 
 import (
-	httpi "github.com/hopeio/gox/net/http/consts"
+	httpx "github.com/hopeio/gox/net/http/consts"
 	"net/http"
 )
 
@@ -29,19 +29,19 @@ func AddHeader(k, v string) HttpRequestOption {
 
 func SetRefer(refer string) HttpRequestOption {
 	return func(req *http.Request) {
-		req.Header.Set(httpi.HeaderReferer, refer)
+		req.Header.Set(httpx.HeaderReferer, refer)
 	}
 }
 
 func SetAccept(refer string) HttpRequestOption {
 	return func(req *http.Request) {
-		req.Header.Set(httpi.HeaderAccept, refer)
+		req.Header.Set(httpx.HeaderAccept, refer)
 	}
 }
 
 func SetCookie(cookie string) HttpRequestOption {
 	return func(req *http.Request) {
-		req.Header.Set(httpi.HeaderCookie, cookie)
+		req.Header.Set(httpx.HeaderCookie, cookie)
 	}
 }
 

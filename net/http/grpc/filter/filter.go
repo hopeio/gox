@@ -8,7 +8,7 @@ package filter
 
 import (
 	"context"
-	httpi "github.com/hopeio/gox/net/http/consts"
+	httpx "github.com/hopeio/gox/net/http/consts"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -26,7 +26,7 @@ func ensureValidToken(ctx context.Context, req interface{}, info *grpc.UnaryServ
 	}
 	// The keys within metadata.Header are normalized to lowercase.
 	// See: https://godoc.org/google.golang.org/grpc/metadata#New
-	if !Valid(md[httpi.HeaderAuthorization]) {
+	if !Valid(md[httpx.HeaderAuthorization]) {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 	}
 	// Continue execution of handler after ensuring a valid token.

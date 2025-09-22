@@ -8,7 +8,7 @@ package binding
 
 import (
 	"github.com/hopeio/gox/reflect/mtos"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"github.com/valyala/fasthttp"
 	"reflect"
 )
@@ -21,12 +21,12 @@ func (form *ArgsSource) TrySet(value reflect.Value, field *reflect.StructField, 
 }
 
 func (form *ArgsSource) Peek(key string) ([]string, bool) {
-	v := stringsi.BytesToString((*fasthttp.Args)(form).Peek(key))
+	v := stringsx.BytesToString((*fasthttp.Args)(form).Peek(key))
 	return []string{v}, v != ""
 }
 
 func (form *ArgsSource) HasValue(key string) bool {
-	v := stringsi.BytesToString((*fasthttp.Args)(form).Peek(key))
+	v := stringsx.BytesToString((*fasthttp.Args)(form).Peek(key))
 	return v != ""
 }
 
@@ -50,6 +50,6 @@ func (form *HeaderSource) TrySet(value reflect.Value, field *reflect.StructField
 }
 
 func (form *HeaderSource) Peek(key string) ([]string, bool) {
-	v := stringsi.BytesToString((*fasthttp.RequestHeader)(form).Peek(key))
+	v := stringsx.BytesToString((*fasthttp.RequestHeader)(form).Peek(key))
 	return []string{v}, v != ""
 }

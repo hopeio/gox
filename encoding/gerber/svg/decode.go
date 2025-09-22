@@ -6,8 +6,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+
 	"github.com/hopeio/gox/encoding/gerber"
-	jsoni "github.com/hopeio/gox/encoding/json"
+	jsonx "github.com/hopeio/gox/encoding/json"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -34,25 +35,25 @@ func (p *Processor) UnmarshalJSON(b []byte) error {
 		case "Data":
 			residue, err = p.decodeData(residue)
 		case "MinX":
-			p.Min.X, residue, err = jsoni.DecodeFloat(residue)
+			p.Min.X, residue, err = jsonx.DecodeFloat(residue)
 		case "MaxX":
-			p.Max.X, residue, err = jsoni.DecodeFloat(residue)
+			p.Max.X, residue, err = jsonx.DecodeFloat(residue)
 		case "MinY":
-			p.Min.Y, residue, err = jsoni.DecodeFloat(residue)
+			p.Min.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "MaxY":
-			p.Max.Y, residue, err = jsoni.DecodeFloat(residue)
+			p.Max.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "PolarityDark":
-			p.PolarityDark, residue, err = jsoni.DecodeString(residue)
+			p.PolarityDark, residue, err = jsonx.DecodeString(residue)
 		case "PolarityClear":
-			p.PolarityClear, residue, err = jsoni.DecodeString(residue)
+			p.PolarityClear, residue, err = jsonx.DecodeString(residue)
 		case "Scale":
-			p.Scale, residue, err = jsoni.DecodeFloat(residue)
+			p.Scale, residue, err = jsonx.DecodeFloat(residue)
 		case "StrokeWidth":
-			p.Width, residue, err = jsoni.DecodeString(residue)
+			p.Width, residue, err = jsonx.DecodeString(residue)
 		case "Height":
-			p.Height, residue, err = jsoni.DecodeString(residue)
+			p.Height, residue, err = jsonx.DecodeString(residue)
 		case "PanZoom":
-			p.PanZoom, residue, err = jsoni.DecodeBool(residue)
+			p.PanZoom, residue, err = jsonx.DecodeBool(residue)
 		default:
 			err = fmt.Errorf("\"%s\"", key)
 		}
@@ -305,18 +306,18 @@ func decodeCircle(b []byte, elm *Circle) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "Line":
-			elm.Line, residue, err = jsoni.DecodeInt(residue)
+			elm.Line, residue, err = jsonx.DecodeInt(residue)
 		case "X":
-			elm.Centre.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.Centre.X, residue, err = jsonx.DecodeFloat(residue)
 		case "Y":
-			elm.Centre.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Centre.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "Diameter":
-			elm.Diameter, residue, err = jsoni.DecodeFloat(residue)
+			elm.Diameter, residue, err = jsonx.DecodeFloat(residue)
 		case "Fill":
-			elm.Fill, residue, err = jsoni.DecodeString(residue)
+			elm.Fill, residue, err = jsonx.DecodeString(residue)
 		case "Attr":
 			// Attr is expected to be always null.
 			residue = residue[5:]
@@ -351,26 +352,26 @@ func decodeRectangle(b []byte, elm *Rectangle) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "Line":
-			elm.Line, residue, err = jsoni.DecodeInt(residue)
+			elm.Line, residue, err = jsonx.DecodeInt(residue)
 		case "Aperture":
-			elm.Aperture, residue, err = jsoni.DecodeString(residue)
+			elm.Aperture, residue, err = jsonx.DecodeString(residue)
 		case "X":
-			elm.Center.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.Center.X, residue, err = jsonx.DecodeFloat(residue)
 		case "Y":
-			elm.Center.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Center.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "StrokeWidth":
-			elm.Width, residue, err = jsoni.DecodeFloat(residue)
+			elm.Width, residue, err = jsonx.DecodeFloat(residue)
 		case "Height":
-			elm.Height, residue, err = jsoni.DecodeFloat(residue)
+			elm.Height, residue, err = jsonx.DecodeFloat(residue)
 		case "CenterX":
-			elm.RadiusX, residue, err = jsoni.DecodeFloat(residue)
+			elm.RadiusX, residue, err = jsonx.DecodeFloat(residue)
 		case "CenterY":
-			elm.RadiusY, residue, err = jsoni.DecodeFloat(residue)
+			elm.RadiusY, residue, err = jsonx.DecodeFloat(residue)
 		case "Fill":
-			elm.Fill, residue, err = jsoni.DecodeString(residue)
+			elm.Fill, residue, err = jsonx.DecodeString(residue)
 		case "Attr":
 			// Attr is expected to be always null.
 			residue = residue[5:]
@@ -405,18 +406,18 @@ func decodePath(b []byte, elm *Path) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "Line":
-			elm.Line, residue, err = jsoni.DecodeInt(residue)
+			elm.Line, residue, err = jsonx.DecodeInt(residue)
 		case "X":
-			elm.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.X, residue, err = jsonx.DecodeFloat(residue)
 		case "Y":
-			elm.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "Commands":
 			residue, err = decodePathCommands(elm, residue)
 		case "Fill":
-			elm.Fill, residue, err = jsoni.DecodeString(residue)
+			elm.Fill, residue, err = jsonx.DecodeString(residue)
 		case "Attr":
 			// Attr is expected to be always null.
 			residue = residue[5:]
@@ -451,26 +452,26 @@ func decodeLine(b []byte, elm *Line) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "Line":
-			elm.Line.LineNo, residue, err = jsoni.DecodeInt(residue)
+			elm.Line.LineNo, residue, err = jsonx.DecodeInt(residue)
 		case "StartX":
-			elm.Start.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.Start.X, residue, err = jsonx.DecodeFloat(residue)
 		case "StartY":
-			elm.Start.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Start.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "EndX":
-			elm.End.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.End.X, residue, err = jsonx.DecodeFloat(residue)
 		case "EndY":
-			elm.End.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.End.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "StrokeWidth":
-			elm.StrokeWidth, residue, err = jsoni.DecodeFloat(residue)
+			elm.StrokeWidth, residue, err = jsonx.DecodeFloat(residue)
 		case "Cap":
 			var lineCap string
-			lineCap, residue, err = jsoni.DecodeString(residue)
+			lineCap, residue, err = jsonx.DecodeString(residue)
 			elm.Cap = gerber.LineCap(lineCap)
 		case "Stroke":
-			elm.Stroke, residue, err = jsoni.DecodeString(residue)
+			elm.Stroke, residue, err = jsonx.DecodeString(residue)
 		case "Attr":
 			// Attr is expected to be always null.
 			residue = residue[5:]
@@ -505,34 +506,34 @@ func decodeArc(b []byte, elm *Arc) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "Line":
-			elm.Line, residue, err = jsoni.DecodeInt(residue)
+			elm.Line, residue, err = jsonx.DecodeInt(residue)
 		case "StartX":
-			elm.Start.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.Start.X, residue, err = jsonx.DecodeFloat(residue)
 		case "StartY":
-			elm.Start.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Start.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "XRadius":
-			elm.RadiusX, residue, err = jsoni.DecodeFloat(residue)
+			elm.RadiusX, residue, err = jsonx.DecodeFloat(residue)
 		case "YRadius":
-			elm.RadiusY, residue, err = jsoni.DecodeFloat(residue)
+			elm.RadiusY, residue, err = jsonx.DecodeFloat(residue)
 		case "LargeArc":
-			elm.LargeArc, residue, err = jsoni.DecodeInt(residue)
+			elm.LargeArc, residue, err = jsonx.DecodeInt(residue)
 		case "Sweep":
-			elm.Sweep, residue, err = jsoni.DecodeInt(residue)
+			elm.Sweep, residue, err = jsonx.DecodeInt(residue)
 		case "EndX":
-			elm.End.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.End.X, residue, err = jsonx.DecodeFloat(residue)
 		case "EndY":
-			elm.End.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.End.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "StrokeWidth":
-			elm.StrokeWidth, residue, err = jsoni.DecodeFloat(residue)
+			elm.StrokeWidth, residue, err = jsonx.DecodeFloat(residue)
 		case "CenterX":
-			elm.Center.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.Center.X, residue, err = jsonx.DecodeFloat(residue)
 		case "CenterY":
-			elm.Center.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Center.Y, residue, err = jsonx.DecodeFloat(residue)
 		case "Stroke":
-			elm.Stroke, residue, err = jsoni.DecodeString(residue)
+			elm.Stroke, residue, err = jsonx.DecodeString(residue)
 		case "Attr":
 			// Attr is expected to be always null.
 			residue = residue[5:]
@@ -567,12 +568,12 @@ func decodePathLine(b []byte, elm *PathLine) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "X":
-			elm.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.X, residue, err = jsonx.DecodeFloat(residue)
 		case "Y":
-			elm.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Y, residue, err = jsonx.DecodeFloat(residue)
 		default:
 			err = fmt.Errorf("\"%s\"", key)
 		}
@@ -604,16 +605,16 @@ func decodePathArc(b []byte, elm *PathArc) error {
 		switch key {
 		case "Type":
 			var elmType string
-			elmType, residue, err = jsoni.DecodeString(residue)
+			elmType, residue, err = jsonx.DecodeString(residue)
 			elm.Type = ElementType(elmType)
 		case "LargeArc":
-			elm.LargeArc, residue, err = jsoni.DecodeInt(residue)
+			elm.LargeArc, residue, err = jsonx.DecodeInt(residue)
 		case "Sweep":
-			elm.Sweep, residue, err = jsoni.DecodeInt(residue)
+			elm.Sweep, residue, err = jsonx.DecodeInt(residue)
 		case "X":
-			elm.X, residue, err = jsoni.DecodeFloat(residue)
+			elm.X, residue, err = jsonx.DecodeFloat(residue)
 		case "Y":
-			elm.Y, residue, err = jsoni.DecodeFloat(residue)
+			elm.Y, residue, err = jsonx.DecodeFloat(residue)
 		default:
 			err = fmt.Errorf("\"%s\"", key)
 		}

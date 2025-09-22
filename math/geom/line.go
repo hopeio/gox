@@ -1,9 +1,9 @@
 package geom
 
-import "C"
 import (
-	"golang.org/x/exp/constraints"
 	"math"
+
+	"golang.org/x/exp/constraints"
 )
 
 const tolerance = 1e-9

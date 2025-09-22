@@ -11,17 +11,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hopeio/gox/log"
-	httpi "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
-	urli "github.com/hopeio/gox/net/url"
-	"github.com/hopeio/gox/os/fs"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/hopeio/gox/log"
+	httpx "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/net/http/consts"
+	urlx "github.com/hopeio/gox/net/url"
+	"github.com/hopeio/gox/os/fs"
 )
 
 var DefaultDownloader = NewDownloader()
@@ -63,11 +64,11 @@ func (dReq *DownloadReq) SetDownloader(set func(c *Downloader)) *DownloadReq {
 	set(dReq.downloader)
 	return dReq
 }
-func (req *DownloadReq) Header(header httpi.Header) *DownloadReq {
+func (req *DownloadReq) Header(header httpx.Header) *DownloadReq {
 	if req.header == nil {
 		req.header = make(http.Header)
 	}
-	httpi.HeaderIntoHttpHeader(header, req.header)
+	httpx.HeaderIntoHttpHeader(header, req.header)
 	return req
 }
 
@@ -115,7 +116,7 @@ func (dReq *DownloadReq) GetResponse(options ...func(*http.Request)) (*http.Resp
 	if _, ok := req.Header[consts.HeaderUserAgent]; !ok {
 		req.Header.Set(consts.HeaderUserAgent, UserAgentChrome117)
 	}
-	httpi.CopyHttpHeader(req.Header, d.header)
+	httpx.CopyHttpHeader(req.Header, d.header)
 	for _, opt := range d.httpRequestOptions {
 		opt(req)
 	}
@@ -211,7 +212,7 @@ func (dReq *DownloadReq) Download(filepath string) error {
 			return err
 		}
 		if !notContinuation && resp.Header.Get(consts.HeaderAcceptRanges) == "bytes" {
-			length := httpi.GetContentLength(resp.Header)
+			length := httpx.GetContentLength(resp.Header)
 			if length > defaultSize {
 				reader.Close()
 				return dReq.continuationDownload(filepath)
@@ -245,7 +246,7 @@ func (dReq *DownloadReq) DownloadAttachment(dir string) error {
 		}
 
 		if first {
-			disposition, err := httpi.ParseContentDisposition(resp.Header.Get(consts.HeaderContentDisposition))
+			disposition, err := httpx.ParseContentDisposition(resp.Header.Get(consts.HeaderContentDisposition))
 			if err != nil {
 				return err
 			}
@@ -254,7 +255,7 @@ func (dReq *DownloadReq) DownloadAttachment(dir string) error {
 				return nil
 			}
 			if resp.Header.Get(consts.HeaderAcceptRanges) == "bytes" {
-				length := httpi.GetContentLength(resp.Header)
+				length := httpx.GetContentLength(resp.Header)
 				if length > defaultSize {
 					reader.Close()
 					return dReq.continuationDownload(filepath)
@@ -290,7 +291,7 @@ func (dReq *DownloadReq) continuationDownload(filepath string) error {
 	offset := fileinfo.Size()
 	var reader io.ReadCloser
 	for range dReq.downloader.retryTimes {
-		dReq.header.Set(consts.HeaderRange, httpi.FormatRange(offset, 0))
+		dReq.header.Set(consts.HeaderRange, httpx.FormatRange(offset, 0))
 
 		reader, err = dReq.GetReader()
 		if err != nil {
@@ -361,5 +362,5 @@ func ImageOption(req *http.Request) {
 }
 
 func DownloadToDir(dir, url string) error {
-	return NewDownloadReq(url).Download(dir + fs.PathSeparator + urli.URIBase(url))
+	return NewDownloadReq(url).Download(dir + fs.PathSeparator + urlx.URIBase(url))
 }

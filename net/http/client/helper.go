@@ -7,14 +7,14 @@
 package client
 
 import (
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	"io"
 	"net/http"
 )
 
-func DefaultHeader() httpi.MapHeader {
-	return httpi.MapHeader{
+func DefaultHeader() httpx.MapHeader {
+	return httpx.MapHeader{
 		consts.HeaderAcceptLanguage: "zh-CN,zh;q=0.9;charset=utf-8",
 		consts.HeaderConnection:     "keep-alive",
 		consts.HeaderUserAgent:      UserAgentChrome117,

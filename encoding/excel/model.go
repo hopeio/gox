@@ -2,7 +2,7 @@ package excel
 
 import (
 	"fmt"
-	reflecti "github.com/hopeio/gox/reflect"
+	reflectx "github.com/hopeio/gox/reflect"
 	"reflect"
 )
 
@@ -15,7 +15,7 @@ func export[T any](list []T, filename string) error {
 func ModelToRow(v any) (headers []string, values []any, err error) {
 	rv := reflect.ValueOf(v)
 	if kind := rv.Kind(); kind == reflect.Ptr || kind == reflect.Interface {
-		rv = reflecti.DerefValue(rv)
+		rv = reflectx.DerefValue(rv)
 	}
 	if kind := rv.Kind(); !rv.IsValid() || (kind != reflect.Struct && kind != reflect.Map) {
 		err = fmt.Errorf("invalid type %T", v)

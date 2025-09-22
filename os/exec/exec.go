@@ -7,15 +7,15 @@
 package exec
 
 import (
-	osi "github.com/hopeio/gox/os"
-	stringsi "github.com/hopeio/gox/strings"
+	osx "github.com/hopeio/gox/os"
+	stringsx "github.com/hopeio/gox/strings"
 	"log"
 	"os"
 	"os/exec"
 )
 
 func RunWithLog(arg string, opts ...Option) error {
-	words := osi.Split(arg)
+	words := osx.Split(arg)
 	cmd := exec.Command(words[0], words[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -27,7 +27,7 @@ func RunWithLog(arg string, opts ...Option) error {
 }
 
 func Run(s string, opts ...Option) error {
-	words := osi.Split(s)
+	words := osx.Split(s)
 	cmd := exec.Command(words[0], words[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -40,11 +40,11 @@ func Run(s string, opts ...Option) error {
 type Option func(cmd *exec.Cmd)
 
 func RunGetOut(s string, opts ...Option) (string, error) {
-	words := osi.Split(s)
+	words := osx.Split(s)
 	cmd := exec.Command(words[0], words[1:]...)
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
-		return stringsi.BytesToString(buf), err
+		return stringsx.BytesToString(buf), err
 	}
 	if len(buf) == 0 {
 		return "", nil
@@ -56,7 +56,7 @@ func RunGetOut(s string, opts ...Option) (string, error) {
 	for _, opt := range opts {
 		opt(cmd)
 	}
-	return stringsi.BytesToString(buf), nil
+	return stringsx.BytesToString(buf), nil
 }
 
 func RunGetOutWithLog(s string, opts ...Option) (string, error) {

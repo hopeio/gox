@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/net/http/consts"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
@@ -50,7 +50,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 		if strings.HasPrefix(param.Request.Header.Get(consts.HeaderContentType), consts.ContentTypeJson) {
 			reqField = zap.Reflect(key, json.RawMessage(param.ReqBody))
 		} else {
-			reqField = zap.String(key, stringsi.BytesToString(param.ReqBody))
+			reqField = zap.String(key, stringsx.BytesToString(param.ReqBody))
 		}
 	}
 	if len(param.RespBody) > 0 {
@@ -61,7 +61,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 			if strings.HasPrefix(param.Response.Header.Get(consts.HeaderContentType), consts.ContentTypeJson) {
 				respField = zap.Reflect(key, json.RawMessage(param.RespBody))
 			} else {
-				respField = zap.String(key, stringsi.BytesToString(param.RespBody))
+				respField = zap.String(key, stringsx.BytesToString(param.RespBody))
 			}
 
 		}

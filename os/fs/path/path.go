@@ -7,11 +7,12 @@
 package path
 
 import (
-	stringsi "github.com/hopeio/gox/strings"
 	sdpath "path"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 // windows需要,由于linux的文件也要放到windows看,统一处理
@@ -40,13 +41,13 @@ func FileCleanse(filename string) string {
 
 	filename = strings.Trim(filename, ".-+")
 	// windows
-	//filename = stringsi.RemoveRunes(filename, '/', '\\', ':', '*', '?', '"', '<', '>', '|')
+	//filename = stringsx.RemoveRunes(filename, '/', '\\', ':', '*', '?', '"', '<', '>', '|')
 	// linux
-	//filename = stringsi.RemoveRunes(filename, '\'', '*','?', '@', '#', '$', '&', '(', ')', '|', ';',  '/', '%', '^', ' ', '\t', '\n')
+	//filename = stringsx.RemoveRunes(filename, '\'', '*','?', '@', '#', '$', '&', '(', ')', '|', ';',  '/', '%', '^', ' ', '\t', '\n')
 
-	filename = stringsi.RemoveRunes(filename, '/', '\\', ':', '*', '?', '"', '<', '>', '|', ';', '/', '%', '^', ' ', '\t', '\n', '$', '&')
+	filename = stringsx.RemoveRunes(filename, '/', '\\', ':', '*', '?', '"', '<', '>', '|', ';', '/', '%', '^', ' ', '\t', '\n', '$', '&')
 	// 中文符号
-	//filename = stringsi.RemoveRunes(filename, '：', '，', '。', '！', '？', '、', '“', '”', '、')
+	//filename = stringsx.RemoveRunes(filename, '：', '，', '。', '！', '？', '、', '“', '”', '、')
 	return filename
 }
 
@@ -56,9 +57,9 @@ func DirCleanse(dir string) string { // will be used when save the dir or the pa
 	// :unix允许存在，windows需要
 	// windows path
 	if len(dir) > 2 && dir[1] == ':' && ((dir[0] >= 'A' && dir[0] <= 'Z') || (dir[0] >= 'a' && dir[0] <= 'z')) && (dir[2] == '/' || dir[2] == '\\') {
-		return dir[:3] + stringsi.RemoveRunes(dir[3:], ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
+		return dir[:3] + stringsx.RemoveRunes(dir[3:], ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
 	}
-	return stringsi.RemoveRunes(dir, ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
+	return stringsx.RemoveRunes(dir, ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
 }
 
 // 针对带目录的完整文件名,Removed unsupported characters

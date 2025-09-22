@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	texti "github.com/hopeio/gox/encoding/text"
+	textx "github.com/hopeio/gox/encoding/text"
 )
 
 func StringConvertFor[T any](str string) (T, error) {
@@ -19,5 +19,5 @@ func StringConvertFor[T any](str string) (T, error) {
 		}
 		return t, nil
 	}
-	return texti.StringConvertFor[T](str)
+	return textx.StringConvertFor[T](str)
 }

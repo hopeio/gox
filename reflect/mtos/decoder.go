@@ -8,8 +8,9 @@ import (
 	"encoding"
 	"errors"
 	"fmt"
-	"github.com/hopeio/gox/errors/multierr"
-	reflecti "github.com/hopeio/gox/reflect/converter"
+
+	reflectx "github.com/hopeio/gox/reflect/converter"
+	"go.uber.org/multierr"
 
 	"reflect"
 	"strings"
@@ -58,7 +59,7 @@ func (d *Decoder) IgnoreUnknownKeys(i bool) {
 }
 
 // RegisterConverter registers a converter function for a custom type.
-func (d *Decoder) RegisterConverter(value interface{}, converterFunc reflecti.StringConverter) {
+func (d *Decoder) RegisterConverter(value interface{}, converterFunc reflectx.StringConverter) {
 	d.cache.registerConverter(value, converterFunc)
 }
 
@@ -77,18 +78,18 @@ func (d *Decoder) Decode(dst interface{}, src map[string][]string) error {
 	}
 	v = v.Elem()
 	t := v.Type()
-	var errs multierr.MultiError
+	var errs error
 	for path, values := range src {
 		if parts, err := d.cache.parsePath(path, t); err == nil {
 			if err = d.decode(v, path, parts, values); err != nil {
-				errs.Append(err)
+				errs = multierr.Append(errs, err)
 			}
 		} else if !d.ignoreUnknownKeys {
-			errs.Append(UnknownKeyError{Key: path})
+			errs = multierr.Append(errs, UnknownKeyError{Key: path})
 		}
 	}
-	errs.Append(d.checkRequired(t, src))
-	return errs.Error()
+	errs = multierr.Append(errs, d.checkRequired(t, src))
+	return errs
 }
 
 // checkRequired checks whether required fields are empty
@@ -247,7 +248,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 		// Try to get a converter for the element type.
 		conv := d.cache.converter(elemT)
 		if conv == nil {
-			conv = reflecti.GetStringConverter(elemT)
+			conv = reflectx.GetStringConverter(elemT)
 			if conv == nil {
 				// As we are not dealing with slice of structs here, we don't need to check if the type
 				// implements TextUnmarshaler interface
@@ -372,7 +373,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 			if d.zeroEmpty {
 				v.Set(reflect.Zero(t))
 			}
-		} else if conv := reflecti.GetStringConverter(t); conv != nil {
+		} else if conv := reflectx.GetStringConverter(t); conv != nil {
 			if value := reflect.ValueOf(conv(val)); value.IsValid() {
 				v.Set(value.Convert(t))
 			} else {

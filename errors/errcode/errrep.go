@@ -7,7 +7,7 @@
 package errcode
 
 import (
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"strconv"
@@ -38,7 +38,7 @@ func (x *ErrRep) GRPCStatus() *status.Status {
 }
 
 func (x *ErrRep) MarshalJSON() ([]byte, error) {
-	return stringsi.ToBytes(`{"code":` + strconv.Itoa(int(x.Code)) + `,"msg":` + strconv.Quote(x.Msg) + `}`), nil
+	return stringsx.ToBytes(`{"code":` + strconv.Itoa(int(x.Code)) + `,"msg":` + strconv.Quote(x.Msg) + `}`), nil
 }
 
 func (x *ErrRep) AppendErr(err error) *ErrRep {

@@ -9,7 +9,7 @@ package gin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/errors/errcode"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/gin/binding"
 	"github.com/hopeio/gox/net/http/handlerwrap"
 	"github.com/hopeio/gox/types"
@@ -18,7 +18,7 @@ import (
 
 // only example
 
-type GinService[REQ, RES any] func(*gin.Context, REQ) (RES, *httpi.ErrRep)
+type GinService[REQ, RES any] func(*gin.Context, REQ) (RES, *httpx.ErrRep)
 
 func HandlerWrap[REQ, RES any](service GinService[*REQ, *RES]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -33,11 +33,11 @@ func HandlerWrap[REQ, RES any](service GinService[*REQ, *RES]) gin.HandlerFunc {
 			reserr.Response(ctx.Writer)
 			return
 		}
-		if httpres, ok := any(res).(httpi.ICommonResponseTo); ok {
-			httpres.CommonResponse(httpi.CommonResponseWriter{ctx.Writer})
+		if httpres, ok := any(res).(httpx.ICommonResponseTo); ok {
+			httpres.CommonResponse(httpx.CommonResponseWriter{ctx.Writer})
 			return
 		}
-		httpi.NewSuccessRespData(res).Response(ctx.Writer)
+		httpx.NewSuccessRespData(res).Response(ctx.Writer)
 	}
 }
 
@@ -51,13 +51,13 @@ func HandlerWrapCompatibleGRPC[REQ, RES any](service types.GrpcService[*REQ, *RE
 		}
 		res, err := service(handlerwrap.WarpContext(ctx), req)
 		if err != nil {
-			httpi.ErrRepFrom(err).Response(ctx.Writer)
+			httpx.ErrRepFrom(err).Response(ctx.Writer)
 			return
 		}
-		if httpres, ok := any(res).(httpi.ICommonResponseTo); ok {
-			httpres.CommonResponse(httpi.CommonResponseWriter{ctx.Writer})
+		if httpres, ok := any(res).(httpx.ICommonResponseTo); ok {
+			httpres.CommonResponse(httpx.CommonResponseWriter{ctx.Writer})
 			return
 		}
-		httpi.NewSuccessRespData(res).Response(ctx.Writer)
+		httpx.NewSuccessRespData(res).Response(ctx.Writer)
 	}
 }

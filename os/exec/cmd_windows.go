@@ -9,7 +9,7 @@
 package exec
 
 import (
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"os"
 	"os/exec"
 	"syscall"
@@ -22,12 +22,12 @@ func RunGetOutContainQuoted(s string, opts ...Option) (string, error) {
 	}
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
-		return stringsi.BytesToString(buf), err
+		return stringsx.BytesToString(buf), err
 	}
 	if len(buf) == 0 {
 		return "", nil
 	}
-	return stringsi.BytesToString(buf), nil
+	return stringsx.BytesToString(buf), nil
 }
 
 func RunContainQuoted(s string, opts ...Option) error {

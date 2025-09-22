@@ -11,7 +11,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"github.com/hopeio/gox/encoding/binary"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"io"
 	"strconv"
 	"time"
@@ -43,13 +43,13 @@ func (d Date) Value() (driver.Value, error) {
 func (d Date) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, 12)
 	b = append(b, '"')
-	b = append(b, stringsi.ToBytes(d.Time().Format(time.DateOnly))...)
+	b = append(b, stringsx.ToBytes(d.Time().Format(time.DateOnly))...)
 	b = append(b, '"')
 	return b, nil
 }
 
 func (d *Date) UnmarshalJSON(data []byte) error {
-	str := stringsi.BytesToString(data)
+	str := stringsx.BytesToString(data)
 	if len(data) == 0 || str == "null" {
 		return nil
 	}
@@ -77,14 +77,14 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 }
 
 func (d Date) MarshalText() ([]byte, error) {
-	return stringsi.ToBytes(d.Time().Format(time.DateOnly)), nil
+	return stringsx.ToBytes(d.Time().Format(time.DateOnly)), nil
 }
 
 func (d *Date) UnmarshalText(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
-	str := stringsi.BytesToString(data)
+	str := stringsx.BytesToString(data)
 	t, err := time.Parse(time.DateOnly, str)
 	if err != nil {
 		return err
@@ -161,13 +161,13 @@ func (d DateTime) Value() (driver.Value, error) {
 func (d DateTime) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(time.DateTime)+2)
 	b = append(b, '"')
-	b = append(b, stringsi.ToBytes(time.Unix(int64(d), 0).Format(time.DateTime))...)
+	b = append(b, stringsx.ToBytes(time.Unix(int64(d), 0).Format(time.DateTime))...)
 	b = append(b, '"')
 	return b, nil
 }
 
 func (d *DateTime) UnmarshalJSON(data []byte) error {
-	str := stringsi.BytesToString(data)
+	str := stringsx.BytesToString(data)
 	if len(data) == 0 || str == "null" {
 		return nil
 	}
@@ -195,14 +195,14 @@ func (d *DateTime) UnmarshalJSON(data []byte) error {
 }
 
 func (d DateTime) MarshalText() ([]byte, error) {
-	return stringsi.ToBytes(d.Time().Format(time.DateTime)), nil
+	return stringsx.ToBytes(d.Time().Format(time.DateTime)), nil
 }
 
 func (d *DateTime) UnmarshalText(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
-	str := stringsi.BytesToString(data)
+	str := stringsx.BytesToString(data)
 	t, err := time.Parse(time.DateTime, str)
 	if err != nil {
 		return err

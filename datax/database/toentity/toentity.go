@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/hopeio/gox/os/fs"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -58,7 +58,7 @@ type Field struct {
 }
 
 func (f *Field) Generate() *ast.Field {
-	field := stringsi.SnakeToCamel(f.Field)
+	field := stringsx.SnakeToCamel(f.Field)
 	return &ast.Field{
 		Doc: nil,
 		Names: []*ast.Ident{
@@ -68,7 +68,7 @@ func (f *Field) Generate() *ast.Field {
 			},
 		},
 		Type:    &ast.Ident{Name: f.GoTYpe},
-		Tag:     &ast.BasicLit{Kind: token.STRING, Value: "`" + `json:"` + stringsi.LowerCaseFirst(field) + `" comment:"` + f.Comment + "\"`"},
+		Tag:     &ast.BasicLit{Kind: token.STRING, Value: "`" + `json:"` + stringsx.LowerCaseFirst(field) + `" comment:"` + f.Comment + "\"`"},
 		Comment: nil,
 	}
 }
@@ -129,7 +129,7 @@ func ConvertByTable(c ConvertInterface, tableName string) {
 
 func genTable(c ConvertInterface, tableName string, decl *ast.GenDecl) []byte {
 	node := decl.Specs[0].(*ast.TypeSpec)
-	node.Name.Name = stringsi.SnakeToCamel(tableName)
+	node.Name.Name = stringsx.SnakeToCamel(tableName)
 	fields := node.Type.(*ast.StructType).Fields
 	fields.List = nil
 	dbfields := c.Fields(tableName)

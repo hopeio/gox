@@ -7,7 +7,7 @@
 package unicode
 
 import (
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"slices"
 	"unicode"
 	"unicode/utf16"
@@ -53,7 +53,7 @@ func Getu4(s []byte) rune {
 
 func ToUtf8(s []byte) string {
 	if len(s) < 6 {
-		return stringsi.BytesToString(s)
+		return stringsx.BytesToString(s)
 	}
 	b := make([]byte, len(s)+2*utf8.UTFMax)
 	begin, bbegin := 0, 0
@@ -62,7 +62,7 @@ func ToUtf8(s []byte) string {
 			bbegin += copy(b[bbegin:], s[begin:i])
 			rr := Getu4(s[i:])
 			if rr < 0 {
-				return stringsi.BytesToString(s)
+				return stringsx.BytesToString(s)
 			}
 			i += 6
 			if utf16.IsSurrogate(rr) {
@@ -83,7 +83,7 @@ func ToUtf8(s []byte) string {
 		}
 	}
 	bbegin += copy(b[bbegin:], s[begin:])
-	return stringsi.BytesToString(b[:bbegin])
+	return stringsx.BytesToString(b[:bbegin])
 }
 
 func ToLowerFirst(s string) string {

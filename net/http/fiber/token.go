@@ -8,16 +8,16 @@ package fiber
 
 import (
 	"github.com/hopeio/gox/net/http/consts"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"github.com/valyala/fasthttp"
 	"net/url"
 )
 
 func GetToken(req *fasthttp.Request) string {
-	if token := stringsi.BytesToString(req.Header.Peek(consts.HeaderAuthorization)); token != "" {
+	if token := stringsx.BytesToString(req.Header.Peek(consts.HeaderAuthorization)); token != "" {
 		return token
 	}
-	if cookie := stringsi.BytesToString(req.Header.Cookie(consts.HeaderCookieValueToken)); len(cookie) > 0 {
+	if cookie := stringsx.BytesToString(req.Header.Cookie(consts.HeaderCookieValueToken)); len(cookie) > 0 {
 		token, _ := url.QueryUnescape(cookie)
 		return token
 	}

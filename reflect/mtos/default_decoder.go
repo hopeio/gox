@@ -1,7 +1,7 @@
 package mtos
 
 import (
-	reflecti "github.com/hopeio/gox/reflect/converter"
+	reflectx "github.com/hopeio/gox/reflect/converter"
 )
 
 var defaultDecoder = NewDecoder("json")
@@ -23,7 +23,7 @@ func IgnoreUnknownKeys(i bool) {
 }
 
 // RegisterConverter registers a converter function for a custom type.
-func RegisterConverter(value interface{}, converterFunc reflecti.StringConverter) {
+func RegisterConverter(value interface{}, converterFunc reflectx.StringConverter) {
 	defaultDecoder.cache.registerConverter(value, converterFunc)
 }
 

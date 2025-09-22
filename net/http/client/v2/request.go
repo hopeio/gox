@@ -8,7 +8,7 @@ package client
 
 import (
 	"context"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/client"
 )
 
@@ -33,7 +33,7 @@ func (req *Request[RES]) Origin() *client.Request {
 	return (*client.Request)(req)
 }
 
-func (req *Request[RES]) Header(header httpi.Header) *Request[RES] {
+func (req *Request[RES]) Header(header httpx.Header) *Request[RES] {
 	(*client.Request)(req).Header(header)
 	return req
 }

@@ -8,7 +8,7 @@ package url
 
 import (
 	"github.com/hopeio/gox/math"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	stdurl "net/url"
 	"path"
 	"reflect"
@@ -133,7 +133,7 @@ func AppendQueryParamByTag(url string, param interface{}, tag string) string {
 	case string:
 		url += sep + paramt
 	case []byte:
-		url += sep + stringsi.FromBytes(paramt)
+		url += sep + stringsx.FromBytes(paramt)
 	default:
 		params := QueryParamByTag(param, tag)
 		url += sep + params

@@ -8,7 +8,7 @@ package slices
 
 import (
 	"github.com/hopeio/gox/cmp"
-	reflecti "github.com/hopeio/gox/reflect"
+	reflectx "github.com/hopeio/gox/reflect"
 	"golang.org/x/exp/constraints"
 	"slices"
 
@@ -210,7 +210,7 @@ func Convert[T1S ~[]T1, T2S ~[]T2, T1, T2 any](s T1S) T2S {
 	t1, t2 := new(T1), new(T2)
 	t1type, t2type := reflect.TypeOf(t1).Elem(), reflect.TypeOf(t2).Elem()
 	t1kind, t2kind := t1type.Kind(), t2type.Kind()
-	if reflecti.CanCast(t1type, t2type, false) && t1kind == t2kind {
+	if reflectx.CanCast(t1type, t2type, false) && t1kind == t2kind {
 		return unsafe.Slice((*T2)(unsafe.Pointer(unsafe.SliceData(s))), len(s))
 	}
 	if t1type.ConvertibleTo(t2type) {
@@ -250,7 +250,7 @@ func GuardSlice(buf *[]byte, n int) {
 
 //go:nosplit
 func PtrToSlicePtr(s unsafe.Pointer, l int, c int) unsafe.Pointer {
-	slice := &reflecti.Slice{
+	slice := &reflectx.Slice{
 		Ptr: s,
 		Len: l,
 		Cap: c,

@@ -9,7 +9,7 @@ package grpc_gateway
 import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
 	"google.golang.org/grpc/metadata"
@@ -27,7 +27,7 @@ func New(opts ...runtime.ServeMuxOption) *runtime.ServeMux {
 			if err != nil {
 				area = ""
 			}
-			var token = httpi.GetToken(req)
+			var token = httpx.GetToken(req)
 			return metadata.MD{
 				consts.HeaderArea:          {area},
 				consts.HeaderDeviceInfo:    {req.Header.Get(consts.HeaderDeviceInfo)},

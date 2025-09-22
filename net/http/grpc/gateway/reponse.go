@@ -3,7 +3,7 @@ package gateway
 import (
 	"context"
 	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/consts"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/proto"
@@ -11,11 +11,11 @@ import (
 )
 
 func Response(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
-	if v, ok := message.(httpi.ICommonResponseTo); ok {
-		_, err := v.CommonResponse(httpi.CommonResponseWriter{writer})
+	if v, ok := message.(httpx.ICommonResponseTo); ok {
+		_, err := v.CommonResponse(httpx.CommonResponseWriter{writer})
 		return err
 	}
-	if v, ok := message.(httpi.IHttpResponseTo); ok {
+	if v, ok := message.(httpx.IHttpResponseTo); ok {
 		_, err := v.Response(writer)
 		return err
 	}

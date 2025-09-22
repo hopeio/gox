@@ -8,10 +8,10 @@ package client
 
 import (
 	"fmt"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 )
 
-type ResponseBody httpi.RespAnyData
+type ResponseBody httpx.RespAnyData
 
 func CommonResponse(response interface{}) ResponseBodyCheck {
 	return &ResponseBody{Data: response}

@@ -6,7 +6,7 @@
 package url
 
 import (
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"net/url"
 )
 
@@ -156,12 +156,12 @@ func bufApp(buf *[]byte, s string, w int, c byte) {
 
 // 获取url中非参数部分
 func Base(url string) string {
-	return stringsi.CutPart(stringsi.CutPart(url, "#"), "?")
+	return stringsx.CutPart(stringsx.CutPart(url, "#"), "?")
 }
 
 // 获取url中的文件名
 func URIBase(url string) string {
-	return stringsi.ReverseCutPart(Base(url), "/")
+	return stringsx.ReverseCutPart(Base(url), "/")
 }
 
 // RelativeURLToAbsoluteURL 相对URL转绝对URL

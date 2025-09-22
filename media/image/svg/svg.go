@@ -8,7 +8,7 @@ package svg
 
 import (
 	"fmt"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"strconv"
 )
 
@@ -22,7 +22,7 @@ type Path struct {
 }
 
 func (r *Path) String() string {
-	return fmt.Sprintf(`<path d="M%f %f %s" fill="%s" stroke="%s" %s`, r.X, r.Y, stringsi.Join(r.Commands, " "), r.Fill, r.Stroke, FormatAttr(r.Attr))
+	return fmt.Sprintf(`<path d="M%f %f %s" fill="%s" stroke="%s" %s`, r.X, r.Y, stringsx.Join(r.Commands, " "), r.Fill, r.Stroke, FormatAttr(r.Attr))
 }
 
 type PathArcA struct {
@@ -151,7 +151,7 @@ type Polyline struct {
 }
 
 func (r *Polyline) String() string {
-	return fmt.Sprintf(`<polyline points="%s"  stroke="%s" fill="%s" stroke-width="%f" %s`, stringsi.JoinByValue(r.Points, func(f float64) string { return strconv.FormatFloat(f, 'f', -1, 64) }, " "), r.Stroke, r.Fill, r.StrokeWidth, FormatAttr(r.Attr))
+	return fmt.Sprintf(`<polyline points="%s"  stroke="%s" fill="%s" stroke-width="%f" %s`, stringsx.JoinByValue(r.Points, func(f float64) string { return strconv.FormatFloat(f, 'f', -1, 64) }, " "), r.Stroke, r.Fill, r.StrokeWidth, FormatAttr(r.Attr))
 }
 
 type Polygon struct {
@@ -163,7 +163,7 @@ type Polygon struct {
 }
 
 func (r *Polygon) String() string {
-	return fmt.Sprintf(`<polygon points="%s"  stroke="%s" fill="%s" stroke-width="%f" %s`, stringsi.JoinByValue(r.Points, func(f float64) string { return strconv.FormatFloat(f, 'f', -1, 64) }, " "), r.Stroke, r.Fill, r.StrokeWidth, FormatAttr(r.Attr))
+	return fmt.Sprintf(`<polygon points="%s"  stroke="%s" fill="%s" stroke-width="%f" %s`, stringsx.JoinByValue(r.Points, func(f float64) string { return strconv.FormatFloat(f, 'f', -1, 64) }, " "), r.Stroke, r.Fill, r.StrokeWidth, FormatAttr(r.Attr))
 }
 
 type Rectangle struct {

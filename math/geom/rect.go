@@ -7,7 +7,7 @@
 package geom
 
 import (
-	mathi "github.com/hopeio/gox/math"
+	mathx "github.com/hopeio/gox/math"
 	"golang.org/x/exp/constraints"
 	"image"
 	"math"
@@ -81,8 +81,8 @@ func (rect *Rectangle) Bounds() *Bounds {
 		return NewBounds(rect.Center.X-rect.Width/2, rect.Center.Y-rect.Height/2, rect.Center.X+rect.Width/2, rect.Center.Y+rect.Height/2)
 	}
 	corners := rect.Corners()
-	minx, maxx := mathi.MinAndMax(corners[0].X, corners[1].X, corners[2].X, corners[3].X)
-	miny, maxy := mathi.MinAndMax(corners[0].Y, corners[1].Y, corners[2].Y, corners[3].Y)
+	minx, maxx := mathx.MinAndMax(corners[0].X, corners[1].X, corners[2].X, corners[3].X)
+	miny, maxy := mathx.MinAndMax(corners[0].Y, corners[1].Y, corners[2].Y, corners[3].Y)
 	return NewBounds(minx, miny, maxx, maxy)
 }
 

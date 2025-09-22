@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
 	"github.com/hopeio/gox/errors/errcode"
-	httpi "github.com/hopeio/gox/net/http/consts"
+	httpx "github.com/hopeio/gox/net/http/consts"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
 	"io"
@@ -21,8 +21,8 @@ func HttpError(ctx *gin.Context, err error) {
 	s, _ := status.FromError(err)
 	const fallback = `{"code": 14, "message": "failed to marshal error message"}`
 
-	delete(ctx.Request.Header, httpi.HeaderTrailer)
-	ctx.Header(httpi.HeaderContentType, jsonpb.JsonPb.ContentType(nil))
+	delete(ctx.Request.Header, httpx.HeaderTrailer)
+	ctx.Header(httpx.HeaderContentType, jsonpb.JsonPb.ContentType(nil))
 
 	se := &errcode.ErrRep{Code: errcode.ErrCode(s.Code()), Msg: s.Message()}
 	buf, merr := jsonpb.JsonPb.Marshal(se)

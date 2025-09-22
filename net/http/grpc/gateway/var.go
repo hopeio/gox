@@ -1,6 +1,6 @@
 package gateway
 
-import httpi "github.com/hopeio/gox/net/http/consts"
+import httpx "github.com/hopeio/gox/net/http/consts"
 
 var InComingHeader = []string{"Accept",
 	"Accept-Charset",
@@ -28,4 +28,4 @@ var InComingHeader = []string{"Accept",
 	"Warning",
 }
 
-var OutgoingHeader = []string{httpi.HeaderSetCookie}
+var OutgoingHeader = []string{httpx.HeaderSetCookie}

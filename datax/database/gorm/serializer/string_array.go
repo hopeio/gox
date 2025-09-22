@@ -9,7 +9,7 @@ package serializer
 import (
 	"context"
 	"github.com/hopeio/gox/datax/database/datatypes"
-	reflecti "github.com/hopeio/gox/reflect"
+	reflectx "github.com/hopeio/gox/reflect"
 	"gorm.io/gorm/schema"
 	"reflect"
 	"unsafe"
@@ -36,6 +36,6 @@ func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst 
 
 // 实现 Value 方法
 func (StringArraySerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue any) (any, error) {
-	arr := (*datatypes.StringArray)(unsafe.Pointer((*reflecti.Eface)(unsafe.Pointer(&fieldValue)).Value))
+	arr := (*datatypes.StringArray)(unsafe.Pointer((*reflectx.Eface)(unsafe.Pointer(&fieldValue)).Value))
 	return (*arr).Value()
 }

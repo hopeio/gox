@@ -13,9 +13,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	dbi "github.com/hopeio/gox/datax/database"
-	reflecti "github.com/hopeio/gox/reflect/converter"
-	stringsi "github.com/hopeio/gox/strings"
+	dbx "github.com/hopeio/gox/datax/database"
+	reflectx "github.com/hopeio/gox/reflect/converter"
+	stringsx "github.com/hopeio/gox/strings"
 	"time"
 
 	"golang.org/x/exp/constraints"
@@ -33,7 +33,7 @@ func (d *IntArray[T]) Scan(value any) error {
 		if !ok {
 			return errors.New(fmt.Sprint("failed to scan int array value:", value))
 		}
-		str = stringsi.FromBytes(data)
+		str = stringsx.FromBytes(data)
 	}
 	strs := strings.Split(str[1:len(str)-1], ",")
 	var arr []T
@@ -113,7 +113,7 @@ func (d *StringArray) Scan(value any) error {
 		if !ok {
 			return errors.New(fmt.Sprint("failed to scan string array value:", value))
 		}
-		str = stringsi.FromBytes(data)
+		str = stringsx.FromBytes(data)
 	}
 	strs := strings.Split(str[1:len(str)-1], ",")
 	var arr []string
@@ -162,10 +162,10 @@ func (d *Array[T]) Scan(value any) error {
 	if len(str) > 0 && str[0] == '{' {
 		i := 0
 		for i < len(str) {
-			subArray, ok := stringsi.BracketsIntervals(str[i:], '{', '}')
+			subArray, ok := stringsx.BracketsIntervals(str[i:], '{', '}')
 			if ok {
 				i += len(subArray)
-				t, err := dbi.StringConvertFor[T](subArray)
+				t, err := dbx.StringConvertFor[T](subArray)
 				if err != nil {
 					return err
 				}
@@ -180,7 +180,7 @@ func (d *Array[T]) Scan(value any) error {
 	strs := strings.Split(str, ",")
 
 	for _, elem := range strs {
-		t, err := dbi.StringConvertFor[T](elem)
+		t, err := dbx.StringConvertFor[T](elem)
 		if err != nil {
 			return err
 		}
@@ -210,7 +210,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 			if err != nil {
 				return nil, err
 			}
-			buf.WriteString(reflecti.StringFor(v))
+			buf.WriteString(reflectx.StringFor(v))
 			continue
 		}
 		itv, ok := a.(encoding.TextMarshaler)
@@ -222,10 +222,10 @@ func (d Array[T]) Value() (driver.Value, error) {
 			if err != nil {
 				return nil, err
 			}
-			buf.WriteString(strconv.Quote(stringsi.FromBytes(v)))
+			buf.WriteString(strconv.Quote(stringsx.FromBytes(v)))
 			continue
 		}
-		buf.WriteString(reflecti.StringFor(v))
+		buf.WriteString(reflectx.StringFor(v))
 	}
 	buf.WriteByte('}')
 	return buf.String(), nil
@@ -240,12 +240,12 @@ func (d *TimeArray) Scan(value any) error {
 		if !ok {
 			return errors.New(fmt.Sprint("failed to scan string array value:", value))
 		}
-		str = stringsi.FromBytes(data)
+		str = stringsx.FromBytes(data)
 	}
 	strs := strings.Split(str[1:len(str)-1], ",")
 	var arr []time.Time
 	for _, elem := range strs {
-		t, err := time.Parse(time.RFC3339Nano, stringsi.Unquote(elem))
+		t, err := time.Parse(time.RFC3339Nano, stringsx.Unquote(elem))
 		if err != nil {
 			return err
 		}
@@ -304,7 +304,7 @@ func (j *jsonArray) Scan(value interface{}) error {
 			return err
 		}
 		var m map[string]any
-		err = json.Unmarshal(stringsi.ToBytes(jsonStr), &m)
+		err = json.Unmarshal(stringsx.ToBytes(jsonStr), &m)
 		if err != nil {
 			return err
 		}
@@ -332,7 +332,7 @@ func (j jsonArray) Value() (driver.Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, err = buf.WriteString(strconv.Quote(stringsi.FromBytes(data)))
+		_, err = buf.WriteString(strconv.Quote(stringsx.FromBytes(data)))
 		if err != nil {
 			return nil, err
 		}

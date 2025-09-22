@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hopeio/gox/log"
-	stringsi "github.com/hopeio/gox/strings"
+	stringsx "github.com/hopeio/gox/strings"
 	"io"
 	"reflect"
 )
@@ -54,7 +54,7 @@ type Next struct {
 
 func generateFieldCode(k string, typePrefix string, fieldValue reflect.Value, tag string) (string, []*Next) {
 	fieldType := fieldValue.Type()
-	fieldName := stringsi.SnakeToCamel(k)
+	fieldName := stringsx.SnakeToCamel(k)
 	switch fieldType.Kind() {
 	case reflect.String, reflect.Int, reflect.Float64, reflect.Bool:
 		return fmt.Sprintf("%s %s `%s:\"%s\"`", fieldName, typePrefix+fieldType.Kind().String(), tag, k), nil

@@ -6,7 +6,7 @@ package mtos
 
 import (
 	"errors"
-	reflecti "github.com/hopeio/gox/reflect/converter"
+	reflectx "github.com/hopeio/gox/reflect/converter"
 	"reflect"
 	"strconv"
 	"strings"
@@ -19,7 +19,7 @@ var invalidPath = errors.New("schema: invalid path")
 func newCache(tag string) *cache {
 	c := cache{
 		m:       make(map[reflect.Type]*structInfo),
-		regconv: make(map[reflect.Type]reflecti.StringConverter),
+		regconv: make(map[reflect.Type]reflectx.StringConverter),
 		tag:     tag,
 	}
 	return &c
@@ -29,12 +29,12 @@ func newCache(tag string) *cache {
 type cache struct {
 	l       sync.RWMutex
 	m       map[reflect.Type]*structInfo
-	regconv map[reflect.Type]reflecti.StringConverter
+	regconv map[reflect.Type]reflectx.StringConverter
 	tag     string
 }
 
 // registerConverter registers a converter function for a custom type.
-func (c *cache) registerConverter(value interface{}, converterFunc reflecti.StringConverter) {
+func (c *cache) registerConverter(value interface{}, converterFunc reflectx.StringConverter) {
 	c.regconv[reflect.TypeOf(value)] = converterFunc
 }
 
@@ -183,7 +183,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 		}
 	}
 	if isStruct = ft.Kind() == reflect.Struct; !isStruct {
-		if c.converter(ft) == nil && reflecti.GetStringConverter(ft) == nil {
+		if c.converter(ft) == nil && reflectx.GetStringConverter(ft) == nil {
 			// Type is not supported.
 			return nil
 		}
@@ -202,7 +202,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 }
 
 // converter returns the converter for a type.
-func (c *cache) converter(t reflect.Type) reflecti.StringConverter {
+func (c *cache) converter(t reflect.Type) reflectx.StringConverter {
 	return c.regconv[t]
 }
 

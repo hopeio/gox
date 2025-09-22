@@ -7,7 +7,7 @@
 package client
 
 import (
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"io"
 	"net"
 	"net/http"
@@ -82,11 +82,11 @@ func New() *Client {
 	return &Client{httpClient: DefaultHttpClient, logger: DefaultLogger, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
-func (d *Client) Header(header httpi.Header) *Client {
+func (d *Client) Header(header httpx.Header) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)
 	}
-	httpi.HeaderIntoHttpHeader(header, d.header)
+	httpx.HeaderIntoHttpHeader(header, d.header)
 	return d
 }
 

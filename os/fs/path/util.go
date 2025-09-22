@@ -9,8 +9,8 @@ package path
 // 该文件仅供示例
 
 import (
-	stringsi "github.com/hopeio/gox/strings"
-	timei "github.com/hopeio/gox/time"
+	stringsx "github.com/hopeio/gox/strings"
+	timex "github.com/hopeio/gox/time"
 	"os"
 	"strconv"
 	"strings"
@@ -39,12 +39,12 @@ func (d *ByUId) PreHandle() {
 		d.IdStr = strconv.Itoa(d.Id)
 	}
 	if d.TimeStr == "" {
-		d.TimeStr = d.Time.Format(timei.LayoutCompactTime)
+		d.TimeStr = d.Time.Format(timex.LayoutCompactTime)
 	}
 	if d.UserIdStr == "" {
 		d.UserIdStr = strconv.Itoa(d.UserId)
 	}
-	d.TimeStr = stringsi.RemoveRunes(d.TimeStr, '-', ' ', ':')
+	d.TimeStr = stringsx.RemoveRunes(d.TimeStr, '-', ' ', ':')
 }
 
 func (d *ByUId) Path() string {

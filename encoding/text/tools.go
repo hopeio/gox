@@ -8,8 +8,8 @@ package text
 
 import (
 	"encoding"
-	reflecti "github.com/hopeio/gox/reflect/converter"
-	stringsi "github.com/hopeio/gox/strings"
+	reflectx "github.com/hopeio/gox/reflect/converter"
+	stringsx "github.com/hopeio/gox/strings"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/net/html/charset"
 	tencoding "golang.org/x/text/encoding"
@@ -44,14 +44,14 @@ func StringConvertFor[T any](str string) (T, error) {
 		itv, ok = ap.(encoding.TextUnmarshaler)
 	}
 	if ok {
-		err := itv.UnmarshalText(stringsi.ToBytes(str))
+		err := itv.UnmarshalText(stringsx.ToBytes(str))
 		if err != nil {
 			return t, err
 		}
 		return t, nil
 	}
 
-	v, err := reflecti.StringConvertFor[T](str)
+	v, err := reflectx.StringConvertFor[T](str)
 	if err != nil {
 		return t, err
 	}

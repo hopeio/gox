@@ -2,7 +2,7 @@ package apidoc
 
 import (
 	"github.com/getkin/kin-openapi/openapi3"
-	reflecti "github.com/hopeio/gox/reflect"
+	reflectx "github.com/hopeio/gox/reflect"
 	"reflect"
 	"strings"
 )
@@ -52,8 +52,8 @@ func AddComponent(name string, v interface{}) {
 			typ = "integer"
 		case reflect.Array, reflect.Slice:
 			typ = "array"
-			v = reflect.New(reflecti.DerefType(fieldType)).Interface()
-			subFieldName = reflecti.DerefType(fieldType).Name()
+			v = reflect.New(reflectx.DerefType(fieldType)).Interface()
+			subFieldName = reflectx.DerefType(fieldType).Name()
 		case reflect.Float32, reflect.Float64:
 			typ = "number"
 		case reflect.String:

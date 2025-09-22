@@ -5,7 +5,7 @@
 package router
 
 import (
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"net/http"
 	"reflect"
 	"sort"
@@ -72,7 +72,7 @@ const (
 
 type methodHandle struct {
 	method      string
-	middleware  httpi.HandlerFuncs
+	middleware  httpx.HandlerFuncs
 	httpHandler http.Handler
 }
 
@@ -111,7 +111,7 @@ type node struct {
 	indices    []byte
 	cType      nodeType //if>3 wildChild,代替原来的wildChild
 	children   []*node
-	middleware httpi.HandlerFuncs
+	middleware httpx.HandlerFuncs
 	handle     []*methodHandle
 }
 

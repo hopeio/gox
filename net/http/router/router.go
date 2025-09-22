@@ -82,7 +82,7 @@ package router
 
 import (
 	"context"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	urli "github.com/hopeio/gox/net/url"
 	"net/http"
 	"strings"
@@ -143,7 +143,7 @@ type Router struct {
 	maxParams  uint16
 
 	//前后调用
-	middleware httpi.HandlerFuncs
+	middleware httpx.HandlerFuncs
 
 	// If enabled, adds the matched route path onto the http.Request context
 	// before invoking the handler.

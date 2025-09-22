@@ -11,15 +11,15 @@ import (
 	"github.com/hopeio/gox/net/http/consts"
 
 	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
-	httpi "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
 	"google.golang.org/protobuf/proto"
 )
 
 func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message proto.Message) {
-	if res, ok := message.(httpi.ICommonResponseTo); ok {
-		res.CommonResponse(httpi.CommonResponseWriter{ctx.Writer})
+	if res, ok := message.(httpx.ICommonResponseTo); ok {
+		res.CommonResponse(httpx.CommonResponseWriter{ctx.Writer})
 		return
 	}
 	gateway.HandleForwardResponseServerMetadata(ctx.Writer, md.HeaderMD)
@@ -29,7 +29,7 @@ func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message pr
 	ctx.Header(consts.HeaderContentType, contentType)
 
 	if !message.ProtoReflect().IsValid() {
-		ctx.Writer.Write(httpi.ResponseOk)
+		ctx.Writer.Write(httpx.ResponseOk)
 		return
 	}
 	gateway.HandleForwardResponseTrailer(ctx.Writer, md.TrailerMD)
