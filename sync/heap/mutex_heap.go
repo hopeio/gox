@@ -8,7 +8,7 @@ package heap
 
 import (
 	"github.com/hopeio/gox/cmp"
-	"github.com/hopeio/gox/datastructure/heap"
+	"github.com/hopeio/gox/container/heap"
 	"sync"
 )
 

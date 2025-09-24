@@ -10,7 +10,7 @@ import (
 	"context"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dgraph-io/ristretto/v2"
-	"github.com/hopeio/gox/datastructure/heap"
+	"github.com/hopeio/gox/container/heap"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/os/fs"
 	"github.com/hopeio/gox/slices"

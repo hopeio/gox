@@ -9,7 +9,7 @@ package engine
 import (
 	"context"
 	"github.com/dgraph-io/ristretto/v2"
-	"github.com/hopeio/gox/datastructure/heap"
+	"github.com/hopeio/gox/container/heap"
 	"time"
 )
 

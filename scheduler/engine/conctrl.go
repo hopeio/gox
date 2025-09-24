@@ -10,7 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
-	id2 "github.com/hopeio/gox/datastructure/idgen/id"
+	id2 "github.com/hopeio/gox/container/idgen/id"
 	"github.com/hopeio/gox/log"
 	synci "github.com/hopeio/gox/sync"
 	"sync/atomic"
