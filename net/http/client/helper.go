@@ -7,17 +7,17 @@
 package client
 
 import (
-	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
 	"io"
 	"net/http"
+
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 func DefaultHeader() httpx.MapHeader {
 	return httpx.MapHeader{
-		consts.HeaderAcceptLanguage: "zh-CN,zh;q=0.9;charset=utf-8",
-		consts.HeaderConnection:     "keep-alive",
-		consts.HeaderUserAgent:      UserAgentChrome117,
+		httpx.HeaderAcceptLanguage: "zh-CN,zh;q=0.9;charset=utf-8",
+		httpx.HeaderConnection:     "keep-alive",
+		httpx.HeaderUserAgent:      UserAgentChrome117,
 		//"Accept", "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8", // 将会越来越少用，服务端一般固定格式
 	}
 }

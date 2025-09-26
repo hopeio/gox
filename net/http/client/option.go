@@ -7,8 +7,9 @@
 package client
 
 import (
-	httpx "github.com/hopeio/gox/net/http/consts"
 	"net/http"
+
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 type Option func(req *Client)

@@ -8,12 +8,13 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/hopeio/gox/net/http/consts"
-	"github.com/hopeio/gox/net/http/grpc"
-	"google.golang.org/grpc/metadata"
 	"net/http"
 	"net/textproto"
 	"slices"
+
+	http2 "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/net/http/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func InComingHeaderMatcher(key string) (string, bool) {
@@ -43,7 +44,7 @@ func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) 
 func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
 	for k := range md {
 		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
-		w.Header().Add(consts.HeaderTrailer, tKey)
+		w.Header().Add(http2.HeaderTrailer, tKey)
 	}
 }
 

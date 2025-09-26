@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/hopeio/gox/net/http/consts"
 	"net/http"
 	"path"
 	"strings"
+
+	http2 "github.com/hopeio/gox/net/http"
 )
 
 const (
@@ -154,7 +155,7 @@ func (r *uiOptions) EnsureDefaults() {
 func serveUI(pth string, assets []byte, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if path.Clean(r.URL.Path) == pth {
-			rw.Header().Set(consts.HeaderContentType, "text/html; charset=utf-8")
+			rw.Header().Set(http2.HeaderContentType, "text/html; charset=utf-8")
 			rw.WriteHeader(http.StatusOK)
 			_, _ = rw.Write(assets)
 
@@ -167,7 +168,7 @@ func serveUI(pth string, assets []byte, next http.Handler) http.Handler {
 			return
 		}
 
-		rw.Header().Set(consts.HeaderContentType, "text/plain")
+		rw.Header().Set(http2.HeaderContentType, "text/plain")
 		rw.WriteHeader(http.StatusNotFound)
 		_, _ = rw.Write([]byte(fmt.Sprintf("%q not found", pth)))
 	})

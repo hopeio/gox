@@ -9,14 +9,15 @@ package binding
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hopeio/gox/net/http/consts"
-	"github.com/hopeio/gox/reflect/mtos"
-	"github.com/hopeio/gox/validation/validator"
 	"io"
 	"net/http"
 	"reflect"
 	"strings"
 	"sync"
+
+	http2 "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/reflect/mtos"
+	"github.com/hopeio/gox/validation/validator"
 )
 
 // Validator is the default validator which implements the StructValidator
@@ -181,15 +182,15 @@ func (s RequestSource) Header() mtos.Setter {
 }
 
 func (s RequestSource) Form() mtos.Setter {
-	contentType := s.Request.Header.Get(consts.HeaderContentType)
-	if contentType == consts.ContentTypeForm {
+	contentType := s.Request.Header.Get(http2.HeaderContentType)
+	if contentType == http2.ContentTypeForm {
 		err := s.ParseForm()
 		if err != nil {
 			return nil
 		}
 		return (mtos.KVsSource)(s.PostForm)
 	}
-	if contentType == consts.ContentTypeMultipart {
+	if contentType == http2.ContentTypeMultipart {
 		err := s.ParseMultipartForm(DefaultMemory)
 		if err != nil {
 			return nil

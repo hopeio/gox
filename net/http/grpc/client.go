@@ -11,7 +11,7 @@ import (
 
 	"strings"
 
-	httpx "github.com/hopeio/gox/net/http/consts"
+	httpx "github.com/hopeio/gox/net/http"
 	"go.uber.org/multierr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var Internal = &metadata.MD{httpx.HeaderInternal: []string{"true"}}
+var InternalMD = &metadata.MD{httpx.HeaderInternal: []string{"true"}}
 
 type clientConns map[string]*grpc.ClientConn
 

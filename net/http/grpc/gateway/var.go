@@ -1,6 +1,8 @@
 package gateway
 
-import httpx "github.com/hopeio/gox/net/http/consts"
+import (
+	httpx "github.com/hopeio/gox/net/http"
+)
 
 var InComingHeader = []string{"Accept",
 	"Accept-Charset",

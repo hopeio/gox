@@ -7,11 +7,12 @@
 package exec
 
 import (
-	osx "github.com/hopeio/gox/os"
-	stringsx "github.com/hopeio/gox/strings"
 	"log"
 	"os"
 	"os/exec"
+
+	osx "github.com/hopeio/gox/os"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 func RunWithLog(arg string, opts ...Option) error {

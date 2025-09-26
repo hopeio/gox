@@ -7,13 +7,14 @@
 package gin
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/errors/errcode"
+	"github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/gin/binding"
 	"github.com/hopeio/gox/net/http/handlerwrap"
 	"github.com/hopeio/gox/types"
-	"net/http"
 )
 
 // only example
@@ -25,7 +26,7 @@ func HandlerWrap[REQ, RES any](service GinService[*REQ, *RES]) gin.HandlerFunc {
 		req := new(REQ)
 		err := binding.Bind(ctx, req)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, errcode.InvalidArgument.Wrap(err))
+			ctx.JSON(http.StatusBadRequest, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, reserr := service(ctx, req)
@@ -46,7 +47,7 @@ func HandlerWrapCompatibleGRPC[REQ, RES any](service types.GrpcService[*REQ, *RE
 		req := new(REQ)
 		err := binding.Bind(ctx, req)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, errcode.InvalidArgument.Wrap(err))
+			ctx.JSON(http.StatusBadRequest, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, err := service(handlerwrap.WarpContext(ctx), req)

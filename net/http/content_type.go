@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package consts
+package http
 
 const (
 	// ContentTypeJavascript header value for JSONP & Javascript data.

@@ -8,7 +8,7 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/errors/errcode"
+	"github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
 )
 
@@ -16,11 +16,11 @@ func RespSuccessMsg(ctx *gin.Context, msg string) {
 	httpx.RespSuccessMsg(ctx.Writer, msg)
 }
 
-func RespErrRep(ctx *gin.Context, rep *errcode.ErrRep) {
+func RespErrRep(ctx *gin.Context, rep *errors.ErrRep) {
 	httpx.RespErrRep(ctx.Writer, rep)
 }
 
-func Response(ctx *gin.Context, code errcode.ErrCode, msg string, data interface{}) {
+func Response(ctx *gin.Context, code errors.ErrCode, msg string, data interface{}) {
 	httpx.Response(ctx.Writer, code, msg, data)
 }
 

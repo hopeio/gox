@@ -2,10 +2,10 @@ package fs
 
 import (
 	"fmt"
-	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
 	"io"
 	"net/http"
+
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 type ResponseFile struct {
@@ -19,8 +19,8 @@ func (res *ResponseFile) Response(w http.ResponseWriter) (int, error) {
 
 func (res *ResponseFile) CommonResponse(w httpx.ICommonResponseWriter) (int, error) {
 	header := w.Header()
-	header.Set(consts.HeaderContentType, consts.ContentTypeOctetStream)
-	header.Set(consts.HeaderContentDisposition, fmt.Sprintf(consts.AttachmentTmpl, res.Name))
+	header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
+	header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
 	n, err := io.Copy(w, res.Body)
 	res.Body.Close()
 	return int(n), err
@@ -37,8 +37,8 @@ func (res *ResponseFileWriteTo) Response(w http.ResponseWriter) (int, error) {
 
 func (res *ResponseFileWriteTo) CommonResponse(w httpx.ICommonResponseWriter) (int, error) {
 	header := w.Header()
-	header.Set(consts.HeaderContentType, consts.ContentTypeOctetStream)
-	header.Set(consts.HeaderContentDisposition, fmt.Sprintf(consts.AttachmentTmpl, res.Name))
+	header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
+	header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
 	n, err := res.Body.WriteTo(w)
 	res.Body.Close()
 	return int(n), err

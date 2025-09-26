@@ -8,16 +8,17 @@ package grpc_gateway
 
 import (
 	"context"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/hopeio/gox/errors/errcode"
-	"github.com/hopeio/gox/net/http/consts"
+	"github.com/hopeio/gox/errors"
+	http2 "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
 	stringsx "github.com/hopeio/gox/strings"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
-	"io"
-	"net/http"
-	"strings"
 )
 
 func RoutingErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, httpStatus int) {
@@ -29,11 +30,11 @@ func RoutingErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler r
 func CustomHttpError(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
 
 	s, ok := status.FromError(err)
-	const fallback = `{"code": 14, "message": "failed to marshal error message"}`
+	const fallback = `{"code": 14, "msg": "failed to marshal error message"}`
 
-	w.Header().Del(consts.HeaderTrailer)
-	w.Header().Set(consts.HeaderContentType, marshaler.ContentType(nil))
-	se := &errcode.ErrRep{Code: errcode.ErrCode(s.Code()), Msg: s.Message()}
+	w.Header().Del(http2.HeaderTrailer)
+	w.Header().Set(http2.HeaderContentType, marshaler.ContentType(nil))
+	se := &errors.ErrRep{Code: errors.ErrCode(s.Code()), Msg: s.Message()}
 	md, ok := runtime.ServerMetadataFromContext(ctx)
 	if !ok {
 		grpclog.Infof("Failed to extract ServerMetadata from context")
@@ -53,10 +54,10 @@ func CustomHttpError(ctx context.Context, mux *runtime.ServeMux, marshaler runti
 
 	var wantsTrailers bool
 
-	if te := r.Header.Get(consts.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
+	if te := r.Header.Get(http2.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
 		wantsTrailers = true
 		gateway.HandleForwardResponseTrailerHeader(w, md.TrailerMD)
-		w.Header().Set(consts.HeaderTransferEncoding, "chunked")
+		w.Header().Set(http2.HeaderTransferEncoding, "chunked")
 	}
 
 	/*	st := HTTPStatusFromCode(se.Code)

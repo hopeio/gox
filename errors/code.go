@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package errcode
+package errors
 
 const (
 	// SysErr ErrCode = -1
@@ -28,6 +28,7 @@ const (
 )
 
 var codeMsgMap = map[ErrCode]string{
+	Success:            "Success",
 	Canceled:           "Canceled",
 	Unknown:            "Unknown",
 	InvalidArgument:    "InvalidArgument",

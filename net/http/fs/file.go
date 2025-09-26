@@ -8,14 +8,14 @@ package fs
 
 import (
 	"errors"
-	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
 	"io"
 	"io/fs"
 	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
+
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 type File struct {
@@ -29,8 +29,8 @@ func (f *File) Response(w http.ResponseWriter) (int, error) {
 
 func (f *File) CommonResponse(w httpx.ICommonResponseWriter) (int, error) {
 	header := w.Header()
-	header.Set(consts.HeaderContentDisposition, "attachment; filename="+f.Name)
-	header.Set(consts.HeaderContentType, http.DetectContentType(make([]byte, 512)))
+	header.Set(httpx.HeaderContentDisposition, "attachment; filename="+f.Name)
+	header.Set(httpx.HeaderContentType, http.DetectContentType(make([]byte, 512)))
 	n, err := io.Copy(w, f.File)
 	f.File.Close()
 	return int(n), err

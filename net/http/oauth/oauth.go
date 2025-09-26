@@ -10,12 +10,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
-	"github.com/hopeio/gox/types/param"
 	"net/http"
 	"net/url"
 	"time"
+
+	httpx "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/types/param"
 
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
@@ -164,7 +164,7 @@ func (s *Server) redirectError(req *param.OauthReq, err error, w http.ResponseWr
 func (s *Server) redirect(req *param.OauthReq, data map[string]interface{}, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusFound)
 	if req.LoginURI != "" {
-		w.Header().Set(consts.HeaderLocation, req.LoginURI)
+		w.Header().Set(httpx.HeaderLocation, req.LoginURI)
 		w.Write([]byte("not logged in"))
 		return
 	}
@@ -174,7 +174,7 @@ func (s *Server) redirect(req *param.OauthReq, data map[string]interface{}, w ht
 		return
 	}
 
-	w.Header().Set(consts.HeaderLocation, uri)
+	w.Header().Set(httpx.HeaderLocation, uri)
 }
 
 func (s *Server) HandleAuthorizeRequest(ctx context.Context, req *param.OauthReq, token string, w http.ResponseWriter) {

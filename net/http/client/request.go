@@ -14,18 +14,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/andybalholm/brotli"
-	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
-	url2 "github.com/hopeio/gox/net/url"
-	stringsx "github.com/hopeio/gox/strings"
-	"github.com/hopeio/gox/strings/unicode"
-	"github.com/klauspost/compress/zstd"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/andybalholm/brotli"
+	httpx "github.com/hopeio/gox/net/http"
+	url2 "github.com/hopeio/gox/net/url"
+	stringsx "github.com/hopeio/gox/strings"
+	"github.com/hopeio/gox/strings/unicode"
+	"github.com/klauspost/compress/zstd"
 )
 
 var (
@@ -208,7 +208,7 @@ func (req *Request) Do(param, response any) error {
 	if req.header != nil {
 		request.Header = req.header
 	}
-	request.Header.Set(consts.HeaderContentType, req.contentType.String())
+	request.Header.Set(httpx.HeaderContentType, req.contentType.String())
 	httpx.CopyHttpHeader(request.Header, c.header)
 
 Retry:
@@ -272,7 +272,7 @@ Retry:
 	var reader io.Reader
 	// net/http会自动处理gzip
 	// go1.22 发现没有处理(并不是,是请求时header标明Content-Encoding时不会处理)
-	encoding := resp.Header.Get(consts.HeaderContentEncoding)
+	encoding := resp.Header.Get(httpx.HeaderContentEncoding)
 	var compress bool
 	if encoding != "" {
 		switch strings.ToLower(encoding) {
@@ -303,8 +303,8 @@ Retry:
 		reader = resp.Body
 	}
 	if compress {
-		resp.Header.Del(consts.HeaderContentEncoding)
-		resp.Header.Del(consts.HeaderContentLength)
+		resp.Header.Del(httpx.HeaderContentEncoding)
+		resp.Header.Del(httpx.HeaderContentLength)
 		resp.ContentLength = -1
 		resp.Uncompressed = true
 	}

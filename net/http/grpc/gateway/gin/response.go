@@ -8,8 +8,6 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/net/http/consts"
-
 	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
@@ -26,7 +24,7 @@ func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message pr
 	gateway.HandleForwardResponseTrailerHeader(ctx.Writer, md.TrailerMD)
 
 	contentType := jsonpb.JsonPb.ContentType(message)
-	ctx.Header(consts.HeaderContentType, contentType)
+	ctx.Header(httpx.HeaderContentType, contentType)
 
 	if !message.ProtoReflect().IsValid() {
 		ctx.Writer.Write(httpx.ResponseOk)

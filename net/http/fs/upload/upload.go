@@ -8,12 +8,12 @@ package upload
 
 import (
 	"fmt"
-	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
-	"github.com/hopeio/gox/os/fs"
 	"io"
 	"net/http"
 	"os"
+
+	httpx "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/os/fs"
 )
 
 func Upload(dir string) http.HandlerFunc {
@@ -33,7 +33,7 @@ func Upload(dir string) http.HandlerFunc {
 			return
 		}
 		// 解析Range头部
-		rangeHeader := r.Header.Get(consts.HeaderContentRange)
+		rangeHeader := r.Header.Get(httpx.HeaderContentRange)
 		if rangeHeader == "" {
 			http.Error(w, "missing Content-Range header", http.StatusBadRequest)
 			return
@@ -80,7 +80,7 @@ func Upload(dir string) http.HandlerFunc {
 		}
 
 		// 如果一切顺利，发送成功的响应
-		w.Header().Set(consts.HeaderContentRange, fmt.Sprintf("bytes %d-%d/%d", start, end, stats.Size()))
+		w.Header().Set(httpx.HeaderContentRange, fmt.Sprintf("bytes %d-%d/%d", start, end, stats.Size()))
 		w.WriteHeader(http.StatusPartialContent)
 		fmt.Fprintf(w, "Uploaded chunk from byte %d to %d", start, end)
 

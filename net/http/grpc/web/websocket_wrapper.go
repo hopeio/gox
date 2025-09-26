@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"golang.org/x/net/http2"
-	"nhooyr.io/websocket"
 )
 
 type webSocketResponseWriter struct {
@@ -51,7 +51,7 @@ func (w *webSocketResponseWriter) ping() {
 			return
 		case <-w.timer.C:
 			w.timer.Reset(w.timeOutInterval)
-			w.wsConn.Ping(w.context)
+			w.wsConn.PingHandler()("a")
 		}
 	}
 }
@@ -67,7 +67,7 @@ func (w *webSocketResponseWriter) Write(b []byte) (int, error) {
 	if w.timeOutInterval > time.Second && w.timer != nil {
 		w.timer.Reset(w.timeOutInterval)
 	}
-	return len(b), w.wsConn.Write(w.context, websocket.MessageBinary, b)
+	return len(b), w.wsConn.WriteMessage(websocket.BinaryMessage, b)
 }
 
 func (w *webSocketResponseWriter) writeHeaderFrame(headers http.Header) {
@@ -75,8 +75,8 @@ func (w *webSocketResponseWriter) writeHeaderFrame(headers http.Header) {
 	headers.Write(headerBuffer)
 	headerGrpcDataHeader := []byte{1 << 7, 0, 0, 0, 0} // MSB=1 indicates this is a header data frame.
 	binary.BigEndian.PutUint32(headerGrpcDataHeader[1:5], uint32(headerBuffer.Len()))
-	w.wsConn.Write(w.context, websocket.MessageBinary, headerGrpcDataHeader)
-	w.wsConn.Write(w.context, websocket.MessageBinary, headerBuffer.Bytes())
+	w.wsConn.WriteMessage(websocket.BinaryMessage, headerGrpcDataHeader)
+	w.wsConn.WriteMessage(websocket.BinaryMessage, headerBuffer.Bytes())
 }
 
 func (w *webSocketResponseWriter) copyFlushedHeaders() {
@@ -127,7 +127,7 @@ type webSocketWrappedReader struct {
 
 func (w *webSocketWrappedReader) Close() error {
 	w.respWriter.FlushTrailers()
-	return w.wsConn.Close(websocket.StatusNormalClosure, "request body closed")
+	return w.wsConn.CloseHandler()(websocket.CloseMessage, "request body closed")
 }
 
 // First byte of a binary WebSocket frame is used for control flow:
@@ -162,7 +162,7 @@ func (w *webSocketWrappedReader) Read(p []byte) (int, error) {
 	}
 
 	// Read a whole frame from the WebSocket connection
-	messageType, framePayload, err := w.wsConn.Read(w.context)
+	messageType, framePayload, err := w.wsConn.ReadMessage()
 	if err == io.EOF || messageType == 0 {
 		// The client has closed the connection. Indicate to the response writer that it should close
 		w.cancel()
@@ -170,7 +170,7 @@ func (w *webSocketWrappedReader) Read(p []byte) (int, error) {
 	}
 
 	// Only Binary frames are valid
-	if messageType != websocket.MessageBinary {
+	if messageType != websocket.BinaryMessage {
 		return 0, errors.New("websocket frame was not a binary frame")
 	}
 
@@ -178,7 +178,7 @@ func (w *webSocketWrappedReader) Read(p []byte) (int, error) {
 	if len(framePayload) == 1 && framePayload[0] == 1 {
 		go func() {
 			for {
-				messageType, _, err := w.wsConn.Read(w.context)
+				messageType, _, err := w.wsConn.ReadMessage()
 				if err == io.EOF || messageType == 0 {
 					// The client has closed the connection. Indicate to the response writer that it should close
 					w.cancel()

@@ -9,8 +9,9 @@
 package exec
 
 import (
-	osi "github.com/hopeio/gox/os"
 	"os/exec"
+
+	osx "github.com/hopeio/gox/os"
 )
 
 func RunGetOutContainQuoted(s string) (string, error) {
@@ -22,6 +23,6 @@ func RunContainQuoted(s string) error {
 }
 
 func ContainQuotedCMD(s string) *exec.Cmd {
-	words := osi.Split(s)
+	words := osx.Split(s)
 	return exec.Command(words[0], words[1:]...)
 }

@@ -8,11 +8,12 @@ package apidoc
 
 import (
 	"bytes"
-	"github.com/hopeio/gox/net/http/consts"
-	"github.com/hopeio/gox/os/fs"
 	"net/http"
 	"os"
 	"path"
+
+	http2 "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/os/fs"
 )
 
 // 目录结构 ./api/mod/mod.swagger.json ./api/mod/mod.apidoc.md
@@ -34,7 +35,7 @@ func Swagger(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		w.Header().Set(consts.HeaderContentType, "application/json; charset=utf-8")
+		w.Header().Set(http2.HeaderContentType, "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 		return

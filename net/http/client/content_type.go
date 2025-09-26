@@ -7,8 +7,9 @@
 package client
 
 import (
-	"github.com/hopeio/gox/net/http/consts"
 	"strings"
+
+	"github.com/hopeio/gox/net/http"
 )
 
 type ContentType uint8
@@ -17,13 +18,13 @@ func (c ContentType) String() string {
 	if c < ContentTypeApplication {
 		return contentTypes[c] + ";charset=UTF-8"
 	}
-	return consts.ContentTypeOctetStream + ";charset=UTF-8"
+	return http.ContentTypeOctetStream + ";charset=UTF-8"
 }
 
 func (c *ContentType) Decode(contentType string) {
-	if strings.HasPrefix(contentType, consts.ContentTypeJson) {
+	if strings.HasPrefix(contentType, http.ContentTypeJson) {
 		*c = ContentTypeJson
-	} else if strings.HasPrefix(contentType, consts.ContentTypeForm) {
+	} else if strings.HasPrefix(contentType, http.ContentTypeForm) {
 		*c = ContentTypeForm
 	} else if strings.HasPrefix(contentType, "text") {
 		*c = ContentTypeText
@@ -57,14 +58,14 @@ const (
 )
 
 var contentTypes = []string{
-	consts.ContentTypeJson,
-	consts.ContentTypeForm,
-	consts.ContentTypeMultipart,
-	consts.ContentTypeGrpc,
-	consts.ContentTypeGrpcWeb,
-	consts.ContentTypeXmlUnreadable,
-	consts.ContentTypeText,
-	consts.ContentTypeOctetStream,
+	http.ContentTypeJson,
+	http.ContentTypeForm,
+	http.ContentTypeMultipart,
+	http.ContentTypeGrpc,
+	http.ContentTypeGrpcWeb,
+	http.ContentTypeXmlUnreadable,
+	http.ContentTypeText,
+	http.ContentTypeOctetStream,
 	/*	consts.ContentImagePngHeaderValue,
 		consts.ContentImageJpegHeaderValue,
 		consts.ContentImageGifHeaderValue,

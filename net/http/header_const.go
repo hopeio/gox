@@ -1,4 +1,4 @@
-package consts
+package http
 
 const (
 	HeaderUserAgent                   = "User-Agent"

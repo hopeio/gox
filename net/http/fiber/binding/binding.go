@@ -7,12 +7,13 @@
 package binding
 
 import (
+	"net/http"
+
 	"github.com/gofiber/fiber/v3"
+	http2 "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/binding"
-	"github.com/hopeio/gox/net/http/consts"
 	"github.com/hopeio/gox/reflect/mtos"
 	stringsx "github.com/hopeio/gox/strings"
-	"net/http"
 )
 
 func Bind(c fiber.Ctx, obj interface{}) error {
@@ -36,11 +37,11 @@ func (s RequestSource) Header() mtos.Setter {
 }
 
 func (s RequestSource) Form() mtos.Setter {
-	contentType := stringsx.FromBytes(s.Request().Header.Peek(consts.HeaderContentType))
-	if contentType == consts.ContentTypeForm {
+	contentType := stringsx.FromBytes(s.Request().Header.Peek(http2.HeaderContentType))
+	if contentType == http2.ContentTypeForm {
 		return (*ArgsSource)(s.Request().PostArgs())
 	}
-	if contentType == consts.ContentTypeMultipart {
+	if contentType == http2.ContentTypeMultipart {
 		multipartForm, err := s.MultipartForm()
 		if err != nil {
 			return nil

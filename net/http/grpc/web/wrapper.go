@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
-	"nhooyr.io/websocket"
 )
 
 var (
@@ -154,10 +154,10 @@ func (w *WrappedGrpcServer) HandleGrpcWebRequest(resp http.ResponseWriter, req *
 // response to comply with the gRPC-Web protocol.
 func (w *WrappedGrpcServer) HandleGrpcWebsocketRequest(resp http.ResponseWriter, req *http.Request) {
 
-	wsConn, err := websocket.Accept(resp, req, &websocket.AcceptOptions{
-		InsecureSkipVerify: true, // managed by ServeHTTP
-		Subprotocols:       []string{"grpc-websockets"},
-	})
+	wsConn, err := (&websocket.Upgrader{
+		CheckOrigin:     func(r *http.Request) bool { return true },
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024}).Upgrade(resp, req, nil)
 	if err != nil {
 		grpclog.Errorf("Unable to upgrade websocket request: %v", err)
 		return
@@ -177,13 +177,13 @@ func (w *WrappedGrpcServer) HandleGrpcWebsocketRequest(resp http.ResponseWriter,
 	ctx, cancelFunc := context.WithCancel(req.Context())
 	defer cancelFunc()
 
-	messageType, readBytes, err := wsConn.Read(ctx)
+	messageType, readBytes, err := wsConn.ReadMessage()
 	if err != nil {
 		grpclog.Errorf("Unable to read first websocket message: %v %v %v", messageType, readBytes, err)
 		return
 	}
 
-	if messageType != websocket.MessageBinary {
+	if messageType != websocket.BinaryMessage {
 		grpclog.Errorf("First websocket message is non-binary")
 		return
 	}

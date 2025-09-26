@@ -2,12 +2,12 @@ package gateway
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/consts"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/proto"
-	"net/http"
 )
 
 func Response(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
@@ -50,5 +50,5 @@ type responseBody interface {
 }
 
 var OutGoingHeader = []string{
-	consts.HeaderSetCookie,
+	httpx.HeaderSetCookie,
 }

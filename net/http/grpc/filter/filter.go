@@ -8,9 +8,9 @@ package filter
 
 import (
 	"context"
-	httpx "github.com/hopeio/gox/net/http/consts"
 	"strings"
 
+	httpx "github.com/hopeio/gox/net/http"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
