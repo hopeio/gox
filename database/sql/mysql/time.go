@@ -7,10 +7,11 @@
 package mysql
 
 import (
-	timei "github.com/hopeio/gox/time"
 	"time"
+
+	timex "github.com/hopeio/gox/time"
 )
 
 func Now() string {
-	return time.Now().Format(timei.LayoutTimeMacro)
+	return time.Now().Format(timex.LayoutTimeMacro)
 }

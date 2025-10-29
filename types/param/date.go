@@ -7,9 +7,10 @@
 package param
 
 import (
-	timei "github.com/hopeio/gox/time"
 	"strconv"
 	"time"
+
+	timex "github.com/hopeio/gox/time"
 )
 
 type DateFilter struct {
@@ -21,23 +22,23 @@ type DateFilter struct {
 // 赋值本周期，并返回下周期日期
 func (d *DateFilter) Scope() (time.Time, time.Time) {
 	beginStr, endStr := d.scope()
-	begin, _ := time.Parse(timei.LayoutDateTime, beginStr)
-	end, _ := time.Parse(timei.LayoutDateTime, endStr)
+	begin, _ := time.Parse(timex.LayoutDateTime, beginStr)
+	end, _ := time.Parse(timex.LayoutDateTime, endStr)
 	return begin, end
 }
 
 func (d *DateFilter) scope() (string, string) {
 	if d.DateBegin != "" && d.DateEnd != "" {
-		begin := d.DateBegin + timei.DayBeginTimeWithSpace
-		end := d.DateEnd + timei.DayEndTimeWithSpace
+		begin := d.DateBegin + timex.DayBeginTimeWithSpace
+		end := d.DateEnd + timex.DayEndTimeWithSpace
 		return begin, end
 	}
 	//如果传的是RangeEnum，截止日期都是这一天
 	now := time.Now()
-	d.DateEnd = now.Format(timei.LayoutDate) + timei.DayEndTimeWithSpace
+	d.DateEnd = now.Format(timex.LayoutDate) + timex.DayEndTimeWithSpace
 	switch d.RangeEnum {
 	case 1:
-		beginStr := now.Format(timei.LayoutDate)
+		beginStr := now.Format(timex.LayoutDate)
 		d.DateBegin = beginStr
 	case 2:
 		weekday := now.Weekday()
@@ -47,7 +48,7 @@ func (d *DateFilter) scope() (string, string) {
 			weekday -= 1
 		}
 		begin := now.AddDate(0, 0, -int(weekday))
-		d.DateBegin = begin.Format("2006-01-02") + timei.DayBeginTimeWithSpace
+		d.DateBegin = begin.Format("2006-01-02") + timex.DayBeginTimeWithSpace
 
 	case 3:
 		d.DateBegin = now.Format("2006-01") + "-01 00:00:00"
