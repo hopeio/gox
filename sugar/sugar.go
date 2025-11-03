@@ -6,3 +6,7 @@ func TernaryOperator[T any](v bool, a, b T) T {
 	}
 	return b
 }
+
+func Pointer[T any](t T) *T {
+	return &t
+}
