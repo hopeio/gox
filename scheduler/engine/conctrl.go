@@ -9,12 +9,13 @@ package engine
 import (
 	"context"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
-	id2 "github.com/hopeio/gox/container/idgen/id"
-	"github.com/hopeio/gox/log"
-	synci "github.com/hopeio/gox/sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
+	id2 "github.com/hopeio/gox/idgen/id"
+	"github.com/hopeio/gox/log"
+	synci "github.com/hopeio/gox/sync"
 )
 
 func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {

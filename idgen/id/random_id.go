@@ -6,10 +6,11 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/hopeio/gox/strings"
 	"io"
 	"math/rand"
 	"sync"
+
+	"github.com/hopeio/gox/strings"
 )
 
 var defaultIDGenerator randomIDGenerator
