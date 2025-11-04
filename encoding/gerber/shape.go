@@ -1,9 +1,10 @@
 package gerber
 
 import (
-	"github.com/hopeio/gox/math/geom"
-	imagei "github.com/hopeio/gox/media/image"
 	"image"
+
+	"github.com/hopeio/gox/math/geom"
+	imagex "github.com/hopeio/gox/media/image"
 )
 
 // A Segment is a stroked line.
@@ -29,7 +30,7 @@ func (e *Contour) Bounds() *geom.Bounds {
 	lastPoint := image.Point{X: int(e.X), Y: int(e.Y)}
 	for _, s := range e.Segments {
 		if s.Interpolation == InterpolationLinear {
-			bounds = imagei.RectUnionPoint(bounds, image.Point{X: int(s.X), Y: int(s.Y)})
+			bounds = imagex.RectUnionPoint(bounds, image.Point{X: int(s.X), Y: int(s.Y)})
 		} else {
 			// 粗暴解决
 			bounds = bounds.Union(image.Rect(lastPoint.X, lastPoint.Y, int(s.X), int(s.Y)).Add(image.Pt(int(s.X), int(s.Y))))

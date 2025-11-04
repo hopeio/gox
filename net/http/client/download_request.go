@@ -63,12 +63,12 @@ func (dReq *DownloadReq) SetDownloader(set func(c *Downloader)) *DownloadReq {
 	set(dReq.downloader)
 	return dReq
 }
-func (req *DownloadReq) Header(header httpx.Header) *DownloadReq {
-	if req.header == nil {
-		req.header = make(http.Header)
+func (dReq *DownloadReq) Header(header http.Header) *DownloadReq {
+	if dReq.header == nil {
+		dReq.header = make(http.Header)
 	}
-	httpx.HeaderIntoHttpHeader(header, req.header)
-	return req
+	httpx.CopyHttpHeader(dReq.header, header)
+	return dReq
 }
 
 func (dReq *DownloadReq) AddHeader(k, v string) *DownloadReq {

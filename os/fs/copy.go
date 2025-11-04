@@ -7,10 +7,11 @@
 package fs
 
 import (
-	"github.com/hopeio/gox/crypto/md5"
 	"io"
 	"os"
 	"syscall"
+
+	"github.com/hopeio/gox/crypto/md5"
 )
 
 type mode int
@@ -48,8 +49,7 @@ func (c mode) handle(dst string, src io.Reader) (skip bool, err error) {
 	return false, nil
 }
 
-// Copy : General Approach
-func Copy(src, dst string) error {
+func Copy(dst, src string) error {
 	r, err := os.Open(src)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func Copy(src, dst string) error {
 	return CreateFromReader(dst, r)
 }
 
-func CopyByMode(src, dst string, c mode) error {
+func CopyByMode(dst, src string, c mode) error {
 	r, err := os.Open(src)
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func DownloadByMode(filepath string, reader io.Reader, c mode) error {
 }
 
 // CopyDirByMode 递归复制目录
-func CopyDirByMode(src, dst string, c mode) error {
+func CopyDirByMode(dst, src string, c mode) error {
 	if src[len(src)-1] == os.PathSeparator {
 		src = src[:len(src)-1]
 	}
@@ -149,12 +149,12 @@ func CopyDirByMode(src, dst string, c mode) error {
 	for _, entry := range entries {
 		entityName := entry.Name()
 		if entry.IsDir() {
-			err = CopyDirByMode(src+PathSeparator+entityName, dst+PathSeparator+entityName, c)
+			err = CopyDirByMode(dst+PathSeparator+entityName, src+PathSeparator+entityName, c)
 			if err != nil {
 				return err
 			}
 		} else {
-			err = CopyByMode(src+PathSeparator+entityName, dst+PathSeparator+entityName, c)
+			err = CopyByMode(dst+PathSeparator+entityName, src+PathSeparator+entityName, c)
 			if err != nil {
 				return err
 			}
@@ -164,8 +164,8 @@ func CopyDirByMode(src, dst string, c mode) error {
 }
 
 // CopyDir 递归复制目录
-func CopyDir(src, dst string) error {
-	return CopyDirByMode(src, dst, Cover)
+func CopyDir(dst, src string) error {
+	return CopyDirByMode(dst, src, Cover)
 }
 
 func MoveDirByMode(src, dst string, c mode) error {

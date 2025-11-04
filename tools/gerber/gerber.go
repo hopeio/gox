@@ -4,12 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/hopeio/gox/encoding/gerber"
-	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/math/geom"
-	imagei "github.com/hopeio/gox/media/image"
-	gocvi "github.com/hopeio/gox/sdk/gocv"
-	"gocv.io/x/gocv"
 	"image"
 	"image/color"
 	"io"
@@ -20,6 +14,13 @@ import (
 	"slices"
 	"strconv"
 	"unsafe"
+
+	"github.com/hopeio/gox/encoding/gerber"
+	"github.com/hopeio/gox/log"
+	"github.com/hopeio/gox/math/geom"
+	imagex "github.com/hopeio/gox/media/image"
+	gocvx "github.com/hopeio/gox/sdk/gocv"
+	"gocv.io/x/gocv"
 )
 
 func main() {
@@ -104,7 +105,7 @@ func main() {
 		if bounds.Min.X < imageRect.Min.X || bounds.Min.Y < imageRect.Min.Y || bounds.Max.X > imageRect.Max.X || bounds.Max.Y > imageRect.Max.Y {
 			continue
 		}
-		if removeRectCount < maxCount && slices.ContainsFunc(circles, func(c *imagei.Circle) bool {
+		if removeRectCount < maxCount && slices.ContainsFunc(circles, func(c *imagex.Circle) bool {
 			return (bounds.Min.X-imageRect.Min.X+bounds.Max.X-imageRect.Min.X)/2 >= c.Center.X-c.Radius &&
 				(bounds.Min.X-imageRect.Min.X+bounds.Max.X-imageRect.Min.X)/2 <= c.Center.X+c.Radius &&
 				(bounds.Min.Y-imageRect.Min.Y+bounds.Max.Y-imageRect.Min.Y)/2 >= c.Center.Y-c.Radius &&
@@ -131,7 +132,7 @@ type RotatedRect struct {
 	Angle        float64
 }
 
-func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect, []*imagei.Circle, image.Rectangle) {
+func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect, []*imagex.Circle, image.Rectangle) {
 	var rects []*RotatedRect
 	img := gocv.IMRead(path, gocv.IMReadUnchanged)
 	defer img.Close()
@@ -172,7 +173,7 @@ func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect,
 		}
 		notZero := gocv.CountNonZero(binary.Region(rect))
 		fmt.Println(notZero)
-		notZero = gocvi.CountNonZeroInPointsVector(binary, gocvi.PointsVectorFromPoints(minRect.Points))
+		notZero = gocvx.CountNonZeroInPointsVector(binary, gocvx.PointsVectorFromPoints(minRect.Points))
 		fmt.Println(notZero)
 		fillRadio := float64(notZero) / float64(minRect.Height*minRect.Width)
 		if w == 1 || h == 1 || fillRadio < 0.5 {
@@ -193,7 +194,7 @@ func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect,
 	circleMat := gocv.NewMat()
 	defer circleMat.Close()
 	gocv.HoughCirclesWithParams(blurred, &circleMat, gocv.HoughGradient, 1, float64(radius*10), 30, 30, radius, radius)
-	var circles []*imagei.Circle
+	var circles []*imagex.Circle
 	for i := range circleMat.Cols() {
 		v := circleMat.GetVecfAt(0, i)
 		x := int(v[0])
@@ -204,7 +205,7 @@ func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect,
 		pixels := gocv.CountNonZero(region)
 		fillRatio := float64(pixels) / float64(area)
 		if fillRatio >= 0.7 {
-			circles = append(circles, &imagei.Circle{image.Pt(x, y), r})
+			circles = append(circles, &imagex.Circle{image.Pt(x, y), r})
 		}
 	}
 	//debug

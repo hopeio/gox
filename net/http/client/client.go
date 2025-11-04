@@ -7,12 +7,13 @@
 package client
 
 import (
-	httpx "github.com/hopeio/gox/net/http"
 	"io"
 	"net"
 	"net/http"
 	stdurl "net/url"
 	"time"
+
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 // github.com/go-resty/resty 是个不错的选择,但是缺少一些我需要的功能，例如brotli解码，以及自定义处理body data，用于解决一些参数和返回body的AES加密或其他
@@ -82,11 +83,11 @@ func New() *Client {
 	return &Client{httpClient: DefaultHttpClient, logger: DefaultLogger, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
-func (d *Client) Header(header httpx.Header) *Client {
+func (d *Client) Header(header http.Header) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)
 	}
-	httpx.HeaderIntoHttpHeader(header, d.header)
+	httpx.CopyHttpHeader(d.header, header)
 	return d
 }
 

@@ -9,13 +9,14 @@ package fs
 import (
 	"crypto/md5"
 	"encoding/hex"
-	md52 "github.com/hopeio/gox/crypto/md5"
-	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/slices"
 	"io"
 	"os"
 	stdpath "path"
 	"strings"
+
+	md52 "github.com/hopeio/gox/crypto/md5"
+	"github.com/hopeio/gox/log"
+	"github.com/hopeio/gox/slices"
 )
 
 func Exist(filepath string) bool {
@@ -201,7 +202,7 @@ func TwoDirDeDuplicate(dir1, dir2 string) error {
 }
 
 // 两个目录同步,第一个参数为主目录,参考目录,第二个参数目录与第一个保持一致
-func Sync(mainDir, slaveDir string) error {
+func Sync(slaveDir, mainDir string) error {
 	mainDirEntries, err := os.ReadDir(mainDir)
 	if err == nil {
 		return err
@@ -211,7 +212,7 @@ func Sync(mainDir, slaveDir string) error {
 	}
 	_, err = os.Stat(slaveDir)
 	if os.IsNotExist(err) {
-		return CopyDir(mainDir, slaveDir)
+		return CopyDir(slaveDir, mainDir)
 	}
 
 	slaveDirEntries, err := os.ReadDir(slaveDir)
@@ -228,14 +229,14 @@ func Sync(mainDir, slaveDir string) error {
 
 	}
 	for _, entry := range diff1 {
-		err = CopyDir(mainDir+PathSeparator+entry.Name(), slaveDir+PathSeparator+entry.Name())
+		err = CopyDir(slaveDir+PathSeparator+entry.Name(), mainDir+PathSeparator+entry.Name())
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, entry := range intersection {
-		err = Sync(mainDir+PathSeparator+entry.Name(), slaveDir+PathSeparator+entry.Name())
+		err = Sync(slaveDir+PathSeparator+entry.Name(), mainDir+PathSeparator+entry.Name())
 		if err != nil {
 			return err
 		}

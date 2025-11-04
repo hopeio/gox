@@ -7,13 +7,14 @@
 package gocv
 
 import (
-	imagei "github.com/hopeio/gox/media/image"
-	"gocv.io/x/gocv"
 	"image"
 	"image/color"
+
+	imagex "github.com/hopeio/gox/media/image"
+	"gocv.io/x/gocv"
 )
 
-func SearchCircle(path string, radius int) (circles []imagei.Circle, err error) {
+func SearchCircle(path string, radius int) (circles []imagex.Circle, err error) {
 	gimg := gocv.IMRead(path, gocv.IMReadGrayScale)
 	// 定义高斯核的大小和标准差
 	blurred := gocv.NewMat()
@@ -29,7 +30,7 @@ func SearchCircle(path string, radius int) (circles []imagei.Circle, err error) 
 			x := int(v[0])
 			y := int(v[1])
 			r := int(v[2])
-			circles = append(circles, imagei.Circle{Center: image.Pt(x, y), Radius: r})
+			circles = append(circles, imagex.Circle{Center: image.Pt(x, y), Radius: r})
 		}
 	}
 	return
@@ -167,7 +168,7 @@ func AffineTransform(affineMat gocv.Mat, points []gocv.Point2f) []gocv.Point2f {
 }
 
 func CropRotated(img gocv.Mat, centerX, centerY, length, width float64, angle float64) gocv.Mat {
-	points := imagei.RectRotateByCenter(int(centerX), int(centerY), int(length), int(width), angle)
+	points := imagex.RectRotateByCenter(int(centerX), int(centerY), int(length), int(width), angle)
 	srcPoints := gocv.NewPointVectorFromPoints(points)
 	dstPoints := gocv.NewPointVectorFromPoints([]image.Point{
 		{X: 0, Y: 0},

@@ -59,11 +59,11 @@ func (req *Request) Client(c *Client) *Request {
 	return req
 }
 
-func (req *Request) Header(header httpx.Header) *Request {
+func (req *Request) Header(header http.Header) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
 	}
-	httpx.HeaderIntoHttpHeader(header, req.header)
+	httpx.CopyHttpHeader(req.header, header)
 	return req
 }
 
