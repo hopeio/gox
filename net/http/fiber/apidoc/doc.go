@@ -65,8 +65,8 @@ func DocList(ctx fiber.Ctx) error {
 			buff.Write([]byte(`<a href="` + requestURI + "/openapi/" + fileInfos[i].Name() + `"> openapi: ` + fileInfos[i].Name() + `</a><br>`))
 		}
 	}
-	ctx.Write(buff.Bytes())
-	return nil
+	_, err = ctx.Write(buff.Bytes())
+	return err
 }
 
 func ApiDoc(mux *fiber.App, uriPrefix, dir string) {
