@@ -27,6 +27,5 @@ func OpenApi(mux *gin.Engine, uriPrefix, dir string) {
 	}
 
 	mux.GET(apidoc.UriPrefix, gin2.Wrap(apidoc.DocList))
-	mux.GET(apidoc.UriPrefix+"/markdown/*file", gin2.Wrap(apidoc.Markdown))
-	mux.GET(apidoc.UriPrefix+"/openapi/*file", gin2.Wrap(apidoc.Swagger))
+	mux.GET(apidoc.UriPrefix+"/openapi/*file", gin2.Wrap(apidoc.OpenApi))
 }

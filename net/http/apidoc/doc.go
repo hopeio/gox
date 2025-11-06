@@ -8,11 +8,12 @@ package apidoc
 
 import (
 	"encoding/json"
-	"github.com/getkin/kin-openapi/openapi3"
-	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/getkin/kin-openapi/openapi3"
+	"gopkg.in/yaml.v3"
 
 	"github.com/hopeio/gox/log"
 )
@@ -34,7 +35,7 @@ func GetDoc(realPath, modName string) *openapi3.T {
 		log.Error(err)
 	}
 
-	realPath = filepath.Join(realPath, modName+SwaggerEXT)
+	realPath = filepath.Join(realPath, modName+OpenapiEXT)
 
 	apiType := filepath.Ext(realPath)
 
@@ -116,7 +117,7 @@ func WriteToFile(realPath, modName string) {
 		log.Error(err)
 	}
 
-	realPath = filepath.Join(realPath, modName+SwaggerEXT)
+	realPath = filepath.Join(realPath, modName+OpenapiEXT)
 
 	if _, err := os.Stat(realPath); err == nil {
 		os.Remove(realPath)

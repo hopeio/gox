@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"net/http"
 	"path"
+
+	http2 "github.com/hopeio/gox/net/http"
 )
 
 // RedocOpts configures the Redoc middlewares
@@ -18,7 +20,7 @@ type RedocOpts struct {
 
 	// SpecURL is the URL of the spec document.
 	//
-	// Defaults to: /swagger.json
+	// Defaults to: /openapi.json
 	SpecURL string
 
 	// Title for the documentation site, default to: API documentation
@@ -35,9 +37,18 @@ type RedocOpts struct {
 
 // EnsureDefaults in case some options are missing
 func (r *RedocOpts) EnsureDefaults() {
-	common := toCommonUIOptions(r)
-	common.EnsureDefaults()
-	fromCommonToAnyOptions(common, r)
+	if r.BasePath == "" {
+		r.BasePath = "/"
+	}
+	if r.Path == "" {
+		r.Path = defaultDocsPath
+	}
+	if r.SpecURL == "" {
+		r.SpecURL = defaultDocsURL
+	}
+	if r.Title == "" {
+		r.Title = defaultDocsTitle
+	}
 
 	// redoc-specifics
 	if r.RedocURL == "" {
@@ -65,8 +76,12 @@ func Redoc(opts RedocOpts, next http.Handler) http.Handler {
 }
 
 const (
-	redocLatest   = "https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js"
-	redocTemplate = `<!DOCTYPE html>
+	// constants that are common to all UI-serving middlewares
+	defaultDocsPath  = "docs"
+	defaultDocsURL   = "/openapi.json"
+	defaultDocsTitle = "API Documentation"
+	redocLatest      = "https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js"
+	redocTemplate    = `<!DOCTYPE html>
 <html>
   <head>
     <title>{{ .Title }}</title>
@@ -92,3 +107,28 @@ const (
 </html>
 `
 )
+
+const ()
+
+// serveUI creates a middleware that serves a templated asset as text/html.
+func serveUI(pth string, assets []byte, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if path.Clean(r.URL.Path) == pth {
+			rw.Header().Set(http2.HeaderContentType, "text/html; charset=utf-8")
+			rw.WriteHeader(http.StatusOK)
+			_, _ = rw.Write(assets)
+
+			return
+		}
+
+		if next != nil {
+			next.ServeHTTP(rw, r)
+
+			return
+		}
+
+		rw.Header().Set(http2.HeaderContentType, "text/plain")
+		rw.WriteHeader(http.StatusNotFound)
+		_, _ = rw.Write([]byte(fmt.Sprintf("%q not found", pth)))
+	})
+}

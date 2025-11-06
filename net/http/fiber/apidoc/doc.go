@@ -9,17 +9,18 @@ package apidoc
 import (
 	"bytes"
 	"fmt"
-	"github.com/gofiber/fiber/v3"
-	"github.com/hopeio/gox/net/http/apidoc"
-	"github.com/hopeio/gox/os/fs"
 	"html/template"
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/hopeio/gox/net/http/apidoc"
+	"github.com/hopeio/gox/os/fs"
 )
 
-func Swagger(ctx fiber.Ctx) error {
-	prefixUri := apidoc.UriPrefix + "/" + apidoc.TypeSwagger + "/"
+func Openapi(ctx fiber.Ctx) error {
+	prefixUri := apidoc.UriPrefix + "/" + apidoc.TypeOpenapi + "/"
 	requestURI := string(ctx.Request().URI().RequestURI())
 	if requestURI[len(requestURI)-5:] == ".json" {
 		b, err := os.ReadFile(apidoc.Dir + requestURI[len(prefixUri):])
@@ -35,7 +36,7 @@ func Swagger(ctx fiber.Ctx) error {
 
 	opts := apidoc.RedocOpts{
 		BasePath: prefixUri,
-		SpecURL:  path.Join(prefixUri+mod, mod+apidoc.SwaggerEXT),
+		SpecURL:  path.Join(prefixUri+mod, mod+apidoc.OpenapiEXT),
 		Path:     mod,
 	}
 	opts.EnsureDefaults()
@@ -52,20 +53,6 @@ func Swagger(ctx fiber.Ctx) error {
 	}
 	return nil
 }
-
-func Markdown(ctx fiber.Ctx) error {
-	prefixUri := apidoc.UriPrefix + "/" + apidoc.TypeMarkdown + "/"
-	mod := string(ctx.Request().URI().RequestURI()[len(prefixUri):])
-	b, err := os.ReadFile(apidoc.Dir + mod + "/" + mod + apidoc.MarkDownEXT)
-	if err != nil {
-		return err
-	}
-	ctx.Response().Header.Set("Content-Type", "text/markdown; charset=utf-8")
-	ctx.Response().SetStatusCode(http.StatusOK)
-	ctx.Write(b)
-	return nil
-}
-
 func DocList(ctx fiber.Ctx) error {
 	fileInfos, err := os.ReadDir(apidoc.Dir)
 	if err != nil {
@@ -76,14 +63,13 @@ func DocList(ctx fiber.Ctx) error {
 	for i := range fileInfos {
 		if fileInfos[i].IsDir() {
 			buff.Write([]byte(`<a href="` + requestURI + "/openapi/" + fileInfos[i].Name() + `"> openapi: ` + fileInfos[i].Name() + `</a><br>`))
-			buff.Write([]byte(`<a href="` + requestURI + "/markdown/" + fileInfos[i].Name() + `"> markdown: ` + fileInfos[i].Name() + `</a><br>`))
 		}
 	}
 	ctx.Write(buff.Bytes())
 	return nil
 }
 
-func OpenApi(mux *fiber.App, uriPrefix, dir string) {
+func ApiDoc(mux *fiber.App, uriPrefix, dir string) {
 	if uriPrefix != "" {
 		apidoc.UriPrefix = uriPrefix
 	}
@@ -94,7 +80,6 @@ func OpenApi(mux *fiber.App, uriPrefix, dir string) {
 			apidoc.Dir = dir + fs.PathSeparator
 		}
 	}
-	mux.Get(apidoc.UriPrefix+"/markdown/", Markdown)
 	mux.Get(apidoc.UriPrefix, DocList)
-	mux.Get(apidoc.UriPrefix+"/openapi/", Swagger)
+	mux.Get(apidoc.UriPrefix+"/openapi/", Openapi)
 }
