@@ -33,6 +33,7 @@ type Tags struct {
 
 // Tag defines a single struct's string literal tag
 type Tag struct {
+	Index int
 	// Key is the tag key, such as json, xml, etc..
 	// i.e: `json:"foo,omitempty". Here key is: "json"
 	Key string
@@ -40,6 +41,9 @@ type Tag struct {
 	// Name is a part of the value
 	// i.e: `json:"foo,omitempty". Here name is: "foo"
 	Value string
+	// Options are the tag options, such as omitempty, required, etc..
+	// i.e: `json:"foo,omitempty". Here options is: ["omitempty"]
+	Options []string
 }
 
 // Parse parses a single struct field tag and returns the set of tags.
@@ -97,17 +101,19 @@ func Parse(tag string) (*Tags, error) {
 			return nil, ErrTagValueSyntax
 		}
 
-		qvalue := string(tag[:i+1])
+		qvalue := tag[:i+1]
 		tag = tag[i+1:]
 
 		value, err := strconv.Unquote(qvalue)
 		if err != nil {
 			return nil, ErrTagValueSyntax
 		}
-
+		res := strings.Split(value, ",")
 		tags = append(tags, &Tag{
-			Key:   key,
-			Value: value,
+			Index:   len(tags),
+			Key:     key,
+			Value:   res[0],
+			Options: res[1:],
 		})
 	}
 
@@ -139,7 +145,7 @@ func (t *Tags) MustGet(key string) *Tag {
 			return tag
 		}
 	}
-	return nil
+	return &Tag{}
 }
 
 // Set sets the given tag. If the tag key already exists it'll override it
@@ -228,19 +234,9 @@ func (t *Tags) String() string {
 	return buf.String()
 }
 
-func (t *Tag) Options() []string {
-	res := strings.Split(t.Value, ",")
-	//name := res[0]
-	options := res[1:]
-	if len(options) == 0 {
-		options = nil
-	}
-	return options
-}
-
 // HasOption returns true if the given option is available in options
 func (t *Tag) HasOption(opt string) bool {
-	for _, tagOpt := range t.Options() {
+	for _, tagOpt := range t.Options {
 		if tagOpt == opt {
 			return true
 		}
@@ -254,7 +250,7 @@ func (t *Tag) HasOption(opt string) bool {
 func (tag *Tag) AddOptions(options ...string) {
 	for _, opt := range options {
 		if !tag.HasOption(opt) {
-			tag.Value += "," + strings.Join(options, ",")
+			tag.Options = append(tag.Options, opt)
 		}
 	}
 
@@ -272,33 +268,23 @@ func (tag *Tag) DeleteOptions(options ...string) {
 	}
 
 	var updated []string
-	for _, opt := range tag.Options() {
+	for _, opt := range tag.Options {
 		if !hasOption(opt) {
 			updated = append(updated, opt)
 		}
 	}
-	tag.Value = tag.Name() + "," + strings.Join(updated, ",")
-}
-
-// Value returns the raw value of the tag, i.e. if the tag is
-// `json:"foo,omitempty", the Value is "foo,omitempty"
-func (t *Tag) Name() string {
-	return t.Value[:strings.Index(t.Value, ",")]
+	tag.Options = updated
 }
 
 // String reassembles the tag into a valid tag field representation
 func (t *Tag) String() string {
-	return fmt.Sprintf(`%s:%q`, t.Key, t.Value)
+	return fmt.Sprintf(`%s:%q`, t.Key, t.Value+","+strings.Join(t.Options, ","))
 }
 
 // GoString implements the fmt.GoStringer interface
 func (t *Tag) GoString() string {
-	template := `{
-		Key:    '%s',
-		Value:   '%s',
-	}`
-
-	return fmt.Sprintf(template, t.Key, t.Value)
+	template := `{index: %d,key: '%s',value: '%s',options: %v}`
+	return fmt.Sprintf(template, t.Index, t.Key, t.Value, t.Options)
 }
 
 func (t *Tags) Len() int {

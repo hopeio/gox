@@ -223,9 +223,15 @@ func TestTags_Get(t *testing.T) {
 		}
 	})
 	t.Run("Value", func(t *testing.T) {
-		want := `foo,omitempty`
+		want := `foo`
 		if found.Value != want {
 			t.Errorf("get\n\twant: %#v\n\tgot : %#v", want, found.Value)
+		}
+	})
+	t.Run("GoString", func(t *testing.T) {
+		want := `{index: 0,key: 'json',value: 'foo',options: [omitempty]}`
+		if found.GoString() != want {
+			t.Errorf("get\n\twant: %s\n\tgot : %s", want, found.GoString())
 		}
 	})
 }
