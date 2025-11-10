@@ -126,48 +126,71 @@ func Parse(tag string) (*Tags, error) {
 	}, nil
 }
 
+func MustParse(tag string) *Tags {
+	tags, err := Parse(tag)
+	if err == nil {
+		panic(err)
+	}
+	return tags
+}
+
 // Get returns the tag associated with the given key. If the key is present
 // in the tag the value (which may be empty) is returned. Otherwise the
 // returned value will be the empty string. The ok return value reports whether
 // the tag exists or not (which the return value is nil).
-func (t *Tags) Get(key string) (*Tag, error) {
+func (t *Tags) Get(key string) (*Tag, bool) {
 	for _, tag := range t.tags {
 		if tag.Key == key {
-			return tag, nil
+			return tag, true
 		}
 	}
 
-	return nil, ErrTagNotExist
+	return nil, false
 }
+
+func (t *Tags) TryGet(key string) *Tag {
+	for _, tag := range t.tags {
+		if tag.Key == key {
+			return tag
+		}
+	}
+
+	return &Tag{}
+}
+
 func (t *Tags) MustGet(key string) *Tag {
 	for _, tag := range t.tags {
 		if tag.Key == key {
 			return tag
 		}
 	}
-	return &Tag{}
+	panic(ErrTagNotExist)
 }
 
 // Set sets the given tag. If the tag key already exists it'll override it
-func (t *Tags) Set(tag *Tag) error {
-	if tag.Key == "" {
-		return ErrKeyNotSet
+func (t *Tags) Set(key, value string, options ...string) {
+	if key == "" {
+		panic(ErrKeyNotSet)
 	}
 
 	added := false
 	for i, tg := range t.tags {
-		if tg.Key == tag.Key {
+		if tg.Key == key {
 			added = true
-			t.tags[i] = tag
+			t.tags[i].Value = value
+			t.tags[i].Options = options
 		}
 	}
 
 	if !added {
 		// this means this is a new tag, add it
-		t.tags = append(t.tags, tag)
+		t.tags = append(t.tags, &Tag{
+			Index:   len(t.tags),
+			Key:     key,
+			Value:   value,
+			Options: options,
+		})
 	}
-
-	return nil
 }
 
 func (t *Tags) Iter() iter.Seq[*Tag] {

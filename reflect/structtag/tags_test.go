@@ -211,9 +211,9 @@ func TestTags_Get(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	found, err := tags.Get("json")
-	if err != nil {
-		t.Fatal(err)
+	found, ok := tags.Get("json")
+	if !ok {
+		t.Fatal(ErrTagNotExist)
 	}
 
 	t.Run("String", func(t *testing.T) {
@@ -244,17 +244,14 @@ func TestTags_Set(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = tags.Set(&Tag{
-		Key:   "json",
-		Value: "bar",
-	})
+	tags.Set("json", "bar")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	found, err := tags.Get("json")
-	if err != nil {
-		t.Fatal(err)
+	found, ok := tags.Get("json")
+	if !ok {
+		t.Fatal(ErrTagNotExist)
 	}
 
 	want := `json:"bar"`
@@ -271,17 +268,11 @@ func TestTags_Set_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = tags.Set(&Tag{
-		Key:   "structs",
-		Value: "bar,omitnested",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	tags.Set("structs", "bar", "omitnested")
 
-	found, err := tags.Get("structs")
-	if err != nil {
-		t.Fatal(err)
+	found, ok := tags.Get("structs")
+	if !ok {
+		t.Fatal(ErrTagNotExist)
 	}
 
 	want := `structs:"bar,omitnested"`
@@ -302,18 +293,12 @@ func TestTags_Set_KeyDoesNotExist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	err = tags.Set(&Tag{
-		Key:   "",
-		Value: "bar",
-	})
-	if err == nil {
-		t.Fatal("setting tag with a nonexisting key should error")
-	}
-
-	if err != ErrKeyNotSet {
-		t.Errorf("set\n\twant: %#v\n\tgot : %#v", ErrTagKeyMismatch, err)
-	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("setting tag with a nonexisting key should error")
+		}
+	}()
+	tags.Set("", "bar")
 }
 
 func TestTags_Delete(t *testing.T) {
@@ -329,9 +314,9 @@ func TestTags_Delete(t *testing.T) {
 		t.Fatalf("tag length should be 2, have %d", tags.Len())
 	}
 
-	found, err := tags.Get("json")
-	if err != nil {
-		t.Fatal(err)
+	found, ok := tags.Get("json")
+	if !ok {
+		t.Fatal(ErrTagNotExist)
 	}
 
 	want := `json:"foo,omitempty"`
