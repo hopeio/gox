@@ -8,10 +8,15 @@ package apidoc
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	http2 "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/os/fs"
 )
@@ -23,7 +28,6 @@ var Dir = "./apidoc/"
 
 const TypeOpenapi = "openapi"
 const OpenapiEXT = ".openapi.json"
-const rootModName = "root"
 
 func OpenApi(w http.ResponseWriter, r *http.Request) {
 	prefixUri := UriPrefix + "/" + TypeOpenapi + "/"
@@ -39,17 +43,9 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	mod := r.RequestURI[len(prefixUri):]
-	if mod == rootModName {
-		Redoc(RedocOpts{
-			BasePath: prefixUri,
-			SpecURL:  path.Join(prefixUri, rootModName+OpenapiEXT),
-			Path:     mod,
-		}, http.NotFoundHandler()).ServeHTTP(w, r)
-		return
-	}
 	Redoc(RedocOpts{
 		BasePath: prefixUri,
-		SpecURL:  path.Join(prefixUri+mod, mod+OpenapiEXT),
+		SpecURL:  path.Join(prefixUri, mod+OpenapiEXT),
 		Path:     mod,
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
@@ -61,12 +57,10 @@ func DocList(w http.ResponseWriter, r *http.Request) {
 	}
 	var buff bytes.Buffer
 	for i := range fileInfos {
-		if fileInfos[i].Name() == "root.openapi.json" {
-			// TODO: 解决root重名 /apidoc=root /apidoc/root
-			buff.Write([]byte(`<a href="` + r.RequestURI + "/openapi/" + rootModName + `"> openapi: ` + fileInfos[i].Name() + `</a><br>`))
-		}
-		if fileInfos[i].IsDir() {
-			buff.Write([]byte(`<a href="` + r.RequestURI + "/openapi/" + fileInfos[i].Name() + `"> openapi: ` + fileInfos[i].Name() + `</a><br>`))
+
+		if strings.HasSuffix(fileInfos[i].Name(), OpenapiEXT) {
+			mod := strings.TrimSuffix(fileInfos[i].Name(), OpenapiEXT)
+			buff.Write([]byte(`<a href="` + r.RequestURI + "/openapi/" + mod + `"> openapi: ` + mod + `</a><br>`))
 		}
 	}
 	w.Write(buff.Bytes())
@@ -85,4 +79,38 @@ func ApiDoc(mux *http.ServeMux, uriPrefix, dir string) {
 	}
 	mux.HandleFunc(UriPrefix, DocList)
 	mux.HandleFunc(UriPrefix+"/openapi/", OpenApi)
+}
+
+func WriteToFile(docDir, modName string, doc *openapi3.T) error {
+	if doc == nil {
+		return errors.New("doc is nil")
+	}
+	if docDir == "" {
+		docDir = Dir
+	}
+
+	err := os.MkdirAll(docDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Join(docDir, modName+OpenapiEXT)
+
+	if _, err := os.Stat(path); err == nil {
+		os.Remove(path)
+	}
+	var file *os.File
+	file, err = os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "  ")
+	err = enc.Encode(doc)
+	if err != nil {
+		return err
+	}
+	return nil
 }
