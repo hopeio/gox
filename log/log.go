@@ -8,9 +8,10 @@ package log
 
 import (
 	"fmt"
+	"sync"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"sync"
 )
 
 func init() {
@@ -79,79 +80,92 @@ func Sync() error {
 }
 
 func Debug(args ...any) {
-	if ce := defaultLogger.Check(zap.DebugLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.DebugLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Info(args ...any) {
-	if ce := defaultLogger.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Warn(args ...any) {
-	if ce := defaultLogger.Check(zap.WarnLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.WarnLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Error(args ...any) {
-	if ce := defaultLogger.Check(zap.ErrorLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.ErrorLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Panic(args ...any) {
-	if ce := defaultLogger.Check(zap.PanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.PanicLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Fatal(args ...any) {
-	if ce := defaultLogger.Check(zap.FatalLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.FatalLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Printf(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func Debugf(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.DebugLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.DebugLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func Infof(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func Warnf(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.WarnLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.WarnLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func Errorf(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.ErrorLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.ErrorLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func Panicf(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.PanicLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.PanicLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func Fatalf(template string, args ...any) {
-	if ce := defaultLogger.Check(zap.FatalLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := defaultLogger.Check(zap.FatalLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
@@ -193,13 +207,15 @@ func Fatalw(msg string, fields ...zap.Field) {
 }
 
 func Log(lvl zapcore.Level, args ...any) {
-	if ce := defaultLogger.Check(lvl, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(lvl, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 func Logf(lvl zapcore.Level, msg string, args ...any) {
-	if ce := defaultLogger.Check(lvl, fmt.Sprintf(msg, args...)); ce != nil {
+	if ce := defaultLogger.Check(lvl, ""); ce != nil {
+		ce.Message = fmt.Sprintf(msg, args...)
 		ce.Write()
 	}
 }
@@ -211,39 +227,16 @@ func Logw(lvl zapcore.Level, msg string, fields ...zapcore.Field) {
 }
 
 func Check(lvl zapcore.Level, args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(lvl, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func DebugEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.DebugLevel, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func InfoEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func WarnEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.WarnLevel, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func ErrorEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.ErrorLevel, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func DPanicEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.DPanicLevel, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func PanicEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.PanicLevel, trimLineBreak(fmt.Sprintln(args...)))
-}
-
-func FatalEntry(args ...any) *zapcore.CheckedEntry {
-	return defaultLogger.Check(zap.FatalLevel, trimLineBreak(fmt.Sprintln(args...)))
+	ce := defaultLogger.Check(lvl, "")
+	if ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+	}
+	return ce
 }
 
 func Println(args ...any) {
-	if ce := defaultLogger.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := defaultLogger.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
