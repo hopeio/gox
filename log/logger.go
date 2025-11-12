@@ -9,7 +9,6 @@ package log
 import (
 	"fmt"
 
-	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -59,42 +58,47 @@ func (l *Logger) AddSkip(skip int) *Logger {
 }
 
 func (l *Logger) Printf(template string, args ...any) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Write()
 	}
 }
 
 // 兼容gormv1
 func (l *Logger) Print(args ...any) {
-	if ce := l.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 // Debug uses fmt.Sprint to construct and log a message.
 func (l *Logger) Debug(args ...any) {
-	if ce := l.Check(zap.DebugLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.DebugLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 // Info uses fmt.Sprint to construct and log a message.
 func (l *Logger) Info(args ...any) {
-	if ce := l.Check(zap.InfoLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 // Warn uses fmt.Sprint to construct and log a message.
 func (l *Logger) Warn(args ...any) {
-	if ce := l.Check(zap.WarnLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.WarnLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 // Error uses fmt.Sprint to construct and log a message.
 func (l *Logger) Error(args ...any) {
-	if ce := l.Check(zap.ErrorLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.ErrorLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
@@ -102,21 +106,24 @@ func (l *Logger) Error(args ...any) {
 // DPanic uses fmt.Sprint to construct and log a message. In development, the
 // logger then panics. (See DPanicLevel for details.)
 func (l *Logger) DPanic(args ...any) {
-	if ce := l.Check(zap.DPanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.DPanicLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 // Panic uses fmt.Sprint to construct and log a message, then panics.
 func (l *Logger) Panic(args ...any) {
-	if ce := l.Check(zap.PanicLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.PanicLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
 
 // Fatal uses fmt.Sprint to construct and log a message, then calls os.Exit.
 func (l *Logger) Fatal(args ...any) {
-	if ce := l.Check(zap.FatalLevel, trimLineBreak(fmt.Sprintln(args...))); ce != nil {
+	if ce := l.Check(zap.FatalLevel, ""); ce != nil {
+		ce.Message = trimLineBreak(fmt.Sprintln(args...))
 		ce.Write()
 	}
 }
@@ -188,28 +195,32 @@ func (l *Logger) Fatalw(msg string, fields ...zap.Field) {
 
 // Debugf uses fmt.Sprintf to log a templated message.
 func (l *Logger) Debugf(template string, args ...any) {
-	if ce := l.Check(zap.DebugLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.DebugLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 // Infof uses fmt.Sprintf to log a templated message.
 func (l *Logger) Infof(template string, args ...any) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 // Warnf uses fmt.Sprintf to log a templated message.
 func (l *Logger) Warnf(template string, args ...any) {
-	if ce := l.Check(zap.WarnLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.WarnLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 // Errorf uses fmt.Sprintf to log a templated message.
 func (l *Logger) Errorf(template string, args ...any) {
-	if ce := l.Check(zap.ErrorLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.ErrorLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
@@ -217,126 +228,33 @@ func (l *Logger) Errorf(template string, args ...any) {
 // DPanicf uses fmt.Sprintf to log a templated message. In development, the
 // logger then panics. (See DPanicLevel for details.)
 func (l *Logger) DPanicf(template string, args ...any) {
-	if ce := l.Check(zap.DPanicLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.DPanicLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 // Panicf uses fmt.Sprintf to log a templated message, then panics.
 func (l *Logger) Panicf(template string, args ...any) {
-	if ce := l.Check(zap.PanicLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.PanicLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 // Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
 func (l *Logger) Fatalf(template string, args ...any) {
-	if ce := l.Check(zap.FatalLevel, fmt.Sprintf(template, args...)); ce != nil {
+	if ce := l.Check(zap.FatalLevel, ""); ce != nil {
+		ce.Message = fmt.Sprintf(template, args...)
 		ce.Write()
 	}
 }
 
 func (l *Logger) Println(args ...any) {
-	if ce := l.Check(zap.InfoLevel, fmt.Sprint(args...)); ce != nil {
+	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
+		ce.Message = fmt.Sprint(args...)
 		ce.Write()
 	}
-}
-
-func (l *Logger) Debugfw(template string, args ...any) func(...zapcore.Field) {
-	return func(fields ...zapcore.Field) {
-		if ce := l.Check(zap.DebugLevel, fmt.Sprintf(template, args...)); ce != nil {
-			ce.Write(fields...)
-		}
-	}
-}
-
-func (l *Logger) Infofw(template string, args ...any) func(...zapcore.Field) {
-	return func(fields ...zapcore.Field) {
-		if ce := l.Check(zap.InfoLevel, fmt.Sprintf(template, args...)); ce != nil {
-			ce.Write(fields...)
-		}
-	}
-}
-
-func (l *Logger) Debugsw(msg string, args ...any) {
-	if ce := l.Check(zap.DebugLevel, msg); ce != nil {
-		ce.Write(l.sweetenFields(args)...)
-	}
-}
-
-// sugar
-const (
-	_oddNumberErrMsg    = "Ignored key without a value."
-	_nonStringKeyErrMsg = "Ignored key-value pairs with non-string keys."
-)
-
-func (l *Logger) sweetenFields(args []any) []zap.Field {
-	al := len(args)
-	if al == 0 {
-		return nil
-	}
-
-	// Allocate enough space for the worst case; if users pass only structured
-	// fields, we shouldn't penalize them with extra allocations.
-	fields := make([]zap.Field, 0, al)
-	var invalid invalidPairs
-
-	for i := 0; i < al; {
-		// This is a strongly-typed field. Consume it and move on.
-		if f, ok := args[i].(zap.Field); ok {
-			fields = append(fields, f)
-			i++
-			continue
-		}
-
-		// Make sure this element isn't a dangling key.
-		if i == al-1 {
-			l.DPanic(_oddNumberErrMsg, zap.Any(FieldIgnored, args[i]))
-			break
-		}
-
-		// Consume this value and the next, treating them as a key-value pair. If the
-		// key isn't a string, add this pair to the slice of invalid pairs.
-		key, val := args[i], args[i+1]
-		if keyStr, ok := key.(string); !ok {
-			// Subsequent errors are likely, so allocate once up front.
-			if cap(invalid) == 0 {
-				invalid = make(invalidPairs, 0, al/2)
-			}
-			invalid = append(invalid, invalidPair{i, key, val})
-		} else {
-			fields = append(fields, zap.Any(keyStr, val))
-		}
-		i += 2
-	}
-
-	// If we encountered any invalid key-value pairs, log an error.
-	if len(invalid) > 0 {
-		l.DPanic(_nonStringKeyErrMsg, zap.Array(FieldInvalid, invalid))
-	}
-	return fields
-}
-
-type invalidPair struct {
-	position   int
-	key, value any
-}
-
-func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddInt64(FieldPosition, int64(p.position))
-	zap.Any(FieldKey, p.key).AddTo(enc)
-	zap.Any(FieldValue, p.value).AddTo(enc)
-	return nil
-}
-
-type invalidPairs []invalidPair
-
-func (ps invalidPairs) MarshalLogArray(enc zapcore.ArrayEncoder) error {
-	var err error
-	for i := range ps {
-		err = multierr.Append(err, enc.AppendObject(ps[i]))
-	}
-	return err
 }
 
 type StdOutLevel zapcore.Level

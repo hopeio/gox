@@ -8,8 +8,9 @@ package output
 
 import (
 	"encoding/json"
-	"go.uber.org/zap/zapcore"
 	"io"
+
+	"go.uber.org/zap/zapcore"
 )
 
 func DefaultReflectedEncoder(w io.Writer) zapcore.ReflectedEncoder {

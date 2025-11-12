@@ -8,11 +8,12 @@ package dingding
 
 import (
 	"encoding/base64"
-	"github.com/hopeio/gox/log/output"
-	"go.uber.org/zap/zapcore"
 	"math"
 	"time"
 	"unicode/utf8"
+
+	"github.com/hopeio/gox/log/output"
+	"go.uber.org/zap/zapcore"
 
 	"go.uber.org/zap/buffer"
 )
@@ -23,7 +24,6 @@ const _hex = "0123456789abcdef"
 type dingEncoder struct {
 	*zapcore.EncoderConfig
 	buf            *buffer.Buffer
-	spaced         bool // include spaces after colons and commas
 	openNamespaces int
 
 	// for encoding generic values by reflection
@@ -32,10 +32,10 @@ type dingEncoder struct {
 }
 
 func NewDingEncoder(cfg *zapcore.EncoderConfig) zapcore.Encoder {
-	return newDingEncoder(cfg, false)
+	return newDingEncoder(cfg)
 }
 
-func newDingEncoder(cfg *zapcore.EncoderConfig, spaced bool) *dingEncoder {
+func newDingEncoder(cfg *zapcore.EncoderConfig) *dingEncoder {
 	if cfg.SkipLineEnding {
 		cfg.LineEnding = ""
 	} else if cfg.LineEnding == "" {
@@ -49,7 +49,6 @@ func newDingEncoder(cfg *zapcore.EncoderConfig, spaced bool) *dingEncoder {
 	return &dingEncoder{
 		EncoderConfig: cfg,
 		buf:           buffer.NewPool().Get(),
-		spaced:        spaced,
 	}
 }
 
@@ -294,7 +293,7 @@ func (enc *dingEncoder) Clone() zapcore.Encoder {
 }
 
 func (enc *dingEncoder) clone() *dingEncoder {
-	clone := newDingEncoder(enc.EncoderConfig, enc.spaced)
+	clone := newDingEncoder(enc.EncoderConfig)
 	return clone
 }
 
@@ -387,9 +386,7 @@ func (enc *dingEncoder) addKey(key string) {
 	enc.buf.AppendString("**")
 	enc.safeAddString(key)
 	enc.buf.AppendString("**: ")
-	if enc.spaced {
-		enc.buf.AppendByte(' ')
-	}
+	enc.buf.AppendByte(' ')
 }
 
 func (enc *dingEncoder) appendFloat(val float64, bitSize int) {
