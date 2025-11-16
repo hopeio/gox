@@ -18,27 +18,24 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
+type Fs = http.FileSystem
+
 type File struct {
 	File http.File
 	Name string
 }
 
-func (f *File) Response(w http.ResponseWriter) (int, error) {
-	return f.CommonResponse(httpx.CommonResponseWriter{w})
+func (f *File) Respond(w http.ResponseWriter) (int, error) {
+	return f.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: w})
 }
 
-func (f *File) CommonResponse(w httpx.ICommonResponseWriter) (int, error) {
+func (f *File) CommonRespond(w httpx.ICommonResponseWriter) (int, error) {
 	header := w.Header()
 	header.Set(httpx.HeaderContentDisposition, "attachment; filename="+f.Name)
 	header.Set(httpx.HeaderContentType, http.DetectContentType(make([]byte, 512)))
 	n, err := io.Copy(w, f.File)
 	f.File.Close()
 	return int(n), err
-}
-
-type IFile interface {
-	io.ReadCloser
-	Name() string
 }
 
 type FileInfo struct {

@@ -13,48 +13,48 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 )
 
-type IErrRep interface {
-	ErrRep() *ErrRep
+type IErrResp interface {
+	ErrResp() *ErrResp
 }
 
-type ErrRep struct {
+type ErrResp struct {
 	Code ErrCode `json:"code"`
 	Msg  string  `json:"msg,omitempty"`
 }
 
-func NewErrRep(code ErrCode, msg string) *ErrRep {
-	return &ErrRep{
+func NewErrResp(code ErrCode, msg string) *ErrResp {
+	return &ErrResp{
 		Code: code,
 		Msg:  msg,
 	}
 }
 
-func (x *ErrRep) Error() string {
+func (x *ErrResp) Error() string {
 	return x.Msg
 }
 
-func (x *ErrRep) MarshalJSON() ([]byte, error) {
+func (x *ErrResp) MarshalJSON() ([]byte, error) {
 	return stringsx.ToBytes(`{"code":` + strconv.Itoa(int(x.Code)) + `,"msg":` + strconv.Quote(x.Msg) + `}`), nil
 }
 
-func ErrRepFrom(err error) *ErrRep {
+func ErrRespFrom(err error) *ErrResp {
 	if err == nil {
 		return nil
 	}
-	if errrep, ok := err.(*ErrRep); ok {
+	if errrep, ok := err.(*ErrResp); ok {
 		return errrep
 	}
-	type errrep interface{ ErrRep() *ErrRep }
+	type errrep interface{ ErrRep() *ErrResp }
 	if se, ok := err.(errrep); ok {
 		return se.ErrRep()
 	}
 	rv := reflect.ValueOf(err)
 	kind := rv.Kind()
 	if kind >= reflect.Int && kind <= reflect.Int64 {
-		return NewErrRep(ErrCode(rv.Int()), err.Error())
+		return NewErrResp(ErrCode(rv.Int()), err.Error())
 	}
 	if kind >= reflect.Uint && kind <= reflect.Uint64 {
-		return NewErrRep(ErrCode(rv.Uint()), err.Error())
+		return NewErrResp(ErrCode(rv.Uint()), err.Error())
 	}
-	return NewErrRep(Unknown, err.Error())
+	return NewErrResp(Unknown, err.Error())
 }

@@ -28,3 +28,27 @@ func ReadLines(reader io.Reader, f func(line string) bool) error {
 	}
 	return scanner.Err()
 }
+
+type ReadCloserWarp struct {
+	io.ReadCloser
+}
+
+func (r ReadCloserWarp) WriteTo(w io.Writer) (int64, error) {
+	return io.Copy(w, r)
+}
+
+type RawBytes []byte
+
+func (res RawBytes) WriteTo(w io.Writer) (int64, error) {
+	n, err := w.Write(res)
+	return int64(n), err
+}
+
+func (res RawBytes) Close() error {
+	return nil
+}
+
+func (res *RawBytes) Write(p []byte) (int, error) {
+	*res = append(*res, p...)
+	return len(p), nil
+}

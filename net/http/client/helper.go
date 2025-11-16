@@ -13,11 +13,11 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-func DefaultHeader() httpx.MapHeader {
-	return httpx.MapHeader{
-		httpx.HeaderAcceptLanguage: "zh-CN,zh;q=0.9;charset=utf-8",
-		httpx.HeaderConnection:     "keep-alive",
-		httpx.HeaderUserAgent:      UserAgentChrome117,
+func DefaultHeader() http.Header {
+	return http.Header{
+		httpx.HeaderAcceptLanguage: []string{"zh-CN,zh;q=0.9;charset=utf-8"},
+		httpx.HeaderConnection:     []string{"keep-alive"},
+		httpx.HeaderUserAgent:      []string{UserAgentChrome117},
 		//"Accept", "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8", // 将会越来越少用，服务端一般固定格式
 	}
 }

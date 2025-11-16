@@ -25,7 +25,7 @@ type RespData[T any] struct {
 	Data T `json:"data,omitempty"`
 }
 
-func (res *RespData[T]) Response(w http.ResponseWriter) (int, error) {
+func (res *RespData[T]) Respond(w http.ResponseWriter) (int, error) {
 	w.Header().Set(HeaderContentType, "application/json; charset=utf-8")
 	jsonBytes, _ := json.Marshal(res)
 	return w.Write(jsonBytes)
@@ -62,46 +62,46 @@ func NewSuccessRespData(data any) *RespAnyData {
 	}
 }
 
-func NewErrorRespData(code errors.ErrCode, msg string) *ErrRep {
-	return &ErrRep{
+func NewErrorRespData(code errors.ErrCode, msg string) *ErrResp {
+	return &ErrResp{
 		Code: code,
 		Msg:  msg,
 	}
 }
 
 func RespErrCodeMsg(w http.ResponseWriter, code errors.ErrCode, msg string) {
-	NewRespData[any](code, msg, nil).Response(w)
+	NewRespData[any](code, msg, nil).Respond(w)
 }
 
-func RespErrRep(w http.ResponseWriter, rep *errors.ErrRep) (int, error) {
-	return (*ErrRep)(rep).Response(w)
+func RespErrRep(w http.ResponseWriter, rep *errors.ErrResp) (int, error) {
+	return (*ErrResp)(rep).Respond(w)
 }
 
-func RespErrRepStatus(w http.ResponseWriter, rep *errors.ErrRep, statusCode int) (int, error) {
-	return (*ErrRep)(rep).ResponseStatus(w, statusCode)
+func RespErrRepStatus(w http.ResponseWriter, rep *errors.ErrResp, statusCode int) (int, error) {
+	return (*ErrResp)(rep).RespondStatus(w, statusCode)
 }
 
 func RespError(w http.ResponseWriter, err error) (int, error) {
-	return ErrRepFrom(err).Response(w)
+	return ErrRespFrom(err).Respond(w)
 }
 
 func RespSuccess[T any](w http.ResponseWriter, msg string, data T) (int, error) {
-	return NewRespData(errors.Success, msg, data).Response(w)
+	return NewRespData(errors.Success, msg, data).Respond(w)
 }
 
 func RespSuccessMsg(w http.ResponseWriter, msg string) (int, error) {
-	return NewRespData[any](errors.Success, msg, nil).Response(w)
+	return NewRespData[any](errors.Success, msg, nil).Respond(w)
 }
 
 func RespSuccessData(w http.ResponseWriter, data any) (int, error) {
-	return NewRespData[any](errors.Success, errors.Success.String(), data).Response(w)
+	return NewRespData[any](errors.Success, errors.Success.String(), data).Respond(w)
 }
 
-func Response[T any](w http.ResponseWriter, code errors.ErrCode, msg string, data T) (int, error) {
-	return NewRespData(code, msg, data).Response(w)
+func Respond[T any](w http.ResponseWriter, code errors.ErrCode, msg string, data T) (int, error) {
+	return NewRespData(code, msg, data).Respond(w)
 }
 
-func ResponseStatus[T any](w http.ResponseWriter, code errors.ErrCode, msg string, data T, statusCode int) (int, error) {
+func RespondStatus[T any](w http.ResponseWriter, code errors.ErrCode, msg string, data T, statusCode int) (int, error) {
 	return NewRespData(code, msg, data).ResponseStatus(w, statusCode)
 }
 
@@ -121,8 +121,8 @@ func RespStreamWrite(w http.ResponseWriter, dataSource iter.Seq[[]byte]) {
 	}
 }
 
-var ResponseSysErr = json.RawMessage(`{"code":-1,"msg":"system error"}`)
-var ResponseOk = json.RawMessage(`{"code":0}`)
+var RespSysErr = json.RawMessage(`{"code":-1,"msg":"system error"}`)
+var RespOk = json.RawMessage(`{"code":0}`)
 
 type ReceiveData = RespData[json.RawMessage]
 
@@ -135,33 +135,9 @@ func NewReceiveData(code errors.ErrCode, msg string, data any) *ReceiveData {
 	}
 }
 
-type HttpResponseRawBody struct {
-	Status  int       `json:"status,omitempty"`
-	Headers MapHeader `json:"header,omitempty"`
-	Body    []byte    `json:"body,omitempty"`
-}
-
-func (res *HttpResponseRawBody) Response(w http.ResponseWriter) (int, error) {
-	w.WriteHeader(res.Status)
-	header := w.Header()
-	for k, v := range res.Headers {
-		header.Set(k, v)
-	}
-	return w.Write(res.Body)
-}
-
-func (res *HttpResponseRawBody) CommonResponse(w CommonResponseWriter) (int, error) {
-	w.WriteHeader(res.Status)
-	header := w.Header()
-	for k, v := range res.Headers {
-		header.Set(k, v)
-	}
-	return w.Write(res.Body)
-}
-
-type HttpResponse struct {
+type Response struct {
 	Status  int            `json:"status,omitempty"`
-	Headers MapHeader      `json:"header,omitempty"`
+	Headers http.Header    `json:"header,omitempty"`
 	Body    WriterToCloser `json:"body,omitempty"`
 }
 
@@ -170,11 +146,9 @@ type WriterToCloser interface {
 	io.Closer
 }
 
-func (res *HttpResponse) Response(w http.ResponseWriter) (int, error) {
+func (res *Response) Respond(w http.ResponseWriter) (int, error) {
 	w.WriteHeader(res.Status)
-	for k, v := range res.Headers {
-		w.Header().Set(k, v)
-	}
+	CopyHttpHeader(w.Header(), res.Headers)
 	i, err := res.Body.WriteTo(w)
 	if err != nil {
 		return int(i), err
@@ -186,11 +160,9 @@ func (res *HttpResponse) Response(w http.ResponseWriter) (int, error) {
 	return int(i), err
 }
 
-func (res *HttpResponse) CommonResponse(w CommonResponseWriter) (int, error) {
-	w.WriteHeader(res.Status)
-	for k, v := range res.Headers {
-		w.Header().Set(k, v)
-	}
+func (res *Response) CommonRespond(w ICommonResponseWriter) (int, error) {
+	w.Status(res.Status)
+	HttpHeaderIntoHeader(res.Headers, w.Header())
 	i, err := res.Body.WriteTo(w)
 	if err != nil {
 		return int(i), err
@@ -202,44 +174,42 @@ func (res *HttpResponse) CommonResponse(w CommonResponseWriter) (int, error) {
 	return int(i), err
 }
 
-type ErrRep errors.ErrRep
+type ErrResp errors.ErrResp
 
-func ErrRepFrom(err error) *ErrRep {
-	return (*ErrRep)(errors.ErrRepFrom(err))
+func ErrRespFrom(err error) *ErrResp {
+	return (*ErrResp)(errors.ErrRespFrom(err))
 }
 
-func (res *ErrRep) Response(w http.ResponseWriter) (int, error) {
+func (res *ErrResp) Respond(w http.ResponseWriter) (int, error) {
 	w.Header().Set(HeaderContentType, ContentTypeJsonUtf8)
 	jsonBytes, _ := json.Marshal(res)
 	return w.Write(jsonBytes)
 }
 
-func (res *ErrRep) ResponseStatus(w http.ResponseWriter, statusCode int) (int, error) {
+func (res *ErrResp) RespondStatus(w http.ResponseWriter, statusCode int) (int, error) {
 	w.WriteHeader(statusCode)
 	w.Header().Set(HeaderContentType, ContentTypeJsonUtf8)
 	jsonBytes, _ := json.Marshal(res)
 	return w.Write(jsonBytes)
 }
 
-type IHttpResponseTo interface {
-	Response(w http.ResponseWriter) (int, error)
+type IRespond interface {
+	Respond(w http.ResponseWriter) (int, error)
 }
 
-type HttpResponseStream struct {
+type ResponseStream struct {
 	Status  int              `json:"status,omitempty"`
-	Headers MapHeader        `json:"header,omitempty"`
+	Headers http.Header      `json:"header,omitempty"`
 	Body    iter.Seq[[]byte] `json:"body,omitempty"`
 }
 
-func (res *HttpResponseStream) Response(w http.ResponseWriter) (int, error) {
-	return res.CommonResponse(CommonResponseWriter{w})
+func (res *ResponseStream) Respond(w http.ResponseWriter) (int, error) {
+	return res.CommonRespond(CommonResponseWriter{w})
 }
 
-func (res *HttpResponseStream) CommonResponse(w ICommonResponseWriter) (int, error) {
+func (res *ResponseStream) CommonRespond(w ICommonResponseWriter) (int, error) {
 	header := w.Header()
-	for k, v := range res.Headers {
-		header.Set(k, v)
-	}
+	HttpHeaderIntoHeader(res.Headers, header)
 	header.Set(HeaderTransferEncoding, "chunked")
 	notifyClosed := w.(http.CloseNotifier).CloseNotify()
 	var n int
@@ -258,15 +228,4 @@ func (res *HttpResponseStream) CommonResponse(w ICommonResponseWriter) (int, err
 		}
 	}
 	return n, nil
-}
-
-type RawBody []byte
-
-func (res RawBody) WriteTo(w io.Writer) (int64, error) {
-	n, err := w.Write(res)
-	return int64(n), err
-}
-
-func (res RawBody) Closer() error {
-	return nil
 }

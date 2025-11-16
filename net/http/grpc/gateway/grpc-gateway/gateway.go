@@ -37,7 +37,7 @@ func New(opts ...runtime.ServeMuxOption) *runtime.ServeMux {
 		}),
 		runtime.WithIncomingHeaderMatcher(gateway.InComingHeaderMatcher),
 		runtime.WithOutgoingHeaderMatcher(gateway.OutgoingHeaderMatcher),
-		runtime.WithForwardResponseOption(gateway.Response),
+		runtime.WithForwardResponseOption(gateway.ForwardResponseMessage),
 		runtime.WithRoutingErrorHandler(RoutingErrorHandler),
 		runtime.WithErrorHandler(CustomHttpError),
 	}, opts...)

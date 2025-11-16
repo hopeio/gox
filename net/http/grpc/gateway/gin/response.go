@@ -16,8 +16,8 @@ import (
 )
 
 func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message proto.Message) {
-	if res, ok := message.(httpx.ICommonResponseTo); ok {
-		res.CommonResponse(httpx.CommonResponseWriter{ctx.Writer})
+	if res, ok := message.(httpx.ICommonRespond); ok {
+		res.CommonRespond(httpx.CommonResponseWriter{ctx.Writer})
 		return
 	}
 	gateway.HandleForwardResponseServerMetadata(ctx.Writer, md.HeaderMD)
@@ -27,11 +27,11 @@ func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message pr
 	ctx.Header(httpx.HeaderContentType, contentType)
 
 	if !message.ProtoReflect().IsValid() {
-		ctx.Writer.Write(httpx.ResponseOk)
+		ctx.Writer.Write(httpx.RespOk)
 		return
 	}
 	gateway.HandleForwardResponseTrailer(ctx.Writer, md.TrailerMD)
-	err := gateway.Response(ctx, ctx.Writer, message)
+	err := gateway.ForwardResponseMessage(ctx, ctx.Writer, message)
 	if err != nil {
 		HttpError(ctx, err)
 		return

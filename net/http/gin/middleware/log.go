@@ -7,16 +7,17 @@
 package middleware
 
 import (
-	log2 "github.com/hopeio/gox/net/http/log"
 	"strings"
 	"time"
+
+	logx "github.com/hopeio/gox/net/http/log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/log"
 )
 
 func SetLog(app *gin.Engine, logger2 *log.Logger, errHandle bool) {
-	app.Use(LoggerWithFormatter(log2.DefaultLogFormatter, logger2, errHandle))
+	app.Use(LoggerWithFormatter(logx.DefaultLogFormatter, logger2, errHandle))
 
 }
 
@@ -39,12 +40,12 @@ func ErrorLoggerT(typ gin.ErrorType) gin.HandlerFunc {
 // Logger instances a Logger middleware that will write the logs to gin.DefaultWriter.
 // By default gin.DefaultWriter = os.Stdout.
 func Logger() gin.HandlerFunc {
-	return LoggerWithConfig(log2.LoggerConfig{})
+	return LoggerWithConfig(logx.LoggerConfig{})
 }
 
 // LoggerWithFormatter instance a Logger middleware with the specified log format function.
-func LoggerWithFormatter(f log2.Formatter, logger *log.Logger, hasErr bool) gin.HandlerFunc {
-	return LoggerWithConfig(log2.LoggerConfig{
+func LoggerWithFormatter(f logx.Formatter, logger *log.Logger, hasErr bool) gin.HandlerFunc {
+	return LoggerWithConfig(logx.LoggerConfig{
 		Formatter: f,
 		Logger:    logger,
 		ErrHandle: hasErr,
@@ -52,10 +53,10 @@ func LoggerWithFormatter(f log2.Formatter, logger *log.Logger, hasErr bool) gin.
 }
 
 // LoggerWithConfig instance a Logger middleware with config.
-func LoggerWithConfig(conf log2.LoggerConfig) gin.HandlerFunc {
+func LoggerWithConfig(conf logx.LoggerConfig) gin.HandlerFunc {
 	formatter := conf.Formatter
 	if formatter == nil {
-		formatter = log2.DefaultLogFormatter
+		formatter = logx.DefaultLogFormatter
 	}
 
 	logger := conf.Logger
@@ -82,7 +83,7 @@ func LoggerWithConfig(conf log2.LoggerConfig) gin.HandlerFunc {
 				return
 			}
 		}
-		param := log2.FormatterParams{
+		param := logx.FormatterParams{
 			Request: c.Request,
 			Keys:    c.Keys,
 		}

@@ -10,13 +10,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func Response(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
-	if v, ok := message.(httpx.ICommonResponseTo); ok {
-		_, err := v.CommonResponse(httpx.CommonResponseWriter{writer})
+func ForwardResponseMessage(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
+	if v, ok := message.(httpx.ICommonRespond); ok {
+		_, err := v.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: writer})
 		return err
 	}
-	if v, ok := message.(httpx.IHttpResponseTo); ok {
-		_, err := v.Response(writer)
+	if v, ok := message.(httpx.IRespond); ok {
+		_, err := v.Respond(writer)
 		return err
 	}
 	var buf []byte

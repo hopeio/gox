@@ -20,16 +20,16 @@ func (x ErrCode) String() string {
 	return "Unknown Error, Code:" + strconv.Itoa(int(x))
 }
 
-func (x ErrCode) ErrRep() *ErrRep {
-	return &ErrRep{Code: x, Msg: x.String()}
+func (x ErrCode) ErrResp() *ErrResp {
+	return &ErrResp{Code: x, Msg: x.String()}
 }
 
-func (x ErrCode) Msg(msg string) *ErrRep {
-	return &ErrRep{Code: x, Msg: msg}
+func (x ErrCode) Msg(msg string) *ErrResp {
+	return &ErrResp{Code: x, Msg: msg}
 }
 
-func (x ErrCode) Wrap(err error) *ErrRep {
-	return &ErrRep{Code: x, Msg: err.Error()}
+func (x ErrCode) Wrap(err error) *ErrResp {
+	return &ErrResp{Code: x, Msg: err.Error()}
 }
 
 func (x ErrCode) Error() string {

@@ -25,6 +25,6 @@ func (w CommonResponseWriter) Write(p []byte) (int, error) {
 	return w.ResponseWriter.Write(p)
 }
 
-type ICommonResponseTo interface {
-	CommonResponse(w ICommonResponseWriter) (int, error)
+type ICommonRespond interface {
+	CommonRespond(w ICommonResponseWriter) (int, error)
 }

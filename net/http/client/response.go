@@ -8,12 +8,13 @@ package client
 
 import (
 	"fmt"
+
 	httpx "github.com/hopeio/gox/net/http"
 )
 
 type ResponseBody httpx.RespAnyData
 
-func CommonResponse(response interface{}) ResponseBodyCheck {
+func CommonResponse(response any) ResponseBodyCheck {
 	return &ResponseBody{Data: response}
 }
 
@@ -30,7 +31,7 @@ type ResponseBody2 struct {
 	Data   any    `json:"data"`
 }
 
-func CommonResponse2(response interface{}) ResponseBodyCheck {
+func CommonResponse2(response any) ResponseBodyCheck {
 	return &ResponseBody2{Data: response}
 }
 

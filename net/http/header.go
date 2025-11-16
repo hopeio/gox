@@ -29,8 +29,16 @@ type IntoHttpHeader interface {
 
 func HeaderIntoHttpHeader(header Header, httpHeader http.Header) {
 	header.Range(func(key, value string) {
-		httpHeader.Set(key, value)
+		httpHeader.Add(key, value)
 	})
+}
+
+func HttpHeaderIntoHeader(httpHeader http.Header, header Header) {
+	for k, vv := range httpHeader {
+		for _, v := range vv {
+			header.Add(k, v)
+		}
+	}
 }
 
 type SliceHeader []string
@@ -103,27 +111,9 @@ func CopyHttpHeader(dst, src http.Header) {
 		return
 	}
 
-	// Find total number of values.
-	nv := 0
-	for _, vv := range src {
-		nv += len(vv)
-	}
-	sv := make([]string, nv) // shared backing array for headers' values
-
-	for k, vv := range src {
-		if vv == nil {
-			continue
-		}
-		n := copy(sv, vv)
-		dst[k] = sv[:n:n]
-		sv = sv[n:]
-	}
-}
-
-func copyHeader(dst, src http.Header) {
 	for k, vv := range src {
 		for _, v := range vv {
-			dst.Add(k, v)
+			dst[k] = append(dst[k], v)
 		}
 	}
 }
@@ -286,7 +276,9 @@ func (h HttpHeader) Values(k string) []string {
 }
 
 func (h HttpHeader) Range(f func(key, value string)) {
-	for k, v := range h {
-		f(k, v[0])
+	for k, vv := range h {
+		for _, v := range vv {
+			f(k, v)
+		}
 	}
 }

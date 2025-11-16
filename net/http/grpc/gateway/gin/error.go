@@ -25,7 +25,7 @@ func HttpError(ctx *gin.Context, err error) {
 	delete(ctx.Request.Header, httpx.HeaderTrailer)
 	ctx.Header(httpx.HeaderContentType, jsonpb.JsonPb.ContentType(nil))
 
-	se := &errors.ErrRep{Code: errors.ErrCode(s.Code()), Msg: s.Message()}
+	se := &errors.ErrResp{Code: errors.ErrCode(s.Code()), Msg: s.Message()}
 	buf, merr := jsonpb.JsonPb.Marshal(se)
 	if merr != nil {
 		grpclog.Infof("Failed to marshal error message %q: %v", se, merr)

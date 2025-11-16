@@ -34,7 +34,7 @@ func CustomHttpError(ctx context.Context, mux *runtime.ServeMux, marshaler runti
 
 	w.Header().Del(http2.HeaderTrailer)
 	w.Header().Set(http2.HeaderContentType, marshaler.ContentType(nil))
-	se := &errors.ErrRep{Code: errors.ErrCode(s.Code()), Msg: s.Message()}
+	se := &errors.ErrResp{Code: errors.ErrCode(s.Code()), Msg: s.Message()}
 	md, ok := runtime.ServerMetadataFromContext(ctx)
 	if !ok {
 		grpclog.Infof("Failed to extract ServerMetadata from context")

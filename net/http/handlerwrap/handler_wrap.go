@@ -11,7 +11,7 @@ import (
 	"github.com/hopeio/gox/types"
 )
 
-type Service[REQ, RES any] func(ctx ReqResp, req REQ) (RES, *httpx.ErrRep)
+type Service[REQ, RES any] func(ctx ReqResp, req REQ) (RES, *httpx.ErrResp)
 
 type warpKey struct{}
 
@@ -40,16 +40,16 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		}
 		res, errRep := service(ReqResp{r, w}, req)
 		if err != nil {
-			errRep.Response(w)
+			errRep.Respond(w)
 			return
 		}
 		anyres := any(res)
-		if httpres, ok := anyres.(httpx.ICommonResponseTo); ok {
-			httpres.CommonResponse(httpx.CommonResponseWriter{ResponseWriter: w})
+		if httpres, ok := anyres.(httpx.ICommonRespond); ok {
+			httpres.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: w})
 			return
 		}
-		if httpres, ok := anyres.(httpx.IHttpResponseTo); ok {
-			httpres.Response(w)
+		if httpres, ok := anyres.(httpx.IRespond); ok {
+			httpres.Respond(w)
 			return
 		}
 		json.NewEncoder(w).Encode(res)
@@ -65,16 +65,16 @@ func HandlerWrapCompatibleGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES
 		}
 		res, err := method(WarpContext(ReqResp{r, w}), req)
 		if err != nil {
-			httpx.ErrRepFrom(err).Response(w)
+			httpx.ErrRespFrom(err).Respond(w)
 			return
 		}
 		anyres := any(res)
-		if httpres, ok := anyres.(httpx.ICommonResponseTo); ok {
-			httpres.CommonResponse(httpx.CommonResponseWriter{w})
+		if httpres, ok := anyres.(httpx.ICommonRespond); ok {
+			httpres.CommonRespond(httpx.CommonResponseWriter{w})
 			return
 		}
-		if httpres, ok := anyres.(httpx.IHttpResponseTo); ok {
-			httpres.Response(w)
+		if httpres, ok := anyres.(httpx.IRespond); ok {
+			httpres.Respond(w)
 			return
 		}
 		w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJsonUtf8)
