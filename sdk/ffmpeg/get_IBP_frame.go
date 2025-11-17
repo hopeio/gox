@@ -8,9 +8,10 @@ package ffmpeg
 
 import (
 	"fmt"
-	execi "github.com/hopeio/gox/os/exec"
-	"github.com/hopeio/gox/os/fs"
 	"path/filepath"
+
+	execx "github.com/hopeio/gox/os/exec"
+	"github.com/hopeio/gox/os/fs"
 )
 
 type Frame int
@@ -40,6 +41,6 @@ func GetFrame(src string, f Frame) error {
 	dst := filepath.Clean(filepath.Dir(src)) + f.String() + "Frame"
 	fs.Mkdir(dst)
 	cmd := fmt.Sprintf(GetFrameCmd, src, f.String(), dst)
-	_, err := execi.RunGetOutContainQuoted(cmd)
+	_, err := execx.RunGetOutContainQuoted(cmd)
 	return err
 }

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	logi "github.com/hopeio/gox/log"
+	logx "github.com/hopeio/gox/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm/logger"
@@ -47,17 +47,17 @@ func (l *Logger) LogMode(level logger.LogLevel) logger.Interface {
 
 // Info print info
 func (l *Logger) Info(ctx context.Context, msg string, data ...interface{}) {
-	l.Logger.Info(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), zap.String(logi.FieldTraceId, TraceId(ctx)))
+	l.Logger.Info(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), zap.String(logx.FieldTraceId, TraceId(ctx)))
 }
 
 // Warn print warn messages
 func (l *Logger) Warn(ctx context.Context, msg string, data ...interface{}) {
-	l.Logger.Warn(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), zap.String(logi.FieldTraceId, TraceId(ctx)))
+	l.Logger.Warn(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), zap.String(logx.FieldTraceId, TraceId(ctx)))
 }
 
 // Error print error messages
 func (l *Logger) Error(ctx context.Context, msg string, data ...interface{}) {
-	l.Logger.Error(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), zap.String(logi.FieldTraceId, TraceId(ctx)))
+	l.Logger.Error(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), zap.String(logx.FieldTraceId, TraceId(ctx)))
 }
 
 // Trace print sql message 只有这里的context不是background,看了代码,也没用
@@ -90,7 +90,7 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (string, 
 	sqlField := zap.String("sql", sql)
 	rowsField := zap.Int64("rows", rows)
 	caller := zap.String("caller", utils.FileWithLineNum())
-	fields := []zap.Field{elapsedms, sqlField, rowsField, caller, zap.String(logi.FieldTraceId, TraceId(ctx))}
+	fields := []zap.Field{elapsedms, sqlField, rowsField, caller, zap.String(logx.FieldTraceId, TraceId(ctx))}
 	entry := l.Check(zapcore.Level(4-level), msg)
 	// entry.Caller = zapcore.NewEntryCaller(0, "", 0, false) utils.FileWithLineNum() or 获取到gorm的gormSourceDir
 	entry.Write(fields...)

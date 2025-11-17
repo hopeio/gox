@@ -26,12 +26,43 @@ func (hs HandlerFuncs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type Middleware func(http.Handler) http.Handler
+type Middleware func(*MiddlewareContext)
 
-// UseMiddleware applies middlewares to a http.HandlerFunc
-func UseMiddleware(handler http.Handler, middlewares ...Middleware) http.Handler {
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
+type MiddlewareContext struct {
+	*http.Request
+	http.ResponseWriter
+	handler  http.Handler
+	handlers []Middleware
+	index    int
+}
+
+func NewMiddlewareContext(handler http.Handler, handlers ...Middleware) *MiddlewareContext {
+	return &MiddlewareContext{
+		handler:  handler,
+		handlers: handlers,
 	}
-	return handler
+}
+
+func (m *MiddlewareContext) Use(mw Middleware) {
+	m.handlers = append(m.handlers, mw)
+}
+
+func (m *MiddlewareContext) Next() {
+	if m.index >= len(m.handlers) {
+		return
+	}
+	if m.index == len(m.handlers)-1 {
+		m.index++
+		m.handler.ServeHTTP(m.ResponseWriter, m.Request)
+		return
+	}
+	m.index++
+	m.handlers[m.index](m)
+}
+
+func (m *MiddlewareContext) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	m.Request = r
+	m.ResponseWriter = w
+	m.handlers[0](m)
+	m.index = 0
 }

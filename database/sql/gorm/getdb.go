@@ -9,7 +9,7 @@ package gorm
 import (
 	"context"
 
-	loggeri "github.com/hopeio/gox/database/sql/gorm/logger"
+	loggerx "github.com/hopeio/gox/database/sql/gorm/logger"
 	"github.com/hopeio/gox/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -17,7 +17,7 @@ import (
 
 func NewDBWithLogger(db *gorm.DB, log *log.Logger, conf *logger.Config) *gorm.DB {
 	return db.Session(&gorm.Session{
-		Logger: &loggeri.Logger{Logger: log.Logger,
+		Logger: &loggerx.Logger{Logger: log.Logger,
 			Config: conf,
 		}})
 }
@@ -27,5 +27,5 @@ func NewDBWithContext(db *gorm.DB, ctx context.Context) *gorm.DB {
 }
 
 func NewTraceDB(db *gorm.DB, ctx context.Context, traceId string) *gorm.DB {
-	return db.Session(&gorm.Session{Context: loggeri.SetTranceId(ctx, traceId), NewDB: true})
+	return db.Session(&gorm.Session{Context: loggerx.SetTranceId(ctx, traceId), NewDB: true})
 }

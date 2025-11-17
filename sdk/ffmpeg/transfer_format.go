@@ -9,10 +9,11 @@ package ffmpeg
 import (
 	"bytes"
 	"fmt"
-	execi "github.com/hopeio/gox/os/exec"
-	fs2 "github.com/hopeio/gox/os/fs"
 	"log"
 	"os"
+
+	execx "github.com/hopeio/gox/os/exec"
+	fsx "github.com/hopeio/gox/os/fs"
 )
 
 const TransferFormatGPUCmd = ` -hwaccel qsv -i "%s" -c copy -y "%s"`
@@ -20,7 +21,7 @@ const TransferFormatGPUCmd = ` -hwaccel qsv -i "%s" -c copy -y "%s"`
 func TransferFormatGPU(filePath, dst string) error {
 	command := fmt.Sprintf(ExecPath+TransferFormatGPUCmd, filePath, dst)
 	log.Println(command)
-	_, err := execi.RunGetOut(command)
+	_, err := execx.RunGetOut(command)
 	return err
 }
 
@@ -43,9 +44,9 @@ func Concat(dir, dst string) error {
 	}
 	var data bytes.Buffer
 	for _, file := range files {
-		data.WriteString(`file '` + dir + fs2.PathSeparator + file.Name() + "\n")
+		data.WriteString(`file '` + dir + fsx.PathSeparator + file.Name() + "\n")
 	}
-	ffmpegFilePath := dir + fs2.PathSeparator + "file.txt"
+	ffmpegFilePath := dir + fsx.PathSeparator + "file.txt"
 
 	file, err := os.Create(ffmpegFilePath)
 	if err != nil {

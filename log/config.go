@@ -7,12 +7,13 @@
 package log
 
 import (
-	neti "github.com/hopeio/gox/net"
+	"log"
+	"os"
+
+	netx "github.com/hopeio/gox/net"
 	"github.com/hopeio/gox/slices"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"log"
-	"os"
 
 	"sort"
 	"strconv"
@@ -213,7 +214,7 @@ func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 		hostname, _ := os.Hostname()
 		logger = logger.With(
 			zap.String(FieldHostname, hostname),
-			zap.String(FieldIP, neti.ExternalIPString()),
+			zap.String(FieldIP, netx.ExternalIPString()),
 		)
 	}
 
