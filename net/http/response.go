@@ -15,8 +15,6 @@ import (
 	"github.com/hopeio/gox/errors"
 )
 
-type Body map[string]any
-
 // RespData 主要用来接收返回，发送请使用ResAnyData
 type RespData[T any] struct {
 	Code errors.ErrCode `json:"code"`

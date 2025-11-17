@@ -16,7 +16,7 @@ type Param struct {
 // Params is a Param-slice, as returned by the router.
 // The slice is ordered, the first URL parameter is also the first slice value.
 // It is therefore safe to read values by the index.
-type Params []Param
+type Params []*Param
 
 // ByName returns the value of the first Param which key matches the given name.
 // If no matching Param is found, an empty string is returned.
@@ -360,7 +360,7 @@ walk: // Outer loop for walking the tree
 						end++
 					}
 
-					params = append(params, Param{
+					params = append(params, &Param{
 						Key:   n.path[1:],
 						Value: path[:end],
 					})
@@ -389,7 +389,7 @@ walk: // Outer loop for walking the tree
 
 				case catchAll:
 					// Save param value
-					params = append(params, Param{
+					params = append(params, &Param{
 						Key:   n.path[2:],
 						Value: path,
 					})

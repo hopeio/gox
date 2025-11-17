@@ -25,3 +25,13 @@ func (hs HandlerFuncs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		handler(w, r)
 	}
 }
+
+type Middleware func(http.Handler) http.Handler
+
+// UseMiddleware applies middlewares to a http.HandlerFunc
+func UseMiddleware(handler http.Handler, middlewares ...Middleware) http.Handler {
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		handler = middlewares[i](handler)
+	}
+	return handler
+}
