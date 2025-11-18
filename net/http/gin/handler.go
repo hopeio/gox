@@ -29,18 +29,18 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 		}
 		res, reserr := service(ctx, req)
 		if reserr != nil {
-			reserr.Respond(ctx.Writer)
+			reserr.Respond(ctx, ctx.Writer)
 			return
 		}
-		if httpres, ok := any(res).(httpx.ICommonRespond); ok {
-			httpres.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: ctx.Writer})
+		if httpres, ok := any(res).(httpx.CommonResponder); ok {
+			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
 			return
 		}
-		httpx.NewSuccessRespData(res).Respond(ctx.Writer)
+		httpx.NewSuccessRespData(res).Respond(ctx, ctx.Writer)
 	}
 }
 
-func HandlerWrapCompatibleGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.HandlerFunc {
+func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		req := new(REQ)
 		err := binding.Bind(ctx, req)
@@ -48,15 +48,15 @@ func HandlerWrapCompatibleGRPC[REQ, RES any](service types.GrpcService[*REQ, *RE
 			ctx.JSON(http.StatusBadRequest, errors.InvalidArgument.Wrap(err))
 			return
 		}
-		res, err := service(handlerwrap.WarpContext(ctx), req)
+		res, err := service(handlerwrap.WrapContext(ctx), req)
 		if err != nil {
-			httpx.ErrRespFrom(err).Respond(ctx.Writer)
+			httpx.ErrRespFrom(err).Respond(ctx, ctx.Writer)
 			return
 		}
-		if httpres, ok := any(res).(httpx.ICommonRespond); ok {
-			httpres.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: ctx.Writer})
+		if httpres, ok := any(res).(httpx.CommonResponder); ok {
+			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
 			return
 		}
-		httpx.NewSuccessRespData(res).Respond(ctx.Writer)
+		httpx.NewSuccessRespData(res).Respond(ctx, ctx.Writer)
 	}
 }

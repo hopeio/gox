@@ -1,52 +1,48 @@
 package gateway
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
+	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/proto"
 )
 
-func ForwardResponseMessage(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
-	if v, ok := message.(httpx.ICommonRespond); ok {
-		_, err := v.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: writer})
-		return err
-	}
-	if v, ok := message.(httpx.IRespond); ok {
-		_, err := v.Respond(writer)
-		return err
-	}
+func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, message proto.Message) error {
 	var buf []byte
 	var err error
 	switch rb := message.(type) {
-	case responseBody:
-		buf, err = jsonpb.JsonPb.Marshal(rb.ResponseBody())
-	case xxxResponseBody:
-		buf, err = jsonpb.JsonPb.Marshal(rb.XXX_ResponseBody())
+	case http.Handler:
+		rb.ServeHTTP(w, r)
+		return nil
+	case httpx.Responder:
+		_, err = rb.Respond(r.Context(), w)
+		return err
+	case ResponseBody:
+		buf = rb.ResponseBody()
+	case XXXResponseBody:
+		buf, err = JsonPb.Marshal(rb.XXX_ResponseBody())
 	default:
-		buf, err = jsonpb.JsonPb.Marshal(message)
+		buf, err = JsonPb.Marshal(message)
 	}
 
 	if err != nil {
-		grpclog.Infof("Marshal error: %v", err)
+		log.Infof("Marshal error: %v", err)
 		return err
 	}
 
-	if _, err = writer.Write(buf); err != nil {
-		grpclog.Infof("Failed to write response: %v", err)
+	if _, err = w.Write(buf); err != nil {
+		log.Infof("Failed to write response: %v", err)
 	}
 	return nil
 }
 
-type xxxResponseBody interface {
+type XXXResponseBody interface {
 	XXX_ResponseBody() interface{}
 }
 
-type responseBody interface {
-	ResponseBody() interface{}
+type ResponseBody interface {
+	ResponseBody() []byte
 }
 
 var OutGoingHeader = []string{

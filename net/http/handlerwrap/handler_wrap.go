@@ -13,16 +13,16 @@ import (
 
 type Service[REQ, RES any] func(ctx ReqResp, req REQ) (RES, *httpx.ErrResp)
 
-type warpKey struct{}
+type wrapKey struct{}
 
-var warpContextKey = warpKey{}
+var wrapContextKey = wrapKey{}
 
-func WarpContext(v any) context.Context {
-	return context.WithValue(context.Background(), warpContextKey, v)
+func WrapContext(v any) context.Context {
+	return context.WithValue(context.Background(), wrapContextKey, v)
 }
 
-func UnWarpContext(ctx context.Context) any {
-	return ctx.Value(warpContextKey)
+func UnWrapContext(ctx context.Context) any {
+	return ctx.Value(wrapContextKey)
 }
 
 type ReqResp struct {
@@ -32,49 +32,51 @@ type ReqResp struct {
 
 func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		req := new(REQ)
 		err := binding.Bind(r, req)
 		if err != nil {
-			httpx.RespErrCodeMsg(w, errors.InvalidArgument, err.Error())
+			httpx.RespErrCodeMsg(ctx, w, errors.InvalidArgument, err.Error())
 			return
 		}
 		res, errRep := service(ReqResp{r, w}, req)
 		if err != nil {
-			errRep.Respond(w)
+			errRep.Respond(ctx, w)
 			return
 		}
 		anyres := any(res)
-		if httpres, ok := anyres.(httpx.ICommonRespond); ok {
-			httpres.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: w})
+		if httpres, ok := anyres.(httpx.CommonResponder); ok {
+			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
 			return
 		}
-		if httpres, ok := anyres.(httpx.IRespond); ok {
-			httpres.Respond(w)
+		if httpres, ok := anyres.(httpx.Responder); ok {
+			httpres.Respond(ctx, w)
 			return
 		}
 		json.NewEncoder(w).Encode(res)
 	})
 }
-func HandlerWrapCompatibleGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
+func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		req := new(REQ)
 		err := binding.Bind(r, req)
 		if err != nil {
-			httpx.RespSuccessData(w, errors.InvalidArgument.Wrap(err))
+			httpx.RespSuccessData(ctx, w, errors.InvalidArgument.Wrap(err))
 			return
 		}
-		res, err := method(WarpContext(ReqResp{r, w}), req)
+		res, err := method(WrapContext(ReqResp{r, w}), req)
 		if err != nil {
-			httpx.ErrRespFrom(err).Respond(w)
+			httpx.ErrRespFrom(err).Respond(ctx, w)
 			return
 		}
 		anyres := any(res)
-		if httpres, ok := anyres.(httpx.ICommonRespond); ok {
-			httpres.CommonRespond(httpx.CommonResponseWriter{w})
+		if httpres, ok := anyres.(httpx.CommonResponder); ok {
+			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{w})
 			return
 		}
-		if httpres, ok := anyres.(httpx.IRespond); ok {
-			httpres.Respond(w)
+		if httpres, ok := anyres.(httpx.Responder); ok {
+			httpres.Respond(ctx, w)
 			return
 		}
 		w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJsonUtf8)

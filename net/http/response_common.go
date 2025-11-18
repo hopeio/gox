@@ -1,30 +1,35 @@
 package http
 
 import (
+	"context"
 	"io"
 	"net/http"
 )
 
-type ICommonResponseWriter interface {
+type CommonResponseWriter interface {
 	Status(code int)
 	Header() Header
 	io.Writer
 }
 
-type CommonResponseWriter struct {
+type ResponseWriterWrapper struct {
 	http.ResponseWriter
 }
 
-func (w CommonResponseWriter) Status(code int) {
+func (w ResponseWriterWrapper) Status(code int) {
 	w.WriteHeader(code)
 }
-func (w CommonResponseWriter) Header() Header {
+func (w ResponseWriterWrapper) Header() Header {
 	return (HttpHeader)(w.ResponseWriter.Header())
 }
-func (w CommonResponseWriter) Write(p []byte) (int, error) {
+func (w ResponseWriterWrapper) Write(p []byte) (int, error) {
 	return w.ResponseWriter.Write(p)
 }
 
-type ICommonRespond interface {
-	CommonRespond(w ICommonResponseWriter) (int, error)
+type CommonResponder interface {
+	CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error)
+}
+
+type CommonRequestWriter interface {
+	io.Reader
 }

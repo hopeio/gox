@@ -11,9 +11,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
 	"github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/net/http/grpc/gateway"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
 )
@@ -23,10 +23,10 @@ func HttpError(ctx *gin.Context, err error) {
 	const fallback = `{"code": 14, "msg": "failed to marshal error message"}`
 
 	delete(ctx.Request.Header, httpx.HeaderTrailer)
-	ctx.Header(httpx.HeaderContentType, jsonpb.JsonPb.ContentType(nil))
+	ctx.Header(httpx.HeaderContentType, gateway.JsonPb.ContentType(nil))
 
 	se := &errors.ErrResp{Code: errors.ErrCode(s.Code()), Msg: s.Message()}
-	buf, merr := jsonpb.JsonPb.Marshal(se)
+	buf, merr := gateway.JsonPb.Marshal(se)
 	if merr != nil {
 		grpclog.Infof("Failed to marshal error message %q: %v", se, merr)
 		ctx.Status(http.StatusInternalServerError)

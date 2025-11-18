@@ -12,9 +12,11 @@ import (
 	"net/url"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 type GatewayHandler func(context.Context, *runtime.ServeMux)
@@ -37,9 +39,35 @@ func New(opts ...runtime.ServeMuxOption) *runtime.ServeMux {
 		}),
 		runtime.WithIncomingHeaderMatcher(gateway.InComingHeaderMatcher),
 		runtime.WithOutgoingHeaderMatcher(gateway.OutgoingHeaderMatcher),
-		runtime.WithForwardResponseOption(gateway.ForwardResponseMessage),
+		runtime.WithForwardResponseOption(ForwardResponseMessage),
 		runtime.WithRoutingErrorHandler(RoutingErrorHandler),
 		runtime.WithErrorHandler(CustomHttpError),
 	}, opts...)
 	return runtime.NewServeMux(opts...)
+}
+
+func ForwardResponseMessage(ctx context.Context, writer http.ResponseWriter, message proto.Message) error {
+	var buf []byte
+	var err error
+	switch rb := message.(type) {
+	case httpx.Responder:
+		_, err = rb.Respond(ctx, writer)
+		return err
+	case gateway.ResponseBody:
+		buf = rb.ResponseBody()
+	case gateway.XXXResponseBody:
+		buf, err = JsonPb.Marshal(rb.XXX_ResponseBody())
+	default:
+		buf, err = JsonPb.Marshal(message)
+	}
+
+	if err != nil {
+		log.Infof("Marshal error: %v", err)
+		return err
+	}
+
+	if _, err = writer.Write(buf); err != nil {
+		log.Infof("Failed to write response: %v", err)
+	}
+	return nil
 }

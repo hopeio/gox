@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,11 +19,11 @@ type ResponseFile struct {
 	Body httpx.WriterToCloser `json:"body,omitempty"`
 }
 
-func (res *ResponseFile) Respond(w http.ResponseWriter) (int, error) {
-	return res.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: w})
+func (res *ResponseFile) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	return res.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
 }
 
-func (res *ResponseFile) CommonRespond(w httpx.ICommonResponseWriter) (int, error) {
+func (res *ResponseFile) CommonRespond(ctx context.Context, w httpx.CommonResponseWriter) (int, error) {
 	header := w.Header()
 	header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
 	header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))

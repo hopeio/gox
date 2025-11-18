@@ -8,7 +8,6 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/encoding/protobuf/jsonpb"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
 	"github.com/hopeio/gox/net/http/grpc/gateway"
@@ -16,14 +15,14 @@ import (
 )
 
 func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message proto.Message) {
-	if res, ok := message.(httpx.ICommonRespond); ok {
-		res.CommonRespond(httpx.CommonResponseWriter{ctx.Writer})
+	if res, ok := message.(httpx.CommonResponder); ok {
+		res.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
 		return
 	}
 	gateway.HandleForwardResponseServerMetadata(ctx.Writer, md.HeaderMD)
 	gateway.HandleForwardResponseTrailerHeader(ctx.Writer, md.TrailerMD)
 
-	contentType := jsonpb.JsonPb.ContentType(message)
+	contentType := gateway.JsonPb.ContentType(message)
 	ctx.Header(httpx.HeaderContentType, contentType)
 
 	if !message.ProtoReflect().IsValid() {
@@ -31,7 +30,7 @@ func ForwardResponseMessage(ctx *gin.Context, md grpc.ServerMetadata, message pr
 		return
 	}
 	gateway.HandleForwardResponseTrailer(ctx.Writer, md.TrailerMD)
-	err := gateway.ForwardResponseMessage(ctx, ctx.Writer, message)
+	err := gateway.ForwardResponseMessage(ctx.Writer, ctx.Request, message)
 	if err != nil {
 		HttpError(ctx, err)
 		return

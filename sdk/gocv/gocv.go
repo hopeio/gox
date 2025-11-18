@@ -180,7 +180,7 @@ func CropRotated(img gocv.Mat, centerX, centerY, length, width float64, angle fl
 	transformMat := gocv.GetPerspectiveTransform(srcPoints, dstPoints)
 	srcPoints.Close()
 	dstPoints.Close()
-	// warp perspective
+	// wrap perspective
 	dst := gocv.NewMatWithSize(int(length), int(width), img.Type())
 	gocv.WarpPerspective(img, &dst, transformMat, image.Point{
 		X: int(length),

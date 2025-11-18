@@ -29,11 +29,11 @@ func ReadLines(reader io.Reader, f func(line string) bool) error {
 	return scanner.Err()
 }
 
-type ReadCloserWarp struct {
+type ReadCloserWrapper struct {
 	io.ReadCloser
 }
 
-func (r ReadCloserWarp) WriteTo(w io.Writer) (int64, error) {
+func (r ReadCloserWrapper) WriteTo(w io.Writer) (int64, error) {
 	return io.Copy(w, r)
 }
 

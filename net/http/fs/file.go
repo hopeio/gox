@@ -7,6 +7,7 @@
 package fs
 
 import (
+	"context"
 	"errors"
 	"io"
 	"io/fs"
@@ -25,11 +26,11 @@ type File struct {
 	Name string
 }
 
-func (f *File) Respond(w http.ResponseWriter) (int, error) {
-	return f.CommonRespond(httpx.CommonResponseWriter{ResponseWriter: w})
+func (f *File) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	return f.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
 }
 
-func (f *File) CommonRespond(w httpx.ICommonResponseWriter) (int, error) {
+func (f *File) CommonRespond(ctx context.Context, w httpx.CommonResponseWriter) (int, error) {
 	header := w.Header()
 	header.Set(httpx.HeaderContentDisposition, "attachment; filename="+f.Name)
 	header.Set(httpx.HeaderContentType, http.DetectContentType(make([]byte, 512)))
