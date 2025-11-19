@@ -62,12 +62,12 @@ type Client struct {
 	// request
 	httpRequestOptions []HttpRequestOption
 	header             http.Header //公共请求头
-	customReqMarshal   func(v any) ([]byte, error)
+	reqDataMarshal     func(v any) ([]byte, error)
 
 	// response
-	responseHandler    func(response *http.Response) (retry bool, reader io.ReadCloser, err error)
-	respDataHandler    func(data []byte) ([]byte, error)
-	customResUnMarshal func(data []byte, v any) error
+	responseHandler   func(response *http.Response) (retry bool, reader io.ReadCloser, err error)
+	respDataHandler   func(data []byte) ([]byte, error)
+	respDataUnMarshal func(data []byte, v any) error
 
 	// logger
 	logger   AccessLog
@@ -128,13 +128,13 @@ func (d *Client) RespDataHandler(handler func(data []byte) ([]byte, error)) *Cli
 	return d
 }
 
-func (d *Client) CustomReqMarshal(handler func(v any) ([]byte, error)) *Client {
-	d.customReqMarshal = handler
+func (d *Client) ReqDataMarshal(handler func(v any) ([]byte, error)) *Client {
+	d.reqDataMarshal = handler
 	return d
 }
 
-func (d *Client) CustomResUnMarshal(handler func(data []byte, v any) error) *Client {
-	d.customResUnMarshal = handler
+func (d *Client) RespDataUnMarshal(handler func(data []byte, v any) error) *Client {
+	d.respDataUnMarshal = handler
 	return d
 }
 

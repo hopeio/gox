@@ -100,6 +100,12 @@ func (h SliceHeader) IntoHttpHeader(header http.Header) {
 	}
 }
 
+func (h SliceHeader) ToHttpHeader() http.Header {
+	header := make(http.Header)
+	h.IntoHttpHeader(header)
+	return header
+}
+
 func (h SliceHeader) Clone() SliceHeader {
 	newh := make(SliceHeader, len(h))
 	copy(newh, h)
@@ -229,6 +235,12 @@ func (h MapHeader) IntoHttpHeader(header http.Header) {
 	}
 }
 
+func (h MapHeader) ToHttpHeader() http.Header {
+	header := make(http.Header)
+	h.IntoHttpHeader(header)
+	return header
+}
+
 func (h MapHeader) Add(k, v string) {
 	h[k] = v
 }
@@ -257,6 +269,10 @@ func (h HttpHeader) IntoHttpHeader(header http.Header) {
 	for k, v := range h {
 		header.Set(k, v[0])
 	}
+}
+
+func (h HttpHeader) ToHttpHeader() http.Header {
+	return http.Header(h)
 }
 
 func (h HttpHeader) Add(k, v string) {

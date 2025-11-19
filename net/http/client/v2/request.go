@@ -8,7 +8,8 @@ package client
 
 import (
 	"context"
-	httpx "github.com/hopeio/gox/net/http"
+	"net/http"
+
 	"github.com/hopeio/gox/net/http/client"
 )
 
@@ -33,7 +34,7 @@ func (req *Request[RES]) Origin() *client.Request {
 	return (*client.Request)(req)
 }
 
-func (req *Request[RES]) Header(header httpx.Header) *Request[RES] {
+func (req *Request[RES]) Header(header http.Header) *Request[RES] {
 	(*client.Request)(req).Header(header)
 	return req
 }
@@ -50,11 +51,6 @@ func (req *Request[RES]) ContentType(contentType client.ContentType) *Request[RE
 func (req *Request[RES]) Context(ctx context.Context) *Request[RES] {
 	(*client.Request)(req).Context(ctx)
 	return req
-}
-
-func (req *Request[RES]) DoNoParam() (*RES, error) {
-	response := new(RES)
-	return response, (*client.Request)(req).Do(nil, response)
 }
 
 // Do create a HTTP request

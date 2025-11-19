@@ -84,19 +84,6 @@ func (req *Request) Context(ctx context.Context) *Request {
 	req.ctx = ctx
 	return req
 }
-
-func (req *Request) DoEmpty() error {
-	return req.Do(nil, nil)
-}
-
-func (req *Request) DoNoParam(response any) error {
-	return req.Do(nil, response)
-}
-
-func (req *Request) DoNoResponse(param any) error {
-	return req.Do(param, nil)
-}
-
 func (req *Request) DoRaw(param any) (RawBytes, error) {
 	var raw RawBytes
 	err := req.Do(param, &raw)
@@ -172,8 +159,8 @@ func (req *Request) Do(param, response any) error {
 					reqBody, err = io.ReadAll(paramType)
 				}
 			default:
-				if c.customReqMarshal != nil {
-					reqBody, err = c.customReqMarshal(param)
+				if c.reqDataMarshal != nil {
+					reqBody, err = c.reqDataMarshal(param)
 					if err != nil {
 						return err
 					}
@@ -194,8 +181,8 @@ func (req *Request) Do(param, response any) error {
 		}
 
 		if len(reqBody) > 0 {
-			if c.customReqMarshal != nil {
-				reqBody, err = c.customReqMarshal(reqBody)
+			if c.reqDataMarshal != nil {
+				reqBody, err = c.reqDataMarshal(reqBody)
 			}
 			body = bytes.NewReader(reqBody)
 		}
@@ -348,8 +335,8 @@ Retry:
 			*raw = respBody
 			return nil
 		}
-		if req.client.customResUnMarshal != nil {
-			err = req.client.customResUnMarshal(respBody, response)
+		if req.client.respDataUnMarshal != nil {
+			err = req.client.respDataUnMarshal(respBody, response)
 			if err != nil {
 				return fmt.Errorf("json.Unmarshal error: %w", err)
 			}
