@@ -13,7 +13,7 @@ import (
 	"runtime/pprof"
 )
 
-// go tool pprof ./cpu.pprof
+// go tool pprof -http=:8080 ./cpu.pprof
 func PprofCPU(filename string) func() {
 	f, err := os.Create(filename)
 	if err != nil {
