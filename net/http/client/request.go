@@ -71,7 +71,7 @@ func (req *Request) AddHeader(k, v string) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
 	}
-	req.header.Add(k, v)
+	req.header.Set(k, v)
 	return req
 }
 
@@ -195,8 +195,10 @@ func (req *Request) Do(param, response any) error {
 	if req.header != nil {
 		request.Header = req.header
 	}
-	request.Header.Set(httpx.HeaderContentType, req.contentType.String())
 	httpx.CopyHttpHeader(request.Header, c.header)
+	if req.contentType != 0 {
+		request.Header.Set(httpx.HeaderContentType, req.contentType.String())
+	}
 
 Retry:
 	if reqTimes > 0 {

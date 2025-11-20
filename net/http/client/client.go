@@ -95,7 +95,7 @@ func (d *Client) AddHeader(k, v string) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)
 	}
-	d.header.Add(k, v)
+	d.header.Set(k, v)
 	return d
 }
 

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hopeio/gox/log"
-	http2 "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
 	"go.uber.org/zap"
 )
@@ -27,12 +27,11 @@ const (
 )
 
 type Body struct {
-	Data        []byte
-	ContentType ContentType
+	Data []byte
 }
 
-func NewBody(data []byte, contentType ContentType) *Body {
-	return &Body{Data: data, ContentType: contentType}
+func NewBody(data []byte) *Body {
+	return &Body{Data: data}
 }
 
 type AccessLogParam struct {
@@ -48,7 +47,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 	reqField, respField, statusField := zap.Skip(), zap.Skip(), zap.Skip()
 	if len(param.ReqBody) > 0 {
 		key := "body"
-		if strings.HasPrefix(param.Request.Header.Get(http2.HeaderContentType), http2.ContentTypeJson) {
+		if strings.HasPrefix(param.Request.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson) {
 			reqField = zap.Reflect(key, json.RawMessage(param.ReqBody))
 		} else {
 			reqField = zap.String(key, stringsx.BytesToString(param.ReqBody))
@@ -59,7 +58,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 		if len(param.RespBody) > 500 {
 			respField = zap.String(key, "<result is too long>")
 		} else {
-			if strings.HasPrefix(param.Response.Header.Get(http2.HeaderContentType), http2.ContentTypeJson) {
+			if strings.HasPrefix(param.Response.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson) {
 				respField = zap.Reflect(key, json.RawMessage(param.RespBody))
 			} else {
 				respField = zap.String(key, stringsx.BytesToString(param.RespBody))

@@ -42,7 +42,8 @@ func (c *ContentType) Decode(contentType string) {
 }
 
 const (
-	ContentTypeJson ContentType = iota
+	ContentTypeUnset ContentType = iota
+	ContentTypeJson
 	ContentTypeForm
 	ContentTypeFormData
 	ContentTypeGrpc
