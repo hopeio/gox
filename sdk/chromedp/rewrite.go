@@ -9,10 +9,11 @@ package chromedp
 import (
 	"context"
 	"encoding/base64"
+	"os"
+
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/chromedp"
 	"github.com/hopeio/gox/log"
-	"os"
 )
 
 func Rewrite(ctx context.Context, url string, localPath string) chromedp.Action {

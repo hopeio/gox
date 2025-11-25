@@ -3,10 +3,11 @@ package cloudflare
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/hopeio/gox/log"
-	neti "github.com/hopeio/gox/net"
-	"strings"
+	netx "github.com/hopeio/gox/net"
 )
 
 func DDNSV6(ctx context.Context, api *cloudflare.API, zoneID, recordID string) error {
@@ -15,7 +16,7 @@ func DDNSV6(ctx context.Context, api *cloudflare.API, zoneID, recordID string) e
 	if err != nil {
 		return fmt.Errorf("failed to get DNS record: %v", err)
 	}
-	addresses, err := neti.IPv6Addresses()
+	addresses, err := netx.IPv6Addresses()
 	if err != nil {
 		return err
 	}

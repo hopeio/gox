@@ -12,11 +12,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/hopeio/gox/net/http/client"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hopeio/gox/net/http/client"
 )
 
 const (
