@@ -15,7 +15,7 @@ import (
 // with stack
 func StackError(args ...any) {
 	if ce := stackLogger.Check(zap.ErrorLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -37,56 +37,56 @@ func StackErrorw(msg string, fields ...zap.Field) {
 
 func NoCallerDebug(args ...any) {
 	if ce := noCallerLogger.Check(zap.DebugLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerInfo(args ...any) {
 	if ce := noCallerLogger.Check(zap.InfoLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerWarn(args ...any) {
 	if ce := noCallerLogger.Check(zap.WarnLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerError(args ...any) {
 	if ce := noCallerLogger.Check(zap.ErrorLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerPanic(args ...any) {
 	if ce := noCallerLogger.Check(zap.PanicLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerFatal(args ...any) {
 	if ce := noCallerLogger.Check(zap.FatalLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerErrorf(template string, args ...any) {
 	if ce := noCallerLogger.Check(zap.ErrorLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
 
 func NoCallerFatalf(template string, args ...any) {
 	if ce := noCallerLogger.Check(zap.FatalLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }

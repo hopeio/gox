@@ -66,7 +66,7 @@ func (l *Logger) Printf(template string, args ...any) {
 // 兼容gormv1
 func (l *Logger) Print(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -74,7 +74,7 @@ func (l *Logger) Print(args ...any) {
 // Debug uses fmt.Sprint to construct and log a message.
 func (l *Logger) Debug(args ...any) {
 	if ce := l.Check(zap.DebugLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -82,7 +82,7 @@ func (l *Logger) Debug(args ...any) {
 // Info uses fmt.Sprint to construct and log a message.
 func (l *Logger) Info(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -90,7 +90,7 @@ func (l *Logger) Info(args ...any) {
 // Warn uses fmt.Sprint to construct and log a message.
 func (l *Logger) Warn(args ...any) {
 	if ce := l.Check(zap.WarnLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -98,7 +98,7 @@ func (l *Logger) Warn(args ...any) {
 // Error uses fmt.Sprint to construct and log a message.
 func (l *Logger) Error(args ...any) {
 	if ce := l.Check(zap.ErrorLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -107,7 +107,7 @@ func (l *Logger) Error(args ...any) {
 // logger then panics. (See DPanicLevel for details.)
 func (l *Logger) DPanic(args ...any) {
 	if ce := l.Check(zap.DPanicLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -115,7 +115,7 @@ func (l *Logger) DPanic(args ...any) {
 // Panic uses fmt.Sprint to construct and log a message, then panics.
 func (l *Logger) Panic(args ...any) {
 	if ce := l.Check(zap.PanicLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }
@@ -123,7 +123,7 @@ func (l *Logger) Panic(args ...any) {
 // Fatal uses fmt.Sprint to construct and log a message, then calls os.Exit.
 func (l *Logger) Fatal(args ...any) {
 	if ce := l.Check(zap.FatalLevel, ""); ce != nil {
-		ce.Message = trimLineBreak(fmt.Sprintln(args...))
+		ce.Message = sprintln(args...)
 		ce.Write()
 	}
 }

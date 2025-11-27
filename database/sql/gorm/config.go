@@ -65,7 +65,7 @@ func (c *Config) Init() {
 	if c.Type == "" {
 		c.Type = dbi.Postgres
 	}
-	log.DurationNotify("SlowThreshold", c.Logger.SlowThreshold, 10*time.Millisecond)
+	log.ValueLevelNotify("SlowThreshold", c.Logger.SlowThreshold, 10*time.Millisecond)
 	if c.TimeZone == "" {
 		c.TimeZone = "Asia/Shanghai"
 	}

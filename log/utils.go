@@ -46,7 +46,7 @@ func TrimLineBreak(path string) string {
 	return path
 }
 
-func Sprintln(a ...any) string {
+func sprintln(a ...any) string {
 	return trimLineBreak(fmt.Sprintln(a...))
 }
 

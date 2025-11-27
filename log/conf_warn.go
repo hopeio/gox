@@ -8,17 +8,18 @@ package log
 
 import (
 	"cmp"
-	"time"
+
+	constraintsx "github.com/hopeio/gox/types/constraints"
 )
 
-func ValueNotify[T cmp.Ordered](msg string, v T, rangeMin, rangeMax T) {
-	if v > rangeMin || v < rangeMax {
-		CallerSkipLogger(1).Warnf("%s except: %v - %v,but got %s", msg, rangeMin, rangeMax, v)
+func ValueRangeNotify[T cmp.Ordered](msg string, v, rangeMin, rangeMax T) {
+	if v > rangeMax || v < rangeMin {
+		CallerSkipLogger(1).Warnf("%s except: %v - %v, but got %v", msg, rangeMin, rangeMax, v)
 	}
 }
 
-func DurationNotify(msg string, v time.Duration, std time.Duration) {
+func ValueLevelNotify[T constraintsx.Number](msg string, v, std T) {
 	if v > 0 && v < std {
-		CallerSkipLogger(1).Warnf("%s except: %s level,but got %s", msg, std, v)
+		CallerSkipLogger(1).Warnf("%s except: %v level, but got %v", msg, std, v)
 	}
 }
