@@ -9,15 +9,22 @@ package validator
 import "strings"
 
 // Validator is a general interface that allows a message to be validated.
-type IValidator interface {
+type Validator interface {
 	Validate() error
 }
 
-func CallValidatorIfExists(candidate interface{}) error {
-	if validator, ok := candidate.(IValidator); ok {
+type ValidatorAll interface {
+	Validate(all bool) error
+}
+
+func ValidateStruct(o any) error {
+	switch validator := o.(type) {
+	case ValidatorAll:
+		return validator.Validate(true)
+	case Validator:
 		return validator.Validate()
 	}
-	return nil
+	return DefaultValidate.Struct(o)
 }
 
 type fieldError struct {

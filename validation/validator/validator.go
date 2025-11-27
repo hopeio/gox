@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -20,21 +21,21 @@ import (
 )
 
 var (
-	Validator *validator.Validate
-	trans     ut.Translator
+	DefaultValidate *validator.Validate
+	uni             *ut.UniversalTranslator
 )
 
 func init() {
-	zhcn := zh.New()
-	uni := ut.New(zhcn)
+	uni = ut.New(en.New(), zh.New())
 
 	// this is usually know or extracted from http 'Accept-Language' header
 	// also see uni.FindTranslator(...)
-	trans, _ = uni.GetTranslator("zh")
+	trans, _ := uni.GetTranslator("zh")
 
-	Validator = validator.New()
-	zh_translations.RegisterDefaultTranslations(Validator, trans)
-	Validator.RegisterTagNameFunc(func(sf reflect.StructField) string {
+	DefaultValidate = validator.New()
+	DefaultValidate.SetTagName("validate")
+	zh_translations.RegisterDefaultTranslations(DefaultValidate, trans)
+	DefaultValidate.RegisterTagNameFunc(func(sf reflect.StructField) string {
 		if comment := sf.Tag.Get("comment"); comment != "" {
 			return comment
 		}
@@ -43,16 +44,16 @@ func init() {
 		}
 		return sf.Name
 	})
-	Validator.RegisterValidation("phone", func(fl validator.FieldLevel) bool {
+	DefaultValidate.RegisterValidation("phone", func(fl validator.FieldLevel) bool {
 		match, _ := regexp.MatchString(phonePattern, fl.Field().String())
 		return match
 	})
-	Validator.RegisterTranslation("phone", trans, func(ut ut.Translator) error {
+	DefaultValidate.RegisterTranslation("phone", trans, func(ut ut.Translator) error {
 		return ut.Add("phone", "{0}必须是一个有效的手机号!", true)
 	}, translateFunc)
 }
 
-func TransError(err error) string {
+func TransError(err error, locale string) string {
 	if err == nil {
 		return ""
 	}
@@ -62,6 +63,7 @@ func TransError(err error) string {
 	if !ok {
 		return err.Error()
 	}
+	trans, _ := uni.GetTranslator("zh")
 	for _, v := range ve.Translate(trans) {
 		msg = append(msg, v)
 	}

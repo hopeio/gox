@@ -20,11 +20,6 @@ import (
 	"github.com/hopeio/gox/validation/validator"
 )
 
-// Validator is the default validator which implements the StructValidator
-// interface. It uses https://github.com/go-playground/validator/tree/v8.18.2
-// under the hood.
-var Validator = validator.DefaultValidator
-
 var (
 	DefaultMemory    int64                   = 32 << 20
 	BodyUnmarshaller func([]byte, any) error = json.Unmarshal
@@ -32,9 +27,7 @@ var (
 
 const commonTag = "json"
 
-func Validate(obj interface{}) error {
-	return Validator.ValidateStruct(obj)
-}
+var Validate = validator.DefaultValidate.Struct
 
 var defaultTags = []string{"uri", "path", "query", "header", "form", commonTag}
 
