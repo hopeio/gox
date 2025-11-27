@@ -328,7 +328,7 @@ func (rm *Route) HasRequest(request Model) *Route {
 				ApplyCustomSchema: nil,
 			})
 		}
-		if js := tags.MustGet("json"); !hasJson && js.Value != "" && js.Value != "-" {
+		if js, ok := tags.Get("json"); !hasJson && ok && js.Value != "" && js.Value != "-" {
 			hasJson = true
 			rm.HasRequestModel(Model{Type: request.Type})
 		}
