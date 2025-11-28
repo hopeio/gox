@@ -7,25 +7,15 @@
 package exec
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 
 	osx "github.com/hopeio/gox/os"
 	stringsx "github.com/hopeio/gox/strings"
 )
-
-func RunWithLog(arg string, opts ...Option) error {
-	words := osx.Split(arg)
-	cmd := exec.Command(words[0], words[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	for _, opt := range opts {
-		opt(cmd)
-	}
-	log.Println(cmd.String())
-	return cmd.Run()
-}
 
 func Run(s string, opts ...Option) error {
 	words := osx.Split(s)
@@ -36,6 +26,13 @@ func Run(s string, opts ...Option) error {
 		opt(cmd)
 	}
 	return cmd.Run()
+}
+
+func RunWithLog(arg string, opts ...Option) error {
+	opts = append(opts, func(cmd *exec.Cmd) {
+		log.Printf(`exec:"%v"`, cmd)
+	})
+	return Run(arg, opts...)
 }
 
 type Option func(cmd *exec.Cmd)
@@ -68,4 +65,17 @@ func RunGetOutWithLog(s string, opts ...Option) (string, error) {
 	}
 	log.Printf(`exec:"%s"`, s)
 	return out, err
+}
+
+// Shell run shell
+// e.g. Shell("bash", "echo hello world")
+func Shell(interpreter, shell string, opts ...Option) error {
+	words := osx.Split(fmt.Sprintf(`%s -c "%s"`, interpreter, strconv.Quote(shell)))
+	cmd := exec.Command(words[0], words[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	for _, opt := range opts {
+		opt(cmd)
+	}
+	return cmd.Run()
 }

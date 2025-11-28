@@ -7,9 +7,10 @@
 package _go
 
 import (
-	execi "github.com/hopeio/gox/os/exec"
 	"os"
 	"strings"
+
+	execx "github.com/hopeio/gox/os/exec"
 )
 
 const GoListDir = `go list -m -f {{.Dir}} `
@@ -40,10 +41,10 @@ func GetDepDir(dep string) string {
 }
 
 func modDepDir(dep string) string {
-	depPath, err := execi.RunGetOut(GoListDir + dep)
+	depPath, err := execx.RunGetOut(GoListDir + dep)
 	if err != nil || depPath == "" {
-		execi.RunGetOut("go get " + dep)
-		depPath, _ = execi.RunGetOut(GoListDir + dep)
+		execx.RunGetOut("go get " + dep)
+		depPath, _ = execx.RunGetOut(GoListDir + dep)
 	}
 	return depPath
 }

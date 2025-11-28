@@ -247,7 +247,7 @@ func (d *TimeArray) Scan(value any) error {
 	strs := strings.Split(str[1:len(str)-1], ",")
 	var arr []time.Time
 	for _, elem := range strs {
-		t, err := time.Parse(time.RFC3339Nano, stringsx.Unquote(elem))
+		t, err := time.Parse(time.RFC3339Nano, elem[1:len(elem)-1])
 		if err != nil {
 			return err
 		}

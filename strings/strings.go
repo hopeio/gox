@@ -9,13 +9,14 @@ package strings
 import (
 	"bytes"
 	"fmt"
-	"github.com/hopeio/gox/strings/ascii"
 	"math/rand"
 	"regexp"
 	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/hopeio/gox/strings/ascii"
 )
 
 func FormatLen(s string, length int) string {
@@ -25,19 +26,6 @@ func FormatLen(s string, length int) string {
 	return s[:length]
 }
 
-// 简单添加引号，如果字符串本身带引号，请使用strconv.Quote
-func Quote(s string) string {
-	return "\"" + s + "\""
-}
-
-func QuoteBytes(s []byte) []byte {
-	b := make([]byte, 0, len(s)+2)
-	b = append(b, '"')
-	b = append(b, s...)
-	b = append(b, '"')
-	return b
-}
-
 func IsQuoted[T ~string | ~[]byte](s T) bool {
 	if len(s) < 2 {
 		return false
@@ -45,27 +33,16 @@ func IsQuoted[T ~string | ~[]byte](s T) bool {
 	return (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'')
 }
 
-// 简单去除引号，如果字符串本身带引号，请使用strconv.Quote
-func Unquote[T ~string | ~[]byte](s T) T {
-	if !IsQuoted(s) {
-		return s
-	}
-	return s[1 : len(s)-1]
+func SimpleQuote(s string) string {
+	return fmt.Sprintf(`"%s"`, s)
 }
 
-func QuoteToBytes(s string) []byte {
+func SimpleQuoteToBytes(s string) []byte {
 	b := make([]byte, 0, len(s)+2)
 	b = append(b, '"')
 	b = append(b, ToBytes(s)...)
 	b = append(b, '"')
 	return b
-}
-
-func UnquoteToBytes(s string) []byte {
-	if !IsQuoted(s) {
-		return ToBytes(s)
-	}
-	return ToBytes(s[1 : len(s)-1])
 }
 
 func CamelToSnake(name string) string {

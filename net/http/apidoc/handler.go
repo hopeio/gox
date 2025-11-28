@@ -28,6 +28,8 @@ var Dir = "./apidoc/"
 
 const TypeOpenapi = "openapi"
 const OpenapiEXT = ".openapi.json"
+const SwaggerEXT = ".swagger.json"
+const JsonEXT = ".json"
 
 func OpenApi(w http.ResponseWriter, r *http.Request) {
 	prefixUri := UriPrefix + "/" + TypeOpenapi + "/"
@@ -45,7 +47,7 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 	mod := r.RequestURI[len(prefixUri):]
 	Redoc(RedocOpts{
 		BasePath: prefixUri,
-		SpecURL:  path.Join(prefixUri, mod+OpenapiEXT),
+		SpecURL:  path.Join(prefixUri, mod+JsonEXT),
 		Path:     mod,
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
@@ -58,9 +60,9 @@ func DocList(w http.ResponseWriter, r *http.Request) {
 	var buff bytes.Buffer
 	for i := range fileInfos {
 
-		if strings.HasSuffix(fileInfos[i].Name(), OpenapiEXT) {
-			mod := strings.TrimSuffix(fileInfos[i].Name(), OpenapiEXT)
-			buff.Write([]byte(`<a href="` + r.RequestURI + "/openapi/" + mod + `"> openapi: ` + mod + `</a><br>`))
+		if strings.HasSuffix(fileInfos[i].Name(), JsonEXT) {
+			mod := strings.TrimSuffix(fileInfos[i].Name(), JsonEXT)
+			buff.Write([]byte(`<a href="` + r.RequestURI + "/openapi/" + mod + `"> ` + mod + `</a><br>`))
 		}
 	}
 	w.Write(buff.Bytes())
@@ -78,7 +80,7 @@ func ApiDoc(mux *http.ServeMux, uriPrefix, dir string) {
 		UriPrefix = uriPrefix
 	}
 	mux.HandleFunc(UriPrefix, DocList)
-	mux.HandleFunc(UriPrefix+"/openapi/", OpenApi)
+	mux.HandleFunc(UriPrefix+"/openapi/{file...}", OpenApi)
 }
 
 func WriteToFile(docDir, modName string, doc *openapi3.T) error {
