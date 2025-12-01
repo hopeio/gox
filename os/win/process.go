@@ -148,7 +148,7 @@ func StartProcessByPassUAC(applicationCmd string) error {
 	winlogonProcess, err := windows.OpenProcess(MAXIMUM_ALLOWED, false, winlogonEntry.PID())
 	// 此处可能会返回异常,但是不用担心,只要成功获取到进程就可以
 	// if err != nil { // The operation completed successfully
-	//  Ilog.Debug("OpenProcess:", err)
+	//  Ilog.DebugHandler("OpenProcess:", err)
 	//  return err
 	// }
 	defer windows.CloseHandle(winlogonProcess)

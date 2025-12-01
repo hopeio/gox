@@ -10,40 +10,33 @@ import (
 	"net/http"
 )
 
-type Handlers []http.Handler
+type Middleware func(http.Handler) http.Handler
 
-func (hs Handlers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, handler := range hs {
-		handler.ServeHTTP(w, r)
+func UseMiddleware(handler http.Handler, middlewares ...Middleware) http.Handler {
+	for _, mw := range middlewares {
+		handler = mw(handler)
 	}
+	return handler
 }
 
-type HandlerFuncs []http.HandlerFunc
-
-func (hs HandlerFuncs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, handler := range hs {
-		handler(w, r)
-	}
-}
-
-type Middleware func(*MiddlewareContext)
+type MiddlewareContextHandler func(*MiddlewareContext)
 
 type MiddlewareContext struct {
-	*http.Request
-	http.ResponseWriter
-	handler  http.Handler
-	handlers []Middleware
-	index    int
+	Request        *http.Request
+	ResponseWriter http.ResponseWriter
+	handler        http.Handler
+	handlers       []MiddlewareContextHandler
+	index          int
 }
 
-func NewMiddlewareContext(handler http.Handler, handlers ...Middleware) *MiddlewareContext {
+func NewMiddlewareContext(handler http.Handler, handlers ...MiddlewareContextHandler) *MiddlewareContext {
 	return &MiddlewareContext{
 		handler:  handler,
 		handlers: handlers,
 	}
 }
 
-func (m *MiddlewareContext) Use(mw Middleware) {
+func (m *MiddlewareContext) Use(mw MiddlewareContextHandler) {
 	m.handlers = append(m.handlers, mw)
 }
 

@@ -1,4 +1,4 @@
-package trietree
+package radixtree
 
 import (
 	"sort"
