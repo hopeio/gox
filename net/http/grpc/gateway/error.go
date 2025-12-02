@@ -9,6 +9,7 @@ package gateway
 import (
 	"fmt"
 	"net/http"
+	"net/textproto"
 	"slices"
 
 	"github.com/hopeio/gox/net/http/grpc"
@@ -40,6 +41,13 @@ func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) 
 }
 
 func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
+	for k := range md {
+		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
+		w.Header().Add("Trailer", tKey)
+	}
+}
+
+func HandleForwardResponseTrailer(w http.ResponseWriter, md metadata.MD) {
 	for k, vs := range md {
 		tKey := fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k)
 		for _, v := range vs {

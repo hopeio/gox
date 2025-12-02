@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"net/http"
+	"strings"
 
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
@@ -10,7 +11,12 @@ import (
 
 func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, marshaler httpx.Marshaler) error {
 	HandleForwardResponseServerMetadata(w, md.HeaderMD)
-	HandleForwardResponseTrailerHeader(w, md.TrailerMD)
+	var wantsTrailers bool
+	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
+		wantsTrailers = true
+		HandleForwardResponseTrailerHeader(w, md.TrailerMD)
+		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
+	}
 
 	contentType := marshaler.ContentType(message)
 	w.Header().Set(httpx.HeaderContentType, contentType)
@@ -38,6 +44,9 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		return err
 	}
 	w.Write(buf)
+	if wantsTrailers {
+		HandleForwardResponseTrailer(w, md.TrailerMD)
+	}
 	return nil
 }
 
