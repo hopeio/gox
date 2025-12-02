@@ -27,7 +27,7 @@ var (
 
 const commonTag = "json"
 
-var Validate = validator.DefaultValidate.Struct
+var Validate = validator.ValidateStruct
 
 var defaultTags = []string{"uri", "path", "query", "header", "form", commonTag}
 

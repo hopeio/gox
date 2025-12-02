@@ -11,10 +11,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+
+	"io"
+
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/hopeio/gox/io"
-	"net/http"
 )
 
 type SearchResponse[T any] struct {
@@ -51,18 +53,19 @@ type Total struct {
 }
 
 func GetResponseData[T any](response *esapi.Response, err error) (*T, error) {
+	defer response.Body.Close()
 	if err != nil {
 		return nil, err
 	}
-	bytes, err := io.ReadReadCloser(response.Body)
+	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.New(string(bytes))
+		return nil, errors.New(string(data))
 	}
 	var res T
-	err = json.Unmarshal(bytes, &res)
+	err = json.Unmarshal(data, &res)
 	if err != nil {
 		return nil, err
 	}

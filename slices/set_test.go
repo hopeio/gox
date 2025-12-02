@@ -7,9 +7,9 @@
 package slices
 
 import (
-	"github.com/hopeio/gox/cmp"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type Foo struct {
@@ -32,8 +32,6 @@ func (f *Foo) CompareKey() uint64 {
 func (f *Foo) EqualKey() uint64 {
 	return f.ID
 }
-
-var _ cmp.CompareKey[uint64] = &Foo{}
 
 func TestHasCoincide(t *testing.T) {
 	s1 := []*Foo{

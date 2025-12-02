@@ -7,11 +7,12 @@
 package slices
 
 import (
+	"slices"
+
 	"github.com/hopeio/gox/cmp"
-	"github.com/hopeio/gox/types"
+	"github.com/hopeio/gox/sugar"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
-	"slices"
 )
 
 // 没有泛型，范例，实际需根据不同类型各写一遍,用CmpKey，基本类型又用不了，go需要能给基本类型实现方法不能给外部类型实现方法
@@ -34,7 +35,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	// 同时遍历检测
 	n, m := len(s1), len(s2)
 	tmpMap := make(map[T]struct{})
-	l := types.Match(n > m, n, m)
+	l := sugar.TernaryOperator(n > m, n, m)
 	for i := range l {
 		if i < n {
 			tmpMap[s1[i]] = struct{}{}
@@ -67,7 +68,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	// 同时遍历检测
 	n, m := len(s1), len(s2)
 	tmpMap := make(map[T]struct{})
-	l := types.Match(n > m, n, m)
+	l := sugar.TernaryOperator(n > m, n, m)
 	for i := range l {
 		if i < n {
 			tmpMap[s1[i].EqualKey()] = struct{}{}
@@ -105,10 +106,6 @@ func RemoveDuplicatesByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 		}
 		m[key] = v
 	}
-
-	for _, i := range m {
-		s = append(s, i)
-	}
 	return maps.Values(m)
 }
 
@@ -119,10 +116,6 @@ func RemoveDuplicatesByKeyRetainBehind[S ~[]E, E cmp.EqualKey[T], T comparable](
 	var m = make(map[T]E)
 	for _, i := range s {
 		m[i.EqualKey()] = i
-	}
-
-	for _, i := range m {
-		s = append(s, i)
 	}
 	return maps.Values(m)
 }
@@ -209,7 +202,9 @@ func IntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 func smallArrayIntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
-		if ContainsByKey(b, x.EqualKey()) {
+		if slices.ContainsFunc(b, func(e E) bool {
+			return x.EqualKey() == e.EqualKey()
+		}) {
 			ret = append(ret, x)
 		}
 	}
@@ -359,7 +354,9 @@ func DifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 func smallArrayDifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
-		if !ContainsByKey(b, x.EqualKey()) {
+		if !slices.ContainsFunc(b, func(e E) bool {
+			return x.EqualKey() == e.EqualKey()
+		}) {
 			diff = append(diff, x)
 		}
 	}

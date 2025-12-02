@@ -16,9 +16,8 @@ type SecondTime = Time[secondTime]
 type MilliTime = Time[milliTime]
 type MicroTime = Time[microTime]
 type NanoTime = Time[nanoTime]
-type EDate = Time[eDate]
-type EDateTime = Time[eDateTime]
-type ETime = Time[eTime]
+type DateOnlyTime = Time[encodeDate]
+type DateTimeTime = Time[encodeDateTime]
 
 type Encode interface {
 	Encoding() *Encoding
@@ -80,38 +79,26 @@ func (dt *Time[T]) UnmarshalJSON(data []byte) error {
 	return v.Encoding().unmarshalJSON((*time.Time)(dt), data)
 }
 
-type eDate struct{}
+type encodeDate struct{}
 
-func (eDate) Layout() string {
+func (encodeDate) Layout() string {
 	return time.DateOnly
 }
 
-func (eDate) Encoding() *Encoding {
+func (encodeDate) Encoding() *Encoding {
 	return &Encoding{
 		Layout: time.DateOnly,
 	}
 }
 
-type eDateTime struct{}
+type encodeDateTime struct{}
 
-func (eDateTime) Layout() string {
+func (encodeDateTime) Layout() string {
 	return time.DateTime
 }
 
-func (eDateTime) Encoding() *Encoding {
+func (encodeDateTime) Encoding() *Encoding {
 	return &Encoding{
 		Layout: time.DateTime,
 	}
-}
-
-type eTime struct{}
-
-func (eTime) Encoding() *Encoding {
-	return &Encoding{
-		Layout: time.RFC3339,
-	}
-}
-
-func (eTime) Layout() string {
-	return time.RFC3339
 }

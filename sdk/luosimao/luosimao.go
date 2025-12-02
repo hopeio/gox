@@ -8,8 +8,9 @@ package luosimao
 
 import (
 	"errors"
-	"github.com/hopeio/gox/net/http/client"
 	"net/http"
+
+	"github.com/hopeio/gox/net/http/client"
 )
 
 var Error = errors.New("人机识别验证失败")

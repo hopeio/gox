@@ -7,19 +7,17 @@
 package http
 
 const (
-	// ContentTypeJavascript header value for JSONP & Javascript data.
-	ContentTypeJavascript = "text/javascript"
 	// ContentTypeHtml is the  string of text/html response header's content type value.
 	ContentTypeHtml = "text/html"
 	ContentTypeCss  = "text/css"
 	// ContentTypeText header value for Text data.
 	ContentTypeText = "text/plain"
-	// ContentTypeXml header value for XML data.
-	ContentTypeXml = "text/xml"
-	// ContentTypeMarkdown custom key/content type, the real is the text/html.
-	ContentTypeMarkdown = "text/markdown"
-	// ContentTypeYamlText header value for YAML plain text.
-	ContentTypeYamlText = "text/yaml"
+	// ContentTypeTextXml header value for XML data.
+	ContentTypeTextXml = "text/xml"
+	// ContentTypeTextMarkdown custom key/content type, the real is the text/html.
+	ContentTypeTextMarkdown = "text/markdown"
+	// ContentTypeTextYaml header value for YAML plain text.
+	ContentTypeTextYaml = "text/yaml"
 
 	// ContentTypeMultipart header value for post multipart form data.
 	ContentTypeMultipart = "multipart/form-data"
@@ -35,18 +33,16 @@ const (
 	ContentTypeJsonProblem = "application/problem+json"
 	// ContentTypeXmlProblem header value for XML API problem error.
 	// Read more at: https://tools.ietf.org/html/rfc7807
-	ContentTypeXmlProblem           = "application/problem+xml"
-	ContentTypeJavascriptUnreadable = "application/javascript"
-	// ContentTypeXmlUnreadable obsolete header value for XML.
-	ContentTypeXmlUnreadable = "application/xml"
+	ContentTypeXmlProblem = "application/problem+xml"
+	ContentTypeJavascript = "application/javascript"
+	// ContentTypeXml obsolete header value for XML.
+	ContentTypeXml = "application/xml"
 	// ContentTypeYaml header value for YAML data.
-	ContentTypeYaml = "application/x-yaml"
+	ContentTypeYaml = "application/yaml"
 	// ContentTypeProtobuf header value for Protobuf messages data.
-	ContentTypeProtobuf = "application/x-protobuf"
+	ContentTypeProtobuf = "application/protobuf"
 	// ContentTypeMsgPack header value for MsgPack data.
 	ContentTypeMsgPack = "application/msgpack"
-	// ContentTypeMsgPack2 alternative header value for MsgPack data.
-	ContentTypeMsgPack2 = "application/x-msgpack"
 	// ContentTypeForm header value for post form data.
 	ContentTypeForm = "application/x-www-form-urlencoded"
 

@@ -30,26 +30,3 @@ func CastInteger[T, V constraints.Integer](v V) T {
 func CastNumber[T, V constraintsi.Number](v V) T {
 	return T(v)
 }
-
-func Match[T any](yes bool, a, b T) T {
-	if yes {
-		return a
-	}
-	return b
-}
-
-func Zero[T any]() T {
-	return *new(T)
-}
-
-// can compile,but will panic
-func none[T any]() T {
-	return *(*T)(nil)
-}
-
-func Zero2[T any]() T {
-	var zero T
-	return zero
-}
-
-// 两种转换,any(i).(T), T(any(i))

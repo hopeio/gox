@@ -42,7 +42,7 @@ func NewClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
-func NewTLSClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+func NewClientTLS(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(addr, append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: strings.Split(addr, ":")[0], InsecureSkipVerify: true})))...)
 	if err != nil {

@@ -64,7 +64,7 @@ var contentTypes = []string{
 	http.ContentTypeMultipart,
 	http.ContentTypeGrpc,
 	http.ContentTypeGrpcWeb,
-	http.ContentTypeXmlUnreadable,
+	http.ContentTypeXml,
 	http.ContentTypeText,
 	http.ContentTypeOctetStream,
 	/*	consts.ContentImagePngHeaderValue,

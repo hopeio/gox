@@ -40,8 +40,8 @@ func (d Duration) Shrink(c context.Context) (Duration, context.Context, context.
 	return d, ctx, cancel
 }
 
-// 标准化TimeDuration
-func StdDuration(td time.Duration, stdTd time.Duration) time.Duration {
+// 标准化Duration
+func NormalizeDuration(td time.Duration, stdTd time.Duration) time.Duration {
 	if td == 0 {
 		return td
 	}

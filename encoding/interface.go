@@ -18,6 +18,6 @@ type Unmarshaler interface {
 	Unmarshal([]byte) error
 }
 
-type Marshaller interface {
+type Marshaler interface {
 	Marshal(v any) ([]byte, error)
 }

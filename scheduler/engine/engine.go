@@ -8,17 +8,18 @@ package engine
 
 import (
 	"context"
+	"slices"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dgraph-io/ristretto/v2"
 	"github.com/hopeio/gox/container/heap"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/os/fs"
-	"github.com/hopeio/gox/slices"
-	time2 "github.com/hopeio/gox/time"
+	timex "github.com/hopeio/gox/time"
 	"golang.org/x/time/rate"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 // 目前受限于ristretto.Cache的泛型限制,考虑移除并引入lru或boolong filter
@@ -38,7 +39,7 @@ type Engine[KEY Key] struct {
 	cancel           context.CancelFunc // 手动停止执行
 	wg               sync.WaitGroup     // 控制确保所有任务执行完
 	mu               sync.RWMutex
-	speedLimit       time2.Ticker
+	speedLimit       timex.Ticker
 	rateLimiter      *rate.Limiter
 	//TODO
 	monitorInterval      time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
@@ -56,7 +57,7 @@ type Engine[KEY Key] struct {
 
 type KindHandler[KEY Key] struct {
 	Skip        bool
-	speedLimit  time2.Ticker
+	speedLimit  timex.Ticker
 	rateLimiter *rate.Limiter
 	// TODO 指定Kind的Handler
 	Handler TaskFunc[KEY]
@@ -151,28 +152,28 @@ func (e *Engine[KEY]) OnStop(callBack func(context.Context)) *Engine[KEY] {
 }
 
 func (e *Engine[KEY]) SpeedLimited(interval time.Duration) *Engine[KEY] {
-	e.speedLimit = time2.NewTicker(interval)
+	e.speedLimit = timex.NewTicker(interval)
 	return e
 }
 
 func (e *Engine[KEY]) RandSpeedLimited(minInterval, maxInterval time.Duration) *Engine[KEY] {
-	e.speedLimit = time2.NewRandTicker(minInterval, maxInterval)
+	e.speedLimit = timex.NewRandTicker(minInterval, maxInterval)
 	return e
 }
 
 func (e *Engine[KEY]) KindSpeedLimit(kind Kind, interval time.Duration) *Engine[KEY] {
-	limiter := time2.NewRandTicker(interval, interval)
+	limiter := timex.NewRandTicker(interval, interval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
 func (e *Engine[KEY]) KindRandSpeedLimit(kind Kind, minInterval, maxInterval time.Duration) *Engine[KEY] {
-	limiter := time2.NewRandTicker(minInterval, maxInterval)
+	limiter := timex.NewRandTicker(minInterval, maxInterval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
-func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter time2.Ticker) *Engine[KEY] {
+func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timex.Ticker) *Engine[KEY] {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
 	}
@@ -189,7 +190,7 @@ func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter time2.Ticker) *Engine[KE
 
 // 多个kind共用一个timer
 func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind) *Engine[KEY] {
-	limiter := time2.NewRandTicker(interval, interval)
+	limiter := timex.NewRandTicker(interval, interval)
 	for _, kind := range kinds {
 		e.kindSpeedLimit(kind, limiter)
 	}
@@ -197,7 +198,7 @@ func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind)
 }
 
 func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Duration, kinds ...Kind) *Engine[KEY] {
-	limiter := time2.NewRandTicker(minInterval, maxInterval)
+	limiter := timex.NewRandTicker(minInterval, maxInterval)
 	for _, kind := range kinds {
 		e.kindSpeedLimit(kind, limiter)
 	}

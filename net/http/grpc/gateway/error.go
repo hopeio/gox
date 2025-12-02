@@ -9,10 +9,8 @@ package gateway
 import (
 	"fmt"
 	"net/http"
-	"net/textproto"
 	"slices"
 
-	http2 "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -42,13 +40,6 @@ func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) 
 }
 
 func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
-	for k := range md {
-		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
-		w.Header().Add(http2.HeaderTrailer, tKey)
-	}
-}
-
-func HandleForwardResponseTrailer(w http.ResponseWriter, md metadata.MD) {
 	for k, vs := range md {
 		tKey := fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k)
 		for _, v := range vs {

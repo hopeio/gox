@@ -8,6 +8,8 @@ package cmp
 
 type LessFunc[T any] func(T, T) bool
 
+type EqualFunc[T any] func(T, T) bool
+
 type CompareFunc[T any] func(T, T) int
 
 func (c CompareFunc[T]) LessFunc() LessFunc[T] {

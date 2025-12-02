@@ -10,13 +10,15 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
-	"github.com/hopeio/gox/encoding/binary"
-	stringsx "github.com/hopeio/gox/strings"
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/hopeio/gox/encoding/binary"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
+// 1-01-01~9999-12-31
 type Date int32
 
 func DateFromTime(t time.Time) Date {
@@ -135,6 +137,7 @@ func (d Date) String() string {
 	return d.Time().Format(time.DateOnly)
 }
 
+// 01-01-01 00:00:00~9999-12-31 23:59:59
 type DateTime int64
 
 func DateTimeFromTime(t time.Time) Date {

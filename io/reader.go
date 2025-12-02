@@ -11,14 +11,6 @@ import (
 	"io"
 )
 
-func ReadReadCloser(readCloser io.ReadCloser) ([]byte, error) {
-	data, err := io.ReadAll(readCloser)
-	if err != nil {
-		return nil, err
-	}
-	return data, readCloser.Close()
-}
-
 func ReadLines(reader io.Reader, f func(line string) bool) error {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {

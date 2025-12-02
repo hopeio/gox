@@ -403,7 +403,7 @@ func ToSlice[V any](it iter.Seq[V]) []V {
 	return r
 }
 
-// Collecting via Collector.
+// Collect Collecting via Collector.
 func Collect[T any, S any, R any](it iter.Seq[T], collector interfaces.Collector[S, T, R]) R {
 	var s = collector.Builder()
 	for v := range it {

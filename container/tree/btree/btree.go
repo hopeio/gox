@@ -55,12 +55,6 @@ func New[T any](cmp cmp.CompareFunc[T]) *BTree[T] {
 	return tr
 }
 
-// Less is a convenience function that performs a comparison of two items
-// using the same "less" function provided to New.
-func (tr *BTree[T]) Less(a, b T) bool {
-	return tr.cmp(a, b) < 0
-}
-
 func (n *node[T]) find(key T, cmp cmp.CompareFunc[T],
 	hint *PathHint, depth int,
 ) (index int16, found bool) {

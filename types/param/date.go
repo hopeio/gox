@@ -22,8 +22,8 @@ type DateFilter struct {
 // 赋值本周期，并返回下周期日期
 func (d *DateFilter) Scope() (time.Time, time.Time) {
 	beginStr, endStr := d.scope()
-	begin, _ := time.Parse(timex.LayoutDateTime, beginStr)
-	end, _ := time.Parse(timex.LayoutDateTime, endStr)
+	begin, _ := time.Parse(time.DateTime, beginStr)
+	end, _ := time.Parse(time.DateTime, endStr)
 	return begin, end
 }
 
@@ -35,10 +35,10 @@ func (d *DateFilter) scope() (string, string) {
 	}
 	//如果传的是RangeEnum，截止日期都是这一天
 	now := time.Now()
-	d.DateEnd = now.Format(timex.LayoutDate) + timex.DayEndTimeWithSpace
+	d.DateEnd = now.Format(time.DateOnly) + timex.DayEndTimeWithSpace
 	switch d.RangeEnum {
 	case 1:
-		beginStr := now.Format(timex.LayoutDate)
+		beginStr := now.Format(time.DateOnly)
 		d.DateBegin = beginStr
 	case 2:
 		weekday := now.Weekday()

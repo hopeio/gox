@@ -3,12 +3,18 @@ package gateway
 import (
 	"net/http"
 
-	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/net/http/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
-func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, message proto.Message) error {
+func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, marshaler httpx.Marshaler) error {
+	HandleForwardResponseServerMetadata(w, md.HeaderMD)
+	HandleForwardResponseTrailerHeader(w, md.TrailerMD)
+
+	contentType := marshaler.ContentType(message)
+	w.Header().Set(httpx.HeaderContentType, contentType)
+
 	var buf []byte
 	var err error
 	switch rb := message.(type) {
@@ -16,24 +22,22 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, message prot
 		rb.ServeHTTP(w, r)
 		return nil
 	case httpx.Responder:
-		_, err = rb.Respond(r.Context(), w)
-		return err
+		rb.Respond(r.Context(), w)
+		return nil
+	case httpx.CommonResponder:
+		rb.CommonRespond(r.Context(), httpx.ResponseWriterWrapper{ResponseWriter: w})
+		return nil
 	case ResponseBody:
 		buf = rb.ResponseBody()
 	case XXXResponseBody:
-		buf, err = JsonPb.Marshal(rb.XXX_ResponseBody())
+		buf, err = marshaler.Marshal(rb.XXX_ResponseBody())
 	default:
-		buf, err = JsonPb.Marshal(message)
+		buf, err = marshaler.Marshal(message)
 	}
-
 	if err != nil {
-		log.Infof("Marshal error: %v", err)
 		return err
 	}
-
-	if _, err = w.Write(buf); err != nil {
-		log.Infof("Failed to write response: %v", err)
-	}
+	w.Write(buf)
 	return nil
 }
 
@@ -43,8 +47,4 @@ type XXXResponseBody interface {
 
 type ResponseBody interface {
 	ResponseBody() []byte
-}
-
-var OutGoingHeader = []string{
-	httpx.HeaderSetCookie,
 }

@@ -14,16 +14,16 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var JsonPb = &JSONPb{}
+var Marshaler httpx.Marshaler = &JsonPb{}
 
-type JSONPb struct {
+type JsonPb struct {
 }
 
-func (*JSONPb) ContentType(_ interface{}) string {
-	return "application/json"
+func (*JsonPb) ContentType(_ interface{}) string {
+	return httpx.ContentTypeJson
 }
 
-func (j *JSONPb) Marshal(v any) ([]byte, error) {
+func (j *JsonPb) Marshal(v any) ([]byte, error) {
 	switch msg := v.(type) {
 	case *wrapperspb.StringValue:
 		v = msg.Value
@@ -49,28 +49,28 @@ func (j *JSONPb) Marshal(v any) ([]byte, error) {
 	})
 }
 
-func (j *JSONPb) Name() string {
+func (j *JsonPb) Name() string {
 	return "jsonpb"
 }
 
-func (j *JSONPb) Unmarshal(data []byte, v interface{}) error {
+func (j *JsonPb) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
-func (j *JSONPb) Delimiter() []byte {
+func (j *JsonPb) Delimiter() []byte {
 	return []byte("\n")
 }
 
-func (j *JSONPb) ContentTypeFromMessage(v interface{}) string {
+func (j *JsonPb) ContentTypeFromMessage(v interface{}) string {
 	return j.ContentType(v)
 }
 
 // NewDecoder returns a runtime.Decoder which reads JSON stream from "r".
-func (j *JSONPb) NewDecoder(r io.Reader) httpx.Decoder {
+func (j *JsonPb) NewDecoder(r io.Reader) httpx.Decoder {
 	return json.NewDecoder(r)
 }
 
 // NewEncoder returns an Encoder which writes JSON stream into "w".
-func (j *JSONPb) NewEncoder(w io.Writer) httpx.Encoder {
+func (j *JsonPb) NewEncoder(w io.Writer) httpx.Encoder {
 	return json.NewEncoder(w)
 }

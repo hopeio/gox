@@ -23,12 +23,12 @@ func (u *EncodingTime) UnmarshalJSON(data []byte) error {
 	return u.unmarshalJSON(&u.Time, data)
 }
 
-type GlobETime time.Time
+type GlobEncodingTime time.Time
 
-func (u GlobETime) MarshalJSON() ([]byte, error) {
+func (u GlobEncodingTime) MarshalJSON() ([]byte, error) {
 	return encoding.marshalJSON(time.Time(u))
 }
 
-func (u *GlobETime) UnmarshalJSON(data []byte) error {
+func (u *GlobEncodingTime) UnmarshalJSON(data []byte) error {
 	return encoding.unmarshalJSON((*time.Time)(u), data)
 }

@@ -8,18 +8,11 @@ package slices
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-)
 
-func TestContains(t *testing.T) {
-	val1 := []string{"a", "b", "c"}
-	val2 := "a"
-	val3 := "d"
-	fmt.Println(Contains(val1, val2))
-	fmt.Println(Contains(val1, val3))
-}
+	"github.com/stretchr/testify/assert"
+)
 
 func TestForEachByIdx(t *testing.T) {
 	val1 := []string{"a", "b", "c"}

@@ -47,13 +47,13 @@ func FormatRelativeTime(fromTime time.Time) string {
 }
 
 func ParseTime(t string) (time.Time, error) {
-	return time.Parse(LayoutTime, t)
+	return time.Parse(time.TimeOnly, t)
 }
 
 func ParseDateTime(t string) (time.Time, error) {
-	return time.Parse(LayoutDateTime, t)
+	return time.Parse(time.DateTime, t)
 }
 
 func ParseDate(t string) (time.Time, error) {
-	return time.Parse(LayoutDate, t)
+	return time.Parse(time.DateOnly, t)
 }

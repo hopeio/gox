@@ -10,10 +10,6 @@ import "time"
 
 const (
 	LayoutTimeMacro   = "2006-01-02 15:04:05.999999"
-	LayoutDateTime    = "2006-01-02 15:04:05"
-	LayoutRFC3339     = time.RFC3339
-	LayoutTime        = "15:04:05"
-	LayoutDate        = "2006-01-02"
 	LayoutCompactDate = "20060102"
 	LayoutCompactTime = "20060102150405"
 	LayoutRFC1        = "2006/01/02 - 15:04:05"

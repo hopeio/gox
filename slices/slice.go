@@ -7,10 +7,10 @@
 package slices
 
 import (
-	"github.com/hopeio/gox/cmp"
+	"slices"
+
 	reflectx "github.com/hopeio/gox/reflect"
 	"golang.org/x/exp/constraints"
-	"slices"
 
 	"reflect"
 	"unsafe"
@@ -64,67 +64,6 @@ func Deduplicate[S ~[]T, T comparable](slice S) S {
 	return newslice
 }
 
-// Deprecated: use std slices.Contains
-func Contains[S ~[]T, T comparable](s S, v T) bool {
-	for i := range s {
-		if s[i] == v {
-			return true
-		}
-	}
-	return false
-}
-
-func ContainsByKey[S ~[]E, E cmp.EqualKey[K], K comparable](s S, v K) bool {
-	for i := range s {
-		if s[i].EqualKey() == v {
-			return true
-		}
-	}
-	return false
-}
-
-func Reverse[S ~[]T, T any](s S) S {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
-	}
-
-	return s
-}
-
-func Max[S ~[]T, T constraints.Ordered](s S) T {
-	if len(s) == 0 {
-		return *new(T)
-	}
-	max := s[0]
-	if len(s) == 1 {
-		return max
-	}
-	for i := 1; i < len(s); i++ {
-		if s[i] > max {
-			max = s[i]
-		}
-	}
-
-	return max
-}
-
-func Min[S ~[]T, T constraints.Ordered](s S) T {
-	if len(s) == 0 {
-		return *new(T)
-	}
-	min := s[0]
-	if len(s) == 1 {
-		return min
-	}
-	for i := 1; i < len(s); i++ {
-		if s[i] < min {
-			min = s[i]
-		}
-	}
-
-	return min
-}
-
 // 将切片转换为map
 func ToMap[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K]V {
 	m := make(map[K]V)
@@ -148,10 +87,6 @@ func Classify[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map
 
 	}
 	return m
-}
-
-func Swap[S ~[]T, T any](s S, i, j int) {
-	s[i], s[j] = s[j], s[i]
 }
 
 func ForEach[S ~[]T, T any](s S, handle func(idx int, v T)) {

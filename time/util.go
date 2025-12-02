@@ -7,7 +7,6 @@
 package time
 
 import (
-	"os/exec"
 	"strconv"
 	"time"
 )
@@ -20,19 +19,8 @@ func UnixNano(nsec int64) time.Time {
 	return time.Unix(0, nsec)
 }
 
-// 设置系统时间
-func SetUnixSysTime(t time.Time) {
-	cmd := exec.Command("date", "-s", t.Format("01/02/2006 15:04:05.999999999"))
-	cmd.Run()
-}
-
-func SyncHwTime() {
-	cmd := exec.Command("clock --systohc")
-	cmd.Run()
-}
-
 func TodayZeroTime() time.Time {
-	todayZeroTime, _ := time.Parse(LayoutDate, time.Now().Format(LayoutDate))
+	todayZeroTime, _ := time.Parse(time.DateOnly, time.Now().Format(time.DateOnly))
 	return todayZeroTime
 }
 
