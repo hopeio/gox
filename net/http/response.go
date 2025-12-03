@@ -9,17 +9,18 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"iter"
 	"net/http"
 
-	"github.com/hopeio/gox/errors"
+	errorsx "github.com/hopeio/gox/errors"
 )
 
 // RespData 主要用来接收返回，发送请使用ResAnyData
 type RespData[T any] struct {
-	Code errors.ErrCode `json:"code"`
-	Msg  string         `json:"msg,omitempty"`
+	Code errorsx.ErrCode `json:"code"`
+	Msg  string          `json:"msg,omitempty"`
 	//验证码
 	Data T `json:"data,omitempty"`
 }
@@ -32,7 +33,7 @@ func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int
 
 type RespAnyData = RespData[any]
 
-func NewRespData(code errors.ErrCode, msg string, data any) *RespAnyData {
+func NewRespData(code errorsx.ErrCode, msg string, data any) *RespAnyData {
 	return &RespAnyData{
 		Code: code,
 		Msg:  msg,
@@ -46,18 +47,18 @@ func NewSuccessRespData(data any) *RespAnyData {
 	}
 }
 
-func NewErrResp(code errors.ErrCode, msg string) *ErrResp {
+func NewErrResp(code errorsx.ErrCode, msg string) *ErrResp {
 	return &ErrResp{
 		Code: code,
 		Msg:  msg,
 	}
 }
 
-func RespErrCodeMsg(ctx context.Context, w http.ResponseWriter, code errors.ErrCode, msg string) (int, error) {
+func RespErrCodeMsg(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string) (int, error) {
 	return NewRespData(code, msg, nil).Respond(ctx, w)
 }
 
-func RespErrResp(ctx context.Context, w http.ResponseWriter, rep *errors.ErrResp) (int, error) {
+func RespErrResp(ctx context.Context, w http.ResponseWriter, rep *errorsx.ErrResp) (int, error) {
 	return (*ErrResp)(rep).Respond(ctx, w)
 }
 
@@ -66,34 +67,25 @@ func RespError(ctx context.Context, w http.ResponseWriter, err error) (int, erro
 }
 
 func RespSuccess(ctx context.Context, w http.ResponseWriter, msg string, data any) (int, error) {
-	return NewRespData(errors.Success, msg, data).Respond(ctx, w)
+	return NewRespData(errorsx.Success, msg, data).Respond(ctx, w)
 }
 
 func RespSuccessData(ctx context.Context, w http.ResponseWriter, data any) (int, error) {
-	return NewRespData(errors.Success, errors.Success.String(), data).Respond(ctx, w)
+	return NewRespData(errorsx.Success, errorsx.Success.String(), data).Respond(ctx, w)
 }
 
-func Resp(ctx context.Context, w http.ResponseWriter, code errors.ErrCode, msg string, data any) (int, error) {
+func Resp(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string, data any) (int, error) {
 	return NewRespData(code, msg, data).Respond(ctx, w)
 }
-func RespStatus(ctx context.Context, w http.ResponseWriter, code errors.ErrCode, msg string, data any, status int) (int, error) {
+func RespStatus(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string, data any, status int) (int, error) {
 	w.WriteHeader(status)
 	return NewRespData(code, msg, data).Respond(ctx, w)
 }
 
-var RespSysErr = json.RawMessage(`{"code":-1,"msg":"system error"}`)
-var RespOk = json.RawMessage(`{"code":0}`)
+var RespSysErr = []byte(`{"code":-1,"msg":"system error"}`)
+var RespOk = []byte(`{"code":0}`)
 
 type ReceiveData = RespData[json.RawMessage]
-
-func NewReceiveData(code errors.ErrCode, msg string, data any) *ReceiveData {
-	jsonBytes, _ := json.Marshal(data)
-	return &ReceiveData{
-		Code: code,
-		Msg:  msg,
-		Data: jsonBytes,
-	}
-}
 
 type Response struct {
 	Status  int            `json:"status,omitempty"`
@@ -134,10 +126,10 @@ func (res *Response) CommonRespond(ctx context.Context, w CommonResponseWriter) 
 	return int(i), err
 }
 
-type ErrResp errors.ErrResp
+type ErrResp errorsx.ErrResp
 
 func ErrRespFrom(err error) *ErrResp {
-	return (*ErrResp)(errors.ErrRespFrom(err))
+	return (*ErrResp)(errorsx.ErrRespFrom(err))
 }
 
 func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
@@ -165,19 +157,26 @@ type ResponseStream struct {
 }
 
 func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	return res.CommonRespond(ctx, ResponseWriterWrapper{w})
+	return RespondStream(ctx, w, res.Body)
 }
 
 func (res *ResponseStream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	res.CommonRespond(r.Context(), ResponseWriterWrapper{w})
+	RespondStream(r.Context(), w, res.Body)
 }
 
 func (res *ResponseStream) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
-	header := w.Header()
-	HttpHeaderIntoHeader(res.Headers, header)
-	header.Set(HeaderTransferEncoding, "chunked")
+	if sw, ok := w.(RespondStreamer); ok {
+		return sw.RespondStream(ctx, res.Body)
+	}
+	return 0, errors.New("not support stream")
+}
+
+func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[WriterToCloser]) (int, error) {
+	w.Header().Set(HeaderCacheControl, "no-cache")
+	w.Header().Set(HeaderTransferEncoding, "chunked")
+	flusher := w.(http.Flusher)
 	var n int
-	for data := range res.Body {
+	for data := range dataSource {
 		select {
 		// response writer forced to close, exit.
 		case <-ctx.Done():
@@ -185,26 +184,19 @@ func (res *ResponseStream) CommonRespond(ctx context.Context, w CommonResponseWr
 		default:
 			write, err := data.WriteTo(w)
 			if err != nil {
-				return 0, err
+				return n, err
 			}
 			n += int(write)
-			w.(http.Flusher).Flush()
+			flusher.Flush()
 		}
 	}
 	return n, nil
 }
 
-func RespStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[WriterToCloser]) {
-	w.Header().Set(HeaderXAccelBuffering, "no") //nginx的锅必须加
-	w.Header().Set(HeaderTransferEncoding, "chunked")
-	for data := range dataSource {
-		select {
-		// response writer forced to close, exit.
-		case <-ctx.Done():
-			return
-		default:
-			data.WriteTo(w)
-			w.(http.Flusher).Flush()
-		}
-	}
+type XXXResponseBody interface {
+	XXX_ResponseBody() interface{}
+}
+
+type ResponseBody interface {
+	ResponseBody() []byte
 }

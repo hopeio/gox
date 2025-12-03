@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"io"
+	"iter"
 	"net/http"
 )
 
@@ -19,11 +20,17 @@ type ResponseWriterWrapper struct {
 func (w ResponseWriterWrapper) Status(code int) {
 	w.WriteHeader(code)
 }
+
 func (w ResponseWriterWrapper) Header() Header {
 	return (HttpHeader)(w.ResponseWriter.Header())
 }
+
 func (w ResponseWriterWrapper) Write(p []byte) (int, error) {
 	return w.ResponseWriter.Write(p)
+}
+
+func (w ResponseWriterWrapper) RespondStream(ctx context.Context, seq iter.Seq[WriterToCloser]) (int, error) {
+	return RespondStream(ctx, w.ResponseWriter, seq)
 }
 
 type CommonResponder interface {
@@ -32,4 +39,8 @@ type CommonResponder interface {
 
 type CommonRequestWriter interface {
 	io.Reader
+}
+
+type RespondStreamer interface {
+	RespondStream(ctx context.Context, seq iter.Seq[WriterToCloser]) (int, error)
 }

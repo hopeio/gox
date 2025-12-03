@@ -44,12 +44,14 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			errRep.Respond(ctx, w)
 			return
 		}
-		anyres := any(res)
-		if httpres, ok := anyres.(httpx.CommonResponder); ok {
+		switch httpres := any(res).(type) {
+		case http.Handler:
+			httpres.ServeHTTP(w, r)
+			return
+		case httpx.CommonResponder:
 			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
 			return
-		}
-		if httpres, ok := anyres.(httpx.Responder); ok {
+		case httpx.Responder:
 			httpres.Respond(ctx, w)
 			return
 		}
@@ -70,12 +72,14 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 			httpx.ErrRespFrom(err).Respond(ctx, w)
 			return
 		}
-		anyres := any(res)
-		if httpres, ok := anyres.(httpx.CommonResponder); ok {
-			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{w})
+		switch httpres := any(res).(type) {
+		case http.Handler:
+			httpres.ServeHTTP(w, r)
 			return
-		}
-		if httpres, ok := anyres.(httpx.Responder); ok {
+		case httpx.CommonResponder:
+			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
+			return
+		case httpx.Responder:
 			httpres.Respond(ctx, w)
 			return
 		}

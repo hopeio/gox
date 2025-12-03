@@ -24,7 +24,7 @@ const MetadataHeaderPrefix = "Grpc-Metadata-"
 
 // MetadataPrefix is prepended to permanent HTTP header keys (as specified
 // by the IANA) when added to the gRPC context.
-const MetadataPrefix = "grpcgateway-"
+const MetadataPrefix = "Grpc-Gateway-"
 
 // MetadataTrailerPrefix is prepended to gRPC metadata as it is converted to
 // HTTP headers in a response handled by grpc-gateway
@@ -32,9 +32,6 @@ const MetadataTrailerPrefix = "Grpc-Trailer-"
 
 const metadataGrpcTimeout = "Grpc-Timeout"
 const metadataHeaderBinarySuffix = "-Bin"
-
-const xForwardedFor = "X-Forwarded-For"
-const xForwardedHost = "X-Forwarded-Host"
 
 // DefaultContextTimeout is used for gRPC call context.WithTimeout whenever a Grpc-Timeout inbound
 // header isn't present. If the value is 0 the sent `context` will not have a timeout.

@@ -17,6 +17,7 @@ const (
 	HeaderContentEncoding             = "Content-Encoding"
 	HeaderReferer                     = "Referer"
 	HeaderAccept                      = "Accept"
+	HeaderAcceptCharset               = "Accept-Charset"
 	HeaderAcceptLanguage              = "Accept-Language"
 	HeaderAcceptEncoding              = "Accept-Encoding"
 	HeaderCacheControl                = "Cache-Control"
@@ -33,8 +34,16 @@ const (
 	HeaderOrigin                      = "Origin"
 	HeaderConnection                  = "Connection"
 	HeaderRange                       = "Range"
+	HeaderHost                        = "Host"
+	HeaderVia                         = "Via"
+	HeaderDate                        = "Date"
+	HeaderExpect                      = "Expect"
+	HeaderFrom                        = "From"
+	HeaderPragma                      = "Pragma"
+	HeaderWarning                     = "Warning"
 	HeaderContentRange                = "Content-Range"
 	HeaderAcceptRanges                = "Accept-Ranges"
+	HeaderXForwardedHost              = "X-Forwarded-Host"
 )
 
 const (

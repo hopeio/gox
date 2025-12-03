@@ -1,11 +1,15 @@
 package gateway
 
 import (
+	"fmt"
 	"net/http"
+	"net/textproto"
+	"slices"
 	"strings"
 
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -33,9 +37,9 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	case httpx.CommonResponder:
 		rb.CommonRespond(r.Context(), httpx.ResponseWriterWrapper{ResponseWriter: w})
 		return nil
-	case ResponseBody:
+	case httpx.ResponseBody:
 		buf = rb.ResponseBody()
-	case XXXResponseBody:
+	case httpx.XXXResponseBody:
 		buf, err = marshaler.Marshal(rb.XXX_ResponseBody())
 	default:
 		buf, err = marshaler.Marshal(message)
@@ -50,10 +54,42 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	return nil
 }
 
-type XXXResponseBody interface {
-	XXX_ResponseBody() interface{}
+func InComingHeaderMatcher(key string) (string, bool) {
+	if slices.Contains(InComingHeader, key) {
+		return key, true
+	}
+	return "", false
 }
 
-type ResponseBody interface {
-	ResponseBody() []byte
+func OutgoingHeaderMatcher(key string) (string, bool) {
+	if slices.Contains(OutgoingHeader, key) {
+		return key, true
+	}
+	return "", false
+}
+
+func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) {
+	for _, k := range OutgoingHeader {
+		if vs, ok := md[k]; ok {
+			for _, v := range vs {
+				w.Header().Add(k, v)
+			}
+		}
+	}
+}
+
+func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
+	for k := range md {
+		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
+		w.Header().Add("Trailer", tKey)
+	}
+}
+
+func HandleForwardResponseTrailer(w http.ResponseWriter, md metadata.MD) {
+	for k, vs := range md {
+		tKey := fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k)
+		for _, v := range vs {
+			w.Header().Add(tKey, v)
+		}
+	}
 }
