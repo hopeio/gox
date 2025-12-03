@@ -9,26 +9,18 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func EqualByStruct(param any) clause.Expression {
-	v := reflect.ValueOf(param)
-	v = reflect.Indirect(v)
-	var conds []clause.Expression
-	t := v.Type()
-	for i := range v.NumField() {
-		field := v.Field(i)
-		fieldKind := field.Kind()
-		if fieldKind == reflect.Interface || fieldKind == reflect.Ptr || fieldKind == reflect.Struct {
-			if t.Field(i).Anonymous {
-				conds = append(conds, EqualByStruct(field.Interface()))
-			}
-		} else {
-			conds = append(conds, clause.Eq{Column: clause.Column{Table: clause.CurrentTable, Name: t.Field(i).Name}, Value: v.Field(i).Interface()})
-		}
-
+/*
+	type ReportList struct {
+		param.PageSortEmbed `sqlcondi:"-"`
+		LoadingTime         *clause.Range[time.Time]
+		UserId              int
+		CarId               int
+		TaskId              int
+		RouteId             int
+		Diff                float64                  `sqlcondi:"-"`
+		Outlier             bool                     `sqlcondi:"-"`
 	}
-	return clause.AndConditions{Exprs: conds}
-}
-
+*/
 func ConditionByStruct(param any) (clause.Expression, error) {
 	v := reflect.ValueOf(param)
 	v = reflect.Indirect(v)
@@ -68,7 +60,27 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 				conds = append(conds, field.Addr().Interface().(ConditionExpr).Condition())
 				continue
 			}
+
 			if tag == "" {
+				if fieldKind == reflect.Interface || fieldKind == reflect.Ptr || fieldKind == reflect.Struct {
+					subCondition, err := ConditionByStruct(field.Interface())
+					if err != nil {
+						return nil, err
+					}
+					if subCondition != nil {
+						conds = append(conds, subCondition)
+					}
+					continue
+				}
+				if fieldKind == reflect.Map {
+					if field.Type().Key().Kind() == reflect.String {
+						iter := field.MapRange()
+						for iter.Next() {
+							conds = append(conds, clause.Eq{Column: stringsx.CamelToSnake(iter.Key().String()), Value: iter.Value()})
+						}
+					}
+					continue
+				}
 				conds = append(conds, clause.Eq{Column: stringsx.CamelToSnake(structField.Name), Value: v.Field(i).Interface()})
 				continue
 			}
@@ -87,7 +99,7 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 					column = stringsx.CamelToSnake(structField.Name)
 				}
 				if condition.Op == "" {
-					condition.Op = "Equal"
+					condition.Op = "EQUAL"
 				}
 				op := sql.ParseConditionOperation(condition.Op)
 				conds = append(conds, NewCondition(column, op, v.Field(i).Interface()))

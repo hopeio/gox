@@ -61,10 +61,6 @@ func (j *JsonPb) Delimiter() []byte {
 	return []byte("\n")
 }
 
-func (j *JsonPb) ContentTypeFromMessage(v interface{}) string {
-	return j.ContentType(v)
-}
-
 // NewDecoder returns a runtime.Decoder which reads JSON stream from "r".
 func (j *JsonPb) NewDecoder(r io.Reader) httpx.Decoder {
 	return json.NewDecoder(r)

@@ -45,11 +45,11 @@ func ParseConditionOperation(op string) ConditionOperation {
 		return Greater
 	case "<", " < ", "LESS", "4":
 		return Less
-	case ">=", " >= ", "GREATEROREQUAL", "6":
+	case ">=", " >= ", "GREATER OR EQUAL", "6":
 		return GreaterOrEqual
-	case "<=", " <= ", "LESSOREQUAL", "7":
+	case "<=", " <= ", "LESS OR EQUAL", "LESSOREQUAL", "7":
 		return LessOrEqual
-	case "!=", " != ", "NOTEQUAL", "2":
+	case "!=", " != ", "NOT EQUAL", "NOTEQUAL", "2":
 		return NotEqual
 	case "IN", " IN ", "10":
 		return In

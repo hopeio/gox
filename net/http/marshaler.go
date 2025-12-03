@@ -1,9 +1,5 @@
 package http
 
-import (
-	"io"
-)
-
 // Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
 type Marshaler interface {
 	// Marshal marshals "v" into byte sequence.
@@ -11,10 +7,6 @@ type Marshaler interface {
 	// Unmarshal unmarshals "data" into "v".
 	// "v" must be a pointer value.
 	Unmarshal(data []byte, v interface{}) error
-	// NewDecoder returns a Decoder which reads byte sequence from "r".
-	NewDecoder(r io.Reader) Decoder
-	// NewEncoder returns an Encoder which writes bytes sequence into "w".
-	NewEncoder(w io.Writer) Encoder
 	// ContentType returns the Content-Type which this marshaler is responsible for.
 	// The parameter describes the type which is being marshalled, which can sometimes
 	// affect the content type returned.
