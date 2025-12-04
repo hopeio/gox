@@ -11,7 +11,7 @@ import (
 
 /*
 	type ReportList struct {
-		param.PageSortEmbed `sqlcondi:"-"`
+		param.PaginationEmbedded `sqlcondi:"-"`
 		LoadingTime         *clause.Range[time.Time]
 		UserId              int
 		CarId               int
@@ -22,8 +22,7 @@ import (
 	}
 */
 func ConditionByStruct(param any) (clause.Expression, error) {
-	v := reflect.ValueOf(param)
-	v = reflect.Indirect(v)
+	v := reflect.Indirect(reflect.ValueOf(param))
 	var conds []clause.Expression
 	t := v.Type()
 	for i := range v.NumField() {
@@ -32,10 +31,26 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 		structField := t.Field(i)
 		empty := field.IsZero()
 		tag, ok := structField.Tag.Lookup(sql.CondiTagName)
-		if tag == "-" {
+		if tag == "-" || fieldKind == reflect.Interface {
 			continue
 		}
-		if !ok && structField.Anonymous && (fieldKind == reflect.Interface || fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
+		if structField.Type.Implements(ConditionExprType) {
+			if (fieldKind == reflect.Pointer || fieldKind == reflect.Map || fieldKind == reflect.Slice ||
+				fieldKind == reflect.Func || fieldKind == reflect.Chan || fieldKind == reflect.UnsafePointer) &&
+				field.IsNil() {
+				continue
+			}
+			if cond := field.Interface().(ConditionExpr).Condition(); cond != nil {
+				conds = append(conds, cond)
+			}
+			continue
+		}
+		if fieldKind == reflect.Struct && field.Addr().Type().Implements(ConditionExprType) {
+			conds = append(conds, field.Addr().Interface().(ConditionExpr).Condition())
+			continue
+		}
+
+		if !ok && structField.Anonymous && (fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
 			subCondition, err := ConditionByStruct(field.Interface())
 			if err != nil {
 				return nil, err
@@ -47,22 +62,19 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 			if tag == "" && empty {
 				continue
 			}
-			if structField.Type.Implements(ConditionExprType) {
-				if (fieldKind == reflect.Interface || fieldKind == reflect.Ptr) && field.Elem().IsZero() {
-					continue
+			if tag == "embedded" && (fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
+				subCondition, err := ConditionByStruct(field.Interface())
+				if err != nil {
+					return nil, err
 				}
-				if cond := field.Interface().(ConditionExpr).Condition(); cond != nil {
-					conds = append(conds, cond)
+				if subCondition != nil {
+					conds = append(conds, subCondition)
 				}
-				continue
-			}
-			if fieldKind == reflect.Struct && field.Addr().Type().Implements(ConditionExprType) {
-				conds = append(conds, field.Addr().Interface().(ConditionExpr).Condition())
 				continue
 			}
 
 			if tag == "" {
-				if fieldKind == reflect.Interface || fieldKind == reflect.Ptr || fieldKind == reflect.Struct {
+				if fieldKind == reflect.Ptr || fieldKind == reflect.Struct {
 					subCondition, err := ConditionByStruct(field.Interface())
 					if err != nil {
 						return nil, err

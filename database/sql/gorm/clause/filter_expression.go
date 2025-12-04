@@ -12,7 +12,7 @@ type FilterExpr dbi.FilterExpr
 func (f *FilterExpr) Condition() clause.Expression {
 	f.Field = strings.TrimSpace(f.Field)
 
-	return NewCondition(f.Field, f.Operation, f.Value...)
+	return NewCondition(f.Field, f.Operation, f.Value)
 }
 
 type FilterExprs dbi.FilterExprs

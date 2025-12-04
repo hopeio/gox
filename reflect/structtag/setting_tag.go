@@ -7,20 +7,22 @@
 package structtag
 
 import (
-	"github.com/hopeio/gox/reflect/mtos"
 	"reflect"
 	"strings"
+
+	"github.com/hopeio/gox/reflect/mtos"
 )
 
+/*
+SettingTag is a tag for setting
+
+	type example struct {
+		db  string `key:"config:db;default:postgres`
+	}
+*/
 type SettingTag string
 
-// ParseSettingTag 适用于子tag为多配置项
-/*
-type example struct {
-	db  string `specifyTagName:"config:db;default:postgres`
-}
-*/
-// default sep ;
+// ParseSettingTagToMap  parse setting tag, default sep ;
 func ParseSettingTagToMap(tag string, sep byte) map[string]string {
 	if tag == "" || tag == "-" {
 		return nil

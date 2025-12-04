@@ -117,12 +117,30 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 	}
 }
 
-func SortExpr(column string, typ param.SortType) clause.Expression {
-	var desc bool
-	if typ == param.SortTypeDesc {
-		desc = true
+type Sorts []param.Sort
+
+func (o Sorts) Condition() clause.Expression {
+	if len(o) == 0 {
+		return nil
 	}
-	return clause.OrderBy{Columns: []clause.OrderByColumn{{Column: clause.Column{Name: column, Raw: true}, Desc: desc}}}
+	return SortExpr(o...)
+}
+
+func SortExpr(sorts ...param.Sort) clause.Expression {
+	if len(sorts) == 0 {
+		return nil
+	}
+	var orders []clause.OrderByColumn
+	for _, sort := range sorts {
+		orders = append(orders, clause.OrderByColumn{
+			Column: clause.Column{
+				Name: sort.Field,
+				Raw:  true,
+			},
+			Desc: sort.Type == param.SortTypeDesc,
+		})
+	}
+	return clause.OrderBy{Columns: orders}
 }
 
 func ByPrimaryKey(v any) clause.Expression {

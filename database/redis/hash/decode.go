@@ -11,24 +11,26 @@ import (
 	"strconv"
 )
 
-func Unmarshal(v interface{}, strings []string) {
+func Unmarshal(v interface{}, args map[string]string) {
 	uValue := reflect.ValueOf(v).Elem()
-	for i := 0; i < len(strings); i += 2 {
-		fieldValue := uValue.FieldByName(strings[i])
+	uType := uValue.Type()
+	for i := 0; i < uValue.NumField(); i++ {
+		fieldValue := uValue.Field(i)
+		field := uType.Field(i)
 		switch fieldValue.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			v, _ := strconv.ParseInt(strings[i+1], 10, 64)
+			v, _ := strconv.ParseInt(args[field.Name], 10, 64)
 			fieldValue.SetInt(v)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			v, _ := strconv.ParseUint(strings[i+1], 10, 64)
+			v, _ := strconv.ParseUint(args[field.Name], 10, 64)
 			fieldValue.SetUint(v)
 		case reflect.String:
-			fieldValue.SetString(strings[i+1])
+			fieldValue.SetString(args[field.Name])
 		case reflect.Float32, reflect.Float64:
-			v, _ := strconv.ParseFloat(strings[i+1], 64)
+			v, _ := strconv.ParseFloat(args[field.Name], 64)
 			fieldValue.SetFloat(v)
 		case reflect.Bool:
-			v, _ := strconv.ParseBool(strings[i+1])
+			v, _ := strconv.ParseBool(args[field.Name])
 			fieldValue.SetBool(v)
 		}
 	}

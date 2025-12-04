@@ -56,7 +56,7 @@ func (dt Time[T]) MarshalBinary() ([]byte, error) {
 	return time.Time(dt).MarshalBinary()
 }
 
-// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.
+// UnmarshalBinary implements the DefaultEncoding.BinaryUnmarshaler interface.
 func (dt *Time[T]) UnmarshalBinary(data []byte) error {
 	return (*time.Time)(dt).UnmarshalBinary(data)
 }

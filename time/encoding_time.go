@@ -26,9 +26,9 @@ func (u *EncodingTime) UnmarshalJSON(data []byte) error {
 type GlobEncodingTime time.Time
 
 func (u GlobEncodingTime) MarshalJSON() ([]byte, error) {
-	return encoding.marshalJSON(time.Time(u))
+	return DefaultEncoding.marshalJSON(time.Time(u))
 }
 
 func (u *GlobEncodingTime) UnmarshalJSON(data []byte) error {
-	return encoding.unmarshalJSON((*time.Time)(u), data)
+	return DefaultEncoding.unmarshalJSON((*time.Time)(u), data)
 }

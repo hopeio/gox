@@ -205,13 +205,13 @@ func ConvertParams(v interface{}, escaper string) string {
 	case fmt.Stringer:
 		reflectValue := reflect.ValueOf(v)
 		if v != nil && reflectValue.IsValid() && ((reflectValue.Kind() == reflect.Ptr && !reflectValue.IsNil()) || reflectValue.Kind() != reflect.Ptr) {
-			return escaper + strings.Replace(fmt.Sprintf("%v", v), escaper, "\\"+escaper, -1) + escaper
+			return escaper + strings.ReplaceAll(v.String(), escaper, "\\"+escaper) + escaper
 		} else {
 			return NullStr
 		}
 	case []byte:
 		if isPrintable(v) {
-			return escaper + strings.Replace(string(v), escaper, "\\"+escaper, -1) + escaper
+			return escaper + strings.ReplaceAll(string(v), escaper, "\\"+escaper) + escaper
 		} else {
 			return escaper + "<binary>" + escaper
 		}
@@ -220,7 +220,7 @@ func ConvertParams(v interface{}, escaper string) string {
 	case float64, float32:
 		return fmt.Sprintf("%.6f", v)
 	case string:
-		return escaper + strings.Replace(v, escaper, "\\"+escaper, -1) + escaper
+		return escaper + strings.ReplaceAll(v, escaper, "\\"+escaper) + escaper
 	default:
 		rv := reflect.ValueOf(v)
 		if v == nil || !rv.IsValid() || rv.Kind() == reflect.Ptr && rv.IsNil() {
@@ -236,7 +236,7 @@ func ConvertParams(v interface{}, escaper string) string {
 					return ConvertParams(rv.Convert(t).Interface(), escaper)
 				}
 			}
-			return escaper + strings.Replace(fmt.Sprint(v), escaper, "\\"+escaper, -1) + escaper
+			return escaper + strings.ReplaceAll(fmt.Sprint(v), escaper, "\\"+escaper) + escaper
 		}
 	}
 	return ""

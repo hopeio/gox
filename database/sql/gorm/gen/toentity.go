@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )

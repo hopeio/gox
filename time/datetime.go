@@ -64,16 +64,6 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 		}
 		*d = Date(t.Unix() / SecondsOfDay)
 		return nil
-	} else {
-		v, err := strconv.ParseInt(str, 10, 64)
-		if err != nil {
-			return err
-		}
-		if len(str) == 13 {
-			*d = Date(v / 1000 / SecondsOfDay)
-		} else {
-			*d = Date(v / SecondsOfDay)
-		}
 	}
 	return nil
 }
@@ -103,7 +93,7 @@ func (d Date) MarshalBinary() ([]byte, error) {
 	return binary.ToBinary(d), nil
 }
 
-// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.
+// UnmarshalBinary implements the DefaultEncoding.BinaryUnmarshaler interface.
 func (d *Date) UnmarshalBinary(data []byte) error {
 	*d = binary.BinaryTo[Date](data)
 	return nil

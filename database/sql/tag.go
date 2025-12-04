@@ -10,6 +10,7 @@ const (
 	CondiTagName = "sqlcondi" // e.g: `sqlcondi:"column:id;op:="`
 	// e.g: `sqlcondi:"expr:id = ?"`
 	// e.g: `sqlcondi:"-"`
+	// e.g: `sqlcondi:"embedded"`
 )
 
 type ConditionTag struct {

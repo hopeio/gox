@@ -6,18 +6,10 @@
 
 package param
 
-type IPageSort interface {
-	IPage
-	ISort
-}
-
-type IPage interface {
+type Pageable interface {
 	PageNo() int
 	PageSize() int
-}
-
-type ISort interface {
-	SortType() SortType
+	Sort() []Sort
 }
 
 type SortType int
@@ -28,42 +20,22 @@ const (
 	SortTypeDesc
 )
 
-type PageSortEmbed struct {
-	PageEmbed
-	*SortEmbed
+type PaginationEmbedded struct {
+	PageNo   int    `json:"pageNo"`
+	PageSize int    `json:"pageSize"`
+	Sort     []Sort `json:"sort"`
 }
 
-type PageEmbed struct {
-	PageNo   int `json:"pageNo"`
-	PageSize int `json:"pageSize"`
-}
-
-type SortEmbed struct {
-	SortField string   `json:"sortField"`
-	SortType  SortType `json:"sortType,omitempty"`
-}
-
-type PageSort struct {
-	Page Page  `json:"page"`
-	Sort *Sort `json:"sort,omitempty"`
-}
-
-type PageMultiSort struct {
-	Page Page      `json:"page"`
-	Sort MultiSort `json:"sort,omitempty"`
-}
-
-type Page struct {
-	No   int `json:"no"`
-	Size int `json:"size"`
+type Pagination struct {
+	No   int    `json:"no"`
+	Size int    `json:"size"`
+	Sort []Sort `json:"sort"`
 }
 
 type Sort struct {
 	Field string   `json:"field"`
 	Type  SortType `json:"type,omitempty"`
 }
-
-type MultiSort []Sort
 
 type Range[T any] struct {
 	Field string    `json:"field,omitempty"`
@@ -142,7 +114,7 @@ type RangeAny = Range[any]
 type RangeInTwoFieldAny = RangeInTwoField[any]
 
 type List struct {
-	PageMultiSort
+	PaginationEmbedded
 	Filter map[string]Field[any] `json:"filter,omitempty"`
 }
 

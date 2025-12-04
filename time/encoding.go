@@ -21,32 +21,28 @@ const (
 	EncodeTypeUnixNanoseconds
 )
 
-func SetEncodingType(typ EncodeType) {
-	encoding.SetType(typ)
-}
-
-func SetEncodingLayout(l string) {
-	encoding.SetLayout(l)
-}
-
-var encoding = &Encoding{
+var DefaultEncoding = &Encoding{
 	Layout: time.RFC3339Nano,
 }
 
+func SetDefaultEncoding(e *Encoding) {
+	DefaultEncoding = e
+}
+
 func MarshalJSON(t time.Time) ([]byte, error) {
-	return encoding.marshalJSON(t)
+	return DefaultEncoding.marshalJSON(t)
 }
 
 func UnmarshalJSON(t *time.Time, data []byte) error {
-	return encoding.unmarshalJSON(t, data)
+	return DefaultEncoding.unmarshalJSON(t, data)
 }
 
 func MarshalText(t time.Time) ([]byte, error) {
-	return encoding.marshalText(t)
+	return DefaultEncoding.marshalText(t)
 }
 
 func UnmarshalText(t *time.Time, data []byte) error {
-	return encoding.unmarshalText(t, data)
+	return DefaultEncoding.unmarshalText(t, data)
 }
 
 type Encoding struct {

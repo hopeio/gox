@@ -61,20 +61,20 @@ func (limit Limit) MergeClause(clause *clause.Clause) {
 	clause.Expression = limit
 }
 
-type PageSortEmbed param.PageSortEmbed
+type PaginationEmbedded param.PaginationEmbedded
 
-func (req *PageSortEmbed) Clause() []clause.Expression {
+func (req *PaginationEmbedded) Clause() []clause.Expression {
 	if req.PageNo == 0 && req.PageSize == 0 {
 		return nil
 	}
-	if req.SortEmbed == nil || req.SortEmbed.SortField == "" {
-		return []clause.Expression{PageExpr(req.PageNo, req.PageSize)}
+	if len(req.Sort) > 0 {
+		return []clause.Expression{PaginationExpr(req.PageNo, req.PageSize)}
 	}
 
-	return []clause.Expression{SortExpr(req.SortField, req.SortType), PageExpr(req.PageNo, req.PageSize)}
+	return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.PageNo, req.PageSize)}
 }
 
-func FindByPageSortEmbed[T any](db *gorm.DB, req *param.PageSortEmbed, clauses ...clause.Expression) ([]T, int64, error) {
+func FindPaginationEmbedded[T any](db *gorm.DB, req *param.PaginationEmbedded, clauses ...clause.Expression) ([]T, int64, error) {
 	var models []T
 
 	if len(clauses) > 0 {
@@ -89,32 +89,32 @@ func FindByPageSortEmbed[T any](db *gorm.DB, req *param.PageSortEmbed, clauses .
 	if count == 0 {
 		return nil, 0, nil
 	}
-	pageSortClauses := (*PageSortEmbed)(req).Clause()
-	err = db.Clauses(pageSortClauses...).Find(&models).Error
+	pageClauses := (*PaginationEmbedded)(req).Clause()
+	err = db.Clauses(pageClauses...).Find(&models).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	return models, count, nil
 }
 
-type PageSort param.PageSort
+type Pagination param.Pagination
 
-func (req *PageSort) Clause() []clause.Expression {
-	if req.Page.No == 0 && req.Page.Size == 0 {
+func (req *Pagination) Clause() []clause.Expression {
+	if req.No == 0 && req.Size == 0 {
 		return nil
 	}
-	if req.Sort == nil || req.Sort.Field == "" {
-		return []clause.Expression{PageExpr(req.Page.No, req.Page.Size)}
+	if len(req.Sort) == 0 {
+		return []clause.Expression{PaginationExpr(req.No, req.Size)}
 	}
 
-	return []clause.Expression{SortExpr(req.Sort.Field, req.Sort.Type), PageExpr(req.Page.No, req.Page.Size)}
+	return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.No, req.Size)}
 }
 
-func (req *PageSort) Apply(db *gorm.DB) *gorm.DB {
+func (req *Pagination) Apply(db *gorm.DB) *gorm.DB {
 	return db.Clauses(req.Clause()...)
 }
 
-func FindByPageSort[T any](db *gorm.DB, req *param.PageSort, clauses ...clause.Expression) ([]T, int64, error) {
+func FindPagination[T any](db *gorm.DB, req *param.Pagination, clauses ...clause.Expression) ([]T, int64, error) {
 	var models []T
 
 	if len(clauses) > 0 {
@@ -129,15 +129,15 @@ func FindByPageSort[T any](db *gorm.DB, req *param.PageSort, clauses ...clause.E
 	if count == 0 {
 		return nil, 0, nil
 	}
-	pageSortClauses := (*PageSort)(req).Clause()
-	err = db.Clauses(pageSortClauses...).Find(&models).Error
+	pageClauses := (*Pagination)(req).Clause()
+	err = db.Clauses(pageClauses...).Find(&models).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	return models, count, nil
 }
 
-func PageExpr(pageNo, pageSize int) clause.Limit {
+func PaginationExpr(pageNo, pageSize int, sort ...param.Sort) clause.Limit {
 	if pageSize == 0 {
 		pageSize = 100
 	}
@@ -147,15 +147,6 @@ func PageExpr(pageNo, pageSize int) clause.Limit {
 	return clause.Limit{Limit: &pageSize}
 }
 
-type PageEmbed param.PageEmbed
-
-func (req *PageEmbed) Clause() clause.Expression {
-	if req.PageNo == 0 && req.PageSize == 0 {
-		return nil
-	}
-	return PageExpr(req.PageNo, req.PageSize)
-}
-
-func (req *PageEmbed) Apply(db *gorm.DB) *gorm.DB {
-	return db.Clauses(req.Clause())
+func (req *PaginationEmbedded) Apply(db *gorm.DB) *gorm.DB {
+	return db.Clauses(req.Clause()...)
 }
