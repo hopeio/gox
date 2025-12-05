@@ -194,7 +194,8 @@ func MoveDirByMode(src, dst string, c mode) error {
 				return err
 			}
 		} else {
-			skip, err := c.handle(dst+PathSeparator+entityName, nil)
+			var skip bool
+			skip, err = c.handle(dst+PathSeparator+entityName, nil)
 			if err != nil {
 				return err
 			}

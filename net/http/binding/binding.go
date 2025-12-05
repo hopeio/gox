@@ -12,28 +12,21 @@ import (
 	"io"
 	"net/http"
 	"reflect"
-	"strings"
 	"sync"
 
-	http2 "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/reflect/mtos"
-	"github.com/hopeio/gox/validation/validator"
+	"github.com/hopeio/gox/mtos"
+	httpx "github.com/hopeio/gox/net/http"
+	stringsx "github.com/hopeio/gox/strings"
+	"github.com/hopeio/gox/validator"
 )
 
 var (
 	DefaultMemory    int64                   = 32 << 20
 	BodyUnmarshaller func([]byte, any) error = json.Unmarshal
+	CommonTag                                = "json"
+	Validate                                 = validator.ValidateStruct
+	defaultTags                              = []string{"uri", "path", "query", "header", "form", CommonTag}
 )
-
-const commonTag = "json"
-
-var Validate = validator.ValidateStruct
-
-var defaultTags = []string{"uri", "path", "query", "header", "form", commonTag}
-
-func CommonTag(tag string) {
-	defaultTags[5] = tag
-}
 
 type Source interface {
 	Uri() mtos.Setter
@@ -44,6 +37,7 @@ type Source interface {
 }
 
 type Field struct {
+	Name  string
 	Tags  []Tag
 	Index int
 	Field *reflect.StructField
@@ -52,7 +46,7 @@ type Field struct {
 type Tag struct {
 	Key     string
 	Value   string
-	Options mtos.SetOptions
+	Options *mtos.Options
 }
 
 var cache = sync.Map{}
@@ -69,7 +63,7 @@ func CommonBind(s Source, obj any) error {
 		return err
 	}
 	uriSetter, querySetter, headerSetter, formSetter := s.Uri(), s.Query(), s.Header(), s.Form()
-	commonSetter := mtos.Setters{Setters: []mtos.Setter{uriSetter, querySetter, headerSetter}}
+	commonSetter := mtos.Setters{Setters: []mtos.Setter{uriSetter, querySetter, headerSetter, formSetter}}
 	if fields, ok := cache.Load(typ); ok {
 		var isSet bool
 		for _, field := range fields.([]Field) {
@@ -80,11 +74,11 @@ func CommonBind(s Source, obj any) error {
 					setter = uriSetter
 				case "query":
 					setter = querySetter
-				case "header":
-					setter = headerSetter
 				case "form":
 					setter = formSetter
-				case commonTag:
+				case "header":
+					setter = headerSetter
+				case CommonTag:
 					setter = commonSetter
 				}
 				if setter == nil {
@@ -98,6 +92,13 @@ func CommonBind(s Source, obj any) error {
 					break
 				}
 			}
+			if !isSet {
+				setter = commonSetter
+				isSet, err = setter.TrySet(value.Field(field.Index), field.Field, field.Name, nil)
+				if err != nil {
+					return err
+				}
+			}
 		}
 		return Validate(obj)
 	}
@@ -107,8 +108,7 @@ func CommonBind(s Source, obj any) error {
 		if sf.PkgPath != "" && !sf.Anonymous { // unexported
 			continue
 		}
-		var tagValue string
-		var tag string
+		var tag, tagValue string
 		var isSet bool
 		var setter mtos.Setter
 		for _, tag = range defaultTags {
@@ -120,38 +120,45 @@ func CommonBind(s Source, obj any) error {
 					setter = uriSetter
 				case "query":
 					setter = querySetter
-				case "header":
-					setter = headerSetter
 				case "form":
 					setter = formSetter
-				case commonTag:
+				case "header":
+					setter = headerSetter
+				case CommonTag:
 					setter = commonSetter
 				}
-				tagValues := strings.Split(tagValue, ",")
-				tagValue = tagValues[0]
-				options := mtos.SetOptions{}
+
+				alias, options := mtos.ParseTag(tagValue)
 				tags = append(tags, Tag{
 					Key:     tag,
-					Value:   tagValue,
+					Value:   alias,
 					Options: options,
 				})
 				if setter == nil {
 					continue
 				}
-				isSet, err = setter.TrySet(value.Field(i), &sf, tagValue, options)
+				if !isSet {
+					isSet, err = setter.TrySet(value.Field(i), &sf, alias, options)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			field := Field{
+				Name:  stringsx.LowerCaseFirst(sf.Name),
+				Tags:  tags,
+				Index: i,
+				Field: &sf,
+			}
+
+			if !isSet {
+				setter = commonSetter
+				isSet, err = setter.TrySet(value.Field(i), &sf, field.Name, nil)
 				if err != nil {
 					return err
 				}
-				field := Field{
-					Tags:  tags,
-					Index: i,
-					Field: &sf,
-				}
-				fields = append(fields, field)
-				if isSet {
-					break
-				}
 			}
+			fields = append(fields, field)
 		}
 	}
 	cache.Store(typ, fields)
@@ -175,15 +182,15 @@ func (s RequestSource) Header() mtos.Setter {
 }
 
 func (s RequestSource) Form() mtos.Setter {
-	contentType := s.Request.Header.Get(http2.HeaderContentType)
-	if contentType == http2.ContentTypeForm {
+	contentType := s.Request.Header.Get(httpx.HeaderContentType)
+	if contentType == httpx.ContentTypeForm {
 		err := s.ParseForm()
 		if err != nil {
 			return nil
 		}
 		return (mtos.KVsSource)(s.PostForm)
 	}
-	if contentType == http2.ContentTypeMultipart {
+	if contentType == httpx.ContentTypeMultipart {
 		err := s.ParseMultipartForm(DefaultMemory)
 		if err != nil {
 			return nil
@@ -195,6 +202,10 @@ func (s RequestSource) Form() mtos.Setter {
 
 func (s RequestSource) BodyBind(obj any) error {
 	if s.Method == http.MethodGet {
+		return nil
+	}
+	contentType := s.Request.Header.Get(httpx.HeaderContentType)
+	if contentType == httpx.ContentTypeForm || contentType == httpx.ContentTypeMultipart {
 		return nil
 	}
 	data, err := io.ReadAll(s.Body)

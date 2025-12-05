@@ -8,10 +8,9 @@ import (
 )
 
 const (
-	TYPE_SIMPLE = "simple"
-	TYPE_LRU    = "lru"
-	TYPE_LFU    = "lfu"
-	TYPE_ARC    = "arc"
+	TYPE_LRU = "lru"
+	TYPE_LFU = "lfu"
+	TYPE_ARC = "arc"
 )
 
 var KeyNotFoundError = errors.New("Key not found.")
@@ -73,7 +72,7 @@ type CacheBuilder struct {
 func New(size int) *CacheBuilder {
 	return &CacheBuilder{
 		clock: NewRealClock(),
-		tp:    TYPE_SIMPLE,
+		tp:    TYPE_LRU,
 		size:  size,
 	}
 }
@@ -104,10 +103,6 @@ func (cb *CacheBuilder) LoaderExpireFunc(loaderExpireFunc LoaderExpireFunc) *Cac
 func (cb *CacheBuilder) EvictType(tp string) *CacheBuilder {
 	cb.tp = tp
 	return cb
-}
-
-func (cb *CacheBuilder) Simple() *CacheBuilder {
-	return cb.EvictType(TYPE_SIMPLE)
 }
 
 func (cb *CacheBuilder) LRU() *CacheBuilder {
@@ -153,7 +148,7 @@ func (cb *CacheBuilder) Expiration(expiration time.Duration) *CacheBuilder {
 }
 
 func (cb *CacheBuilder) Build() Cache {
-	if cb.size <= 0 && cb.tp != TYPE_SIMPLE {
+	if cb.size <= 0 {
 		panic("gcache: Cache size <= 0")
 	}
 
@@ -162,8 +157,6 @@ func (cb *CacheBuilder) Build() Cache {
 
 func (cb *CacheBuilder) build() Cache {
 	switch cb.tp {
-	case TYPE_SIMPLE:
-		return newSimpleCache(cb)
 	case TYPE_LRU:
 		return newLRUCache(cb)
 	case TYPE_LFU:

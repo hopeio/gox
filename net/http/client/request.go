@@ -24,7 +24,7 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 	url2 "github.com/hopeio/gox/net/url"
 	stringsx "github.com/hopeio/gox/strings"
-	"github.com/hopeio/gox/strings/unicode"
+	"github.com/hopeio/gox/unicode"
 	"github.com/klauspost/compress/zstd"
 )
 

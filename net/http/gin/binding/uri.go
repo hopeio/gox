@@ -7,9 +7,10 @@
 package binding
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/reflect/mtos"
 	"reflect"
+
+	"github.com/gin-gonic/gin"
+	"github.com/hopeio/gox/mtos"
 )
 
 type uriSource gin.Params
@@ -35,6 +36,6 @@ func (param uriSource) HasValue(key string) bool {
 }
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt mtos.SetOptions) (isSet bool, err error) {
+func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mtos.Options) (isSet bool, err error) {
 	return mtos.SetValueByKVsWithStructField(value, field, param, key, opt)
 }

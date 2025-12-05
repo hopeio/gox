@@ -11,9 +11,9 @@ import (
 	"io"
 	"net/http"
 
-	http2 "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/mtos"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/binding"
-	"github.com/hopeio/gox/reflect/mtos"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,15 +39,15 @@ func (s RequestSource) Header() mtos.Setter {
 }
 
 func (s RequestSource) Form() mtos.Setter {
-	contentType := s.Request.Header.Get(http2.HeaderContentType)
-	if contentType == http2.ContentTypeForm {
+	contentType := s.Request.Header.Get(httpx.HeaderContentType)
+	if contentType == httpx.ContentTypeForm {
 		err := s.Request.ParseForm()
 		if err != nil {
 			return nil
 		}
 		return (mtos.KVsSource)(s.Request.PostForm)
 	}
-	if contentType == http2.ContentTypeMultipart {
+	if contentType == httpx.ContentTypeMultipart {
 		err := s.Request.ParseMultipartForm(binding.DefaultMemory)
 		if err != nil {
 			return nil

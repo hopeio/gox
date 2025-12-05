@@ -9,8 +9,8 @@ package slices
 import (
 	"slices"
 
+	"github.com/hopeio/gox"
 	"github.com/hopeio/gox/cmp"
-	"github.com/hopeio/gox/sugar"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
 )
@@ -35,7 +35,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	// 同时遍历检测
 	n, m := len(s1), len(s2)
 	tmpMap := make(map[T]struct{})
-	l := sugar.TernaryOperator(n > m, n, m)
+	l := gox.TernaryOperator(n > m, n, m)
 	for i := range l {
 		if i < n {
 			tmpMap[s1[i]] = struct{}{}
@@ -68,7 +68,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	// 同时遍历检测
 	n, m := len(s1), len(s2)
 	tmpMap := make(map[T]struct{})
-	l := sugar.TernaryOperator(n > m, n, m)
+	l := gox.TernaryOperator(n > m, n, m)
 	for i := range l {
 		if i < n {
 			tmpMap[s1[i].EqualKey()] = struct{}{}

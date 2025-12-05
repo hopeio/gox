@@ -12,7 +12,6 @@ import (
 func TestLoaderFunc(t *testing.T) {
 	size := 2
 	var testCaches = []*CacheBuilder{
-		New(size).Simple(),
 		New(size).LRU(),
 		New(size).LFU(),
 		New(size).ARC(),
@@ -51,7 +50,6 @@ func TestLoaderFunc(t *testing.T) {
 func TestLoaderExpireFuncWithoutExpire(t *testing.T) {
 	size := 2
 	var testCaches = []*CacheBuilder{
-		New(size).Simple(),
 		New(size).LRU(),
 		New(size).LFU(),
 		New(size).ARC(),
@@ -90,7 +88,6 @@ func TestLoaderExpireFuncWithoutExpire(t *testing.T) {
 func TestLoaderExpireFuncWithExpire(t *testing.T) {
 	size := 2
 	var testCaches = []*CacheBuilder{
-		New(size).Simple(),
 		New(size).LRU(),
 		New(size).LFU(),
 		New(size).ARC(),
@@ -142,10 +139,6 @@ func TestLoaderPurgeVisitorFunc(t *testing.T) {
 		name         string
 		cacheBuilder *CacheBuilder
 	}{
-		{
-			name:         "simple",
-			cacheBuilder: New(size).Simple(),
-		},
 		{
 			name:         "lru",
 			cacheBuilder: New(size).LRU(),
@@ -209,7 +202,6 @@ func TestDeserializeFunc(t *testing.T) {
 	var cases = []struct {
 		tp string
 	}{
-		{TYPE_SIMPLE},
 		{TYPE_LRU},
 		{TYPE_LFU},
 		{TYPE_ARC},
@@ -268,7 +260,6 @@ func TestDeserializeFunc(t *testing.T) {
 
 func TestExpiredItems(t *testing.T) {
 	var tps = []string{
-		TYPE_SIMPLE,
 		TYPE_LRU,
 		TYPE_LFU,
 		TYPE_ARC,

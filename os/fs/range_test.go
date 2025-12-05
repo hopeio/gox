@@ -12,14 +12,14 @@ import (
 
 func TestRange(t *testing.T) {
 	it, err := All("D:\\data")
-	if err.HasErrors() {
+	if err != nil {
 		t.Error(err)
 	}
 
 	for ent := range it {
 		t.Log(ent.Name())
 	}
-	if err.HasErrors() {
+	if err != nil {
 		t.Error(err)
 	}
 }

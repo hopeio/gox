@@ -222,7 +222,7 @@ func Sync(slaveDir, mainDir string) error {
 
 	_, intersection, diff1, diff2 := slices.UnionAndIntersectionAndDifference(mainDirEntries, slaveDirEntries)
 	for _, entry := range diff2 {
-		err := os.RemoveAll(slaveDir + PathSeparator + entry.Name())
+		err = os.RemoveAll(slaveDir + PathSeparator + entry.Name())
 		if err != nil {
 			return err
 		}

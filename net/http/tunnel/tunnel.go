@@ -7,11 +7,12 @@
 package tunnel
 
 import (
-	"github.com/hopeio/gox/log"
 	"io"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/hopeio/gox/log"
 )
 
 func Tunneling(w http.ResponseWriter, r *http.Request) {

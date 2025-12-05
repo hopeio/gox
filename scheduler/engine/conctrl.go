@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	id2 "github.com/hopeio/gox/idgen/id"
+	"github.com/hopeio/gox/idgen"
 	"github.com/hopeio/gox/log"
-	synci "github.com/hopeio/gox/sync"
+	syncx "github.com/hopeio/gox/sync"
 )
 
 func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
@@ -75,7 +75,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 					//检测任务是否已空
 					if uint(e.workingWorkerCount) == 0 && len(e.readyTaskHeap) == 0 {
 						e.mu.Lock()
-						counter, _ := synci.WaitGroupState(&e.wg)
+						counter, _ := syncx.WaitGroupState(&e.wg)
 						if counter == 1 {
 							emptyTimes++
 							if emptyTimes > 2 {
@@ -188,7 +188,7 @@ func (e *Engine[KEY]) addTasks(ctx context.Context, priority int, tasks ...*Task
 			task.ctx = e.ctx
 		}
 		task.Priority = priority
-		task.id = id2.NewOrderedID()
+		task.id = idgen.NewOrderedID()
 		e.readyTaskHeap.Push(task)
 	}
 
@@ -269,7 +269,7 @@ func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task
 			task.ctx = e.ctx
 		}
 		task.Priority += generation
-		task.id = id2.NewOrderedID()
+		task.id = idgen.NewOrderedID()
 		worker.taskCh <- task
 	}
 	return nil

@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/hopeio/gox/encoding/text"
+	"github.com/hopeio/gox/encoding"
 )
 
 type ConditionOperation int
@@ -216,7 +216,7 @@ func ConvertParams(v interface{}, escaper string) string {
 			return escaper + "<binary>" + escaper
 		}
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return text.AnyIntToString(v)
+		return encoding.AnyIntToString(v)
 	case float64, float32:
 		return fmt.Sprintf("%.6f", v)
 	case string:

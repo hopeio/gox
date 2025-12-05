@@ -9,7 +9,6 @@ package v8
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -17,6 +16,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/hopeio/gox/encoding/json"
 )
 
 type SearchResponse[T any] struct {

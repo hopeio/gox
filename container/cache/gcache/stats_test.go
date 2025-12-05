@@ -41,16 +41,6 @@ func TestCacheStats(t *testing.T) {
 	}{
 		{
 			builder: func() Cache {
-				cc := New(32).Simple().Build()
-				cc.Set(0, 0)
-				cc.Get(0)
-				cc.Get(1)
-				return cc
-			},
-			rate: 0.5,
-		},
-		{
-			builder: func() Cache {
 				cc := New(32).LRU().Build()
 				cc.Set(0, 0)
 				cc.Get(0)
@@ -72,19 +62,6 @@ func TestCacheStats(t *testing.T) {
 		{
 			builder: func() Cache {
 				cc := New(32).ARC().Build()
-				cc.Set(0, 0)
-				cc.Get(0)
-				cc.Get(1)
-				return cc
-			},
-			rate: 0.5,
-		},
-		{
-			builder: func() Cache {
-				cc := New(32).
-					Simple().
-					LoaderFunc(getter).
-					Build()
 				cc.Set(0, 0)
 				cc.Get(0)
 				cc.Get(1)

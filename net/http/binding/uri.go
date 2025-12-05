@@ -7,9 +7,10 @@
 package binding
 
 import (
-	"github.com/hopeio/gox/reflect/mtos"
 	"net/http"
 	"reflect"
+
+	"github.com/hopeio/gox/mtos"
 )
 
 type UriSource http.Request
@@ -30,6 +31,6 @@ func (req *UriSource) HasValue(key string) bool {
 }
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt mtos.SetOptions) (isSet bool, err error) {
+func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mtos.Options) (isSet bool, err error) {
 	return mtos.SetValueByKVsWithStructField(value, field, req, key, opt)
 }

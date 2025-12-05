@@ -4,6 +4,7 @@ package json
 
 import (
 	"encoding/json"
+
 	"github.com/hopeio/gox/strings"
 )
 

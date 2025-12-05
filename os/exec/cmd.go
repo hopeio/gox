@@ -8,15 +8,16 @@ package exec
 
 import (
 	"fmt"
-	osi "github.com/hopeio/gox/os"
 	"os"
 	"os/exec"
 	"os/signal"
 	"syscall"
+
+	osx "github.com/hopeio/gox/os"
 )
 
 func CMD(s string) *exec.Cmd {
-	words := osi.Split(s)
+	words := osx.Split(s)
 	cmd := exec.Command(words[0], words[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

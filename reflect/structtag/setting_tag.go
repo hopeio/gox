@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hopeio/gox/reflect/mtos"
+	encodingx "github.com/hopeio/gox/encoding"
 )
 
 /*
@@ -108,7 +108,7 @@ func ParseSettingTagIntoStruct(tag string, sep byte, settings any) error {
 			name = structField.Name
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := mtos.SetValueByString(settingsValue.Field(i), flagtag)
+			err := encodingx.SetValueByString(settingsValue.Field(i), flagtag, &structField)
 			if err != nil {
 				return err
 			}

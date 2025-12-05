@@ -7,10 +7,11 @@
 package proxy
 
 import (
-	"github.com/rs/cors"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/rs/cors"
 )
 
 func Rewrite() *httputil.ReverseProxy {

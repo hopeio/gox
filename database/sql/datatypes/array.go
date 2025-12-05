@@ -16,7 +16,7 @@ import (
 	"time"
 
 	dbx "github.com/hopeio/gox/database/sql"
-	reflectx "github.com/hopeio/gox/reflect/converter"
+	reflectx "github.com/hopeio/gox/encoding"
 	stringsx "github.com/hopeio/gox/strings"
 
 	"strconv"

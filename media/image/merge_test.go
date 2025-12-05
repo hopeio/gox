@@ -8,13 +8,14 @@ package image
 
 import (
 	"fmt"
-	debugi "github.com/hopeio/gox/runtime/debug"
 	"image"
 	"image/jpeg"
 	"os"
 	"runtime"
 	"strconv"
 	"testing"
+
+	runtimex "github.com/hopeio/gox/runtime"
 )
 
 func TestMerge(t *testing.T) {
@@ -78,7 +79,7 @@ func TestMerge(t *testing.T) {
 	gray1, gray2 = nil, nil
 	runtime.GC()
 	t.Logf("overlap %v , %v", horizontalOverlaps, verticalOverlaps)
-	debugi.PrintMemoryUsage(1)
+	runtimex.PrintMemoryUsage(1)
 
 	for i := range fovs {
 		for j := range fovs[i] {
@@ -88,7 +89,7 @@ func TestMerge(t *testing.T) {
 	}
 
 	mi := NewMergeImage(imgs, sWidth, sHeight, horizontalOverlaps, verticalOverlaps)
-	debugi.PrintMemoryUsage(2)
+	runtimex.PrintMemoryUsage(2)
 	outFile, err := os.Create(dir + "panel.jpg")
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
@@ -97,5 +98,5 @@ func TestMerge(t *testing.T) {
 	jpeg.Encode(outFile, mi, nil)
 	outFile.Close()
 
-	debugi.PrintMemoryUsage(3)
+	runtimex.PrintMemoryUsage(3)
 }

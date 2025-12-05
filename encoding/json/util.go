@@ -9,8 +9,10 @@ package json
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/hopeio/gox/strings"
-	unicodei "github.com/hopeio/gox/strings/unicode"
+	unicodei "github.com/hopeio/gox/unicode"
+
 	"strconv"
 	"unicode"
 	"unicode/utf16"
