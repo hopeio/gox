@@ -1,11 +1,12 @@
 package os
 
 import (
-	"github.com/hopeio/gox/log"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/hopeio/gox/log"
 )
 
 func Split(line string) []string {
@@ -28,7 +29,7 @@ Words:
 				case '"':
 					word, err := strconv.Unquote(line[0 : i+1])
 					if err != nil {
-						log.Panic("bad quoted string")
+						log.Panicf("bad quoted string: %s, err: %v", line[0:i+1], err)
 					}
 					words = append(words, word)
 					line = line[i+1:]

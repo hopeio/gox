@@ -8,8 +8,9 @@ package libheif
 
 import (
 	"fmt"
-	execi "github.com/hopeio/gox/os/exec"
 	"strings"
+
+	execi "github.com/hopeio/gox/os/exec"
 )
 
 // https://github.com/pphh77/libheif-Windowsbinary/releases
@@ -22,7 +23,7 @@ func ImgToHeif(filePath, dst string) error {
 	if strings.HasSuffix(dst, ".heif") {
 		dst = dst[:len(dst)-5]
 	}
-	_, err := execi.RunGetOutContainQuoted(fmt.Sprintf(ImgToHeifCmd, filePath, dst))
+	_, err := execi.RunGetOut(fmt.Sprintf(ImgToHeifCmd, filePath, dst))
 
 	return err
 }

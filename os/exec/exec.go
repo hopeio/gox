@@ -13,33 +13,27 @@ import (
 	"os/exec"
 	"strconv"
 
-	osx "github.com/hopeio/gox/os"
 	stringsx "github.com/hopeio/gox/strings"
 )
 
 func Run(s string, opts ...Option) error {
-	words := osx.Split(s)
-	cmd := exec.Command(words[0], words[1:]...)
+	cmd := CMD(s, opts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	for _, opt := range opts {
-		opt(cmd)
-	}
 	return cmd.Run()
 }
 
-func RunWithLog(arg string, opts ...Option) error {
+func RunWithLog(s string, opts ...Option) error {
 	opts = append(opts, func(cmd *exec.Cmd) {
 		log.Printf(`exec:"%v"`, cmd)
 	})
-	return Run(arg, opts...)
+	return Run(s, opts...)
 }
 
 type Option func(cmd *exec.Cmd)
 
 func RunGetOut(s string, opts ...Option) (string, error) {
-	words := osx.Split(s)
-	cmd := exec.Command(words[0], words[1:]...)
+	cmd := CMD(s, opts...)
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
 		return stringsx.BytesToString(buf), err
@@ -70,8 +64,7 @@ func RunGetOutWithLog(s string, opts ...Option) (string, error) {
 // Shell run shell
 // e.g. Shell("bash", "echo hello world")
 func Shell(interpreter, shell string, opts ...Option) error {
-	words := osx.Split(fmt.Sprintf(`%s -c "%s"`, interpreter, strconv.Quote(shell)))
-	cmd := exec.Command(words[0], words[1:]...)
+	cmd := CMD(fmt.Sprintf(`%s -c "%s"`, interpreter, strconv.Quote(shell)), opts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	for _, opt := range opts {

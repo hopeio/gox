@@ -25,7 +25,7 @@ var ExecPath = "ffmpeg"
 func Run(cmd string) error {
 	cmd = ExecPath + " " + cmd
 	log.Debug("exec:", cmd)
-	err := execx.RunContainQuoted(cmd)
+	err := execx.Run(cmd)
 	if err != nil {
 		log.Error(err)
 		return err
