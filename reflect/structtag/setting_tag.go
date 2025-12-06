@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	encodingx "github.com/hopeio/gox/encoding"
+	encodingx "github.com/hopeio/gox/strconv"
 )
 
 /*
@@ -108,7 +108,7 @@ func ParseSettingTagIntoStruct(tag string, sep byte, settings any) error {
 			name = structField.Name
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := encodingx.SetValueByString(settingsValue.Field(i), flagtag, &structField)
+			err := encodingx.ParseReflectSet(settingsValue.Field(i), flagtag, &structField)
 			if err != nil {
 				return err
 			}

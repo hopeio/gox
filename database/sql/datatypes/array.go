@@ -16,7 +16,7 @@ import (
 	"time"
 
 	dbx "github.com/hopeio/gox/database/sql"
-	reflectx "github.com/hopeio/gox/encoding"
+	reflectx "github.com/hopeio/gox/strconv"
 	stringsx "github.com/hopeio/gox/strings"
 
 	"strconv"
@@ -212,7 +212,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 			if err != nil {
 				return nil, err
 			}
-			buf.WriteString(reflectx.StringFor(v))
+			buf.WriteString(reflectx.FormatFor(v))
 			continue
 		}
 		itv, ok := a.(encoding.TextMarshaler)
@@ -227,7 +227,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 			buf.WriteString(strconv.Quote(stringsx.FromBytes(v)))
 			continue
 		}
-		buf.WriteString(reflectx.StringFor(v))
+		buf.WriteString(reflectx.FormatFor(v))
 	}
 	buf.WriteByte('}')
 	return buf.String(), nil

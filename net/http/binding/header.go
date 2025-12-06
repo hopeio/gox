@@ -10,12 +10,12 @@ import (
 	"net/textproto"
 	"reflect"
 
-	"github.com/hopeio/gox/mtos"
+	"github.com/hopeio/gox/kvstruct"
 )
 
 type HeaderSource map[string][]string
 
-var _ mtos.Setter = HeaderSource(nil)
+var _ kvstruct.Setter = HeaderSource(nil)
 
 func (hs HeaderSource) Peek(key string) ([]string, bool) {
 	v, ok := hs[textproto.CanonicalMIMEHeaderKey(key)]
@@ -26,6 +26,6 @@ func (hs HeaderSource) HasValue(key string) bool {
 	_, ok := hs[textproto.CanonicalMIMEHeaderKey(key)]
 	return ok
 }
-func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mtos.Options) (isSet bool, err error) {
-	return mtos.SetValueByKVsWithStructField(value, field, hs, key, opt)
+func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
+	return kvstruct.SetValueByKVsWithStructField(value, field, hs, key, opt)
 }

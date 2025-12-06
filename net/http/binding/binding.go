@@ -14,7 +14,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/hopeio/gox/mtos"
+	"github.com/hopeio/gox/kvstruct"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/gox/validator"
@@ -29,10 +29,10 @@ var (
 )
 
 type Source interface {
-	Uri() mtos.Setter
-	Query() mtos.Setter
-	Header() mtos.Setter
-	Form() mtos.Setter
+	Uri() kvstruct.Setter
+	Query() kvstruct.Setter
+	Header() kvstruct.Setter
+	Form() kvstruct.Setter
 	BodyBind(obj any) error
 }
 
@@ -46,7 +46,7 @@ type Field struct {
 type Tag struct {
 	Key     string
 	Value   string
-	Options *mtos.Options
+	Options *kvstruct.Options
 }
 
 var cache = sync.Map{}
@@ -63,11 +63,11 @@ func CommonBind(s Source, obj any) error {
 		return err
 	}
 	uriSetter, querySetter, headerSetter, formSetter := s.Uri(), s.Query(), s.Header(), s.Form()
-	commonSetter := mtos.Setters{Setters: []mtos.Setter{uriSetter, querySetter, headerSetter, formSetter}}
+	commonSetter := kvstruct.Setters{Setters: []kvstruct.Setter{uriSetter, querySetter, headerSetter, formSetter}}
 	if fields, ok := cache.Load(typ); ok {
 		var isSet bool
 		for _, field := range fields.([]Field) {
-			var setter mtos.Setter
+			var setter kvstruct.Setter
 			for _, tag := range field.Tags {
 				switch tag.Key {
 				case "uri", "path":
@@ -110,7 +110,7 @@ func CommonBind(s Source, obj any) error {
 		}
 		var tag, tagValue string
 		var isSet bool
-		var setter mtos.Setter
+		var setter kvstruct.Setter
 		for _, tag = range defaultTags {
 			tagValue = sf.Tag.Get(tag)
 			var tags []Tag
@@ -128,7 +128,7 @@ func CommonBind(s Source, obj any) error {
 					setter = commonSetter
 				}
 
-				alias, options := mtos.ParseTag(tagValue)
+				alias, options := kvstruct.ParseTag(tagValue)
 				tags = append(tags, Tag{
 					Key:     tag,
 					Value:   alias,
@@ -169,26 +169,26 @@ type RequestSource struct {
 	*http.Request
 }
 
-func (s RequestSource) Uri() mtos.Setter {
+func (s RequestSource) Uri() kvstruct.Setter {
 	return (*UriSource)(s.Request)
 }
 
-func (s RequestSource) Query() mtos.Setter {
-	return (mtos.KVsSource)(s.URL.Query())
+func (s RequestSource) Query() kvstruct.Setter {
+	return (kvstruct.KVsSource)(s.URL.Query())
 }
 
-func (s RequestSource) Header() mtos.Setter {
+func (s RequestSource) Header() kvstruct.Setter {
 	return (HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() mtos.Setter {
+func (s RequestSource) Form() kvstruct.Setter {
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
 	if contentType == httpx.ContentTypeForm {
 		err := s.ParseForm()
 		if err != nil {
 			return nil
 		}
-		return (mtos.KVsSource)(s.PostForm)
+		return (kvstruct.KVsSource)(s.PostForm)
 	}
 	if contentType == httpx.ContentTypeMultipart {
 		err := s.ParseMultipartForm(DefaultMemory)

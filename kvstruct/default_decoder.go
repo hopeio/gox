@@ -1,8 +1,4 @@
-package mtos
-
-import (
-	reflectx "github.com/hopeio/gox/encoding"
-)
+package kvstruct
 
 var defaultDecoder = NewDecoder("json")
 
@@ -23,7 +19,7 @@ func IgnoreUnknownKeys(i bool) {
 }
 
 // RegisterConverter registers a converter function for a custom type.
-func RegisterConverter(value interface{}, converterFunc reflectx.StringConverter) {
+func RegisterConverter(value interface{}, converterFunc StringConverter) {
 	defaultDecoder.cache.registerConverter(value, converterFunc)
 }
 

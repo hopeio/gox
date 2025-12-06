@@ -10,12 +10,12 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/mtos"
+	"github.com/hopeio/gox/kvstruct"
 )
 
 type uriSource gin.Params
 
-var _ mtos.Setter = uriSource(nil)
+var _ kvstruct.Setter = uriSource(nil)
 
 func (param uriSource) Peek(key string) ([]string, bool) {
 	for i := range param {
@@ -36,6 +36,6 @@ func (param uriSource) HasValue(key string) bool {
 }
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mtos.Options) (isSet bool, err error) {
-	return mtos.SetValueByKVsWithStructField(value, field, param, key, opt)
+func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
+	return kvstruct.SetValueByKVsWithStructField(value, field, param, key, opt)
 }

@@ -1,10 +1,10 @@
-package mtos
+package kvstruct
 
 import (
 	"reflect"
 	"strings"
 
-	encodingx "github.com/hopeio/gox/encoding"
+	encodingx "github.com/hopeio/gox/strconv"
 )
 
 type PeekV interface {
@@ -30,7 +30,7 @@ func SetByKV(value reflect.Value, field *reflect.StructField, kv PeekV, key stri
 	if !ok {
 		return false, nil
 	}
-	err = encodingx.SetValueByString(value, vs, field)
+	err = encodingx.ParseReflectSet(value, vs, field)
 	if err != nil {
 		return false, err
 	}
@@ -129,7 +129,7 @@ func SetValueByKVsWithStructField(value reflect.Value, field *reflect.StructFiel
 		vals = strings.Split(opt.Default, ",")
 	}
 
-	err = encodingx.SetValueByStrings(value, vals, field)
+	err = encodingx.ParseStringsReflectSet(value, vals, field)
 	if err != nil {
 		return false, err
 	}

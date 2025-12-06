@@ -11,7 +11,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hopeio/gox/mtos"
+	"github.com/hopeio/gox/kvstruct"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/binding"
 
@@ -26,26 +26,26 @@ type RequestSource struct {
 	*gin.Context
 }
 
-func (s RequestSource) Uri() mtos.Setter {
+func (s RequestSource) Uri() kvstruct.Setter {
 	return (uriSource)(s.Params)
 }
 
-func (s RequestSource) Query() mtos.Setter {
-	return (mtos.KVsSource)(s.Request.URL.Query())
+func (s RequestSource) Query() kvstruct.Setter {
+	return (kvstruct.KVsSource)(s.Request.URL.Query())
 }
 
-func (s RequestSource) Header() mtos.Setter {
+func (s RequestSource) Header() kvstruct.Setter {
 	return (binding.HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() mtos.Setter {
+func (s RequestSource) Form() kvstruct.Setter {
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
 	if contentType == httpx.ContentTypeForm {
 		err := s.Request.ParseForm()
 		if err != nil {
 			return nil
 		}
-		return (mtos.KVsSource)(s.Request.PostForm)
+		return (kvstruct.KVsSource)(s.Request.PostForm)
 	}
 	if contentType == httpx.ContentTypeMultipart {
 		err := s.Request.ParseMultipartForm(binding.DefaultMemory)

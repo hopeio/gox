@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mtos
+package kvstruct
 
 import (
 	"errors"
@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-
-	reflectx "github.com/hopeio/gox/encoding"
 )
 
 var invalidPath = errors.New("schema: invalid path")
@@ -20,7 +18,7 @@ var invalidPath = errors.New("schema: invalid path")
 func newCache(tag string) *cache {
 	c := cache{
 		m:       make(map[reflect.Type]*structInfo),
-		regconv: make(map[reflect.Type]reflectx.StringConverter),
+		regconv: make(map[reflect.Type]StringConverter),
 		tag:     tag,
 	}
 	return &c
@@ -30,12 +28,12 @@ func newCache(tag string) *cache {
 type cache struct {
 	l       sync.RWMutex
 	m       map[reflect.Type]*structInfo
-	regconv map[reflect.Type]reflectx.StringConverter
+	regconv map[reflect.Type]StringConverter
 	tag     string
 }
 
 // registerConverter registers a converter function for a custom type.
-func (c *cache) registerConverter(value interface{}, converterFunc reflectx.StringConverter) {
+func (c *cache) registerConverter(value interface{}, converterFunc StringConverter) {
 	c.regconv[reflect.TypeOf(value)] = converterFunc
 }
 
@@ -184,7 +182,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 		}
 	}
 	if isStruct = ft.Kind() == reflect.Struct; !isStruct {
-		if c.converter(ft) == nil && reflectx.GetStringConverter(ft) == nil {
+		if c.converter(ft) == nil && GetStringConverter(ft) == nil {
 			// Type is not supported.
 			return nil
 		}
@@ -203,7 +201,7 @@ func (c *cache) createField(field reflect.StructField, parentAlias string) *fiel
 }
 
 // converter returns the converter for a type.
-func (c *cache) converter(t reflect.Type) reflectx.StringConverter {
+func (c *cache) converter(t reflect.Type) StringConverter {
 	return c.regconv[t]
 }
 

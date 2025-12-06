@@ -6,10 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hopeio/gox/encoding"
-	"github.com/hopeio/gox/mtos"
 	reflectx "github.com/hopeio/gox/reflect"
 	"github.com/hopeio/gox/reflect/structtag"
+	"github.com/hopeio/gox/strconv"
 	"github.com/spf13/pflag"
 )
 
@@ -35,7 +34,7 @@ type flagTagSettings struct {
 type anyValue reflect.Value
 
 func (a anyValue) String() string {
-	return encoding.String(reflect.Value(a))
+	return strconv.ReflectFormat(reflect.Value(a))
 }
 
 func (a anyValue) Type() string {
@@ -43,7 +42,7 @@ func (a anyValue) Type() string {
 }
 
 func (a anyValue) Set(v string) error {
-	return mtos.SetValueByString(reflect.Value(a), v)
+	return strconv.ParseReflectSet(reflect.Value(a), v, nil)
 }
 
 func Bind(args []string, v any) error {
@@ -90,7 +89,7 @@ func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) er
 			// 从环境变量设置
 			if flagTagSettings.Env != "" {
 				if value, ok := os.LookupEnv(strings.ToUpper(flagTagSettings.Env)); ok {
-					err := mtos.SetValueByString(fcValue.Field(i), value)
+					err := strconv.ParseReflectSet(fcValue.Field(i), value, nil)
 					if err != nil {
 						return err
 					}

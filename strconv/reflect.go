@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package encoding
+package strconv
 
 import (
 	"encoding"
@@ -17,7 +17,6 @@ import (
 
 	"github.com/hopeio/gox/encoding/json"
 	stringsx "github.com/hopeio/gox/strings"
-	"golang.org/x/exp/constraints"
 )
 
 var (
@@ -25,79 +24,36 @@ var (
 	errUnknownField = errors.New("unknown field")
 )
 
-func UnmarshalTextFor[T any](text []byte) error {
-	var t T
-	v, vp := any(t), any(&t)
-	itv, ok := v.(encoding.TextUnmarshaler)
-	if !ok {
-		itv, ok = vp.(encoding.TextUnmarshaler)
+func ReflectFormat(value reflect.Value) string {
+	v := value.Interface()
+	if t, ok := v.(encoding.TextMarshaler); ok {
+		s, _ := t.MarshalText()
+		return string(s)
 	}
-	if ok {
-		err := itv.UnmarshalText(text)
-		if err != nil {
-			return err
+
+	kind := value.Kind()
+	switch kind {
+	case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64, reflect.Pointer, reflect.UnsafePointer:
+		return strconv.FormatInt(value.Int(), 10)
+	case reflect.String:
+		return value.String()
+	case reflect.Bool:
+		return strconv.FormatBool(value.Bool())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return strconv.FormatUint(value.Uint(), 10)
+	case reflect.Float64, reflect.Float32:
+		return strconv.FormatFloat(value.Float(), 'g', -1, 64)
+	case reflect.Array, reflect.Slice:
+		var strs []string
+		for i := 0; i < value.Len(); i++ {
+			strs = append(strs, ReflectFormat(value.Index(i)))
 		}
-	}
-	return nil
-}
-
-func StringConvertFor[T any](str string) (T, error) {
-	var t T
-	a, ap := any(t), any(&t)
-	itv, ok := a.(encoding.TextUnmarshaler)
-	if !ok {
-		itv, ok = ap.(encoding.TextUnmarshaler)
-	}
-	if ok {
-		err := itv.UnmarshalText(stringsx.ToBytes(str))
-		if err != nil {
-			return t, err
-		}
-		return t, nil
-	}
-
-	v, err := StringConvertFor[T](str)
-	if err != nil {
-		return t, err
-	}
-	return v, nil
-}
-
-func IntToString[T constraints.Integer](v T) string {
-	return strconv.FormatInt(int64(v), 10)
-}
-
-func UintToString[T constraints.Integer](v T) string {
-	return strconv.FormatUint(uint64(v), 10)
-}
-
-func AnyIntToString(value interface{}) string {
-	switch v := value.(type) {
-	case int:
-		return strconv.FormatInt(int64(v), 10)
-	case int8:
-		return strconv.FormatInt(int64(v), 10)
-	case int16:
-		return strconv.FormatInt(int64(v), 10)
-	case int32:
-		return strconv.FormatInt(int64(v), 10)
-	case int64:
-		return strconv.FormatInt(v, 10)
-	case uint:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint8:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint16:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint32:
-		return strconv.FormatUint(uint64(v), 10)
-	case uint64:
-		return strconv.FormatUint(v, 10)
+		return strings.Join(strs, ",")
 	}
 	return ""
 }
 
-func SetValueByString(value reflect.Value, val string, field *reflect.StructField) error {
+func ParseReflectSet(value reflect.Value, val string, field *reflect.StructField) error {
 	if val == "" {
 		return nil
 	}
@@ -159,7 +115,7 @@ func SetValueByString(value reflect.Value, val string, field *reflect.StructFiel
 			value.Set(reflect.MakeSlice(typ, len(strs), len(strs)))
 		}
 		for i := 0; i < value.Len(); i++ {
-			if err := SetValueByString(value.Index(i), strs[i], nil); err != nil {
+			if err := ParseReflectSet(value.Index(i), strs[i], nil); err != nil {
 				return err
 			}
 		}
@@ -178,7 +134,7 @@ func SetValueByString(value reflect.Value, val string, field *reflect.StructFiel
 	return nil
 }
 
-func SetValueByStrings(value reflect.Value, vals []string, field *reflect.StructField) error {
+func ParseStringsReflectSet(value reflect.Value, vals []string, field *reflect.StructField) error {
 	if len(vals) == 0 {
 		return nil
 	}
@@ -191,11 +147,11 @@ func SetValueByStrings(value reflect.Value, vals []string, field *reflect.Struct
 		}
 		return setArray(vals, value, field)
 	default:
-		return SetValueByString(value, vals[0], field)
+		return ParseReflectSet(value, vals[0], field)
 	}
 }
 
-func SetFieldByString(dst any, field, value string) error {
+func ParseSetField(dst any, field, value string) error {
 	if value == "" {
 		return nil
 	}
@@ -203,7 +159,7 @@ func SetFieldByString(dst any, field, value string) error {
 
 	structField, ok := v.Type().FieldByName(field)
 	if ok {
-		return SetValueByString(v.FieldByIndex(structField.Index), value, &structField)
+		return ParseReflectSet(v.FieldByIndex(structField.Index), value, &structField)
 	}
 	return errUnknownField
 }
@@ -304,7 +260,7 @@ func setTimeField(val string, structField *reflect.StructField, value reflect.Va
 
 func setArray(vals []string, value reflect.Value, field *reflect.StructField) error {
 	for i, s := range vals {
-		err := SetValueByString(value.Index(i), s, field)
+		err := ParseReflectSet(value.Index(i), s, field)
 		if err != nil {
 			return err
 		}

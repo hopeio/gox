@@ -11,12 +11,12 @@ import (
 	"mime/multipart"
 	"reflect"
 
-	"github.com/hopeio/gox/mtos"
+	"github.com/hopeio/gox/kvstruct"
 )
 
 type MultipartSource multipart.Form
 
-var _ mtos.Setter = (*MultipartSource)(nil)
+var _ kvstruct.Setter = (*MultipartSource)(nil)
 
 func (ms *MultipartSource) HasValue(key string) bool {
 	if _, ok := ms.File[key]; ok {
@@ -27,12 +27,12 @@ func (ms *MultipartSource) HasValue(key string) bool {
 }
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mtos.Options) (isSet bool, err error) {
+func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
 	if files := ms.File[key]; len(files) != 0 {
 		return SetByMultipartFormFile(value, field, files)
 	}
 
-	return mtos.SetValueByKVsWithStructField(value, field, mtos.KVsSource(ms.Value), key, opt)
+	return kvstruct.SetValueByKVsWithStructField(value, field, kvstruct.KVsSource(ms.Value), key, opt)
 }
 
 func SetByMultipartFormFile(value reflect.Value, field *reflect.StructField, files []*multipart.FileHeader) (isSet bool, err error) {

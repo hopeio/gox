@@ -1,4 +1,4 @@
-package mtos
+package kvstruct
 
 import (
 	"errors"

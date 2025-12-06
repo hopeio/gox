@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mtos
+package kvstruct
 
 import (
 	"encoding"
 	"errors"
 	"fmt"
 
-	reflectx "github.com/hopeio/gox/encoding"
 	"go.uber.org/multierr"
 
 	"reflect"
@@ -59,7 +58,7 @@ func (d *Decoder) IgnoreUnknownKeys(i bool) {
 }
 
 // RegisterConverter registers a converter function for a custom type.
-func (d *Decoder) RegisterConverter(value interface{}, converterFunc reflectx.StringConverter) {
+func (d *Decoder) RegisterConverter(value interface{}, converterFunc StringConverter) {
 	d.cache.registerConverter(value, converterFunc)
 }
 
@@ -248,7 +247,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 		// Try to get a converter for the element type.
 		conv := d.cache.converter(elemT)
 		if conv == nil {
-			conv = reflectx.GetStringConverter(elemT)
+			conv = GetStringConverter(elemT)
 			if conv == nil {
 				// As we are not dealing with slice of structs here, we don't need to check if the type
 				// implements TextUnmarshaler interface
@@ -373,7 +372,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 			if d.zeroEmpty {
 				v.Set(reflect.Zero(t))
 			}
-		} else if conv := reflectx.GetStringConverter(t); conv != nil {
+		} else if conv := GetStringConverter(t); conv != nil {
 			if value := reflect.ValueOf(conv(val)); value.IsValid() {
 				v.Set(value.Convert(t))
 			} else {

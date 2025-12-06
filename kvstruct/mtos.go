@@ -1,4 +1,4 @@
-package mtos
+package kvstruct
 
 import (
 	"github.com/go-viper/mapstructure/v2"
@@ -27,7 +27,7 @@ func defaultDecoderConfig(output any, opts ...DecoderConfigOption) *mapstructure
 }
 
 func Unmarshal(dst any, mapData map[string]any, opts ...DecoderConfigOption) error {
-	config := defaultDecoderConfig(dst)
+	config := defaultDecoderConfig(dst, opts...)
 	decoder, err := mapstructure.NewDecoder(config)
 	if err != nil {
 		return err
