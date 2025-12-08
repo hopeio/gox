@@ -6,10 +6,6 @@
 
 package encoding
 
-import (
-	"encoding"
-)
-
 type Format string
 
 const (
