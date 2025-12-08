@@ -7,19 +7,20 @@
 package parallel
 
 import (
-	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/types"
-	"github.com/hopeio/gox/types/interfaces"
 	"sync"
+
+	"github.com/hopeio/gox/log"
+	"github.com/hopeio/gox/scheduler"
+	"github.com/hopeio/gox/types"
 )
 
 type Parallel struct {
-	taskCh chan interfaces.TaskRetry
+	taskCh chan scheduler.Retrier
 	wg     sync.WaitGroup
 }
 
 func New(workNum uint, opts ...Option) *Parallel {
-	taskCh := make(chan interfaces.TaskRetry, workNum)
+	taskCh := make(chan scheduler.Retrier, workNum)
 	p := &Parallel{taskCh: taskCh}
 	g := func() {
 		defer func() {
@@ -46,7 +47,7 @@ func (p *Parallel) AddFunc(task types.FuncRetry) {
 	p.taskCh <- task
 }
 
-func (p *Parallel) AddTask(task interfaces.TaskRetry) {
+func (p *Parallel) AddTask(task scheduler.Retrier) {
 	p.wg.Add(1)
 	p.taskCh <- task
 }

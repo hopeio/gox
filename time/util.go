@@ -19,11 +19,6 @@ func UnixNano(nsec int64) time.Time {
 	return time.Unix(0, nsec)
 }
 
-func TodayZeroTime() time.Time {
-	todayZeroTime, _ := time.Parse(time.DateOnly, time.Now().Format(time.DateOnly))
-	return todayZeroTime
-}
-
 var ZeroTime = time.Time{}
 
 // StrToIntMonth 字符串月份转整数月份
@@ -88,15 +83,14 @@ func GetTomorrowYMD(sep string) string {
 	return GetYM(time.Now().AddDate(0, 0, 1), sep)
 }
 
-// GetTodayZeroTime 返回今天零点的time
-func GetTodayZeroTime() time.Time {
+// TodayZeroTime 返回今天零点的time
+func TodayZeroTime() time.Time {
 	year, month, day := time.Now().Date()
 	// now.Year(), now.Month(), now.Day() 是以本地时区为参照的年、月、日
-	today := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
-	return today
+	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }
 
-// GetYesterdayZeroTime 返回昨天零点的time
-func GetYesterdayZeroTime() time.Time {
-	return GetTodayZeroTime().AddDate(0, 0, -1)
+// YesterdayZeroTime 返回昨天零点的time
+func YesterdayZeroTime() time.Time {
+	return TodayZeroTime().AddDate(0, 0, -1)
 }

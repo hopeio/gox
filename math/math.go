@@ -6,7 +6,9 @@
 
 package math
 
-import constraintsi "github.com/hopeio/gox/types/constraints"
+import (
+	constraintsi "github.com/hopeio/gox/types/constraints"
+)
 
 func StandardDeviation[S ~[]T, T constraintsi.Number](data S, isSample bool) float64 {
 	n := float64(len(data))

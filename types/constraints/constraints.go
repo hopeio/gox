@@ -8,6 +8,7 @@ package constraints
 
 import (
 	"encoding"
+
 	"golang.org/x/exp/constraints"
 )
 
@@ -18,8 +19,6 @@ type Number interface {
 type Callback[T any] interface {
 	~func() | ~func() error | ~func(T) | ~func(T) error
 }
-
-type Rangeable constraints.Ordered
 
 type Key interface {
 	constraints.Integer | ~string | ~[8]byte | ~[16]byte | ~[32]byte | constraints.Float //| ~[]byte

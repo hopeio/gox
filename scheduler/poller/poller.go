@@ -8,8 +8,9 @@ package poller
 
 import (
 	"context"
-	time2 "github.com/hopeio/gox/time"
 	"time"
+
+	timex "github.com/hopeio/gox/time"
 )
 
 type TaskFunc = func(context.Context)
@@ -43,7 +44,7 @@ func (task *Poller) Run(ctx context.Context, interval time.Duration, do TaskFunc
 }
 
 func (task *Poller) RandRun(ctx context.Context, minInterval, maxInterval time.Duration, do TaskFunc) {
-	timer := time2.NewRandTicker(minInterval, maxInterval)
+	timer := timex.NewRandTicker(minInterval, maxInterval)
 	task.times++
 	do(ctx)
 	for {
@@ -75,7 +76,7 @@ func Run(ctx context.Context, interval time.Duration, do TaskFunc) {
 }
 
 func RandRun(ctx context.Context, minInterval, maxInterval time.Duration, do TaskFunc) {
-	timer := time2.NewRandTicker(minInterval, maxInterval)
+	timer := timex.NewRandTicker(minInterval, maxInterval)
 	times := 1
 	do(ctx)
 	for {

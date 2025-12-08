@@ -4,15 +4,8 @@
  * @Created by jyb
  */
 
-package cron
+package scheduler
 
-import (
-	"github.com/hopeio/gox/log"
-)
-
-type RedisTo struct {
-}
-
-func (RedisTo) Run() {
-	log.Info("定时任务执行")
+type Retrier interface {
+	Do(times uint) (retry bool)
 }

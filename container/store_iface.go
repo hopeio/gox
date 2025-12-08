@@ -4,11 +4,12 @@
  * @Created by jyb
  */
 
-package interfaces
+package container
 
 import (
-	"github.com/hopeio/gox/types/constraints"
 	"time"
+
+	"github.com/hopeio/gox/types/constraints"
 )
 
 type Get[K constraints.Key, V any] interface {

@@ -7,14 +7,11 @@
 package param
 
 import (
-	"golang.org/x/exp/constraints"
 	"time"
+
+	"golang.org/x/exp/constraints"
 )
 
-type Rangeable interface {
-	constraints.Ordered | time.Time | ~*time.Time | ~string
-}
-
 type Ordered interface {
-	constraints.Ordered | time.Time
+	constraints.Ordered | time.Time | ~*time.Time
 }

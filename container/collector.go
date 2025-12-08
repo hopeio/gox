@@ -4,13 +4,7 @@
  * @Created by jyb
  */
 
-package interfaces
-
-import "github.com/hopeio/gox/types/constraints"
-
-type Key[T constraints.Key] interface {
-	Key() T
-}
+package container
 
 type Collector[S any, T any, R any] interface {
 	Builder() S

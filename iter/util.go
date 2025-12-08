@@ -11,8 +11,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/hopeio/gox/container"
 	"github.com/hopeio/gox/types"
-	"github.com/hopeio/gox/types/interfaces"
 )
 
 // Filter keep elements which satisfy the Predicate.
@@ -404,7 +404,7 @@ func ToSlice[V any](it iter.Seq[V]) []V {
 }
 
 // Collect Collecting via Collector.
-func Collect[T any, S any, R any](it iter.Seq[T], collector interfaces.Collector[S, T, R]) R {
+func Collect[T any, S any, R any](it iter.Seq[T], collector container.Collector[S, T, R]) R {
 	var s = collector.Builder()
 	for v := range it {
 		collector.Append(s, v)

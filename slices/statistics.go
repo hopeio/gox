@@ -7,9 +7,10 @@
 package slices
 
 import (
-	"github.com/hopeio/gox/types/constraints"
 	"math"
 	"slices"
+
+	"github.com/hopeio/gox/types/constraints"
 )
 
 // Calculate the Median of a slice of floats

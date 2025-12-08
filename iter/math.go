@@ -7,11 +7,12 @@
 package iter
 
 import (
+	"iter"
+
 	"github.com/hopeio/gox/cmp"
 	"github.com/hopeio/gox/types"
 	constraintsx "github.com/hopeio/gox/types/constraints"
 	"golang.org/x/exp/constraints"
-	"iter"
 )
 
 func SumComparable[T constraints.Ordered](seq iter.Seq[T]) T {

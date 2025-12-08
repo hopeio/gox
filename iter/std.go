@@ -7,9 +7,10 @@
 package iter
 
 import (
+	"iter"
+
 	"github.com/hopeio/gox/types"
 	constraintsx "github.com/hopeio/gox/types/constraints"
-	"iter"
 )
 
 func SliceAll[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {

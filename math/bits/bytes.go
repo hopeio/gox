@@ -8,11 +8,12 @@ package bits
 
 import (
 	"fmt"
-	"github.com/hopeio/gox/types/constraints"
 	"reflect"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"github.com/hopeio/gox/types/constraints"
 )
 
 /*Sizeof函数返回的大小只包括数据结构中固定的部分，例如字符串对应结构体中的指针和字符串长度部分，但是并不包含指针指向的字符串的内容。Go语言中非聚合类型通常有一个固定的大小，尽管在不同工具链下生成的实际大小可能会有所不同。考虑到可移植性，引用类型或包含引用类型的大小在32位平台上是4个字节，在64位平台上是8个字节。
