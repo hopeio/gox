@@ -9,36 +9,10 @@ package exec
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
-	"runtime"
-	"strings"
 	"syscall"
-
-	osx "github.com/hopeio/gox/os"
 )
 
-func CMD(s string, opts ...Option) *exec.Cmd {
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" && strings.Contains(s, "\"") {
-		exe := s
-		for i, c := range s {
-			if c == ' ' {
-				exe = s[:i]
-				break
-			}
-		}
-		cmd = exec.Command(exe)
-		cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: s[len(exe):], HideWindow: true}
-	} else {
-		words := osx.Split(s)
-		cmd = exec.Command(words[0], words[1:]...)
-	}
-	for _, opt := range opts {
-		opt(cmd)
-	}
-	return cmd
-}
 func WaitShutdown() {
 	// Set up signal handling.
 	signals := make(chan os.Signal, 1)

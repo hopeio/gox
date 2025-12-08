@@ -14,11 +14,11 @@ import (
 )
 
 func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, marshaler httpx.Marshaler) error {
-	HandleForwardResponseServerMetadata(w, md.HeaderMD)
+	HandleForwardResponseServerMetadata(w, md.Header)
 	var wantsTrailers bool
 	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
 		wantsTrailers = true
-		HandleForwardResponseTrailerHeader(w, md.TrailerMD)
+		HandleForwardResponseTrailerHeader(w, md.Trailer)
 		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
 	}
 
@@ -49,7 +49,7 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	}
 	w.Write(buf)
 	if wantsTrailers {
-		HandleForwardResponseTrailer(w, md.TrailerMD)
+		HandleForwardResponseTrailer(w, md.Trailer)
 	}
 	return nil
 }
