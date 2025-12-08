@@ -4,7 +4,6 @@ package svg
 import (
 	"bytes"
 	_ "embed"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hopeio/gox/encoding/gerber"
@@ -66,7 +65,7 @@ func (p *Processor) UnmarshalJSON(b []byte) error {
 
 func (p *Processor) UnmarshalJSON_1(b []byte) error {
 	pmap := make(map[string]interface{})
-	if err := json.Unmarshal(b, &pmap); err != nil {
+	if err := jsonx.Unmarshal(b, &pmap); err != nil {
 		return err
 	}
 

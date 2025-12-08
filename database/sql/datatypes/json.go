@@ -8,10 +8,11 @@ package datatypes
 
 import (
 	"database/sql/driver"
-	"encoding/json"
+
 	"errors"
 	"fmt"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	"github.com/hopeio/gox/strings"
 )
 
@@ -54,9 +55,9 @@ func (j *NullJson[T]) Scan(value interface{}) error {
 	j.Valid = true
 	switch bytes := value.(type) {
 	case []byte:
-		return json.Unmarshal(bytes, &j.V)
+		return jsonx.Unmarshal(bytes, &j.V)
 	case string:
-		return json.Unmarshal(strings.ToBytes(bytes), &j.V)
+		return jsonx.Unmarshal(strings.ToBytes(bytes), &j.V)
 	default:
 		return errors.New(fmt.Sprint("failed to scan NullJson value:", value))
 	}
@@ -67,7 +68,7 @@ func (j *NullJson[T]) Value() (driver.Value, error) {
 	if !j.Valid {
 		return nil, nil
 	}
-	return json.Marshal(&j.V)
+	return jsonx.Marshal(&j.V)
 }
 
 func (*NullJson[T]) GormDataType() string {
@@ -82,9 +83,9 @@ type Json[T any] struct {
 func (j *Json[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
-		return json.Unmarshal(bytes, &j.V)
+		return jsonx.Unmarshal(bytes, &j.V)
 	case string:
-		return json.Unmarshal(strings.ToBytes(bytes), &j.V)
+		return jsonx.Unmarshal(strings.ToBytes(bytes), &j.V)
 	default:
 		return errors.New(fmt.Sprint("failed to scan Json value:", value))
 	}
@@ -92,7 +93,7 @@ func (j *Json[T]) Scan(value interface{}) error {
 
 // 实现 driver.Valuer 接口，Value 返回 json value
 func (j *Json[T]) Value() (driver.Value, error) {
-	return json.Marshal(&j.V)
+	return jsonx.Marshal(&j.V)
 }
 
 type MapJson[T any] map[string]T
@@ -101,9 +102,9 @@ type MapJson[T any] map[string]T
 func (j *MapJson[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
-		return json.Unmarshal(bytes, j)
+		return jsonx.Unmarshal(bytes, j)
 	case string:
-		return json.Unmarshal(strings.ToBytes(bytes), &j)
+		return jsonx.Unmarshal(strings.ToBytes(bytes), &j)
 	default:
 		return errors.New(fmt.Sprint("failed to scan MapJson value:", value))
 	}
@@ -114,5 +115,5 @@ func (j MapJson[T]) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
 	}
-	return json.Marshal(j)
+	return jsonx.Marshal(j)
 }

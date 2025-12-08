@@ -6,7 +6,9 @@
 
 package types
 
-import "encoding/json"
+import (
+	jsonx "github.com/hopeio/gox/encoding/json"
+)
 
 type Result[T any] struct {
 	value T
@@ -82,7 +84,7 @@ func (a Result[T]) IfErr(action func(err error)) {
 
 func (a *Result[T]) MarshalJSON() ([]byte, error) {
 	if a.err == nil {
-		return json.Marshal(a.value)
+		return jsonx.Marshal(a.value)
 	}
 	return []byte("null"), a.err
 }
@@ -91,7 +93,7 @@ func (a *Result[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		return nil
 	}
-	return json.Unmarshal(data, &a.value)
+	return jsonx.Unmarshal(data, &a.value)
 }
 
 func ResultVal[T any](v T, err error) T {

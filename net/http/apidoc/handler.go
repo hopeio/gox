@@ -8,7 +8,6 @@ package apidoc
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	jsonx "github.com/hopeio/gox/encoding/json"
 	http2 "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/os/fs"
 )
@@ -108,7 +108,7 @@ func WriteToFile(docDir, modName string, doc *openapi3.T) error {
 	}
 	defer file.Close()
 
-	enc := json.NewEncoder(file)
+	enc := jsonx.NewEncoder(file)
 	enc.SetIndent("", "  ")
 	err = enc.Encode(doc)
 	if err != nil {

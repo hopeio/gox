@@ -1,10 +1,10 @@
 package radixtree
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +36,7 @@ func TestTrie(t *testing.T) {
 		node.Set(path, value[i])
 	}
 
-	data, err := json.Marshal(node)
+	data, err := jsonx.Marshal(node)
 	if err != nil {
 		t.Log(err)
 	}

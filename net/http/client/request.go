@@ -11,7 +11,6 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -21,8 +20,9 @@ import (
 	"time"
 
 	"github.com/andybalholm/brotli"
+	jsonx "github.com/hopeio/gox/encoding/json"
 	httpx "github.com/hopeio/gox/net/http"
-	url2 "github.com/hopeio/gox/net/url"
+	urlx "github.com/hopeio/gox/net/url"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/gox/unicode"
 	"github.com/klauspost/compress/zstd"
@@ -144,7 +144,7 @@ func (req *Request) Do(param, response any) error {
 	}(reqTime)
 	var body io.Reader
 	if req.Method == http.MethodGet {
-		req.Url = url2.AppendQueryParam(req.Url, param)
+		req.Url = urlx.AppendQueryParam(req.Url, param)
 	} else {
 		if param != nil {
 			switch paramType := param.(type) {
@@ -167,10 +167,10 @@ func (req *Request) Do(param, response any) error {
 				} else {
 					switch req.contentType {
 					case ContentTypeForm:
-						params := url2.QueryParam(param)
+						params := urlx.QueryParam(param)
 						reqBody = stringsx.ToBytes(params)
 					default:
-						reqBody, err = json.Marshal(param)
+						reqBody, err = jsonx.Marshal(param)
 						if err != nil {
 							return err
 						}
@@ -340,11 +340,10 @@ Retry:
 		if req.client.respDataUnMarshal != nil {
 			err = req.client.respDataUnMarshal(respBody, response)
 			if err != nil {
-				return fmt.Errorf("json.Unmarshal error: %w", err)
+				return fmt.Errorf("respDataUnMarshal error: %w", err)
 			}
 		} else {
-			// 默认json
-			err = json.Unmarshal(respBody, response)
+			err = jsonx.Unmarshal(respBody, response)
 			if err != nil {
 				return fmt.Errorf("json.Unmarshal error: %w", err)
 			}

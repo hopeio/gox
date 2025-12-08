@@ -16,7 +16,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/hopeio/gox/encoding/json"
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 type SearchResponse[T any] struct {
@@ -65,7 +65,7 @@ func GetResponseData[T any](response *esapi.Response, err error) (*T, error) {
 		return nil, errors.New(string(data))
 	}
 	var res T
-	err = json.Unmarshal(data, &res)
+	err = jsonx.Unmarshal(data, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func GetSearchResponseData[T any](response *esapi.Response, err error) (*SearchR
 }
 
 func CreateDocument[T any](ctx context.Context, es *elasticsearch.Client, index, id string, obj T) error {
-	body, _ := json.Marshal(obj)
+	body, _ := jsonx.Marshal(obj)
 	esreq := esapi.CreateRequest{
 		Index:      index,
 		DocumentID: id,

@@ -2,9 +2,9 @@ package handlerwrap
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	"github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/binding"
@@ -55,7 +55,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			httpres.Respond(ctx, w)
 			return
 		}
-		json.NewEncoder(w).Encode(res)
+		jsonx.NewEncoder(w).Encode(res)
 	})
 }
 func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
@@ -84,6 +84,6 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 			return
 		}
 		w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJsonUtf8)
-		json.NewEncoder(w).Encode(res)
+		jsonx.NewEncoder(w).Encode(res)
 	})
 }

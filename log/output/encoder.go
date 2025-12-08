@@ -7,14 +7,14 @@
 package output
 
 import (
-	"encoding/json"
 	"io"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	"go.uber.org/zap/zapcore"
 )
 
 func DefaultReflectedEncoder(w io.Writer) zapcore.ReflectedEncoder {
-	enc := json.NewEncoder(w)
+	enc := jsonx.NewEncoder(w)
 	// For consistency with our custom JSON encoder.
 	enc.SetEscapeHTML(false)
 	return enc

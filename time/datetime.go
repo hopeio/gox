@@ -90,12 +90,12 @@ func (d Date) GormDataType() string {
 }
 
 func (d Date) MarshalBinary() ([]byte, error) {
-	return binary.ToBinary(d), nil
+	return binary.FromInteger(d), nil
 }
 
 // UnmarshalBinary implements the DefaultEncoding.BinaryUnmarshaler interface.
 func (d *Date) UnmarshalBinary(data []byte) error {
-	*d = binary.BinaryTo[Date](data)
+	*d = binary.Integer[Date](data)
 	return nil
 }
 

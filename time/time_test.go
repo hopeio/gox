@@ -7,9 +7,10 @@
 package time
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
+
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 type Foo struct {
@@ -19,7 +20,7 @@ type Foo struct {
 
 func TestType(t *testing.T) {
 	foo := Foo{T1: Time[milliTime](time.Now()), T2: Time[nanoTime](time.Now())}
-	data, _ := json.Marshal(&foo)
+	data, _ := jsonx.Marshal(&foo)
 	t.Log(string(data))
 }
 
@@ -42,14 +43,14 @@ func TestUnionTime(t *testing.T) {
 		T3: NewTime[secondTime](time.Now()),
 		T4: NewTime[nanoTime](time.Now()),
 	}
-	data, _ := json.Marshal(&foo)
+	data, _ := jsonx.Marshal(&foo)
 	t.Log(string(data)) // {"T1":"2023-02-09 15:00:49","T2":"2023-02-09","T3":1675926049,"T4":1675926049057035300}
 	data = []byte(`{"T1":"2023-02-09 15:00:49","T2":"2023-02-09","T3":1675926049,"T4":1675926049057035300}`)
 	foo1 := Foo1{
 		T3: SecondTime{},
 		T4: NanoTime{},
 	}
-	json.Unmarshal(data, &foo1)
+	jsonx.Unmarshal(data, &foo1)
 	t.Log(foo1)
 }
 

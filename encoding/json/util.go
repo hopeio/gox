@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	"github.com/hopeio/gox/strings"
-	unicodei "github.com/hopeio/gox/unicode"
+	unicodex "github.com/hopeio/gox/unicode"
 
 	"strconv"
 	"unicode"
@@ -102,13 +102,13 @@ func unquoteBytes(s []byte) (t []byte, ok bool) {
 				w++
 			case 'u':
 				r--
-				rr := unicodei.Getu4(s[r:])
+				rr := unicodex.Getu4(s[r:])
 				if rr < 0 {
 					return
 				}
 				r += 6
 				if utf16.IsSurrogate(rr) {
-					rr1 := unicodei.Getu4(s[r:])
+					rr1 := unicodex.Getu4(s[r:])
 					if dec := utf16.DecodeRune(rr, rr1); dec != unicode.ReplacementChar {
 						// A valid pair; consume.
 						r += 6

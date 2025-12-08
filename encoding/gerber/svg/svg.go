@@ -3,15 +3,16 @@ package svg
 
 import (
 	_ "embed"
-	"encoding/json"
 	"fmt"
-	"github.com/hopeio/gox/encoding/gerber"
-	"github.com/hopeio/gox/math/geom"
-	psvg "github.com/hopeio/gox/media/image/svg"
 	"io"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/hopeio/gox/encoding/gerber"
+	jsonx "github.com/hopeio/gox/encoding/json"
+	"github.com/hopeio/gox/math/geom"
+	psvg "github.com/hopeio/gox/media/image/svg"
 )
 
 // An ElementType is a SVG element type.
@@ -41,7 +42,7 @@ func (e Circle) Bounds() *geom.Bounds {
 // MarshalJSON implements json.Marshaler.
 func (e Circle) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypeCircle
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 func (e Circle) SetAttr(k, v string) Circle {
@@ -70,7 +71,7 @@ func (e Rectangle) Bounds() *geom.Bounds {
 // MarshalJSON implements json.Marshaler.
 func (e Rectangle) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypeRectangle
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 func (e Rectangle) SetAttr(k, v string) Rectangle {
@@ -91,7 +92,7 @@ type PathLine struct {
 // MarshalJSON implements json.Marshaler.
 func (e PathLine) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypeLine
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 // A PathArc is an arc in a SVG path.
@@ -108,7 +109,7 @@ type PathArc struct {
 // MarshalJSON implements json.Marshaler.
 func (e PathArc) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypeArc
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 // A Path is a SVG path.
@@ -149,7 +150,7 @@ func (e Path) Bounds() (*geom.Bounds, error) {
 // MarshalJSON implements json.Marshaler.
 func (e Path) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypePath
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 func (e Path) SetAttr(k, v string) Path {
@@ -175,7 +176,7 @@ func (e Line) Bounds() *geom.Bounds {
 // MarshalJSON implements json.Marshaler.
 func (e Line) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypeLine
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 func (e Line) SetAttr(k, v string) Line {
@@ -207,7 +208,7 @@ func (e Arc) Bounds() *geom.Bounds {
 // MarshalJSON implements json.Marshaler.
 func (e Arc) MarshalJSON() ([]byte, error) {
 	e.Type = ElementTypeArc
-	return json.Marshal(e)
+	return jsonx.Marshal(e)
 }
 
 func (e Arc) SetAttr(k, v string) Arc {

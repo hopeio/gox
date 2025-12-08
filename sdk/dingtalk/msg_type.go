@@ -7,9 +7,10 @@
 package dingtalk
 
 import (
-	"encoding/json"
 	"strconv"
 	"strings"
+
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 const (
@@ -128,7 +129,7 @@ func Format(msg MessageType) string {
 	buf.WriteString(`","`)
 	buf.WriteString(msgType.String())
 	buf.WriteString(`":`)
-	data, _ := json.Marshal(msg)
+	data, _ := jsonx.Marshal(msg)
 	buf.Write(data)
 	buf.WriteString("}")
 	return buf.String()

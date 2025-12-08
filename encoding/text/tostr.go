@@ -1,4 +1,4 @@
-package strconv
+package text
 
 import (
 	"reflect"

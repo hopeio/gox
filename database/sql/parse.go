@@ -3,7 +3,7 @@ package sql
 import (
 	"database/sql"
 
-	textx "github.com/hopeio/gox/strconv"
+	textx "github.com/hopeio/gox/encoding/text"
 )
 
 func StringConvertFor[T any](str string) (T, error) {

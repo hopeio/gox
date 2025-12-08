@@ -13,10 +13,10 @@ import (
 
 func TestInt64To(t *testing.T) {
 	b := []byte{0, 1, 0, 0, 0, 0, 0, 0}
-	t.Log(ToInt64(b))
+	t.Log(Int64(b))
 	t.Log(binary.BigEndian.Uint64(b))
-	b = Int64To(15)
-	t.Log(ToInt64(b))
+	b = FromInt64(15)
+	t.Log(Int64(b))
 }
 
 func TestIntToUint(t *testing.T) {
@@ -27,21 +27,22 @@ func TestIntToUint(t *testing.T) {
 }
 
 func TestUintTo(t *testing.T) {
-	b := UintTo(1111)
-	t.Log(ToUint(b))
+	b := FromUint(1111)
+	t.Log(Uint(b))
 }
 
 func TestIntToB(t *testing.T) {
-	b := ToB(1111)
-	t.Log(BTo[int](b))
+	b := FromInteger(1111)
+	t.Log(Integer[int](b))
+	t.Log(Integer[int](b))
 }
 
 func FuzzIntTo(f *testing.F) {
-	f.Add(1)
-	f.Add(-1)
+	f.Add(int64(1))
+	f.Add(int64(-1))
 	f.Fuzz(func(t *testing.T, i int64) {
-		b := Int64To(i)
-		j := ToInt64(b)
+		b := FromInt64(i)
+		j := Int64(b)
 		if j != i {
 			t.Fatal(j, i)
 		}
@@ -50,8 +51,8 @@ func FuzzIntTo(f *testing.F) {
 
 func BenchmarkIntFromBinary(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		bb := UintTo(15)
-		ToUint(bb)
+		bb := FromUint(15)
+		Uint(bb)
 	}
 }
 

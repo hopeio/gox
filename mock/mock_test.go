@@ -7,10 +7,11 @@
 package mock
 
 import (
-	"encoding/json"
 	"log"
 	"testing"
 	"unicode/utf8"
+
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 type Bar1 struct {
@@ -34,7 +35,7 @@ type Bar3 struct {
 func TestMock(t *testing.T) {
 	var bar Bar1
 	Mock(&bar)
-	data, err := json.Marshal(&bar)
+	data, err := jsonx.Marshal(&bar)
 	if err != nil {
 		log.Println(err)
 	}

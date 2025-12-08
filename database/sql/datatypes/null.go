@@ -3,7 +3,8 @@ package datatypes
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
+
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 type Null[T any] sql.Null[T]
@@ -20,7 +21,7 @@ func (n Null[T]) MarshalJSON() ([]byte, error) {
 	if !n.Valid {
 		return []byte("null"), nil
 	}
-	return json.Marshal(n.V)
+	return jsonx.Marshal(n.V)
 }
 
 func (n *Null[T]) UnmarshalJSON(data []byte) error {
@@ -28,5 +29,5 @@ func (n *Null[T]) UnmarshalJSON(data []byte) error {
 		n.Valid = false
 		return nil
 	}
-	return json.Unmarshal(data, &n.V)
+	return jsonx.Unmarshal(data, &n.V)
 }

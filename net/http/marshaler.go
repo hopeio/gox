@@ -1,5 +1,7 @@
 package http
 
+import jsonx "github.com/hopeio/gox/encoding/json"
+
 // Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
 type Marshaler interface {
 	// Marshal marshals "v" into byte sequence.
@@ -47,4 +49,21 @@ type StreamContentType interface {
 	// same behaviour as for `Marshaler.ContentType`, but is called, if present,
 	// in the case of a streamed response.
 	StreamContentType(v interface{}) string
+}
+
+var DefaultMarshaler Marshaler = &Json{}
+
+type Json struct {
+}
+
+func (*Json) ContentType(_ interface{}) string {
+	return ContentTypeJson
+}
+
+func (j *Json) Marshal(v any) ([]byte, error) {
+	return jsonx.Marshal(v)
+}
+
+func (j *Json) Unmarshal(data []byte, v interface{}) error {
+	return jsonx.Unmarshal(data, v)
 }

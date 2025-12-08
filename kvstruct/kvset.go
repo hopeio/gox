@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	encodingx "github.com/hopeio/gox/strconv"
+	encodingx "github.com/hopeio/gox/encoding/text"
 )
 
 type PeekV interface {

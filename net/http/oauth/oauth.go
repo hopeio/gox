@@ -8,12 +8,13 @@ package oauth
 
 import (
 	"context"
-	"encoding/json"
+
 	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/types/param"
 
@@ -349,7 +350,7 @@ func (s *Server) token(data map[string]interface{}, header http.Header, statusCo
 
 	httpx.CopyHttpHeader(wheader, header)
 
-	jdata, _ := json.Marshal(data)
+	jdata, _ := jsonx.Marshal(data)
 	w.Write(jdata)
 	return nil
 }

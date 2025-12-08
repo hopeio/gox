@@ -7,11 +7,12 @@
 package reflect
 
 import (
-	"encoding/json"
 	"log"
 	"math/rand/v2"
 	"reflect"
 	"testing"
+
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 type Foo1 struct {
@@ -57,7 +58,7 @@ func TestStream(t *testing.T) {
 
 	var foo Foo1
 	handlers.Handle(reflect.ValueOf(&foo))
-	data, err := json.Marshal(&foo)
+	data, err := jsonx.Marshal(&foo)
 	if err != nil {
 		log.Println(err)
 	}

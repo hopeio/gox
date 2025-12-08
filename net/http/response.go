@@ -14,6 +14,7 @@ import (
 	"iter"
 	"net/http"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	errorsx "github.com/hopeio/gox/errors"
 )
 
@@ -27,7 +28,7 @@ type RespData[T any] struct {
 
 func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 	w.Header().Set(HeaderContentType, "application/json; charset=utf-8")
-	jsonBytes, _ := json.Marshal(res)
+	jsonBytes, _ := jsonx.Marshal(res)
 	return w.Write(jsonBytes)
 }
 
@@ -142,7 +143,7 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
 	w.Header().Set(HeaderContentType, ContentTypeJsonUtf8)
-	jsonBytes, _ := json.Marshal(res)
+	jsonBytes, _ := jsonx.Marshal(res)
 	return w.Write(jsonBytes)
 }
 

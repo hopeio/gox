@@ -9,3 +9,4 @@ package json
 import "encoding/json"
 
 type Number = json.Number
+type RawMessage = json.RawMessage

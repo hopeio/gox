@@ -7,7 +7,6 @@
 package binding
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,11 +20,11 @@ import (
 )
 
 var (
-	DefaultMemory    int64                   = 32 << 20
-	BodyUnmarshaller func([]byte, any) error = json.Unmarshal
-	CommonTag                                = "json"
-	Validate                                 = validator.ValidateStruct
-	defaultTags                              = []string{"uri", "path", "query", "header", "form", CommonTag}
+	DefaultMemory    int64 = 32 << 20
+	BodyUnmarshaller       = httpx.DefaultMarshaler.Unmarshal
+	CommonTag              = "json"
+	Validate               = validator.ValidateStruct
+	defaultTags            = []string{"uri", "path", "query", "header", "form", CommonTag}
 )
 
 type Source interface {

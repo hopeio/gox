@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode"
 
-	strconv2 "github.com/hopeio/gox/strconv"
+	strconv2 "github.com/hopeio/gox/encoding/text"
 )
 
 type ConditionOperation int

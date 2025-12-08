@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	strconv2 "github.com/hopeio/gox/strconv"
+	strconv2 "github.com/hopeio/gox/encoding/text"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"

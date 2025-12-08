@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package strconv
+package text
 
 import (
 	"encoding"
@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hopeio/gox/encoding/json"
+	jsonx "github.com/hopeio/gox/encoding/json"
 	stringsx "github.com/hopeio/gox/strings"
 )
 
@@ -125,9 +125,9 @@ func ParseReflectSet(value reflect.Value, val string, field *reflect.StructField
 		case time.Time:
 			return setTimeField(val, field, value)
 		}
-		return json.Unmarshal(stringsx.ToBytes(val), value.Addr().Interface())
+		return jsonx.Unmarshal(stringsx.ToBytes(val), value.Addr().Interface())
 	case reflect.Map:
-		return json.Unmarshal(stringsx.ToBytes(val), value.Addr().Interface())
+		return jsonx.Unmarshal(stringsx.ToBytes(val), value.Addr().Interface())
 	default:
 		return errUnknownType
 	}

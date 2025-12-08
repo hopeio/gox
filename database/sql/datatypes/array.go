@@ -10,13 +10,13 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	dbx "github.com/hopeio/gox/database/sql"
-	reflectx "github.com/hopeio/gox/strconv"
+	jsonx "github.com/hopeio/gox/encoding/json"
+	reflectx "github.com/hopeio/gox/encoding/text"
 	stringsx "github.com/hopeio/gox/strings"
 
 	"strconv"
@@ -306,7 +306,7 @@ func (j *jsonArray) Scan(value interface{}) error {
 			return err
 		}
 		var m map[string]any
-		err = json.Unmarshal(stringsx.ToBytes(jsonStr), &m)
+		err = jsonx.Unmarshal(stringsx.ToBytes(jsonStr), &m)
 		if err != nil {
 			return err
 		}
@@ -330,7 +330,7 @@ func (j jsonArray) Value() (driver.Value, error) {
 		if i > 0 {
 			buf.WriteByte(',')
 		}
-		data, err := json.Marshal(&v)
+		data, err := jsonx.Marshal(&v)
 		if err != nil {
 			return nil, err
 		}

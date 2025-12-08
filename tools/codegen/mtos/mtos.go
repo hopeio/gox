@@ -8,17 +8,18 @@ package mtos
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/hopeio/gox/log"
-	stringsx "github.com/hopeio/gox/strings"
 	"io"
 	"reflect"
+
+	jsonx "github.com/hopeio/gox/encoding/json"
+	"github.com/hopeio/gox/log"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 func ParseJson(data []byte) (string, error) {
 	var m map[string]any
-	err := json.Unmarshal(data, &m)
+	err := jsonx.Unmarshal(data, &m)
 	if err != nil {
 		return "", err
 	}

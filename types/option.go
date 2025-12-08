@@ -7,7 +7,7 @@
 package types
 
 import (
-	"encoding/json"
+	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 // 返回option 返回时会有两次复制value,后续使用还有可能更多次,自行选择用不用
@@ -85,7 +85,7 @@ func (opt *Option[T]) IfNone(action func()) {
 
 func (opt *Option[T]) MarshalJSON() ([]byte, error) {
 	if opt.ok {
-		return json.Marshal(opt.value)
+		return jsonx.Marshal(opt.value)
 	}
 	return []byte("null"), nil
 }
@@ -96,7 +96,7 @@ func (opt *Option[T]) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	opt.ok = true
-	return json.Unmarshal(data, &opt.value)
+	return jsonx.Unmarshal(data, &opt.value)
 }
 
 type OptionPtr[T any] struct {
@@ -178,7 +178,7 @@ func (opt OptionPtr[T]) IfNone(action func()) {
 
 func (opt OptionPtr[T]) MarshalJSON() ([]byte, error) {
 	if opt.IsSome() {
-		return json.Marshal(opt.value)
+		return jsonx.Marshal(opt.value)
 	}
 	return []byte("null"), nil
 }
@@ -187,5 +187,5 @@ func (opt *OptionPtr[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		return nil
 	}
-	return json.Unmarshal(data, &opt.value)
+	return jsonx.Unmarshal(data, &opt.value)
 }

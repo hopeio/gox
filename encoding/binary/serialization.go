@@ -7,9 +7,10 @@
 package binary
 
 import (
-	reflectx "github.com/hopeio/gox/reflect"
 	"reflect"
 	"unsafe"
+
+	reflectx "github.com/hopeio/gox/reflect"
 )
 
 /*
@@ -17,22 +18,16 @@ import (
  *反序列化必须成对出现，而且go的GC偏移回收的话，有可能也GG
  */
 
-func getSize(t interface{}) int {
+func getSize(t any) int {
 	size := reflect.TypeOf(t).Elem().Size()
 	return (int)(size)
 }
 
-func StructToBytes(s interface{}) []byte {
+func FromAny(s any) []byte {
 	sizeOfStruct := getSize(s)
 	var x reflect.SliceHeader
 	x.Len = sizeOfStruct
 	x.Cap = sizeOfStruct
 	x.Data = uintptr((*reflectx.Eface)(unsafe.Pointer(&s)).Value)
 	return *(*[]byte)(unsafe.Pointer(&x))
-}
-
-func BytesToMyStruct(b []byte) unsafe.Pointer {
-	return unsafe.Pointer(
-		(*reflect.SliceHeader)(unsafe.Pointer(&b)).Data,
-	)
 }
