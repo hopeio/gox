@@ -122,6 +122,10 @@ func FloatSlice[T constraints.Float](val, sep string) ([]T, error) {
 	return values, nil
 }
 
+func String(val string) (string, error) {
+	return val, nil
+}
+
 // StringSlice converts 'val' where individual strings are separated by
 // 'sep' into a string slice.
 func StringSlice(val, sep string) ([]string, error) {
@@ -213,7 +217,7 @@ func Float32(val string) (float32, error) {
 	return float32(f), nil
 }
 
-func StringToFloat32P(val string) (*float32, error) {
+func Float32P(val string) (*float32, error) {
 	return toPtr(Float32(val))
 }
 
@@ -455,7 +459,7 @@ func Uint32(val string) (uint32, error) {
 	return uint32(i), nil
 }
 
-func ToUint32P(val string) (*uint32, error) {
+func Uint32P(val string) (*uint32, error) {
 	return toPtr(Uint32(val))
 }
 

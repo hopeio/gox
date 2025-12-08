@@ -125,7 +125,7 @@ func ServerMetadataFromContext(ctx context.Context) (md ServerMetadata, ok bool)
 // It should only be used by the generated files to support grpc.SendHeader
 // outside of gRPC server use.
 type ServerTransportStream struct {
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	header  metadata.MD
 	trailer metadata.MD
 }
@@ -135,11 +135,11 @@ func (s *ServerTransportStream) Method() string {
 	return ""
 }
 
-// Header returns the header metadata of the stream.
-func (s *ServerTransportStream) Header() metadata.MD {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.header.Copy()
+// Header returns the server metadata of the stream.
+func (s *ServerTransportStream) ServerMetadata() ServerMetadata {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return ServerMetadata{Header: s.header, Trailer: s.trailer}
 }
 
 // SetHeader sets the header metadata.
@@ -157,13 +157,6 @@ func (s *ServerTransportStream) SetHeader(md metadata.MD) error {
 // SendHeader sets the header metadata.
 func (s *ServerTransportStream) SendHeader(md metadata.MD) error {
 	return s.SetHeader(md)
-}
-
-// Trailer returns the cached trailer metadata.
-func (s *ServerTransportStream) Trailer() metadata.MD {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.trailer.Copy()
 }
 
 // SetTrailer sets the trailer metadata.
