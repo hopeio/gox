@@ -22,8 +22,7 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
 	}
 
-	contentType := marshaler.ContentType(message)
-	w.Header().Set(httpx.HeaderContentType, contentType)
+	w.Header().Set(httpx.HeaderContentType, marshaler.ContentType(message))
 
 	var buf []byte
 	var err error

@@ -47,8 +47,11 @@ const (
 )
 
 const (
-	HeaderGrpcTraceBin = "grpc-trace-bin"
-	HeaderGrpcInternal = "grpc-internal"
+	HeaderGrpcTraceBin = "Grpc-Trace-Bin"
+	HeaderGrpcInternal = "Grpc-Internal"
+	HeaderGrpcStatus   = "Grpc-Status"
+	HeaderGrpcMsg      = "Grpc-Msg"
+	HeaderGrpcMessage  = "Grpc-Message"
 )
 
 const (
