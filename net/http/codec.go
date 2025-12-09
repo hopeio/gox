@@ -2,8 +2,8 @@ package http
 
 import jsonx "github.com/hopeio/gox/encoding/json"
 
-// Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
-type Marshaler interface {
+// Codec defines a conversion between byte sequence and gRPC payloads / fields.
+type Codec interface {
 	// Marshal marshals "v" into byte sequence.
 	Marshal(v any) ([]byte, error)
 	// Unmarshal unmarshals "data" into "v".
@@ -46,7 +46,7 @@ type Delimited interface {
 // StreamContentType defines the streaming content type.
 type StreamContentType interface {
 	// StreamContentType returns the content type for a stream. This shares the
-	// same behaviour as for `Marshaler.ContentType`, but is called, if present,
+	// same behaviour as for `Codec.ContentType`, but is called, if present,
 	// in the case of a streamed response.
 	StreamContentType(v any) string
 }

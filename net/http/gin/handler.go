@@ -25,13 +25,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 		err := binding.Bind(ctx, req)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			data, err := httpx.DefaultMarshaler.Marshal(errors.InvalidArgument.Wrap(err))
-			if err != nil {
-				ctx.Status(http.StatusInternalServerError)
-				return
-			}
-			ctx.Abort()
-			ctx.Writer.Write(data)
+			Respond(ctx, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, reserr := service(ctx, req)
@@ -53,13 +47,7 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 		err := binding.Bind(ctx, req)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			data, err := httpx.DefaultMarshaler.Marshal(errors.InvalidArgument.Wrap(err))
-			if err != nil {
-				ctx.Status(http.StatusInternalServerError)
-				return
-			}
-			ctx.Abort()
-			ctx.Writer.Write(data)
+			Respond(ctx, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, err := service(handlerwrap.WrapContext(ctx), req)
@@ -73,4 +61,14 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 		}
 		httpx.NewSuccessRespData(res).Respond(ctx, ctx.Writer)
 	}
+}
+
+func Respond(ctx *gin.Context, v any) (int, error) {
+	data, err := httpx.DefaultCodec.Marshal(v)
+	if err != nil {
+		data = []byte(err.Error())
+	}
+	n, err := ctx.Writer.Write(data)
+	ctx.Abort()
+	return n, err
 }

@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, marshaler httpx.Marshaler) error {
+func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.Codec) error {
 	HandleForwardResponseServerMetadata(w, md.Header)
 	var wantsTrailers bool
 	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
@@ -22,7 +22,7 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
 	}
 
-	w.Header().Set(httpx.HeaderContentType, marshaler.ContentType(message))
+	w.Header().Set(httpx.HeaderContentType, codec.ContentType(message))
 
 	var buf []byte
 	var err error
@@ -39,9 +39,9 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	case httpx.ResponseBody:
 		buf = rb.ResponseBody()
 	case httpx.XXXResponseBody:
-		buf, err = marshaler.Marshal(rb.XXX_ResponseBody())
+		buf, err = codec.Marshal(rb.XXX_ResponseBody())
 	default:
-		buf, err = marshaler.Marshal(message)
+		buf, err = codec.Marshal(message)
 	}
 	if err != nil {
 		return err

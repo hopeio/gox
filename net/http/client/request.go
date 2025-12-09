@@ -159,8 +159,8 @@ func (req *Request) Do(param, response any) error {
 					reqBody, err = io.ReadAll(paramType)
 				}
 			default:
-				if c.reqDataMarshal != nil {
-					reqBody, err = c.reqDataMarshal(param)
+				if c.reqBodyMarshal != nil {
+					reqBody, err = c.reqBodyMarshal(param)
 					if err != nil {
 						return err
 					}
@@ -181,8 +181,8 @@ func (req *Request) Do(param, response any) error {
 		}
 
 		if len(reqBody) > 0 {
-			if c.reqDataMarshal != nil {
-				reqBody, err = c.reqDataMarshal(reqBody)
+			if c.reqBodyMarshal != nil {
+				reqBody, err = c.reqBodyMarshal(reqBody)
 			}
 			body = bytes.NewReader(reqBody)
 		}
@@ -337,10 +337,10 @@ Retry:
 			*raw = respBody
 			return nil
 		}
-		if req.client.respDataUnMarshal != nil {
-			err = req.client.respDataUnMarshal(respBody, response)
+		if req.client.respBodyUnMarshal != nil {
+			err = req.client.respBodyUnMarshal(respBody, response)
 			if err != nil {
-				return fmt.Errorf("respDataUnMarshal error: %w", err)
+				return fmt.Errorf("respBodyUnMarshal error: %w", err)
 			}
 		} else {
 			err = jsonx.Unmarshal(respBody, response)

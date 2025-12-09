@@ -62,12 +62,12 @@ type Client struct {
 	// request
 	httpRequestOptions []HttpRequestOption
 	header             http.Header //公共请求头
-	reqDataMarshal     func(v any) ([]byte, error)
+	reqBodyMarshal     func(v any) ([]byte, error)
 
 	// response
 	responseHandler   func(response *http.Response) (retry bool, reader io.ReadCloser, err error)
-	respDataHandler   func(data []byte) ([]byte, error)
-	respDataUnMarshal func(data []byte, v any) error
+	respBodyHandler   func(data []byte) ([]byte, error)
+	respBodyUnMarshal func(data []byte, v any) error
 
 	// logger
 	logger   AccessLog
@@ -123,18 +123,18 @@ func (d *Client) ResponseHandler(handler func(response *http.Response) (retry bo
 	return d
 }
 
-func (d *Client) RespDataHandler(handler func(data []byte) ([]byte, error)) *Client {
-	d.respDataHandler = handler
+func (d *Client) RespBodyHandler(handler func(data []byte) ([]byte, error)) *Client {
+	d.respBodyHandler = handler
 	return d
 }
 
-func (d *Client) ReqDataMarshal(handler func(v any) ([]byte, error)) *Client {
-	d.reqDataMarshal = handler
+func (d *Client) ReqBodyMarshal(handler func(v any) ([]byte, error)) *Client {
+	d.reqBodyMarshal = handler
 	return d
 }
 
-func (d *Client) RespDataUnMarshal(handler func(data []byte, v any) error) *Client {
-	d.respDataUnMarshal = handler
+func (d *Client) RespBodyUnMarshal(handler func(data []byte, v any) error) *Client {
+	d.respBodyUnMarshal = handler
 	return d
 }
 

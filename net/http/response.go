@@ -25,8 +25,11 @@ type RespData[T any] struct {
 }
 
 func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
-	data, _ := DefaultMarshaler.Marshal(res)
+	w.Header().Set(HeaderContentType, DefaultCodec.ContentType(res))
+	data, err := DefaultCodec.Marshal(res)
+	if err != nil {
+		data = []byte(err.Error())
+	}
 	return w.Write(data)
 }
 
@@ -135,8 +138,11 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
-	data, _ := DefaultMarshaler.Marshal(res)
+	w.Header().Set(HeaderContentType, DefaultCodec.ContentType(res))
+	data, err := DefaultCodec.Marshal(res)
+	if err != nil {
+		data = []byte(err.Error())
+	}
 	return w.Write(data)
 }
 

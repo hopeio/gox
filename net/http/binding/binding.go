@@ -21,7 +21,7 @@ import (
 
 var (
 	DefaultMemory    int64 = 32 << 20
-	BodyUnmarshaller       = httpx.DefaultMarshaler.Unmarshal
+	BodyUnmarshaller       = httpx.DefaultCodec.Unmarshal
 	CommonTag              = "json"
 	Validate               = validator.ValidateStruct
 	defaultTags            = []string{"uri", "path", "query", "header", "form", CommonTag}
