@@ -7,24 +7,25 @@
 package timer
 
 import (
-	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/os/fs/watch"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/hopeio/gox/log"
+	"github.com/hopeio/gox/os/fs/watch"
 )
 
 // only support Create,Remove,Write
 type Watch struct {
 	interval time.Duration
-	handler  watch.Handler
+	handlers watch.Handlers
 	timer    *time.Ticker
 }
 
 func New(interval time.Duration) (*Watch, error) {
 	return &Watch{
 		interval: interval,
-		handler:  make(watch.Handler),
+		handlers: make(watch.Handlers),
 		timer:    time.NewTicker(interval),
 	}, nil
 }
@@ -40,14 +41,14 @@ func (w *Watch) Add(path string, op watch.Op, callback func(string)) error {
 		modTime = info.ModTime()
 	}
 
-	handle, ok := w.handler[path]
+	handler, ok := w.handlers[path]
 	if !ok {
-		handle = &watch.Callback{
+		handler = &watch.Callback{
 			LastModTime: modTime,
 		}
-		w.handler[path] = handle
+		w.handlers[path] = handler
 	}
-	handle.Callbacks[op-1] = callback
+	handler.Callbacks[op-1] = callback
 	return nil
 }
 
@@ -55,7 +56,7 @@ func (w *Watch) run() {
 
 	for range w.timer.C {
 
-		for path, handle := range w.handler {
+		for path, handler := range w.handlers {
 			var modTime time.Time
 			info, err := os.Stat(path)
 			if err != nil && !os.IsNotExist(err) {
@@ -65,20 +66,20 @@ func (w *Watch) run() {
 				modTime = info.ModTime()
 			}
 
-			if !handle.LastModTime.IsZero() {
+			if !handler.LastModTime.IsZero() {
 				if modTime.IsZero() {
-					handle.LastModTime = modTime
-					handle.Callbacks[watch.Remove-1](path)
+					handler.LastModTime = modTime
+					handler.Callbacks[watch.Remove-1](path)
 				} else {
-					if modTime.Sub(handle.LastModTime) > time.Second {
-						handle.LastModTime = modTime
-						handle.Callbacks[watch.Write-1](path)
+					if modTime.Sub(handler.LastModTime) > time.Second {
+						handler.LastModTime = modTime
+						handler.Callbacks[watch.Write-1](path)
 					}
 				}
 			} else {
-				if modTime.After(handle.LastModTime) {
-					handle.LastModTime = modTime
-					handle.Callbacks[watch.Create-1](path)
+				if modTime.After(handler.LastModTime) {
+					handler.LastModTime = modTime
+					handler.Callbacks[watch.Create-1](path)
 				}
 			}
 		}

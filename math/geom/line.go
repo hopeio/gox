@@ -247,7 +247,7 @@ func (l *StraightLine) ContainsPoint(p Point) bool {
 	// Convert angle from degrees to radians
 	angleInRadians := l.Angle * math.Pi / 180
 
-	// Handle vertical line case (angle is 90 or 270 degrees)
+	// Handler vertical line case (angle is 90 or 270 degrees)
 	if math.Mod(math.Abs(l.Angle-90), 180) < tolerance || math.Mod(math.Abs(l.Angle-270), 360) < tolerance {
 		return math.Abs(p.X-l.X) < tolerance
 	}

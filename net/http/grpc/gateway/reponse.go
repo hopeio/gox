@@ -80,7 +80,7 @@ func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) 
 func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
 	for k := range md {
 		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
-		w.Header().Add("Trailer", tKey)
+		w.Header().Add(httpx.HeaderTrailer, tKey)
 	}
 }
 

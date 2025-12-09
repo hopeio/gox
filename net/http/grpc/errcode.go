@@ -14,24 +14,24 @@ type GRPCStatus interface {
 }
 
 const (
-	// SysErr ErrCode = -1
-	Success            ErrCode = 0
-	Canceled           ErrCode = 1
-	Unknown            ErrCode = 2
-	InvalidArgument    ErrCode = 3
-	DeadlineExceeded   ErrCode = 4
-	NotFound           ErrCode = 5
-	AlreadyExists      ErrCode = 6
-	PermissionDenied   ErrCode = 7
-	ResourceExhausted  ErrCode = 8
-	FailedPrecondition ErrCode = 9
-	Aborted            ErrCode = 10
-	OutOfRange         ErrCode = 11
-	Unimplemented      ErrCode = 12
-	Internal           ErrCode = 13
-	Unavailable        ErrCode = 14
-	DataLoss           ErrCode = 15
-	Unauthenticated    ErrCode = 16
+	SysErr             = ErrCode(-1)
+	Success            = ErrCode(codes.OK)
+	Canceled           = ErrCode(codes.Canceled)
+	Unknown            = ErrCode(codes.Unknown)
+	InvalidArgument    = ErrCode(codes.InvalidArgument)
+	DeadlineExceeded   = ErrCode(codes.DeadlineExceeded)
+	NotFound           = ErrCode(codes.NotFound)
+	AlreadyExists      = ErrCode(codes.AlreadyExists)
+	PermissionDenied   = ErrCode(codes.PermissionDenied)
+	ResourceExhausted  = ErrCode(codes.ResourceExhausted)
+	FailedPrecondition = ErrCode(codes.FailedPrecondition)
+	Aborted            = ErrCode(codes.Aborted)
+	OutOfRange         = ErrCode(codes.OutOfRange)
+	Unimplemented      = ErrCode(codes.Unimplemented)
+	Internal           = ErrCode(codes.Internal)
+	Unavailable        = ErrCode(codes.Unavailable)
+	DataLoss           = ErrCode(codes.DataLoss)
+	Unauthenticated    = ErrCode(codes.Unauthenticated)
 )
 
 func Register(code ErrCode, msg string) {
@@ -66,14 +66,14 @@ func (x ErrCode) GRPCStatus() *status.Status {
 
 type ErrResp errors.ErrResp
 
-func NewErrRep(code ErrCode, msg string) *ErrResp {
+func NewErrResp(code ErrCode, msg string) *ErrResp {
 	return &ErrResp{
 		Code: errors.ErrCode(code),
 		Msg:  msg,
 	}
 }
 
-func ErrRepFrom(err error) *ErrResp {
+func ErrRespFrom(err error) *ErrResp {
 	return (*ErrResp)(errors.ErrRespFrom(err))
 }
 

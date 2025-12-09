@@ -13,7 +13,7 @@ type Callback struct {
 	Callbacks   [5]func(string)
 }
 
-type Handler map[string]*Callback
+type Handlers map[string]*Callback
 
 // Op describes a set of file operations.
 type Op uint32

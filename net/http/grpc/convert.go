@@ -13,17 +13,25 @@ import (
 
 	"github.com/hopeio/gox/encoding/text"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+)
+
+type Unmarshaler interface {
+	Unmarshal(data []byte, v proto.Message) error
+}
+
+var (
+	DefaultUnmarshaler Unmarshaler = &protojson.UnmarshalOptions{}
 )
 
 // Timestamp converts the given RFC3339 formatted string into a timestamp.Timestamp.
 func Timestamp(val string) (*timestamppb.Timestamp, error) {
 	var r timestamppb.Timestamp
 	val = strconv.Quote(strings.Trim(val, `"`))
-	unmarshaler := &protojson.UnmarshalOptions{}
-	if err := unmarshaler.Unmarshal([]byte(val), &r); err != nil {
+	if err := DefaultUnmarshaler.Unmarshal([]byte(val), &r); err != nil {
 		return nil, err
 	}
 	return &r, nil
@@ -33,8 +41,7 @@ func Timestamp(val string) (*timestamppb.Timestamp, error) {
 func Duration(val string) (*durationpb.Duration, error) {
 	var r durationpb.Duration
 	val = strconv.Quote(strings.Trim(val, `"`))
-	unmarshaler := &protojson.UnmarshalOptions{}
-	if err := unmarshaler.Unmarshal([]byte(val), &r); err != nil {
+	if err := DefaultUnmarshaler.Unmarshal([]byte(val), &r); err != nil {
 		return nil, err
 	}
 	return &r, nil

@@ -89,29 +89,29 @@ func Classify[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map
 	return m
 }
 
-func ForEach[S ~[]T, T any](s S, handle func(idx int, v T)) {
+func ForEach[S ~[]T, T any](s S, fn func(idx int, v T)) {
 	for i, t := range s {
-		handle(i, t)
+		fn(i, t)
 	}
 }
 
-func ForEachValue[S ~[]T, T any](s S, handle func(v T)) {
+func ForEachValue[S ~[]T, T any](s S, fn func(v T)) {
 	for _, v := range s {
-		handle(v)
+		fn(v)
 	}
 }
 
 // 遍历切片,参数为下标，利用闭包实现遍历
-func ForEachIndex[S ~[]T, T any](s S, handle func(i int)) {
+func ForEachIndex[S ~[]T, T any](s S, fn func(i int)) {
 	for i := range s {
-		handle(i)
+		fn(i)
 	}
 }
 
-func ReverseForEach[S ~[]T, T any](s S, handle func(idx int, v T)) {
+func ReverseForEach[S ~[]T, T any](s S, fn func(idx int, v T)) {
 	l := len(s)
 	for i := l - 1; i > 0; i-- {
-		handle(i, s[i])
+		fn(i, s[i])
 	}
 }
 

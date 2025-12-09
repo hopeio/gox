@@ -8,14 +8,15 @@ package loader
 
 import (
 	"errors"
-	"github.com/fsnotify/fsnotify"
-	"github.com/hopeio/gox/log"
 	"io"
 	"os"
 	"path/filepath"
 	"slices"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/hopeio/gox/log"
 )
 
 type Loader struct {
@@ -135,7 +136,7 @@ func (ld *Loader) Close() error {
 }
 
 // Load will unmarshal configurations to struct from files that you provide
-func (ld *Loader) Handle(handle func(io.Reader) error) (err error) {
+func (ld *Loader) Handler(handler func(io.Reader) error) (err error) {
 	if len(ld.Paths) == 0 {
 		return errors.New("empty local config path")
 	}
@@ -144,7 +145,7 @@ func (ld *Loader) Handle(handle func(io.Reader) error) (err error) {
 		if err != nil {
 			return err
 		}
-		err = load(handle, ld.Paths[i])
+		err = load(handler, ld.Paths[i])
 		if err != nil {
 			return err
 		}
@@ -153,7 +154,7 @@ func (ld *Loader) Handle(handle func(io.Reader) error) (err error) {
 	if ld.ReloadInterval != 0 {
 		if ld.ReloadInterval >= time.Second {
 			ld.timer = time.NewTicker(ld.ReloadInterval)
-			go ld.watchTimer(handle)
+			go ld.watchTimer(handler)
 		} else {
 			watcher, err := fsnotify.NewWatcher()
 			if err != nil {
@@ -166,14 +167,14 @@ func (ld *Loader) Handle(handle func(io.Reader) error) (err error) {
 				}
 			}
 			ld.watcher = watcher
-			go ld.watchNotify(handle)
+			go ld.watchNotify(handler)
 		}
 	}
 
 	return
 }
 
-func (ld *Loader) watchNotify(handle func(reader io.Reader) error) {
+func (ld *Loader) watchNotify(handler func(reader io.Reader) error) {
 	interval := make(map[string]time.Time)
 	for {
 		select {
@@ -187,7 +188,7 @@ func (ld *Loader) watchNotify(handle func(reader io.Reader) error) {
 					continue
 				}
 				interval[event.Name] = now
-				if err := loads(handle, event.Name); err != nil {
+				if err := loads(handler, event.Name); err != nil {
 					log.Errorf("failed to reload data from %v, got error %v\n", ld.Paths, err)
 				}
 			}
@@ -228,9 +229,9 @@ func (ld *Loader) watchTimer(handle func(reader io.Reader) error) {
 	}
 }
 
-func loads(handle func(io.Reader) error, filepaths ...string) (err error) {
+func loads(handler func(io.Reader) error, filepaths ...string) (err error) {
 	for _, filepath := range filepaths {
-		err := load(handle, filepath)
+		err := load(handler, filepath)
 		if err != nil {
 			return err
 		}
@@ -238,13 +239,13 @@ func loads(handle func(io.Reader) error, filepaths ...string) (err error) {
 	return err
 }
 
-func load(handle func(io.Reader) error, filepath string) (err error) {
+func load(handler func(io.Reader) error, filepath string) (err error) {
 	log.Debugf("load data from: '%v'", filepath)
 	file, err := os.Open(filepath)
 	if err != nil {
 		return err
 	}
-	err = handle(file)
+	err = handler(file)
 	if err != nil {
 		return err
 	}

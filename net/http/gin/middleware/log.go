@@ -7,17 +7,18 @@
 package middleware
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/hopeio/gox/net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/hopeio/gox/errors"
 	"github.com/hopeio/gox/log"
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 func SetLog(app *gin.Engine, logger2 *log.Logger, errHandle bool) {
-	app.Use(LoggerWithFormatter(http.DefaultLogFormatter, logger2, errHandle))
+	app.Use(LoggerWithFormatter(httpx.DefaultLogFormatter, logger2, errHandle))
 
 }
 
@@ -30,9 +31,16 @@ func ErrorLogger() gin.HandlerFunc {
 func ErrorLoggerT(typ gin.ErrorType) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
-		errors := c.Errors.ByType(typ)
-		if len(errors) > 0 {
-			c.JSON(-1, errors)
+		errs := c.Errors.ByType(typ)
+		if len(errs) > 0 {
+			data, err := httpx.DefaultMarshaler.Marshal(errors.InvalidArgument.Msg(strings.Join(errs.Errors(), "\n")))
+			if err != nil {
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+			c.Abort()
+			c.Writer.Write(data)
+			return
 		}
 	}
 }
@@ -40,12 +48,12 @@ func ErrorLoggerT(typ gin.ErrorType) gin.HandlerFunc {
 // Logger instances a Logger middleware that will write the logs to gin.DefaultWriter.
 // By default gin.DefaultWriter = os.Stdout.
 func Logger() gin.HandlerFunc {
-	return LoggerWithConfig(http.LoggerConfig{})
+	return LoggerWithConfig(httpx.LoggerConfig{})
 }
 
 // LoggerWithFormatter instance a Logger middleware with the specified log format function.
-func LoggerWithFormatter(f http.Formatter, logger *log.Logger, hasErr bool) gin.HandlerFunc {
-	return LoggerWithConfig(http.LoggerConfig{
+func LoggerWithFormatter(f httpx.Formatter, logger *log.Logger, hasErr bool) gin.HandlerFunc {
+	return LoggerWithConfig(httpx.LoggerConfig{
 		Formatter: f,
 		Logger:    logger,
 		ErrHandle: hasErr,
@@ -53,10 +61,10 @@ func LoggerWithFormatter(f http.Formatter, logger *log.Logger, hasErr bool) gin.
 }
 
 // LoggerWithConfig instance a Logger middleware with config.
-func LoggerWithConfig(conf http.LoggerConfig) gin.HandlerFunc {
+func LoggerWithConfig(conf httpx.LoggerConfig) gin.HandlerFunc {
 	formatter := conf.Formatter
 	if formatter == nil {
-		formatter = http.DefaultLogFormatter
+		formatter = httpx.DefaultLogFormatter
 	}
 
 	logger := conf.Logger
@@ -83,7 +91,7 @@ func LoggerWithConfig(conf http.LoggerConfig) gin.HandlerFunc {
 				return
 			}
 		}
-		param := http.FormatterParams{
+		param := httpx.FormatterParams{
 			Request: c.Request,
 			Keys:    c.Keys,
 		}

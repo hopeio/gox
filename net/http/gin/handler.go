@@ -24,7 +24,14 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 		req := new(REQ)
 		err := binding.Bind(ctx, req)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, errors.InvalidArgument.Wrap(err))
+			ctx.Status(http.StatusBadRequest)
+			data, err := httpx.DefaultMarshaler.Marshal(errors.InvalidArgument.Wrap(err))
+			if err != nil {
+				ctx.Status(http.StatusInternalServerError)
+				return
+			}
+			ctx.Abort()
+			ctx.Writer.Write(data)
 			return
 		}
 		res, reserr := service(ctx, req)
@@ -45,7 +52,14 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 		req := new(REQ)
 		err := binding.Bind(ctx, req)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, errors.InvalidArgument.Wrap(err))
+			ctx.Status(http.StatusBadRequest)
+			data, err := httpx.DefaultMarshaler.Marshal(errors.InvalidArgument.Wrap(err))
+			if err != nil {
+				ctx.Status(http.StatusInternalServerError)
+				return
+			}
+			ctx.Abort()
+			ctx.Writer.Write(data)
 			return
 		}
 		res, err := service(handlerwrap.WrapContext(ctx), req)

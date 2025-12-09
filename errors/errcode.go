@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type ErrCode uint32
+type ErrCode int32
 
 func (x ErrCode) String() string {
 	value, ok := codeMsgMap[x]

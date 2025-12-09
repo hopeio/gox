@@ -90,7 +90,7 @@ func (api *API) createOpenAPI() (spec *openapi3.T, err error) {
 				op.AddParameter(pathParam)
 			}
 
-			// Handle request types.
+			// Handler request types.
 			if route.Models.Request.Type != nil {
 				name, schema, err := api.RegisterModel(route.Models.Request)
 				if err != nil {
@@ -105,7 +105,7 @@ func (api *API) createOpenAPI() (spec *openapi3.T, err error) {
 				}
 			}
 
-			// Handle response types.
+			// Handler response types.
 			for status, model := range route.Models.Responses {
 				name, schema, err := api.RegisterModel(model)
 				if err != nil {
@@ -121,13 +121,13 @@ func (api *API) createOpenAPI() (spec *openapi3.T, err error) {
 				op.AddResponse(status, resp)
 			}
 
-			// Handle tags.
+			// Handler tags.
 			op.Tags = append(op.Tags, route.Tags...)
 
-			// Handle OperationID.
+			// Handler OperationID.
 			op.OperationID = route.OperationID
 
-			// Handle description.
+			// Handler description.
 			op.Description = route.Description
 
 			// Register the method.

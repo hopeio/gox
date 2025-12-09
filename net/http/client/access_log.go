@@ -26,14 +26,6 @@ const (
 	LogLevelInfo
 )
 
-type Body struct {
-	Data []byte
-}
-
-func NewBody(data []byte) *Body {
-	return &Body{Data: data}
-}
-
 type AccessLogParam struct {
 	Method, Url       string
 	Request           *http.Request
@@ -54,7 +46,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 		}
 	}
 	if len(param.RespBody) > 0 {
-		key := "result"
+		key := "resp"
 		if len(param.RespBody) > 500 {
 			respField = zap.String(key, "<result is too long>")
 		} else {

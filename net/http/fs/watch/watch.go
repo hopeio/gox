@@ -9,37 +9,38 @@ package watch
 import (
 	"bytes"
 	"crypto/md5"
-	"github.com/hopeio/gox/log"
-	http_fs "github.com/hopeio/gox/net/http/fs"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/hopeio/gox/log"
+	httpfs "github.com/hopeio/gox/net/http/fs"
 )
 
 type Watch struct {
 	interval time.Duration
 	timer    *time.Ticker
-	handler  Handler
+	handlers Handlers
 }
 
 type Callback struct {
 	req         *http.Request
 	lastModTime time.Time
-	callback    func(file *http_fs.FileInfo)
+	callback    func(file *httpfs.FileInfo)
 	md5value    [16]byte
 }
 
-type Handler map[string]*Callback
+type Handlers map[string]*Callback
 
 func New(interval time.Duration) *Watch {
 	w := &Watch{
 		interval: interval,
 		//1.map和数组做取舍
-		handler: make(map[string]*Callback),
-		timer:   time.NewTicker(interval),
-		//handler:  make(map[string]map[fsnotify.Op]func()),
+		handlers: make(map[string]*Callback),
+		timer:    time.NewTicker(interval),
+		//handlers:  make(map[string]map[fsnotify.Op]func()),
 		//2.提高时间复杂度，用event做key，然后每次事件循环取值
-		//handler:  make(map[fsnotify.Event]func()),
+		//handlers:  make(map[fsnotify.Event]func()),
 	}
 
 	go w.run()
@@ -47,7 +48,7 @@ func New(interval time.Duration) *Watch {
 	return w
 }
 
-func (w *Watch) Add(url string, callback func(file *http_fs.FileInfo), opts ...func(r *http.Request)) error {
+func (w *Watch) Add(url string, callback func(file *httpfs.FileInfo), opts ...func(r *http.Request)) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -61,19 +62,19 @@ func (w *Watch) Add(url string, callback func(file *http_fs.FileInfo), opts ...f
 	}
 
 	c.Do()
-	w.handler[req.RequestURI] = c
+	w.handlers[req.RequestURI] = c
 	return nil
 }
 
 func (w *Watch) Remove(url string) error {
-	delete(w.handler, url)
+	delete(w.handlers, url)
 	return nil
 }
 
 func (w *Watch) run() {
 
 	for range w.timer.C {
-		for _, callback := range w.handler {
+		for _, callback := range w.handlers {
 			callback.Do()
 		}
 	}
@@ -84,7 +85,7 @@ func (w *Watch) Close() {
 }
 
 func (c *Callback) Do() {
-	file, err := http_fs.FetchFileByRequest(c.req)
+	file, err := httpfs.FetchFileByRequest(c.req)
 	if err != nil {
 		log.Error(err)
 		return

@@ -7,9 +7,10 @@
 package fsnotify
 
 import (
-	"github.com/hopeio/gox/os/fs/watch"
 	"path/filepath"
 	"time"
+
+	"github.com/hopeio/gox/os/fs/watch"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/hopeio/gox/log"
@@ -18,7 +19,7 @@ import (
 type Watch struct {
 	*fsnotify.Watcher
 	interval time.Duration
-	handler  watch.Handler
+	handlers watch.Handlers
 }
 
 func New(interval time.Duration) (*Watch, error) {
@@ -27,10 +28,10 @@ func New(interval time.Duration) (*Watch, error) {
 		Watcher:  watcher,
 		interval: interval,
 		//1.map和数组做取舍
-		handler: make(watch.Handler),
-		//Handler:  make(map[string]map[fsnotify.Op]func()),
+		handlers: make(watch.Handlers),
+		//Handlers:  make(map[string]map[fsnotify.Op]func()),
 		//2.提高时间复杂度，用event做key，然后每次事件循环取值
-		//Handler:  make(map[fsnotify.Event]func()),
+		//Handlers:  make(map[fsnotify.Event]func()),
 	}
 
 	if err == nil {
@@ -42,16 +43,16 @@ func New(interval time.Duration) (*Watch, error) {
 
 func (w *Watch) Add(path string, op fsnotify.Op, callback func(string)) error {
 	path = filepath.Clean(path)
-	handle, ok := w.handler[path]
+	handler, ok := w.handlers[path]
 	if !ok {
 		err := w.Watcher.Add(path)
 		if err != nil {
 			return err
 		}
-		handle = &watch.Callback{}
-		w.handler[path] = handle
+		handler = &watch.Callback{}
+		w.handlers[path] = handler
 	}
-	handle.Callbacks[op-1] = callback
+	handler.Callbacks[op-1] = callback
 	return nil
 }
 
@@ -64,7 +65,7 @@ func (w *Watch) run() {
 				return
 			}
 			ev = &event
-			if handle, ok := w.handler[event.Name]; ok {
+			if handle, ok := w.handlers[event.Name]; ok {
 				now := time.Now()
 				if now.Sub(handle.LastModTime) < w.interval && event == *ev {
 					continue

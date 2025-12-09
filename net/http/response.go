@@ -8,13 +8,11 @@ package http
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 	"iter"
 	"net/http"
 
-	jsonx "github.com/hopeio/gox/encoding/json"
 	errorsx "github.com/hopeio/gox/errors"
 )
 
@@ -27,9 +25,9 @@ type RespData[T any] struct {
 }
 
 func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, "application/json; charset=utf-8")
-	jsonBytes, _ := jsonx.Marshal(res)
-	return w.Write(jsonBytes)
+	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	data, _ := DefaultMarshaler.Marshal(res)
+	return w.Write(data)
 }
 
 type RespAnyData = RespData[any]
@@ -82,11 +80,6 @@ func RespStatus(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode
 	w.WriteHeader(status)
 	return NewRespData(code, msg, data).Respond(ctx, w)
 }
-
-var RespSysErr = []byte(`{"code":-1,"msg":"system error"}`)
-var RespOk = []byte(`{"code":0}`)
-
-type ReceiveData = RespData[json.RawMessage]
 
 type Response struct {
 	Status  int            `json:"status,omitempty"`
@@ -142,9 +135,9 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, ContentTypeJsonUtf8)
-	jsonBytes, _ := jsonx.Marshal(res)
-	return w.Write(jsonBytes)
+	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	data, _ := DefaultMarshaler.Marshal(res)
+	return w.Write(data)
 }
 
 type Responder interface {
@@ -195,9 +188,13 @@ func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.S
 }
 
 type XXXResponseBody interface {
-	XXX_ResponseBody() interface{}
+	XXX_ResponseBody() any
 }
 
 type ResponseBody interface {
 	ResponseBody() []byte
+}
+
+type StatusCode interface {
+	StatusCode(v any) int
 }

@@ -14,8 +14,6 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var Marshaler httpx.Marshaler = &JsonPb{}
-
 type JsonPb struct {
 }
 

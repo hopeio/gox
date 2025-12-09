@@ -15,7 +15,7 @@ type Encoder interface {
 }
 
 type Unmarshaler interface {
-	Unmarshal([]byte) error
+	Unmarshal([]byte, any) error
 }
 
 type Marshaler interface {
