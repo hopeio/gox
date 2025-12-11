@@ -9,10 +9,12 @@ package time
 import (
 	"context"
 	"time"
+
+	"github.com/hopeio/gox/strings"
 )
 
 // Duration be used toml unmarshal string time, like 1s, 500ms.
-type Duration time.Duration
+type Duration int64
 
 // UnmarshalText unmarshal text to duration.
 func (d *Duration) UnmarshalText(text []byte) error {
@@ -49,4 +51,22 @@ func NormalizeDuration(td time.Duration, stdTd time.Duration) time.Duration {
 		return td * stdTd
 	}
 	return td
+}
+
+func (t Duration) MarshalJSON() ([]byte, error) {
+	return strings.ToBytes(time.Duration(t).String()), nil
+}
+
+// UnmarshalJSON implements the [encoding/json.Unmarshaler] interface.
+// The time must be a quoted string in the RFC 3339 format.
+func (t *Duration) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		return nil
+	}
+	duration, err := time.ParseDuration(strings.BytesToString(data))
+	if err != nil {
+		return err
+	}
+	*t = Duration(duration)
+	return nil
 }
