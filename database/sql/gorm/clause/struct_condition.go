@@ -2,6 +2,7 @@ package clause
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/hopeio/gox/database/sql"
 	"github.com/hopeio/gox/reflect/structtag"
@@ -21,10 +22,20 @@ import (
 		Outlier             bool                     `sqlcondi:"-"`
 	}
 */
+var paginationEmbeddedType = reflect.TypeFor[PaginationEmbedded]()
+var paginationType = reflect.TypeFor[Pagination]()
+
 func ConditionByStruct(param any) (clause.Expression, error) {
-	v := reflect.Indirect(reflect.ValueOf(param))
-	var conds []clause.Expression
+	return conditionByStruct(reflect.ValueOf(param))
+}
+
+func conditionByStruct(param reflect.Value) (clause.Expression, error) {
+	v := reflect.Indirect(param)
 	t := v.Type()
+	if t == paginationEmbeddedType || t == paginationType {
+		return nil, nil
+	}
+	var conds []clause.Expression
 	for i := range v.NumField() {
 		field := v.Field(i)
 		fieldKind := field.Kind()
@@ -51,7 +62,7 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 		}
 
 		if !ok && structField.Anonymous && (fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
-			subCondition, err := ConditionByStruct(field.Interface())
+			subCondition, err := conditionByStruct(field)
 			if err != nil {
 				return nil, err
 			}
@@ -63,7 +74,7 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 				continue
 			}
 			if tag == "embedded" && (fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
-				subCondition, err := ConditionByStruct(field.Interface())
+				subCondition, err := conditionByStruct(field)
 				if err != nil {
 					return nil, err
 				}
@@ -75,7 +86,7 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 
 			if tag == "" {
 				if fieldKind == reflect.Ptr || fieldKind == reflect.Struct {
-					subCondition, err := ConditionByStruct(field.Interface())
+					subCondition, err := conditionByStruct(field)
 					if err != nil {
 						return nil, err
 					}
@@ -95,6 +106,8 @@ func ConditionByStruct(param any) (clause.Expression, error) {
 				}
 				conds = append(conds, clause.Eq{Column: stringsx.CamelToSnake(structField.Name), Value: v.Field(i).Interface()})
 				continue
+			}
+			if !strings.Contains(tag, ";") {
 			}
 			condition, err := structtag.ParseSettingTagToStruct[sql.ConditionTag](tag, ';')
 			if err != nil {

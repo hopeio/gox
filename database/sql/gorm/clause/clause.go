@@ -73,6 +73,18 @@ func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.
 			Column: field,
 			Value:  args[0],
 		}
+	case sqlx.NotLike:
+		if len(args) == 0 {
+			return nil
+		}
+		return clause.NotConditions{
+			Exprs: []clause.Expression{
+				clause.Like{
+					Column: field,
+					Value:  args[0],
+				},
+			},
+		}
 	case sqlx.GreaterOrEqual:
 		if len(args) == 0 {
 			return nil
