@@ -8,25 +8,26 @@ package reqctx
 
 import (
 	"context"
-	"strings"
 	"sync"
 
 	contextx "github.com/hopeio/gox/context"
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-func GetPool[REQ ReqCtx]() sync.Pool {
-	return sync.Pool{New: func() any {
+var pool *sync.Pool
+
+func getPool[REQ ReqCtx]() *sync.Pool {
+	return &sync.Pool{New: func() any {
 		return new(Context[REQ])
 	}}
 }
 
-type ReqMeta struct {
+type Metadata struct {
+	RequestTime
 	Token string
 	Auth
 	device   *DeviceInfo
 	Internal string
-	RequestAt
 }
 
 type ReqCtx interface {
@@ -35,17 +36,9 @@ type ReqCtx interface {
 }
 
 type Context[REQ ReqCtx] struct {
-	contextx.Context
-	ReqMeta
+	*contextx.Context
+	Metadata
 	ReqCtx REQ
-}
-
-func methodFamily(m string) string {
-	m = strings.TrimPrefix(m, "/") // remove leading slash
-	if i := strings.Index(m, "/"); i >= 0 {
-		m = m[:i] // remove everything from second slash
-	}
-	return m
 }
 
 func (c *Context[REQ]) Wrapper() context.Context {
@@ -71,12 +64,25 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 	if ok {
 		return c
 	}
+	if pool == nil {
+		pool = getPool[REQ]()
+	}
+
+	c, ok = pool.Get().(*Context[REQ])
+	if ok {
+		c.ReqCtx = req
+		c.Metadata.RequestTime = NewRequestAt()
+		c.Metadata.Internal = req.RequestHeader().Get(httpx.HeaderInternal)
+		c.Metadata.Token = GetToken(req)
+		c.Context = contextx.New(ctx)
+		return c
+	}
 	return &Context[REQ]{
-		Context: *contextx.New(ctx),
-		ReqMeta: ReqMeta{
-			RequestAt: NewRequestAt(),
-			Internal:  req.RequestHeader().Get(httpx.HeaderGrpcInternal),
-			Token:     GetToken(req),
+		Context: contextx.New(ctx),
+		Metadata: Metadata{
+			RequestTime: NewRequestAt(),
+			Internal:    req.RequestHeader().Get(httpx.HeaderInternal),
+			Token:       GetToken(req),
 		},
 		ReqCtx: req,
 	}
@@ -85,7 +91,7 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 func (c *Context[REQ]) Device() *DeviceInfo {
 	if c.device == nil {
 		header := c.ReqCtx.RequestHeader()
-		c.device = Device(header.Get(httpx.HeaderDeviceInfo),
+		c.device = Device(header.Get(httpx.HeaderDeviceInfo), header.Get(httpx.HeaderAppInfo),
 			header.Get(httpx.HeaderArea), header.Get(httpx.HeaderLocation),
 			header.Get(httpx.HeaderUserAgent), header.Get(httpx.HeaderXForwardedFor))
 	}

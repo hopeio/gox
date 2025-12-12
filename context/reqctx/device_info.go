@@ -11,8 +11,8 @@ import (
 	"strconv"
 )
 
+// DeviceInfo device info
 type DeviceInfo struct {
-	//设备
 	Device    string  `json:"device" gorm:"size:255"`
 	OS        string  `json:"os" gorm:"size:255"`
 	AppCode   string  `json:"appCode" gorm:"size:255"`
@@ -24,27 +24,42 @@ type DeviceInfo struct {
 	UserAgent string  `json:"userAgent" gorm:"size:255"`
 }
 
-// info: device,os,appCode,appVersion
-// area:xxx
-// location:1.23456,2.123456
-func Device(infoHeader, area, location, userAgent, ip string) *DeviceInfo {
+// Device get device info
+// device: device,os
+// app: appCode,appVersion
+// area: xxx
+// location: 1.23456,2.123456
+func Device(device, app, area, location, userAgent, ip string) *DeviceInfo {
+	info := new(DeviceInfo)
 	unknow := true
-	var info DeviceInfo
-	//Device-Info:device,osInfo,appCode,appVersion
-	if infoHeader != "" {
+	//Device:device,osInfo
+	if device != "" {
 		unknow = false
 		var n, m int
-		for i, c := range infoHeader {
+		for i, c := range device {
 			if c == ',' {
 				switch n {
 				case 0:
-					info.Device = infoHeader[m:i]
+					info.Device = device[m:i]
 				case 1:
-					info.OS = infoHeader[m:i]
-				case 2:
-					info.AppCode = infoHeader[m:i]
-				case 3:
-					info.AppVer = infoHeader[m:i]
+					info.OS = device[m:i]
+				}
+				m = i + 1
+				n++
+			}
+		}
+	}
+	// App:appCode,appVersion
+	if app != "" {
+		unknow = false
+		var n, m int
+		for i, c := range app {
+			if c == ',' {
+				switch n {
+				case 0:
+					info.AppCode = app[m:i]
+				case 1:
+					info.AppVer = app[m:i]
 				}
 				m = i + 1
 				n++
@@ -52,11 +67,11 @@ func Device(infoHeader, area, location, userAgent, ip string) *DeviceInfo {
 		}
 	}
 	// area:xxx
-	// location:1.23456,2.123456
 	if area != "" {
 		unknow = false
 		info.Area, _ = url.PathUnescape(area)
 	}
+	// location:1.23456,2.123456
 	if location != "" {
 		unknow = false
 		var n, m int
@@ -86,5 +101,5 @@ func Device(infoHeader, area, location, userAgent, ip string) *DeviceInfo {
 	if unknow {
 		return nil
 	}
-	return &info
+	return info
 }

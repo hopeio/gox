@@ -44,7 +44,6 @@ func New(ctx context.Context) *Context {
 			traceId = idgen.NewRandomID().String()
 		}
 	}
-
 	return &Context{
 		ctx:      ctx,
 		rootSpan: rootSpan,

@@ -25,7 +25,6 @@ const (
 	HeaderTrailer                     = "Trailer"
 	HeaderTransferEncoding            = "Transfer-Encoding"
 	HeaderTransferEncodingChunked     = "chunked"
-	HeaderInternal                    = "Internal"
 	HeaderTE                          = "TE"
 	HeaderLastModified                = "Last-Modified"
 	HeaderContentLength               = "Content-Length"
@@ -55,7 +54,9 @@ const (
 )
 
 const (
-	HeaderDeviceInfo = "Device-AuthInfo"
+	HeaderDeviceInfo = "Device-Info"
+	HeaderAppInfo    = "App-Info"
 	HeaderLocation   = "Location"
 	HeaderArea       = "Area"
+	HeaderInternal   = "Internal"
 )

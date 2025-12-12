@@ -12,29 +12,29 @@ import (
 	timex "github.com/hopeio/gox/time"
 )
 
-type RequestAt struct {
+type RequestTime struct {
 	Time       time.Time
 	TimeStamp  int64
-	timeString string
+	TimeString string
 }
 
-func (r *RequestAt) String() string {
-	if r.timeString == "" {
-		r.timeString = r.Time.Format(timex.LayoutTimeMacro)
+func (r *RequestTime) String() string {
+	if r.TimeString == "" {
+		r.TimeString = r.Time.Format(timex.LayoutTimeMacro)
 	}
-	return r.timeString
+	return r.TimeString
 }
 
-func NewRequestAt() RequestAt {
+func NewRequestAt() RequestTime {
 	now := time.Now()
-	return RequestAt{
+	return RequestTime{
 		Time:      now,
 		TimeStamp: now.Unix(),
 	}
 }
 
-func NewRequestAtFromTime(t time.Time) RequestAt {
-	return RequestAt{
+func NewRequestAtFromTime(t time.Time) RequestTime {
+	return RequestTime{
 		Time:      t,
 		TimeStamp: t.Unix(),
 	}

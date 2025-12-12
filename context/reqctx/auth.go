@@ -13,10 +13,10 @@ import (
 )
 
 type AuthInfo interface {
-	IdStr() string
+	GetId() string
 }
 
-type AuthInterface interface {
+type ParseToken interface {
 	ParseToken(token string, secret []byte) error
 }
 
@@ -24,7 +24,7 @@ type AuthInterface interface {
 type Authorization struct {
 	AuthInfo `json:"auth"`
 	jwt.RegisteredClaims
-	AuthInfoRaw string `json:"-"`
+	AuthRaw string `json:"-"`
 }
 
 func (x *Authorization) Validate() error {
@@ -42,9 +42,9 @@ func (x *Authorization) ParseToken(token string, secret []byte) error {
 	if err != nil {
 		return err
 	}
-	x.ID = x.AuthInfo.IdStr()
+	x.ID = x.AuthInfo.GetId()
 	authBytes, _ := json.Marshal(x.AuthInfo)
-	x.AuthInfoRaw = stringsx.BytesToString(authBytes)
+	x.AuthRaw = stringsx.BytesToString(authBytes)
 	return nil
 }
 */
@@ -68,7 +68,7 @@ func GetToken[REQ ReqCtx](r REQ) string {
 }
 
 type Auth struct {
-	AuthInfoRaw string
-	AuthID      string
+	AuthRaw string
+	AuthID  string
 	AuthInfo
 }
