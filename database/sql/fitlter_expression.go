@@ -191,9 +191,9 @@ func ConvertParams(v interface{}, escaper string) string {
 	case *time.Time:
 		if v != nil {
 			return escaper + v.Format(TmFmtWithMS) + escaper
-		} else {
-			return NullStr
 		}
+
+		return NullStr
 	case driver.Valuer:
 		reflectValue := reflect.ValueOf(v)
 		if v != nil && reflectValue.IsValid() && ((reflectValue.Kind() == reflect.Ptr && !reflectValue.IsNil()) || reflectValue.Kind() != reflect.Ptr) {
@@ -206,9 +206,9 @@ func ConvertParams(v interface{}, escaper string) string {
 		reflectValue := reflect.ValueOf(v)
 		if v != nil && reflectValue.IsValid() && ((reflectValue.Kind() == reflect.Ptr && !reflectValue.IsNil()) || reflectValue.Kind() != reflect.Ptr) {
 			return escaper + strings.ReplaceAll(v.String(), escaper, "\\"+escaper) + escaper
-		} else {
-			return NullStr
 		}
+
+		return NullStr
 	case []byte:
 		if isPrintable(v) {
 			return escaper + strings.ReplaceAll(string(v), escaper, "\\"+escaper) + escaper

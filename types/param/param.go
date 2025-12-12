@@ -50,14 +50,6 @@ type Id struct {
 
 type RangeType int8
 
-func (r RangeType) HasBegin() bool {
-	return r&RangeTypeHasBegin != 0
-}
-
-func (r RangeType) HasEnd() bool {
-	return r&RangeTypeHasEnd != 0
-}
-
 func (r RangeType) ContainsBegin() bool {
 	return r&RangeTypeContainsBegin != 0
 }
@@ -67,19 +59,23 @@ func (r RangeType) ContainsEnd() bool {
 }
 
 const (
-	RangeTypeContainsEnd RangeType = 1 << iota
-	RangeTypeContainsBegin
-	RangeTypeHasEnd
-	RangeTypeHasBegin
+	RangeTypeContainsBegin RangeType = 1 << iota
+	RangeTypeContainsEnd
 )
 
 type FilterType int8
 
 func (f FilterType) RangeType() RangeType {
-	if f == FilterTypeRange {
-		return RangeType(f) & RangeTypeHasBegin
+	switch f {
+	case FilterTypeRange:
+		return RangeTypeContainsBegin | RangeTypeContainsEnd
+	case FilterTypeRangeContainsBegin:
+		return RangeTypeContainsBegin
+	case FilterTypeRangeContainsEnd:
+		return RangeTypeContainsEnd
+	default:
+		return 0
 	}
-	return RangeType(f)
 }
 
 const (
@@ -90,7 +86,10 @@ const (
 	FilterTypeNotIn
 	FilterTypeIsNull
 	FilterTypeIsNotNull
-	FilterTypeRange = 16
+	FilterTypeRange
+	FilterTypeRangeContainsBegin
+	FilterTypeRangeContainsEnd
+	FilterTypeOr
 )
 
 type Cursor[T any] struct {
@@ -99,38 +98,21 @@ type Cursor[T any] struct {
 	Size  int    `json:"size,omitempty"`
 }
 
-type RangeInTwoField[T any] struct {
-	BeginField string    `json:"beginField,omitempty"`
-	EndField   string    `json:"endField,omitempty"`
-	Begin      T         `json:"begin"`
-	End        T         `json:"end"`
-	Type       RangeType `json:"type,omitempty"`
-}
-
 type CursorAny = Cursor[any]
 
 type RangeAny = Range[any]
 
-type RangeInTwoFieldAny = RangeInTwoField[any]
-
 type List struct {
 	PaginationEmbedded
-	Filter map[string]Field[any] `json:"filter,omitempty"`
+	Filters Filters `json:"filters,omitempty"`
 }
 
-type Field[T any] struct {
-	Field  string    `json:"field,omitempty"`
-	Type   RangeType `json:"type,omitempty"`
-	Value  T         `json:"value,omitempty"`
-	Values []T       `json:"values,omitempty"`
-}
+type Filters []Filter
+type FilterMap map[string]Filter
 
-type Equal[T any] struct {
-	Field string `json:"field,omitempty"`
-	Value T      `json:"value,omitempty"`
-}
-
-type In[T any] struct {
-	Field  string `json:"field,omitempty"`
-	Values []T    `json:"values,omitempty"`
+type Filter struct {
+	Field  string     `json:"field,omitempty"`
+	Type   FilterType `json:"type,omitempty"`
+	Value  any        `json:"value,omitempty"`
+	Values []any      `json:"values,omitempty"`
 }
