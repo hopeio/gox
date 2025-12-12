@@ -20,7 +20,7 @@ type ConditionExpr interface {
 	Condition() clause.Expression
 }
 
-var ConditionExprType = reflect.TypeOf((*ConditionExpr)(nil)).Elem()
+var conditionExprType = reflect.TypeOf((*ConditionExpr)(nil)).Elem()
 
 func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.Expression {
 	if field == "" {
@@ -77,13 +77,9 @@ func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.
 		if len(args) == 0 {
 			return nil
 		}
-		return clause.NotConditions{
-			Exprs: []clause.Expression{
-				clause.Like{
-					Column: field,
-					Value:  args[0],
-				},
-			},
+		return NotLike{
+			Column: field,
+			Value:  args[0],
 		}
 	case sqlx.GreaterOrEqual:
 		if len(args) == 0 {
@@ -102,10 +98,11 @@ func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.
 			Value:  args[0],
 		}
 	case sqlx.NotIn:
-		return Not{Expr: clause.IN{
-			Column: field,
-			Values: args,
-		}}
+		return Not{
+			Expr: clause.IN{
+				Column: field,
+				Values: args,
+			}}
 	case sqlx.NotEqual:
 		if len(args) == 0 {
 			return nil
@@ -215,4 +212,12 @@ func (inn IsNotNull) Build(builder clause.Builder) {
 
 func (inn IsNotNull) NegationBuild(builder clause.Builder) {
 	IsNull(inn).Build(builder)
+}
+
+type NotLike clause.Neq
+
+func (nl NotLike) Build(builder clause.Builder) {
+	builder.WriteQuoted(nl.Column)
+	builder.WriteString(" NOT LIKE ")
+	builder.AddVar(builder, nl.Value)
 }

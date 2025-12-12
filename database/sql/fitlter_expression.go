@@ -34,11 +34,7 @@ const (
 	In
 	NotIn
 	Like
-	LikeLeftMatch
-	LikeRightMatch
 	NotLike
-	NotLikeLeftMatch
-	NotLikeRightMatch
 )
 
 func ParseConditionOperation(op string) ConditionOperation {
@@ -56,22 +52,14 @@ func ParseConditionOperation(op string) ConditionOperation {
 		return LessOrEqual
 	case "!=", " != ", "NOT EQUAL", "NOTEQUAL", "2":
 		return NotEqual
-	case "in", " IN ", "10":
+	case " IN ", "10":
 		return In
-	case "not in", "NOT IN", "NOTIN", "11":
+	case "NOT IN", "NOTIN", "11":
 		return NotIn
-	case "like", "LIKE", "12":
+	case "LIKE", "12":
 		return Like
-	case "%like", "%LIKE", "13":
-		return LikeLeftMatch
-	case "like%", "LIKE%", "14":
-		return LikeRightMatch
 	case "not like", "NOT LIKE", "15":
 		return NotLike
-	case "%not like", "%NOT LIKE", "16":
-		return NotLikeLeftMatch
-	case "not like%", "NOT LIKE%", "17":
-		return NotLikeRightMatch
 	case "null", "is null", "IS NULL", "ISNULL", "9":
 		return IsNull
 	case "not null", "is not null", "IS NOT NULL", "ISNOTNULL", "8":
@@ -106,6 +94,8 @@ func (m ConditionOperation) SQL() string {
 		return "NOT IN (?)"
 	case Like:
 		return "LIKE ?"
+	case NotLike:
+		return "NOT LIKE ?"
 	default:
 		return ""
 	}
