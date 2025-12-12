@@ -9,11 +9,11 @@ package scope
 import (
 	"strings"
 
-	dbi "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	"gorm.io/gorm"
 )
 
-type FilterExprs dbi.FilterExprs
+type FilterExprs sqlx.FilterExprs
 
 func (f FilterExprs) Build(db *gorm.DB) *gorm.DB {
 	for _, filter := range f {

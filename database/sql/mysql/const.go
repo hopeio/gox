@@ -7,7 +7,7 @@
 package mysql
 
 import (
-	dbi "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 )
 
 const (
@@ -16,5 +16,5 @@ const (
 )
 
 const (
-	NotDeleted = dbi.ColumnDeletedAt + " = '" + DateTimeZero + "'"
+	NotDeleted = sqlx.ColumnDeletedAt + " = '" + DateTimeZero + "'"
 )

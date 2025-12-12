@@ -3,11 +3,11 @@ package clause
 import (
 	"strings"
 
-	dbi "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	"gorm.io/gorm/clause"
 )
 
-type FilterExpr dbi.FilterExpr
+type FilterExpr sqlx.FilterExpr
 
 func (f *FilterExpr) Condition() clause.Expression {
 	f.Field = strings.TrimSpace(f.Field)
@@ -15,7 +15,7 @@ func (f *FilterExpr) Condition() clause.Expression {
 	return NewCondition(f.Field, f.Operation, f.Value)
 }
 
-type FilterExprs dbi.FilterExprs
+type FilterExprs sqlx.FilterExprs
 
 func (f FilterExprs) Condition() clause.Expression {
 	var exprs []clause.Expression

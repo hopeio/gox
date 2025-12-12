@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package param
+package request
 
 import (
 	"time"

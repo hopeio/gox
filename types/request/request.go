@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package param
+package request
 
 type OauthReq struct {
 	ResponseType   string `json:"responseType,omitempty"`

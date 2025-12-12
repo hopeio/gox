@@ -7,7 +7,7 @@
 package clause
 
 import (
-	dbi "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	"gorm.io/gorm/clause"
 )
 
@@ -18,5 +18,5 @@ func (c ChainClause) ById(id any) ChainClause {
 }
 
 func (c ChainClause) ByName(name string) ChainClause {
-	return append(c, clause.Where{Exprs: []clause.Expression{clause.Eq{Column: dbi.ColumnName, Value: name}}})
+	return append(c, clause.Where{Exprs: []clause.Expression{clause.Eq{Column: sqlx.ColumnName, Value: name}}})
 }

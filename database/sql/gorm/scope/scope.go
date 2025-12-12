@@ -7,13 +7,13 @@
 package scope
 
 import (
-	sql2 "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	"gorm.io/gorm"
 )
 
 type Scope func(*gorm.DB) *gorm.DB
 
-func NewScope(field string, op sql2.ConditionOperation, args ...interface{}) func(*gorm.DB) *gorm.DB {
+func NewScope(field string, op sqlx.ConditionOperation, args ...interface{}) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		db.Clauses()
 		return db.Where(field+op.SQL(), args...)
@@ -25,12 +25,12 @@ func NewScope(field string, op sql2.ConditionOperation, args ...interface{}) fun
 type ChainScope []func(db *gorm.DB) *gorm.DB
 
 func (c ChainScope) ById(id any) ChainScope {
-	return append(c, NewScope(sql2.ColumnId, sql2.Equal, id))
+	return append(c, NewScope(sqlx.ColumnId, sqlx.Equal, id))
 }
 
 func (c ChainScope) ByName(name any) ChainScope {
 	return append(c, func(db *gorm.DB) *gorm.DB {
-		return db.Where(sql2.NameEqual, name)
+		return db.Where(sqlx.NameEqual, name)
 	})
 }
 

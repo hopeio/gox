@@ -7,7 +7,7 @@
 package model
 
 import (
-	model1 "github.com/hopeio/gox/database/sql/model"
+	modelx "github.com/hopeio/gox/database/sql/model"
 	"github.com/hopeio/gox/types/model"
 	"gorm.io/gorm"
 )
@@ -27,5 +27,5 @@ func GetCursor(db *gorm.DB, typ string) (*Cursor, error) {
 }
 
 func EndCallback(db *gorm.DB, typ string) {
-	db.Exec(model1.EndCallbackSQL(typ))
+	db.Exec(modelx.EndCallbackSQL(typ))
 }

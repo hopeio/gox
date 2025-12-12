@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	dbx "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	jsonx "github.com/hopeio/gox/encoding/json"
 	reflectx "github.com/hopeio/gox/encoding/text"
 	stringsx "github.com/hopeio/gox/strings"
@@ -167,7 +167,7 @@ func (d *Array[T]) Scan(value any) error {
 			subArray, ok := stringsx.BracketsIntervals(str[i:], '{', '}')
 			if ok {
 				i += len(subArray)
-				t, err := dbx.StringConvertFor[T](subArray)
+				t, err := sqlx.StringConvertFor[T](subArray)
 				if err != nil {
 					return err
 				}
@@ -182,7 +182,7 @@ func (d *Array[T]) Scan(value any) error {
 	strs := strings.Split(str, ",")
 
 	for _, elem := range strs {
-		t, err := dbx.StringConvertFor[T](elem)
+		t, err := sqlx.StringConvertFor[T](elem)
 		if err != nil {
 			return err
 		}

@@ -16,7 +16,7 @@ import (
 
 	jsonx "github.com/hopeio/gox/encoding/json"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/types/param"
+	"github.com/hopeio/gox/types/request"
 
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
@@ -49,7 +49,7 @@ func NewServer(cfg *server.Config, manager oauth2.Manager) *Server {
 	return srv
 }
 
-func (s *Server) GetRedirectURI(req *param.OauthReq, data map[string]interface{}) (uri string, err error) {
+func (s *Server) GetRedirectURI(req *request.OauthReq, data map[string]interface{}) (uri string, err error) {
 	u, err := url.Parse(req.RedirectURI)
 	if err != nil {
 		return
@@ -98,7 +98,7 @@ func (s *Server) CheckResponseType(rt oauth2.ResponseType) bool {
 	return false
 }
 
-func (s *Server) ValidationAuthorizeRequest(req *param.OauthReq) error {
+func (s *Server) ValidationAuthorizeRequest(req *request.OauthReq) error {
 	if req.ClientID == "" || req.RedirectURI == "" {
 		return errors.ErrInvalidRequest
 	}
@@ -112,7 +112,7 @@ func (s *Server) ValidationAuthorizeRequest(req *param.OauthReq) error {
 	return nil
 }
 
-func (s *Server) GetAuthorizeToken(ctx context.Context, req *param.OauthReq) (ti oauth2.TokenInfo, err error) {
+func (s *Server) GetAuthorizeToken(ctx context.Context, req *request.OauthReq) (ti oauth2.TokenInfo, err error) {
 	// check the client allows the grant type
 	if fn := s.ClientAuthorizedHandler; fn != nil {
 		gt := oauth2.AuthorizationCode
@@ -157,12 +157,12 @@ func (s *Server) GetAuthorizeToken(ctx context.Context, req *param.OauthReq) (ti
 	return
 }
 
-func (s *Server) redirectError(req *param.OauthReq, err error, w http.ResponseWriter) {
+func (s *Server) redirectError(req *request.OauthReq, err error, w http.ResponseWriter) {
 	data, _, _ := s.GetErrorData(err)
 	s.redirect(req, data, w)
 }
 
-func (s *Server) redirect(req *param.OauthReq, data map[string]interface{}, w http.ResponseWriter) {
+func (s *Server) redirect(req *request.OauthReq, data map[string]interface{}, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusFound)
 	if req.LoginURI != "" {
 		w.Header().Set(httpx.HeaderLocation, req.LoginURI)
@@ -178,7 +178,7 @@ func (s *Server) redirect(req *param.OauthReq, data map[string]interface{}, w ht
 	w.Header().Set(httpx.HeaderLocation, uri)
 }
 
-func (s *Server) HandleAuthorizeRequest(ctx context.Context, req *param.OauthReq, token string, w http.ResponseWriter) {
+func (s *Server) HandleAuthorizeRequest(ctx context.Context, req *request.OauthReq, token string, w http.ResponseWriter) {
 	err := s.ValidationAuthorizeRequest(req)
 	if err != nil {
 		s.redirectError(req, err, w)
@@ -289,7 +289,7 @@ func (s *Server) GetErrorData(err error) (map[string]interface{}, int, http.Head
 	return data, statusCode, re.Header
 }
 
-func (s *Server) ValidationTokenRequest(r *param.OauthReq) (*oauth2.TokenGenerateRequest, error) {
+func (s *Server) ValidationTokenRequest(r *request.OauthReq) (*oauth2.TokenGenerateRequest, error) {
 
 	if r.GrantType == "" {
 		return nil, errors.ErrUnsupportedGrantType
@@ -323,7 +323,7 @@ func (s *Server) ValidationTokenRequest(r *param.OauthReq) (*oauth2.TokenGenerat
 	return tgr, nil
 }
 
-func (s *Server) HandleTokenRequest(ctx context.Context, r *param.OauthReq, w http.ResponseWriter) error {
+func (s *Server) HandleTokenRequest(ctx context.Context, r *request.OauthReq, w http.ResponseWriter) error {
 	tgr, err := s.ValidationTokenRequest(r)
 	if err != nil {
 		return s.tokenError(err, w)

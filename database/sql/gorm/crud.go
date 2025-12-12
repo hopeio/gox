@@ -7,26 +7,26 @@
 package gorm
 
 import (
-	sql3 "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	"gorm.io/gorm"
 )
 
 func DeleteById(db *gorm.DB, tableName string, id uint64) error {
-	sql := sql3.DeleteByIdSQL(tableName)
+	sql := sqlx.DeleteByIdSQL(tableName)
 	return db.Exec(sql, id).Error
 }
 
 func Delete(db *gorm.DB, tableName string, column string, value any) error {
-	sql := sql3.DeleteSQL(tableName, column)
+	sql := sqlx.DeleteSQL(tableName, column)
 	return db.Exec(sql, value).Error
 }
 
 func ExistsByColumn(db *gorm.DB, tableName, column string, value interface{}) (bool, error) {
-	return ExistsBySQL(db, sql3.ExistsSQL(tableName, column, false), value)
+	return ExistsBySQL(db, sqlx.ExistsSQL(tableName, column, false), value)
 }
 
 func ExistsByColumnWithDeletedAt(db *gorm.DB, tableName, column string, value interface{}) (bool, error) {
-	return ExistsBySQL(db, sql3.ExistsSQL(tableName, column, true), value)
+	return ExistsBySQL(db, sqlx.ExistsSQL(tableName, column, true), value)
 }
 
 func ExistsBySQL(db *gorm.DB, sql string, value ...any) (bool, error) {
@@ -41,7 +41,7 @@ func ExistsBySQL(db *gorm.DB, sql string, value ...any) (bool, error) {
 // 根据查询语句查询数据是否存在
 func ExistsByQuery(db *gorm.DB, qsql string, value ...any) (bool, error) {
 	var exists bool
-	err := db.Raw(sql3.ExistsByQuerySQL(qsql), value...).Scan(&exists).Error
+	err := db.Raw(sqlx.ExistsByQuerySQL(qsql), value...).Scan(&exists).Error
 	if err != nil {
 		return false, err
 	}
@@ -49,12 +49,12 @@ func ExistsByQuery(db *gorm.DB, qsql string, value ...any) (bool, error) {
 }
 
 func Exists(db *gorm.DB, tableName, column string, value interface{}, withDeletedAt bool) (bool, error) {
-	return ExistsBySQL(db, sql3.ExistsSQL(tableName, column, withDeletedAt), value)
+	return ExistsBySQL(db, sqlx.ExistsSQL(tableName, column, withDeletedAt), value)
 }
 
-func ExistsByFilterExprs(db *gorm.DB, tableName string, filters sql3.FilterExprs) (bool, error) {
+func ExistsByFilterExprs(db *gorm.DB, tableName string, filters sqlx.FilterExprs) (bool, error) {
 	var exists bool
-	err := db.Raw(sql3.ExistsByFilterExprsSQL(tableName, filters)).Scan(&exists).Error
+	err := db.Raw(sqlx.ExistsByFilterExprsSQL(tableName, filters)).Scan(&exists).Error
 	if err != nil {
 		return false, err
 	}

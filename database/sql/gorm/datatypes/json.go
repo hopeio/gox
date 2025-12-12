@@ -10,7 +10,7 @@ import (
 	"context"
 	"database/sql/driver"
 
-	dbi "github.com/hopeio/gox/database/sql"
+	sqlx "github.com/hopeio/gox/database/sql"
 	"github.com/hopeio/gox/database/sql/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -21,9 +21,9 @@ type Json[T any] datatypes.Json[T]
 
 func (*Json[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	switch db.Dialector.Name() {
-	case dbi.Sqlite, dbi.Mysql:
+	case sqlx.Sqlite, sqlx.Mysql:
 		return "json"
-	case dbi.Postgres:
+	case sqlx.Postgres:
 		return "jsonb"
 	}
 	return ""

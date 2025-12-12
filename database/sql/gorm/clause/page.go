@@ -11,7 +11,7 @@ package clause
 import (
 	"strconv"
 
-	"github.com/hopeio/gox/types/param"
+	"github.com/hopeio/gox/types/request"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -61,7 +61,7 @@ func (limit Limit) MergeClause(clause *clause.Clause) {
 	clause.Expression = limit
 }
 
-type PaginationEmbedded param.PaginationEmbedded
+type PaginationEmbedded request.PaginationEmbedded
 
 func (req *PaginationEmbedded) Clause() []clause.Expression {
 	if req.PageNo == 0 && req.PageSize == 0 {
@@ -74,7 +74,7 @@ func (req *PaginationEmbedded) Clause() []clause.Expression {
 	return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.PageNo, req.PageSize)}
 }
 
-func FindPaginationEmbedded[T any](db *gorm.DB, req *param.PaginationEmbedded, clauses ...clause.Expression) ([]T, int64, error) {
+func FindPaginationEmbedded[T any](db *gorm.DB, req *request.PaginationEmbedded, clauses ...clause.Expression) ([]T, int64, error) {
 	var models []T
 
 	if len(clauses) > 0 {
@@ -97,7 +97,7 @@ func FindPaginationEmbedded[T any](db *gorm.DB, req *param.PaginationEmbedded, c
 	return models, count, nil
 }
 
-type Pagination param.Pagination
+type Pagination request.Pagination
 
 func (req *Pagination) Clause() []clause.Expression {
 	if req.No == 0 && req.Size == 0 {
@@ -114,7 +114,7 @@ func (req *Pagination) Apply(db *gorm.DB) *gorm.DB {
 	return db.Clauses(req.Clause()...)
 }
 
-func FindPagination[T any](db *gorm.DB, req *param.Pagination, clauses ...clause.Expression) ([]T, int64, error) {
+func FindPagination[T any](db *gorm.DB, req *request.Pagination, clauses ...clause.Expression) ([]T, int64, error) {
 	var models []T
 
 	if len(clauses) > 0 {
@@ -137,7 +137,7 @@ func FindPagination[T any](db *gorm.DB, req *param.Pagination, clauses ...clause
 	return models, count, nil
 }
 
-func PaginationExpr(pageNo, pageSize int, sort ...param.Sort) clause.Limit {
+func PaginationExpr(pageNo, pageSize int, sort ...request.Sort) clause.Limit {
 	if pageSize == 0 {
 		pageSize = 100
 	}

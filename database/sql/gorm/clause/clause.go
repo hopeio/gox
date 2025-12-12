@@ -11,8 +11,8 @@ package clause
 import (
 	"reflect"
 
-	dbi "github.com/hopeio/gox/database/sql"
-	"github.com/hopeio/gox/types/param"
+	sqlx "github.com/hopeio/gox/database/sql"
+	"github.com/hopeio/gox/types/request"
 	"gorm.io/gorm/clause"
 )
 
@@ -22,12 +22,12 @@ type ConditionExpr interface {
 
 var ConditionExprType = reflect.TypeOf((*ConditionExpr)(nil)).Elem()
 
-func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.Expression {
+func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.Expression {
 	if field == "" {
 		return nil
 	}
 	switch op {
-	case dbi.Equal:
+	case sqlx.Equal:
 		if len(args) == 0 {
 			return nil
 		}
@@ -35,12 +35,12 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.In:
+	case sqlx.In:
 		return clause.IN{
 			Column: field,
 			Values: args,
 		}
-	case dbi.Between:
+	case sqlx.Between:
 		if len(args) != 2 {
 			return nil
 		}
@@ -49,7 +49,7 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Begin:  args[0],
 			End:    args[1],
 		}
-	case dbi.Greater:
+	case sqlx.Greater:
 		if len(args) == 0 {
 			return nil
 		}
@@ -57,7 +57,7 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.Less:
+	case sqlx.Less:
 		if len(args) == 0 {
 			return nil
 		}
@@ -65,7 +65,7 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.Like:
+	case sqlx.Like:
 		if len(args) == 0 {
 			return nil
 		}
@@ -73,7 +73,7 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.GreaterOrEqual:
+	case sqlx.GreaterOrEqual:
 		if len(args) == 0 {
 			return nil
 		}
@@ -81,7 +81,7 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.LessOrEqual:
+	case sqlx.LessOrEqual:
 		if len(args) == 0 {
 			return nil
 		}
@@ -89,12 +89,12 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.NotIn:
+	case sqlx.NotIn:
 		return Not{Expr: clause.IN{
 			Column: field,
 			Values: args,
 		}}
-	case dbi.NotEqual:
+	case sqlx.NotEqual:
 		if len(args) == 0 {
 			return nil
 		}
@@ -102,11 +102,11 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 			Column: field,
 			Value:  args[0],
 		}
-	case dbi.IsNull:
+	case sqlx.IsNull:
 		return IsNull{
 			Column: field,
 		}
-	case dbi.IsNotNull:
+	case sqlx.IsNotNull:
 		return IsNotNull{
 			Column: field,
 		}
@@ -117,7 +117,7 @@ func NewCondition(field string, op dbi.ConditionOperation, args ...any) clause.E
 	}
 }
 
-type Sorts []param.Sort
+type Sorts []request.Sort
 
 func (o Sorts) Condition() clause.Expression {
 	if len(o) == 0 {
@@ -126,7 +126,7 @@ func (o Sorts) Condition() clause.Expression {
 	return SortExpr(o...)
 }
 
-func SortExpr(sorts ...param.Sort) clause.Expression {
+func SortExpr(sorts ...request.Sort) clause.Expression {
 	if len(sorts) == 0 {
 		return nil
 	}
@@ -137,7 +137,7 @@ func SortExpr(sorts ...param.Sort) clause.Expression {
 				Name: sort.Field,
 				Raw:  true,
 			},
-			Desc: sort.Type == param.SortTypeDesc,
+			Desc: sort.Type == request.SortTypeDesc,
 		})
 	}
 	return clause.OrderBy{Columns: orders}
