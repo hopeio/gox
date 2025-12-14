@@ -1,7 +1,6 @@
 package clause
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -10,15 +9,26 @@ import (
 	"gorm.io/gorm/utils/tests"
 )
 
+type Report struct {
+	gorm.Model
+}
+
 type ReportList struct {
-	PaginationEmbedded `sqlcondi:"-"`
-	LoadingTime        *Range[time.Time]
-	UserId             int
-	CarId              int
-	TaskId             int
-	RouteId            int
-	Diff               float64 `sqlcondi:"-"`
-	Outlier            bool    `sqlcondi:"-"`
+	PaginationEmbedded
+	LoadingTime *Range[time.Time]
+	UserId      int `sqlcond:"-"`
+	CarId       int `sqlcond:"emptyvalid"`
+	TaskId      int
+	Or          Condition `sqlcond:"or"`
+	Embedded    Condition `sqlcond:"embedded"`
+	And         Condition
+}
+
+type Condition struct {
+	UserId int
+	CarId  int `sqlcond:"operate:>"`
+	TaskId int `sqlcond:"<"`
+	Expr   int `sqlcond:"operate:id = ?;emptyvalid"`
 }
 
 func TestConditionsBy(t *testing.T) {
@@ -30,11 +40,21 @@ func TestConditionsBy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db.Statement.SQL = strings.Builder{}
-	t.Log(db.Statement.SQL)
-	condition := AndConditionBy(&ReportList{UserId: 1})
 
-	t.Log(condition)
-	condition.Build(db.Statement)
-	t.Log(db.Statement.SQL.String(), err)
+	condition := ConditionsBy(&ReportList{
+		LoadingTime: &Range[time.Time]{
+			Field: "loading_time",
+			Begin: time.Now(),
+			End:   time.Now(),
+		}, UserId: 1, Or: Condition{UserId: 1, CarId: 1, TaskId: 1}, Embedded: Condition{UserId: 1, CarId: 1, TaskId: 1}, And: Condition{
+			UserId: 1,
+			CarId:  1,
+			TaskId: 1,
+			Expr:   2,
+		}})
+
+	t.Log(db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		var reports []*Report
+		return tx.Clauses(condition...).Find(&reports)
+	}))
 }

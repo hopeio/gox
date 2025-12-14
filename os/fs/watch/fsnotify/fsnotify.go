@@ -29,7 +29,7 @@ func New(interval time.Duration) (*Watch, error) {
 		interval: interval,
 		//1.map和数组做取舍
 		handlers: make(watch.Handlers),
-		//Handlers:  make(map[string]map[fsnotify.Op]func()),
+		//Handlers:  make(map[string]map[fsnotify.Operate]func()),
 		//2.提高时间复杂度，用event做key，然后每次事件循环取值
 		//Handlers:  make(map[fsnotify.Event]func()),
 	}

@@ -38,7 +38,7 @@ func New(interval time.Duration) *Watch {
 		//1.map和数组做取舍
 		handlers: make(map[string]*Callback),
 		timer:    time.NewTicker(interval),
-		//handlers:  make(map[string]map[fsnotify.Op]func()),
+		//handlers:  make(map[string]map[fsnotify.Operate]func()),
 		//2.提高时间复杂度，用event做key，然后每次事件循环取值
 		//handlers:  make(map[fsnotify.Event]func()),
 	}

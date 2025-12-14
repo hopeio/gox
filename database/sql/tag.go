@@ -7,19 +7,18 @@ import (
 )
 
 const (
-	CondiTagName = "sqlcondi" // e.g: `sqlcondi:"column:id;op:="`
-	// e.g: `sqlcondi:"expr:id = ?"`
-	// e.g: `sqlcondi:"-"`
-	// e.g: `sqlcondi:"embedded"`
+	CondiTagName = "sqlcond" // e.g: `sqlcond:"column:id;operate:="`
+	// e.g: `sqlcond:"operate:id = ?"`
+	// e.g: `sqlcond:"-"`
+	// e.g: `sqlcond:"embedded"`
 )
 
 type ConditionTag struct {
 	Column     string `meta:"column"`
-	Expr       string `meta:"expr"`
-	Op         string `meta:"op"`
+	Operate    string `meta:"operate"`
 	EmptyValid bool   `meta:"emptyvalid"`
 }
 
-func GetSQLCondition(tag reflect.StructTag) (*ConditionTag, error) {
+func GetConditionTagTag(tag reflect.StructTag) (*ConditionTag, error) {
 	return structtag.ParseSettingTagToStruct[ConditionTag](tag.Get(CondiTagName), ';')
 }

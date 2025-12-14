@@ -58,11 +58,11 @@ func ParseConditionOperation(op string) ConditionOperation {
 		return NotIn
 	case "LIKE", "12":
 		return Like
-	case "not like", "NOT LIKE", "15":
+	case "NOT LIKE", "NOTLIKE", "15":
 		return NotLike
-	case "null", "is null", "IS NULL", "ISNULL", "9":
+	case "NULL", "IS NULL", "ISNULL", "9":
 		return IsNull
-	case "not null", "is not null", "IS NOT NULL", "ISNOTNULL", "8":
+	case "NOT NULL", "NOTNULL", "IS NOT NULL", "ISNOTNULL", "8":
 		return IsNotNull
 	}
 	return OperationPlace

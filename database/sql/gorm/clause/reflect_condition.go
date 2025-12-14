@@ -12,14 +12,14 @@ import (
 
 /*
 		type ReportList struct {
-		PaginationEmbedded `sqlcondi:"-"`
+		PaginationEmbedded `sqlcond:"-"`
 		LoadingTime        *Range[time.Time]
 		UserId             int
 		CarId              int
 		TaskId             int
 		RouteId            int
-		Diff               float64 `sqlcondi:"-"`
-		Outlier            bool    `sqlcondi:"-"`
+		Diff               float64 `sqlcond:"-"`
+		Outlier            bool    `sqlcond:"-"`
 	}
 */
 var paginationEmbeddedType = reflect.TypeFor[PaginationEmbedded]()
@@ -74,9 +74,10 @@ func conditionsByImpl(param reflect.Value) (clause.Expression, bool) {
 		if condition := param.Interface().(ConditionExpr).Condition(); condition != nil {
 			return condition, true
 		}
+		return nil, true
 	}
-	kind := t.Kind()
-	if kind == reflect.Struct && param.Addr().Type().Implements(conditionExprType) {
+
+	if param.CanAddr() && param.Addr().Type().Implements(conditionExprType) {
 		if condition := param.Addr().Interface().(ConditionExpr).Condition(); condition != nil {
 			return condition, true
 		}
@@ -86,7 +87,10 @@ func conditionsByImpl(param reflect.Value) (clause.Expression, bool) {
 func conditionsBy(param reflect.Value) []clause.Expression {
 	condition, impl := conditionsByImpl(param)
 	if impl {
-		return []clause.Expression{condition}
+		if condition != nil {
+			return []clause.Expression{condition}
+		}
+		return nil
 	}
 	t := param.Type()
 	if t.Kind() == reflect.Ptr && param.IsNil() {
@@ -132,18 +136,18 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 		}
 
 		if !ok && structField.Anonymous && (fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
-			subCondition := andConditionBy(field)
-			if subCondition != nil {
-				conditions = append(conditions, subCondition)
+			subConditions := conditionsBy(field)
+			if subConditions != nil {
+				conditions = append(conditions, subConditions...)
 			}
 		} else {
 			if tag == "" && empty {
 				continue
 			}
 			if tag == "embedded" && (fieldKind == reflect.Ptr || fieldKind == reflect.Struct) {
-				subCondition := andConditionBy(field)
-				if subCondition != nil {
-					conditions = append(conditions, subCondition)
+				subConditions := conditionsBy(field)
+				if subConditions != nil {
+					conditions = append(conditions, subConditions...)
 				}
 				continue
 			}
@@ -159,7 +163,7 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 				conditions = append(conditions, clause.Eq{Column: stringsx.CamelToSnake(structField.Name), Value: vi.Field(i).Interface()})
 				continue
 			}
-			if !strings.Contains(tag, ";") {
+			if !strings.Contains(tag, ";") && !strings.Contains(tag, ":") {
 				switch tag {
 				case "or":
 					if fieldKind == reflect.Ptr || fieldKind == reflect.Struct || fieldKind == reflect.Map {
@@ -168,10 +172,28 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 							conditions = append(conditions, subCondition)
 						}
 					}
+					continue
+				case "omitempty":
+					if empty {
+						continue
+					}
+				case "validempty":
+					conditions = append(conditions, clause.Eq{Column: stringsx.CamelToSnake(structField.Name), Value: vi.Field(i).Interface()})
+					continue
 				default:
-					conditions = append(conditions, NewCondition(stringsx.CamelToSnake(structField.Name), sql.ParseConditionOperation(tag), vi.Field(i).Interface()))
+					if empty {
+						continue
+					}
+					op := sql.ParseConditionOperation(tag)
+					if op == sql.OperationPlace {
+						conditions = append(conditions, clause.Expr{SQL: tag, Vars: []any{vi.Field(i).Interface()}})
+					} else {
+						conditions = append(conditions, NewCondition(stringsx.CamelToSnake(structField.Name), op, vi.Field(i).Interface()))
+					}
+
+					continue
 				}
-				continue
+
 			}
 			conditionTag, err := structtag.ParseSettingTagToStruct[sql.ConditionTag](tag, ';')
 			if err != nil {
@@ -180,23 +202,21 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 			if !conditionTag.EmptyValid && empty {
 				continue
 			}
-			if conditionTag.Expr != "" {
-				conditions = append(conditions, clause.Expr{SQL: conditionTag.Expr, Vars: []any{vi.Field(i).Interface()}})
+			column := conditionTag.Column
+			if column == "" {
+				column = stringsx.CamelToSnake(structField.Name)
+			}
+			if conditionTag.Operate == "" {
+				conditions = append(conditions, clause.Eq{Column: column, Value: vi.Field(i).Interface()})
+				continue
+			}
+			op := sql.ParseConditionOperation(conditionTag.Operate)
+			if op == sql.OperationPlace {
+				conditions = append(conditions, clause.Expr{SQL: conditionTag.Operate, Vars: []any{vi.Field(i).Interface()}})
 			} else {
-				column := conditionTag.Column
-				if column == "" {
-					column = stringsx.CamelToSnake(structField.Name)
-				}
-				if conditionTag.Op == "" {
-					conditionTag.Op = "EQUAL"
-				}
-				op := sql.ParseConditionOperation(conditionTag.Op)
-				conditions = append(conditions, NewCondition(column, op, vi.Field(i).Interface()))
+				conditions = append(conditions, NewCondition(stringsx.CamelToSnake(structField.Name), op, vi.Field(i).Interface()))
 			}
 		}
-	}
-	if len(conditions) == 0 {
-		return nil
 	}
 	return conditions
 }
