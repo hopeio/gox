@@ -20,5 +20,5 @@ type ConditionTag struct {
 }
 
 func GetConditionTagTag(tag reflect.StructTag) (*ConditionTag, error) {
-	return structtag.ParseSettingTagToStruct[ConditionTag](tag.Get(CondiTagName), ';')
+	return structtag.ParseSettingTagToStruct[ConditionTag](tag.Get(CondiTagName), ";", ":")
 }

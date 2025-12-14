@@ -8,11 +8,11 @@ import (
 )
 
 func FormatFor[T any](t T) string {
-	return ReflectFormat(reflect.ValueOf(t))
+	return FormatReflectValue(reflect.ValueOf(t))
 }
 
 func FormatAny(t any) string {
-	return ReflectFormat(reflect.ValueOf(t))
+	return FormatReflectValue(reflect.ValueOf(t))
 }
 
 func FormatInteger(value any) string {

@@ -195,7 +195,7 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 				}
 
 			}
-			conditionTag, err := structtag.ParseSettingTagToStruct[sql.ConditionTag](tag, ';')
+			conditionTag, err := structtag.ParseSettingTagToStruct[sql.ConditionTag](tag, ";", ":")
 			if err != nil {
 				panic(err)
 			}

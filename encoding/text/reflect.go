@@ -24,7 +24,7 @@ var (
 	errUnknownField = errors.New("unknown field")
 )
 
-func ReflectFormat(value reflect.Value) string {
+func FormatReflectValue(value reflect.Value) string {
 	v := value.Interface()
 	if t, ok := v.(encoding.TextMarshaler); ok {
 		s, _ := t.MarshalText()
@@ -46,14 +46,14 @@ func ReflectFormat(value reflect.Value) string {
 	case reflect.Array, reflect.Slice:
 		var strs []string
 		for i := 0; i < value.Len(); i++ {
-			strs = append(strs, ReflectFormat(value.Index(i)))
+			strs = append(strs, FormatReflectValue(value.Index(i)))
 		}
 		return strings.Join(strs, ",")
 	}
 	return ""
 }
 
-func ParseReflectSet(value reflect.Value, val string, field *reflect.StructField) error {
+func ParseSetReflectValue(value reflect.Value, val string, field *reflect.StructField) error {
 	if val == "" {
 		return nil
 	}
@@ -115,7 +115,7 @@ func ParseReflectSet(value reflect.Value, val string, field *reflect.StructField
 			value.Set(reflect.MakeSlice(typ, len(strs), len(strs)))
 		}
 		for i := 0; i < value.Len(); i++ {
-			if err := ParseReflectSet(value.Index(i), strs[i], nil); err != nil {
+			if err := ParseSetReflectValue(value.Index(i), strs[i], nil); err != nil {
 				return err
 			}
 		}
@@ -134,7 +134,7 @@ func ParseReflectSet(value reflect.Value, val string, field *reflect.StructField
 	return nil
 }
 
-func ParseStringsReflectSet(value reflect.Value, vals []string, field *reflect.StructField) error {
+func ParseStringsSetReflectValue(value reflect.Value, vals []string, field *reflect.StructField) error {
 	if len(vals) == 0 {
 		return nil
 	}
@@ -147,11 +147,11 @@ func ParseStringsReflectSet(value reflect.Value, vals []string, field *reflect.S
 		}
 		return setArray(vals, value, field)
 	default:
-		return ParseReflectSet(value, vals[0], field)
+		return ParseSetReflectValue(value, vals[0], field)
 	}
 }
 
-func ParseSetField(dst any, field, value string) error {
+func ParseSetStructField(dst any, field, value string) error {
 	if value == "" {
 		return nil
 	}
@@ -159,7 +159,7 @@ func ParseSetField(dst any, field, value string) error {
 
 	structField, ok := v.Type().FieldByName(field)
 	if ok {
-		return ParseReflectSet(v.FieldByIndex(structField.Index), value, &structField)
+		return ParseSetReflectValue(v.FieldByIndex(structField.Index), value, &structField)
 	}
 	return errUnknownField
 }
@@ -260,7 +260,7 @@ func setTimeField(val string, structField *reflect.StructField, value reflect.Va
 
 func setArray(vals []string, value reflect.Value, field *reflect.StructField) error {
 	for i, s := range vals {
-		err := ParseReflectSet(value.Index(i), s, field)
+		err := ParseSetReflectValue(value.Index(i), s, field)
 		if err != nil {
 			return err
 		}

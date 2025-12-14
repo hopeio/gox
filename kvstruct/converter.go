@@ -36,7 +36,7 @@ var (
 	reflect.Int16:   stringConvertInt16,
 	reflect.Int32:   stringConvertInt32,
 	reflect.Int64:   stringConvertInt64,
-	reflect.ReflectFormat:  stringConvertString,
+	reflect.FormatReflectValue:  stringConvertString,
 	reflect.Uint:    stringConvertUint,
 	reflect.Uint8:   stringConvertUint8,
 	reflect.Uint16:  stringConvertUint16,

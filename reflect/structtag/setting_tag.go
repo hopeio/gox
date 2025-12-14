@@ -17,22 +17,22 @@ import (
 SettingTag is a tag for setting
 
 	type example struct {
-		db  string `key:"config:db;default:postgres`
+		db  string `key:"config:db;default:postgres;required"`
 	}
 */
 type SettingTag string
 
-// ParseSettingTagToMap  parse setting tag, default sep ;
-func ParseSettingTagToMap(tag string, sep byte) map[string]string {
+// ParseSettingTagToMap  parse setting tag, default sep ";" default assignSep ":"
+func ParseSettingTagToMap(tag, sep, assignSep string) map[string]string {
 	if tag == "" || tag == "-" {
 		return nil
 	}
-	if sep == 0 {
-		sep = ';'
+	if sep == "" {
+		sep = ";"
 	}
-	sepStr := string(sep)
+
 	settings := map[string]string{}
-	names := strings.Split(tag, sepStr)
+	names := strings.Split(tag, sep)
 
 	for i := 0; i < len(names); i++ {
 		j := i
@@ -40,19 +40,24 @@ func ParseSettingTagToMap(tag string, sep byte) map[string]string {
 			for {
 				if names[j][len(names[j])-1] == '\\' {
 					i++
-					names[j] = names[j][0:len(names[j])-1] + sepStr + names[i]
+					names[j] = names[j][0:len(names[j])-1] + sep + names[i]
 					names[i] = ""
 				} else {
 					break
 				}
 			}
 		}
+		if assignSep == "" {
+			sep = "="
+		}
 
-		values := strings.Split(names[j], ":")
+		values := strings.Split(names[j], assignSep)
 		k := strings.TrimSpace(strings.ToUpper(values[0]))
 
 		if len(values) >= 2 {
-			settings[k] = strings.Join(values[1:], ":")
+			val := strings.Join(values[1:], assignSep)
+			val = strings.ReplaceAll(val, `\"`, `"`)
+			settings[k] = val
 		} else if k != "" {
 			settings[k] = "true"
 		}
@@ -61,12 +66,12 @@ func ParseSettingTagToMap(tag string, sep byte) map[string]string {
 	return settings
 }
 
-func ParseSettingTagToStruct[T any](tag string, sep byte) (*T, error) {
+func ParseSettingTagToStruct[T any](tag, sep, assignSep string) (*T, error) {
 	if tag == "-" {
 		return nil, nil
 	}
 	settings := new(T)
-	err := ParseSettingTagIntoStruct(tag, sep, settings)
+	err := ParseSettingTagIntoStruct(tag, sep, assignSep, settings)
 	if err != nil {
 		return nil, err
 	}
@@ -86,14 +91,14 @@ type example struct {
 	db  string `specifyTagName:"config:db;default:postgres`
 }
 var tag tag
-ParseSettingTagIntoStruct("tagName",';',&tag)
+ParseSettingTagIntoStruct("tagName",";",":",&tag)
 */
 
-func ParseSettingTagIntoStruct(tag string, sep byte, settings any) error {
+func ParseSettingTagIntoStruct(tag, sep, assignSep string, settings any) error {
 	if tag == "-" {
 		return ErrTagIgnore
 	}
-	tagSettings := ParseSettingTagToMap(tag, sep)
+	tagSettings := ParseSettingTagToMap(tag, sep, assignSep)
 	if tagSettings == nil {
 		return ErrTagNotExist
 	}
@@ -108,7 +113,7 @@ func ParseSettingTagIntoStruct(tag string, sep byte, settings any) error {
 			name = structField.Name
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := encodingx.ParseReflectSet(settingsValue.Field(i), flagtag, &structField)
+			err := encodingx.ParseSetReflectValue(settingsValue.Field(i), flagtag, &structField)
 			if err != nil {
 				return err
 			}

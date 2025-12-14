@@ -30,7 +30,7 @@ func SetByKV(value reflect.Value, field *reflect.StructField, kv PeekV, key stri
 	if !ok {
 		return false, nil
 	}
-	err = encodingx.ParseReflectSet(value, vs, field)
+	err = encodingx.ParseSetReflectValue(value, vs, field)
 	if err != nil {
 		return false, err
 	}
@@ -129,7 +129,7 @@ func SetValueByKVsWithStructField(value reflect.Value, field *reflect.StructFiel
 		vals = strings.Split(opt.Default, ",")
 	}
 
-	err = encodingx.ParseStringsReflectSet(value, vals, field)
+	err = encodingx.ParseStringsSetReflectValue(value, vals, field)
 	if err != nil {
 		return false, err
 	}
