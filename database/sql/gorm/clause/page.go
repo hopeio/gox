@@ -68,13 +68,11 @@ func (o Sorts) Clauses() []clause.Expression {
 	if len(o) == 0 {
 		return nil
 	}
-	return []clause.Expression{
-		SortExpr(o...),
-	}
+	return []clause.Expression{SortExpr(nil, o...)}
 }
 
-func SortExpr(sorts ...request.Sort) clause.Expression {
-	if len(sorts) == 0 {
+func SortExpr(expr clause.Expression, sorts ...request.Sort) clause.Expression {
+	if expr == nil && len(sorts) == 0 {
 		return nil
 	}
 	var orders []clause.OrderByColumn
@@ -87,7 +85,7 @@ func SortExpr(sorts ...request.Sort) clause.Expression {
 			Desc: sort.Type == request.SortTypeDesc,
 		})
 	}
-	return clause.OrderBy{Columns: orders}
+	return clause.OrderBy{Columns: orders, Expression: expr}
 }
 
 type Pagination request.Pagination
@@ -96,32 +94,35 @@ func (req *Pagination) Clauses() []clause.Expression {
 	if req.No == 0 && req.Size == 0 {
 		return nil
 	}
-	if len(req.Sort) > 0 {
-		return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.No, req.Size)}
-	}
-
-	return []clause.Expression{PaginationExpr(req.No, req.Size)}
+	return PaginationExpr(req.No, req.Size, req.Sort...)
 }
 
 func (req *Pagination) Apply(db *gorm.DB) *gorm.DB {
 	return db.Clauses(req.Clauses()...)
 }
 
-func PaginationExpr(pageNo, pageSize uint32) clause.Expression {
+func PaginationExpr(pageNo, pageSize uint32, sort ...request.Sort) []clause.Expression {
 	if pageNo == 0 || pageSize == 0 {
+		if len(sort) > 0 {
+			return []clause.Expression{SortExpr(nil, sort...)}
+		}
 		return nil
 	}
+	limit := Limit{Limit: pageSize}
 	if pageNo > 1 {
-		return Limit{Offset: uint64(pageNo-1) * uint64(pageSize), Limit: pageSize}
+		limit.Offset = uint64(pageNo-1) * uint64(pageSize)
 	}
-	return Limit{Limit: pageSize}
+	if len(sort) > 0 {
+		return []clause.Expression{limit, SortExpr(nil, sort...)}
+	}
+	return []clause.Expression{limit}
 }
 
-func FindPagination[T any](db *gorm.DB, req *request.Pagination, clauses ...clause.Expression) ([]T, int64, error) {
+func FindPagination[T any](db *gorm.DB, req *request.Pagination, conds ...clause.Expression) ([]T, int64, error) {
 	var models []T
 
-	if len(clauses) > 0 {
-		db = db.Clauses(clauses...)
+	if len(conds) > 0 {
+		db = db.Clauses(conds...)
 	}
 	var count int64
 	var t T
