@@ -49,4 +49,4 @@ func (c ColumnNumber) Sting() string {
 	return (c/26 - 1).Sting() + (c % 26).Sting()
 }
 
-var ColumnLetter = [...]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "AB", "AC"}
+var ColumnLetter = [...]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "Value", "W", "X", "Y", "Z", "AA", "AB", "AC"}

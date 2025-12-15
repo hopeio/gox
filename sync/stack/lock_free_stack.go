@@ -5,8 +5,9 @@
 package stack
 
 import (
-	"github.com/hopeio/gox/sync"
 	"sync/atomic"
+
+	"github.com/hopeio/gox/sync"
 )
 
 // LockFreeStack implements lock-free freelist based stack.
@@ -37,14 +38,14 @@ func (s *LockFreeStack[T]) Pop() (T, bool) {
 		next = item.Next.Load()
 		if s.top.CompareAndSwap(top, next) {
 			atomic.AddUint64(&s.size, ^uint64(0))
-			return item.V, true
+			return item.Value, true
 		}
 	}
 }
 
 // Push pushes a value on top of the stack.
 func (s *LockFreeStack[T]) Push(v T) {
-	item := sync.Node[T]{V: v}
+	item := sync.Node[T]{Value: v}
 	var top *sync.Node[T]
 	for {
 		top = s.top.Load()

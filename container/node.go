@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package node
+package container
 
 import "golang.org/x/exp/constraints"
 
@@ -18,26 +18,26 @@ type LinkedNode[T any] struct {
 	Value      T
 }
 
-type KNode[K comparable, T any] struct {
-	Next  *KNode[K, T]
+type KeyNode[K comparable, T any] struct {
+	Next  *KeyNode[K, T]
 	Key   K
 	Value T
 }
 
-type LinkedKNode[K comparable, T any] struct {
-	Prev, Next *LinkedKNode[K, T]
+type LinkedKeyNode[K comparable, T any] struct {
+	Prev, Next *LinkedKeyNode[K, T]
 	Key        K
 	Value      T
 }
 
-type OrdKNode[K constraints.Ordered, T any] struct {
-	Next  *OrdKNode[K, T]
+type OrderedKeyNode[K constraints.Ordered, T any] struct {
+	Next  *OrderedKeyNode[K, T]
 	Key   K
 	Value T
 }
 
-type LinkedOrdKNode[K constraints.Ordered, T any] struct {
-	Prev, Next *LinkedOrdKNode[K, T]
+type LinkedOrderedKeyNode[K constraints.Ordered, T any] struct {
+	Prev, Next *LinkedOrderedKeyNode[K, T]
 	Key        K
 	Value      T
 }

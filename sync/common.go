@@ -13,8 +13,8 @@ import (
 
 // 性能比用DirectItem差
 type Node[T any] struct {
-	Next atomic.Pointer[Node[T]]
-	V    T
+	Next  atomic.Pointer[Node[T]]
+	Value T
 }
 
 func LoadNode[T any](p *unsafe.Pointer) *Node[T] {
@@ -25,8 +25,8 @@ func CasNode[T any](p *unsafe.Pointer, old, new *Node[T]) bool {
 }
 
 type DirectItem struct {
-	Next unsafe.Pointer
-	V    any
+	Next  unsafe.Pointer
+	Value any
 }
 
 func LoadItem(p *unsafe.Pointer) *DirectItem {

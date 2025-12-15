@@ -5,8 +5,9 @@
 package list
 
 import (
-	"github.com/hopeio/gox/sync"
 	"sync/atomic"
+
+	"github.com/hopeio/gox/sync"
 )
 
 type LockFreeList[T any] struct {
@@ -20,7 +21,7 @@ func NewLockFreeList[T any]() *LockFreeList[T] {
 }
 
 func (l *LockFreeList[T]) Push(v T) {
-	node := &sync.Node[T]{V: v}
+	node := &sync.Node[T]{Value: v}
 	if atomic.LoadUint64(&l.size) == 0 {
 		l.head.Store(node)
 		l.tail.Store(node)

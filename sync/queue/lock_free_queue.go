@@ -5,8 +5,9 @@
 package queue
 
 import (
-	"github.com/hopeio/gox/sync"
 	"sync/atomic"
+
+	"github.com/hopeio/gox/sync"
 )
 
 // LockFreeQueue implements lock-free FIFO freelist based queue.
@@ -29,7 +30,7 @@ func NewLockFreeQueue[T any]() *LockFreeQueue[T] {
 
 // Enqueue puts the given value v at the tail of the queue.
 func (q *LockFreeQueue[T]) Enqueue(v T) {
-	i := &sync.Node[T]{V: v} // allocate new item
+	i := &sync.Node[T]{Value: v} // allocate new item
 	var last, lastnext *sync.Node[T]
 	for {
 		last = q.tail.Load()
@@ -63,7 +64,7 @@ func (q *LockFreeQueue[T]) Dequeue() (T, bool) {
 				}
 				q.tail.CompareAndSwap(last, firstnext) // tail is falling behind, try to advance it
 			} else { // read value before cas, otherwise another dequeue might free the next node
-				v := firstnext.V
+				v := firstnext.Value
 				if q.head.CompareAndSwap(first, firstnext) { // try to swing head to the next node
 					atomic.AddUint64(&q.len, ^uint64(0))
 					return v, true // queue was not empty and dequeue finished.
