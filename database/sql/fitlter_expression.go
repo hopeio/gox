@@ -58,7 +58,7 @@ func ParseConditionOperation(op string) ConditionOperation {
 		return NotIn
 	case "LIKE", "12":
 		return Like
-	case "NOT LIKE", "NOTLIKE", "15":
+	case "NOT LIKE", "NOTLIKE", "13":
 		return NotLike
 	case "NULL", "IS NULL", "ISNULL", "9":
 		return IsNull
@@ -115,7 +115,6 @@ func (m ConditionOperation) String() string {
 		return " < "
 	case NotEqual:
 		return " != "
-
 	case GreaterOrEqual:
 		return " >= "
 	case LessOrEqual:
@@ -126,6 +125,10 @@ func (m ConditionOperation) String() string {
 		return " IS NOT NULL"
 	case NotIn:
 		return " NOT IN "
+	case Like:
+		return " LIKE "
+	case NotLike:
+		return " NOT LIKE "
 	default:
 		return "="
 	}
@@ -161,7 +164,7 @@ func (filter *FilterExpr) Build() string {
 			vars[idx] = ConvertParams(v, "'")
 		}
 		return filter.Field + filter.Operation.String() + vars[0] + " AND " + vars[1]
-	case Like:
+	case Like, NotLike:
 		return filter.Field + filter.Operation.String() + ConvertParams(filter.Value[0], "'")
 	case IsNull, IsNotNull:
 		return filter.Field + filter.Operation.String()
