@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	sqlx "github.com/hopeio/gox/database/sql"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -32,4 +33,17 @@ func (f FilterExprs) Condition() clause.Expression {
 		return clause.AndConditions{Exprs: exprs}
 	}
 	return nil
+}
+
+func (f FilterExprs) Apply(db *gorm.DB) *gorm.DB {
+	for _, filter := range f {
+		filter.Field = strings.TrimSpace(filter.Field)
+
+		if filter.Field == "" {
+			continue
+		}
+
+		db = db.Where(filter.Field+" "+filter.Operation.SQL(), filter.Value...)
+	}
+	return db
 }

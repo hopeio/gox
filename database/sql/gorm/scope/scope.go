@@ -24,17 +24,19 @@ func NewScope(field string, op sqlx.ConditionOperation, args ...interface{}) fun
 // dao.ById(1),ByName("a").Exec(db).First(v)
 type ChainScope []func(db *gorm.DB) *gorm.DB
 
-func (c ChainScope) ById(id any) ChainScope {
-	return append(c, NewScope(sqlx.ColumnId, sqlx.Equal, id))
+func (c *ChainScope) ById(id any) *ChainScope {
+	*c = append(*c, NewScope(sqlx.ColumnId, sqlx.Equal, id))
+	return c
 }
 
-func (c ChainScope) ByName(name any) ChainScope {
-	return append(c, func(db *gorm.DB) *gorm.DB {
+func (c *ChainScope) ByName(name any) *ChainScope {
+	*c = append(*c, func(db *gorm.DB) *gorm.DB {
 		return db.Where(sqlx.NameEqual, name)
 	})
+	return c
 }
 
-func (c ChainScope) Exec(db *gorm.DB) *gorm.DB {
+func (c ChainScope) Apply(db *gorm.DB) *gorm.DB {
 	db = db.Scopes(c...)
 	return db
 }

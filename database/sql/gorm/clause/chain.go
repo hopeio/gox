@@ -11,12 +11,14 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type ChainClause []clause.Interface
+type ChainClause []clause.Expression
 
-func (c ChainClause) ById(id any) ChainClause {
-	return append(c, clause.Where{Exprs: []clause.Expression{clause.Eq{Column: clause.PrimaryColumn, Value: id}}})
+func (c *ChainClause) ById(id any) *ChainClause {
+	*c = append(*c, clause.Eq{Column: clause.PrimaryColumn, Value: id})
+	return c
 }
 
-func (c ChainClause) ByName(name string) ChainClause {
-	return append(c, clause.Where{Exprs: []clause.Expression{clause.Eq{Column: sqlx.ColumnName, Value: name}}})
+func (c *ChainClause) ByName(name string) *ChainClause {
+	*c = append(*c, clause.Eq{Column: sqlx.ColumnName, Value: name})
+	return c
 }

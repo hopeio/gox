@@ -7,12 +7,12 @@
 package request
 
 type Pageable interface {
-	PageNo() int
-	PageSize() int
+	PageNo() uint32
+	PageSize() uint32
 	Sort() []Sort
 }
 
-type SortType int
+type SortType uint8
 
 const (
 	_ SortType = iota
@@ -21,14 +21,14 @@ const (
 )
 
 type PaginationEmbedded struct {
-	PageNo   int    `json:"pageNo"`
-	PageSize int    `json:"pageSize"`
+	PageNo   uint32 `json:"pageNo"`
+	PageSize uint32 `json:"pageSize"`
 	Sort     []Sort `json:"sort"`
 }
 
 type Pagination struct {
-	No   int    `json:"no"`
-	Size int    `json:"size"`
+	No   uint32 `json:"no"`
+	Size uint32 `json:"size"`
 	Sort []Sort `json:"sort"`
 }
 
@@ -45,7 +45,7 @@ type Range[T any] struct {
 }
 
 type Id struct {
-	Id uint `json:"id"`
+	Id uint64 `json:"id"`
 }
 
 type RangeType int8

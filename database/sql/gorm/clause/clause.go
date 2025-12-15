@@ -12,12 +12,23 @@ import (
 	"reflect"
 
 	sqlx "github.com/hopeio/gox/database/sql"
-	"github.com/hopeio/gox/types/request"
 	"gorm.io/gorm/clause"
 )
 
 type ConditionExpr interface {
 	Condition() clause.Expression
+}
+
+type ConditionsExpr interface {
+	Conditions() []clause.Expression
+}
+
+type Clause interface {
+	Clause() clause.Expression
+}
+
+type Clauses interface {
+	Clauses() []clause.Expression
 }
 
 var conditionExprType = reflect.TypeOf((*ConditionExpr)(nil)).Elem()
@@ -124,32 +135,6 @@ func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.
 		SQL:  field,
 		Vars: args,
 	}
-}
-
-type Sorts []request.Sort
-
-func (o Sorts) Condition() clause.Expression {
-	if len(o) == 0 {
-		return nil
-	}
-	return SortExpr(o...)
-}
-
-func SortExpr(sorts ...request.Sort) clause.Expression {
-	if len(sorts) == 0 {
-		return nil
-	}
-	var orders []clause.OrderByColumn
-	for _, sort := range sorts {
-		orders = append(orders, clause.OrderByColumn{
-			Column: clause.Column{
-				Name: sort.Field,
-				Raw:  true,
-			},
-			Desc: sort.Type == request.SortTypeDesc,
-		})
-	}
-	return clause.OrderBy{Columns: orders}
 }
 
 func ByPrimaryKey(v any) clause.Expression {

@@ -10,6 +10,7 @@ package clause
 
 import (
 	"strconv"
+	"unsafe"
 
 	"github.com/hopeio/gox/types/request"
 	"gorm.io/gorm"
@@ -18,8 +19,8 @@ import (
 
 // Limit limit clause
 type Limit struct {
-	Limit  int
-	Offset int
+	Limit  uint32
+	Offset uint64
 }
 
 // Name where clause name
@@ -31,14 +32,14 @@ func (limit Limit) Name() string {
 func (limit Limit) Build(builder clause.Builder) {
 	if limit.Limit > 0 {
 		builder.WriteString("LIMIT ")
-		builder.WriteString(strconv.Itoa(limit.Limit))
+		builder.WriteString(strconv.Itoa(int(limit.Limit)))
 	}
 	if limit.Offset > 0 {
 		if limit.Limit > 0 {
 			builder.WriteByte(' ')
 		}
 		builder.WriteString("OFFSET ")
-		builder.WriteString(strconv.Itoa(limit.Offset))
+		builder.WriteString(strconv.Itoa(int(limit.Offset)))
 	}
 }
 
@@ -61,57 +62,59 @@ func (limit Limit) MergeClause(clause *clause.Clause) {
 	clause.Expression = limit
 }
 
-type PaginationEmbedded request.PaginationEmbedded
+type Sorts []request.Sort
 
-func (req *PaginationEmbedded) Clause() []clause.Expression {
-	if req.PageNo == 0 && req.PageSize == 0 {
+func (o Sorts) Clauses() []clause.Expression {
+	if len(o) == 0 {
 		return nil
 	}
-	if len(req.Sort) > 0 {
-		return []clause.Expression{PaginationExpr(req.PageNo, req.PageSize)}
+	return []clause.Expression{
+		SortExpr(o...),
 	}
-
-	return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.PageNo, req.PageSize)}
 }
 
-func FindPaginationEmbedded[T any](db *gorm.DB, req *request.PaginationEmbedded, clauses ...clause.Expression) ([]T, int64, error) {
-	var models []T
-
-	if len(clauses) > 0 {
-		db = db.Clauses(clauses...)
+func SortExpr(sorts ...request.Sort) clause.Expression {
+	if len(sorts) == 0 {
+		return nil
 	}
-	var count int64
-	var t T
-	err := db.Model(&t).Count(&count).Error
-	if err != nil {
-		return nil, 0, err
+	var orders []clause.OrderByColumn
+	for _, sort := range sorts {
+		orders = append(orders, clause.OrderByColumn{
+			Column: clause.Column{
+				Name: sort.Field,
+				Raw:  true,
+			},
+			Desc: sort.Type == request.SortTypeDesc,
+		})
 	}
-	if count == 0 {
-		return nil, 0, nil
-	}
-	pageClauses := (*PaginationEmbedded)(req).Clause()
-	err = db.Clauses(pageClauses...).Find(&models).Error
-	if err != nil {
-		return nil, 0, err
-	}
-	return models, count, nil
+	return clause.OrderBy{Columns: orders}
 }
 
 type Pagination request.Pagination
 
-func (req *Pagination) Clause() []clause.Expression {
+func (req *Pagination) Clauses() []clause.Expression {
 	if req.No == 0 && req.Size == 0 {
 		return nil
 	}
-	if len(req.Sort) == 0 {
-		return []clause.Expression{PaginationExpr(req.No, req.Size)}
+	if len(req.Sort) > 0 {
+		return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.No, req.Size)}
 	}
 
-	return []clause.Expression{SortExpr(req.Sort...), PaginationExpr(req.No, req.Size)}
+	return []clause.Expression{PaginationExpr(req.No, req.Size)}
 }
 
 func (req *Pagination) Apply(db *gorm.DB) *gorm.DB {
-	return db.Clauses(req.Clause()...)
+	return db.Clauses(req.Clauses()...)
+}
+
+func PaginationExpr(pageNo, pageSize uint32) clause.Expression {
+	if pageNo == 0 || pageSize == 0 {
+		return nil
+	}
+	if pageNo > 1 {
+		return Limit{Offset: uint64(pageNo-1) * uint64(pageSize), Limit: pageSize}
+	}
+	return Limit{Limit: pageSize}
 }
 
 func FindPagination[T any](db *gorm.DB, req *request.Pagination, clauses ...clause.Expression) ([]T, int64, error) {
@@ -129,7 +132,7 @@ func FindPagination[T any](db *gorm.DB, req *request.Pagination, clauses ...clau
 	if count == 0 {
 		return nil, 0, nil
 	}
-	pageClauses := (*Pagination)(req).Clause()
+	pageClauses := (*Pagination)(req).Clauses()
 	err = db.Clauses(pageClauses...).Find(&models).Error
 	if err != nil {
 		return nil, 0, err
@@ -137,16 +140,8 @@ func FindPagination[T any](db *gorm.DB, req *request.Pagination, clauses ...clau
 	return models, count, nil
 }
 
-func PaginationExpr(pageNo, pageSize int, sort ...request.Sort) clause.Limit {
-	if pageSize == 0 {
-		pageSize = 100
-	}
-	if pageNo > 1 {
-		return clause.Limit{Offset: (pageNo - 1) * pageSize, Limit: &pageSize}
-	}
-	return clause.Limit{Limit: &pageSize}
-}
+type PaginationEmbedded request.PaginationEmbedded
 
-func (req *PaginationEmbedded) Apply(db *gorm.DB) *gorm.DB {
-	return db.Clauses(req.Clause()...)
+func (req *PaginationEmbedded) ToPagination() *Pagination {
+	return (*Pagination)(unsafe.Pointer(req))
 }
