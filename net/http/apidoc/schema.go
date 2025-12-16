@@ -299,6 +299,10 @@ func (api *API) RegisterModel(model Model, opts ...ModelOpts) (name string, sche
 		schema.AdditionalProperties.Schema = getSchemaReferenceOrValue(elementName, elementSchema)
 	case reflect.Struct:
 		schema = openapi3.NewObjectSchema()
+		// Before all processing, register the type if required. resolve self-reference
+		if shouldBeReferenced(schema) {
+			api.models[name] = schema
+		}
 		if schema.Description, schema.Deprecated, err = api.getTypeComment(t.PkgPath(), t.Name()); err != nil {
 			return name, schema, fmt.Errorf("failed to get comments for type %q: %w", name, err)
 		}
@@ -363,12 +367,6 @@ func (api *API) RegisterModel(model Model, opts ...ModelOpts) (name string, sche
 
 	for _, opt := range opts {
 		opt(schema)
-	}
-
-	// After all processing, register the type if required.
-	if shouldBeReferenced(schema) {
-		api.models[name] = schema
-		return
 	}
 
 	return

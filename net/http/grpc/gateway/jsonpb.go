@@ -10,6 +10,7 @@ import (
 	"io"
 
 	"github.com/hopeio/gox/encoding/json"
+	"github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -41,10 +42,10 @@ func (j *JsonPb) Marshal(v any) ([]byte, error) {
 		v = msg.Value
 	case *wrapperspb.BytesValue:
 		v = msg.Value
+	case error:
+		return json.Marshal(errors.ErrRespFrom(msg))
 	}
-	return json.Marshal(&httpx.RespAnyData{
-		Data: v,
-	})
+	return json.Marshal(&httpx.RespAnyData{Data: v})
 }
 
 func (j *JsonPb) Name() string {

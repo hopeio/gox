@@ -88,3 +88,7 @@ func (x *ErrResp) Error() string {
 func (x *ErrResp) MarshalJSON() ([]byte, error) {
 	return stringsx.ToBytes(`{"code":` + strconv.Itoa(int(x.Code)) + `,"msg":` + strconv.Quote(x.Msg) + `}`), nil
 }
+
+func (e *ErrResp) ErrResp() *errors.ErrResp {
+	return (*errors.ErrResp)(e)
+}

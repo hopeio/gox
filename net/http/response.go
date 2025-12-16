@@ -146,6 +146,14 @@ func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (
 	return w.Write(data)
 }
 
+func (res *ErrResp) ErrResp() *errorsx.ErrResp {
+	return (*errorsx.ErrResp)(res)
+}
+
+func (res *ErrResp) Error() string {
+	return res.ErrResp().Error()
+}
+
 type Responder interface {
 	Respond(ctx context.Context, w http.ResponseWriter) (int, error)
 }
