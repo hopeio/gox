@@ -7,8 +7,9 @@
 package cmp
 
 import (
-	"golang.org/x/exp/constraints"
 	"unsafe"
+
+	"golang.org/x/exp/constraints"
 )
 
 func Less[T constraints.Ordered](a T, b T) bool {

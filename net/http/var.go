@@ -1,5 +1,5 @@
 package http
 
 var (
-	DefaultCodec Codec = &Json{}
+	DefaultMarshaler Marshaler = &Json{}
 )

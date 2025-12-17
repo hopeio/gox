@@ -33,7 +33,7 @@ func ErrorLoggerT(typ gin.ErrorType) gin.HandlerFunc {
 		c.Next()
 		errs := c.Errors.ByType(typ)
 		if len(errs) > 0 {
-			data, err := httpx.DefaultCodec.Marshal(errors.InvalidArgument.Msg(strings.Join(errs.Errors(), "\n")))
+			data, err := httpx.DefaultMarshaler.Marshal(errors.InvalidArgument.Msg(strings.Join(errs.Errors(), "\n")))
 			if err != nil {
 				c.Status(http.StatusInternalServerError)
 				c.Abort()

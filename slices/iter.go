@@ -1,8 +1,9 @@
 package slices
 
 import (
-	"github.com/hopeio/gox/types"
 	"iter"
+
+	"github.com/hopeio/gox/types"
 )
 
 func OrderIterBy[S ~[]T, T any](s S, cmp types.Comparator[T]) iter.Seq[T] {

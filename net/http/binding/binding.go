@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"sync"
 
+	jsonx "github.com/hopeio/gox/encoding/json"
 	"github.com/hopeio/gox/kvstruct"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
@@ -21,7 +22,7 @@ import (
 
 var (
 	DefaultMemory    int64 = 32 << 20
-	BodyUnmarshaller       = httpx.DefaultCodec.Unmarshal
+	BodyUnmarshaller       = jsonx.Unmarshal
 	CommonTag              = "json"
 	Validate               = validator.ValidateStruct
 	defaultTags            = []string{"uri", "path", "query", "header", "form", CommonTag}

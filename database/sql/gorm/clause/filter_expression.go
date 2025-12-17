@@ -12,7 +12,6 @@ type FilterExpr sqlx.FilterExpr
 
 func (f *FilterExpr) Condition() clause.Expression {
 	f.Field = strings.TrimSpace(f.Field)
-
 	return NewCondition(f.Field, f.Operation, f.Value)
 }
 
@@ -43,7 +42,7 @@ func (f FilterExprs) Apply(db *gorm.DB) *gorm.DB {
 			continue
 		}
 
-		db = db.Where(filter.Field+" "+filter.Operation.SQL(), filter.Value...)
+		db = db.Where(filter.Field+" "+filter.Operation.SQL(), sqlx.AnyToAnys(filter.Value))
 	}
 	return db
 }

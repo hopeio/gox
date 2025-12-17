@@ -33,94 +33,69 @@ type Clauses interface {
 
 var conditionExprType = reflect.TypeOf((*ConditionExpr)(nil)).Elem()
 
-func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.Expression {
+func NewCondition(field string, op sqlx.ConditionOperation, args any) clause.Expression {
 	if field == "" {
 		return nil
 	}
 	switch op {
 	case sqlx.Equal:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Eq{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.In:
 		return clause.IN{
 			Column: field,
-			Values: args,
+			Values: sqlx.AnyToAnys(args),
 		}
+	case sqlx.NotIn:
+		return Not{
+			Expr: clause.IN{
+				Column: field,
+				Values: sqlx.AnyToAnys(args),
+			}}
 	case sqlx.Between:
-		if len(args) != 2 {
-			return nil
-		}
+		args := sqlx.AnyToAnys(args)
 		return Between{
 			Column: field,
 			Begin:  args[0],
 			End:    args[1],
 		}
 	case sqlx.Greater:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Gt{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.Less:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Lt{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.Like:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Like{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.NotLike:
-		if len(args) == 0 {
-			return nil
-		}
 		return NotLike{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.GreaterOrEqual:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Gte{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.LessOrEqual:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Lte{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
-	case sqlx.NotIn:
-		return Not{
-			Expr: clause.IN{
-				Column: field,
-				Values: args,
-			}}
+
 	case sqlx.NotEqual:
-		if len(args) == 0 {
-			return nil
-		}
 		return clause.Neq{
 			Column: field,
-			Value:  args[0],
+			Value:  args,
 		}
 	case sqlx.IsNull:
 		return IsNull{
@@ -133,7 +108,7 @@ func NewCondition(field string, op sqlx.ConditionOperation, args ...any) clause.
 	}
 	return clause.Expr{
 		SQL:  field,
-		Vars: args,
+		Vars: sqlx.AnyToAnys(args),
 	}
 }
 

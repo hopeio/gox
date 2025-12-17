@@ -1,14 +1,26 @@
 package http
 
-import jsonx "github.com/hopeio/gox/encoding/json"
+import (
+	"io"
 
-// Codec defines a conversion between byte sequence and gRPC payloads / fields.
+	jsonx "github.com/hopeio/gox/encoding/json"
+	"github.com/hopeio/gox/errors"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+)
+
 type Codec interface {
+	Marshaler
+	Unmarshaler
+}
+
+type Unmarshaler interface {
+	Unmarshal(data []byte, v any) error
+}
+
+// Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
+type Marshaler interface {
 	// Marshal marshals "v" into byte sequence.
 	Marshal(v any) ([]byte, error)
-	// Unmarshal unmarshals "data" into "v".
-	// "v" must be a pointer value.
-	Unmarshal(data []byte, v any) error
 	// ContentType returns the Content-Type which this marshaler is responsible for.
 	// The parameter describes the type which is being marshalled, which can sometimes
 	// affect the content type returned.
@@ -46,7 +58,7 @@ type Delimited interface {
 // StreamContentType defines the streaming content type.
 type StreamContentType interface {
 	// StreamContentType returns the content type for a stream. This shares the
-	// same behaviour as for `Codec.ContentType`, but is called, if present,
+	// same behaviour as for `Marshaler.ContentType`, but is called, if present,
 	// in the case of a streamed response.
 	StreamContentType(v any) string
 }
@@ -59,9 +71,49 @@ func (*Json) ContentType(_ any) string {
 }
 
 func (j *Json) Marshal(v any) ([]byte, error) {
-	return jsonx.Marshal(v)
+	switch msg := v.(type) {
+	case *wrapperspb.StringValue:
+		v = msg.Value
+	case *wrapperspb.BoolValue:
+		v = msg.Value
+	case *wrapperspb.Int32Value:
+		v = msg.Value
+	case *wrapperspb.Int64Value:
+		v = msg.Value
+	case *wrapperspb.UInt32Value:
+		v = msg.Value
+	case *wrapperspb.UInt64Value:
+		v = msg.Value
+	case *wrapperspb.FloatValue:
+		v = msg.Value
+	case *wrapperspb.DoubleValue:
+		v = msg.Value
+	case *wrapperspb.BytesValue:
+		v = msg.Value
+	case error:
+		return jsonx.Marshal(errors.ErrRespFrom(msg))
+	}
+	return jsonx.Marshal(&RespAnyData{Data: v})
 }
 
-func (j *Json) Unmarshal(data []byte, v any) error {
+func (j *Json) Name() string {
+	return "json"
+}
+
+func (j *Json) Unmarshal(data []byte, v interface{}) error {
 	return jsonx.Unmarshal(data, v)
+}
+
+func (j *Json) Delimiter() []byte {
+	return []byte("\n")
+}
+
+// NewDecoder returns a runtime.Decoder which reads JSON stream from "r".
+func (j *Json) NewDecoder(r io.Reader) Decoder {
+	return jsonx.NewDecoder(r)
+}
+
+// NewEncoder returns an Encoder which writes JSON stream into "w".
+func (j *Json) NewEncoder(w io.Writer) Encoder {
+	return jsonx.NewEncoder(w)
 }

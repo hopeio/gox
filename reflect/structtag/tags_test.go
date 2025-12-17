@@ -222,7 +222,7 @@ func TestTags_Get(t *testing.T) {
 			t.Errorf("get\n\twant: %#v\n\tgot : %#v", want, found.String())
 		}
 	})
-	t.Run("Value", func(t *testing.T) {
+	t.Run("Values", func(t *testing.T) {
 		want := `foo`
 		if found.Value != want {
 			t.Errorf("get\n\twant: %#v\n\tgot : %#v", want, found.Value)

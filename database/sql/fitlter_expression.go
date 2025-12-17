@@ -16,6 +16,7 @@ import (
 	"unicode"
 
 	strconv2 "github.com/hopeio/gox/encoding/text"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 type ConditionOperation int
@@ -135,9 +136,9 @@ func (m ConditionOperation) String() string {
 }
 
 type FilterExpr struct {
-	Field     string             `json:"field"`
-	Operation ConditionOperation `json:"op"`
-	Value     []any              `json:"value"`
+	Field     string             `json:"field,omitempty"`
+	Operation ConditionOperation `json:"op,omitempty"`
+	Value     any                `json:"value,omitempty"`
 }
 
 func (filter *FilterExpr) Build() string {
@@ -148,24 +149,24 @@ func (filter *FilterExpr) Build() string {
 	}
 	switch filter.Operation {
 	case Greater, Less, Equal, NotEqual, GreaterOrEqual, LessOrEqual:
-		return filter.Field + filter.Operation.String() + ConvertParams(filter.Value[0], "'")
+		return filter.Field + filter.Operation.String() + ConvertParams(filter.Value, "'")
 	case In, NotIn:
-		var vars = make([]string, len(filter.Value))
-		for idx, v := range filter.Value {
-			vars[idx] = ConvertParams(v, "'")
-		}
-		return filter.Field + filter.Operation.String() + "(" + strings.Join(vars, ",") + ")"
-	case Between:
-		if len(filter.Value) < 2 {
+		values, ok := filter.Value.([]any)
+		if !ok || len(values) == 0 {
 			return ""
 		}
-		var vars = make([]string, len(filter.Value))
-		for idx, v := range filter.Value {
-			vars[idx] = ConvertParams(v, "'")
+		return filter.Field + filter.Operation.String() + "(" + stringsx.JoinIndexFunc(values, func(idx int) string {
+			return ConvertParams(values[idx], "'")
+		}, ",") + ")"
+	case Between:
+		values, ok := filter.Value.([]any)
+		if !ok || len(values) < 2 {
+			return ""
 		}
-		return filter.Field + filter.Operation.String() + vars[0] + " AND " + vars[1]
+
+		return filter.Field + filter.Operation.String() + ConvertParams(values[0], "'") + " AND " + ConvertParams(values[1], "'")
 	case Like, NotLike:
-		return filter.Field + filter.Operation.String() + ConvertParams(filter.Value[0], "'")
+		return filter.Field + filter.Operation.String() + ConvertParams(filter.Value, "'")
 	case IsNull, IsNotNull:
 		return filter.Field + filter.Operation.String()
 	}
@@ -190,7 +191,7 @@ func (f FilterExprs) Build() string {
 	return strings.Join(conditions, " AND ")
 }
 
-func ConvertParams(v interface{}, escaper string) string {
+func ConvertParams(v any, escaper string) string {
 	switch v := v.(type) {
 	case bool:
 		return strconv.FormatBool(v)
@@ -220,9 +221,8 @@ func ConvertParams(v interface{}, escaper string) string {
 	case []byte:
 		if isPrintable(v) {
 			return escaper + strings.ReplaceAll(string(v), escaper, "\\"+escaper) + escaper
-		} else {
-			return escaper + "<binary>" + escaper
 		}
+		return escaper + "<binary>" + escaper
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		return strconv2.FormatInteger(v)
 	case float64, float32:
@@ -261,11 +261,11 @@ func isPrintable(s []byte) bool {
 	return true
 }
 
-func (f FilterExprs) BuildSQL() (string, []interface{}) {
+func (f FilterExprs) BuildSQL() (string, []any) {
 	var builder strings.Builder
-	var vars []interface{}
+	var vars []any
 	for i, filter := range f {
-		if filter.Field == "" || filter.Operation == 0 || len(filter.Value) == 0 {
+		if filter.Field == "" || filter.Operation == 0 || filter.Value == nil {
 			continue
 		}
 		builder.WriteString(filter.Field)
@@ -274,7 +274,29 @@ func (f FilterExprs) BuildSQL() (string, []interface{}) {
 		if i < len(f) {
 			builder.WriteString(" AND")
 		}
-		vars = append(vars, filter.Value...)
+		if values, ok := filter.Value.([]any); ok {
+			vars = append(vars, values...)
+		} else {
+			vars = append(vars, filter.Value)
+		}
 	}
 	return "", nil
+}
+
+func AnyToAnys(a any) []any {
+	if a == nil {
+		return nil
+	}
+	if v, ok := a.([]any); ok {
+		return v
+	}
+	value := reflect.Indirect(reflect.ValueOf(a))
+	if value.Kind() == reflect.Slice || value.Kind() == reflect.Array {
+		var values []any
+		for i := 0; i < value.Len(); i++ {
+			values = append(values, value.Index(i).Interface())
+		}
+		return values
+	}
+	return []any{a}
 }

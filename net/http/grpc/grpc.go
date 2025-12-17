@@ -84,7 +84,7 @@ func isValidGRPCMetadataKey(key string) bool {
 }
 
 func isValidGRPCMetadataTextValue(textValue string) bool {
-	// Must be a valid gRPC "ASCII-Value" as defined here:
+	// Must be a valid gRPC "ASCII-Values" as defined here:
 	//   https://github.com/grpc/grpc/blob/4b05dc88b724214d0c725c8e7442cbc7a61b1374/doc/PROTOCOL-HTTP2.md
 	// This means printable ASCII (including/plus spaces); 0x20 to 0x7E inclusive.
 	bytes := []byte(textValue) // gRPC validates strings on the byte level, not Unicode.

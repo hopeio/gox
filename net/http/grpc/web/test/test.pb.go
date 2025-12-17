@@ -178,7 +178,7 @@ type PingResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Value   string `protobuf:"bytes,1,opt,name=Value,proto3" json:"Value,omitempty"`
+	Value   string `protobuf:"bytes,1,opt,name=Values,proto3" json:"Values,omitempty"`
 	Counter int32  `protobuf:"varint,2,opt,name=counter,proto3" json:"counter,omitempty"`
 }
 

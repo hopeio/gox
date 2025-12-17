@@ -675,7 +675,7 @@ func IsEmpty(str string) bool {
 	return len(strings.TrimSpace(str)) == 0
 }
 
-func JoinByIndex[S ~[]T, T any](s S, toString func(i int) string, sep string) string {
+func JoinIndexFunc[S ~[]T, T any](s S, toString func(i int) string, sep string) string {
 	switch len(s) {
 	case 0:
 		return ""
@@ -697,7 +697,7 @@ func JoinByIndex[S ~[]T, T any](s S, toString func(i int) string, sep string) st
 	return b.String()
 }
 
-func JoinByValue[S ~[]T, T any](s S, toString func(v T) string, sep string) string {
+func JoinValueFunc[S ~[]T, T any](s S, toString func(v T) string, sep string) string {
 	switch len(s) {
 	case 0:
 		return ""
@@ -721,7 +721,7 @@ func JoinByValue[S ~[]T, T any](s S, toString func(v T) string, sep string) stri
 	return b.String()
 }
 
-func JoinBy[S ~[]T, T any](s S, toString func(idx int, v T) string, sep string) string {
+func JoinFunc[S ~[]T, T any](s S, toString func(idx int, v T) string, sep string) string {
 	switch len(s) {
 	case 0:
 		return ""

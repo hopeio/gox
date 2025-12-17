@@ -4,7 +4,7 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-var Codec httpx.Codec = &JsonPb{}
+var DefaultMarshaler = httpx.DefaultMarshaler
 
 var InComingHeader = []string{
 	httpx.HeaderAccept,

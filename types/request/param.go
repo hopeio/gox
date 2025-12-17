@@ -6,113 +6,29 @@
 
 package request
 
-type Pageable interface {
-	PageNo() uint32
-	PageSize() uint32
-	Sort() []Sort
-}
-
-type SortType uint8
-
-const (
-	_ SortType = iota
-	SortTypeAsc
-	SortTypeDesc
+import (
+	sqlx "github.com/hopeio/gox/database/sql"
+	"github.com/hopeio/gox/database/sql/gorm/clause"
 )
 
-type PaginationEmbedded struct {
-	PageNo   uint32 `json:"pageNo"`
-	PageSize uint32 `json:"pageSize"`
-	Sort     []Sort `json:"sort"`
-}
+type PaginationEmbedded = clause.PaginationEmbedded
 
-type Pagination struct {
-	No   uint32 `json:"no"`
-	Size uint32 `json:"size"`
-	Sort []Sort `json:"sort"`
-}
+type Pagination = clause.Pagination
+type Sorts = clause.Sorts
+type Sort = sqlx.Sort
 
-type Sort struct {
-	Field string   `json:"field"`
-	Type  SortType `json:"type,omitempty"`
-}
-
-type Range[T any] struct {
-	Field string    `json:"field,omitempty"`
-	Begin T         `json:"begin"`
-	End   T         `json:"end"`
-	Type  RangeType `json:"type,omitempty"`
-}
+type Range[T any] = clause.Range[T]
 
 type Id struct {
 	Id uint64 `json:"id"`
 }
 
-type RangeType int8
-
-func (r RangeType) ContainsBegin() bool {
-	return r&RangeTypeContainsBegin != 0
-}
-
-func (r RangeType) ContainsEnd() bool {
-	return r&RangeTypeContainsEnd != 0
-}
-
-const (
-	RangeTypeContainsBegin RangeType = 1 << iota
-	RangeTypeContainsEnd
-)
-
-type FilterType int8
-
-func (f FilterType) RangeType() RangeType {
-	switch f {
-	case FilterTypeRange:
-		return RangeTypeContainsBegin | RangeTypeContainsEnd
-	case FilterTypeRangeContainsBegin:
-		return RangeTypeContainsBegin
-	case FilterTypeRangeContainsEnd:
-		return RangeTypeContainsEnd
-	default:
-		return 0
-	}
-}
-
-const (
-	FilterTypeEqual FilterType = iota
-	FilterTypeNotEqual
-	FilterTypeFuzzy
-	FilterTypeIn
-	FilterTypeNotIn
-	FilterTypeIsNull
-	FilterTypeIsNotNull
-	FilterTypeRange
-	FilterTypeRangeContainsBegin
-	FilterTypeRangeContainsEnd
-	FilterTypeOr
-)
-
-type Cursor[T any] struct {
-	Field string `json:"field,omitempty"`
-	Prev  T      `json:"prev,omitempty"`
-	Size  int    `json:"size,omitempty"`
-}
-
+type Cursor[T any] = sqlx.Cursor[T]
 type CursorAny = Cursor[any]
 
 type RangeAny = Range[any]
 
-type List struct {
-	PaginationEmbedded
-	Filters Filters `json:"filters,omitempty"`
-}
+type List = sqlx.List
 
-type Filters []Filter
-type FilterMap map[string]Filter
-
-type Filter struct {
-	Field  string     `json:"field,omitempty"`
-	Type   FilterType `json:"type,omitempty"`
-	Value  any        `json:"value,omitempty"`
-	Values []any      `json:"values,omitempty"`
-}
+type Filters = sqlx.FilterExprs
+type FilterMap = sqlx.FilterExprMap

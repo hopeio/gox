@@ -39,9 +39,9 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			httpx.RespErrCodeMsg(ctx, w, errors.InvalidArgument, err.Error())
 			return
 		}
-		res, errRep := service(ReqResp{r, w}, req)
+		res, errResp := service(ReqResp{r, w}, req)
 		if err != nil {
-			errRep.Respond(ctx, w)
+			errResp.Respond(ctx, w)
 			return
 		}
 		switch httpres := any(res).(type) {

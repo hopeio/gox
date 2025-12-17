@@ -45,12 +45,12 @@ func ErrRespFrom(err error) *ErrResp {
 	if err == nil {
 		return nil
 	}
-	if errrep, ok := err.(*ErrResp); ok {
-		return errrep
+	if errresp, ok := err.(*ErrResp); ok {
+		return errresp
 	}
-	type errrep interface{ ErrRep() *ErrResp }
-	if se, ok := err.(errrep); ok {
-		return se.ErrRep()
+	type errresp interface{ ErrResp() *ErrResp }
+	if se, ok := err.(errresp); ok {
+		return se.ErrResp()
 	}
 	rv := reflect.ValueOf(err)
 	kind := rv.Kind()

@@ -319,7 +319,7 @@ func (j *jsonArray) Scan(value interface{}) error {
 	return nil
 }
 
-// 实现 driver.Valuer 接口，Value 返回 json value
+// 实现 driver.Valuer 接口，Values 返回 json value
 func (j jsonArray) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil

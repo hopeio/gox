@@ -134,7 +134,7 @@ func testExpiredItems(t *testing.T, evT string) {
 
 func getSimpleEvictedFunc(t *testing.T) func(interface{}, interface{}) {
 	return func(key, value interface{}) {
-		t.Logf("Key=%v Value=%v will be evicted.\n", key, value)
+		t.Logf("Key=%v Values=%v will be evicted.\n", key, value)
 	}
 }
 

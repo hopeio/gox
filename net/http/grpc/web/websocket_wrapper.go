@@ -131,7 +131,7 @@ func (w *webSocketWrappedReader) Close() error {
 }
 
 // First byte of a binary WebSocket frame is used for control flow:
-// 0 = Value
+// 0 = Values
 // 1 = End of client send
 func (w *webSocketWrappedReader) Read(p []byte) (int, error) {
 	// If a buffer remains from a previous WebSocket frame read then continue reading it

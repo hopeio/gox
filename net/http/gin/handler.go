@@ -15,6 +15,7 @@ import (
 	"github.com/hopeio/gox/net/http/gin/binding"
 	"github.com/hopeio/gox/net/http/handlerwrap"
 	"github.com/hopeio/gox/types"
+	"github.com/hopeio/pick"
 )
 
 type Service[REQ, RES any] func(*gin.Context, REQ) (RES, *httpx.ErrResp)
@@ -64,7 +65,8 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 }
 
 func Respond(ctx *gin.Context, v any) (int, error) {
-	data, err := httpx.DefaultCodec.Marshal(v)
+	ctx.Header(httpx.HeaderContentType, pick.DefaultMarshaler.ContentType(v))
+	data, err := httpx.DefaultMarshaler.Marshal(v)
 	if err != nil {
 		data = []byte(err.Error())
 	}

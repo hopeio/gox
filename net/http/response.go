@@ -12,6 +12,7 @@ import (
 	"io"
 	"iter"
 	"net/http"
+	"strconv"
 
 	errorsx "github.com/hopeio/gox/errors"
 )
@@ -25,8 +26,9 @@ type RespData[T any] struct {
 }
 
 func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, DefaultCodec.ContentType(res))
-	data, err := DefaultCodec.Marshal(res)
+	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+	data, err := DefaultMarshaler.Marshal(res)
 	if err != nil {
 		data = []byte(err.Error())
 	}
@@ -138,8 +140,9 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, DefaultCodec.ContentType(res))
-	data, err := DefaultCodec.Marshal(res)
+	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+	data, err := DefaultMarshaler.Marshal(res)
 	if err != nil {
 		data = []byte(err.Error())
 	}

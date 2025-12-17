@@ -33,7 +33,7 @@ func (j *RawJson) Scan(value interface{}) error {
 
 }
 
-// 实现 driver.Valuer 接口，Value 返回 json value
+// 实现 driver.Valuer 接口，Values 返回 json value
 func (j RawJson) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
@@ -63,7 +63,7 @@ func (j *NullJson[T]) Scan(value interface{}) error {
 	}
 }
 
-// 实现 driver.Valuer 接口，Value 返回 json value
+// 实现 driver.Valuer 接口，Values 返回 json value
 func (j *NullJson[T]) Value() (driver.Value, error) {
 	if !j.Valid {
 		return nil, nil
@@ -91,7 +91,7 @@ func (j *Json[T]) Scan(value interface{}) error {
 	}
 }
 
-// 实现 driver.Valuer 接口，Value 返回 json value
+// 实现 driver.Valuer 接口，Values 返回 json value
 func (j *Json[T]) Value() (driver.Value, error) {
 	return jsonx.Marshal(&j.V)
 }
@@ -110,7 +110,7 @@ func (j *MapJson[T]) Scan(value interface{}) error {
 	}
 }
 
-// 实现 driver.Valuer 接口，Value 返回 json value
+// 实现 driver.Valuer 接口，Values 返回 json value
 func (j MapJson[T]) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
