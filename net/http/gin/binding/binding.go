@@ -65,5 +65,8 @@ func (s RequestSource) BodyBind(obj any) error {
 	if err != nil {
 		return fmt.Errorf("read body error: %w", err)
 	}
+	if len(data) == 0 {
+		return nil
+	}
 	return binding.BodyUnmarshaller(data, obj)
 }
