@@ -90,6 +90,8 @@ func (j *Json) Marshal(v any) ([]byte, error) {
 		v = msg.Value
 	case *wrapperspb.BytesValue:
 		v = msg.Value
+	case *RespAnyData:
+		return jsonx.Marshal(msg)
 	case error:
 		return jsonx.Marshal(errors.ErrRespFrom(msg))
 	}

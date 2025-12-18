@@ -130,7 +130,7 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 		if tag == "-" || fieldKind == reflect.Interface {
 			continue
 		}
-		if subConditions, ok := conditionsByImpl(field); ok {
+		if subConditions, ok := conditionsByImpl(field); ok && subConditions != nil {
 			conditions = append(conditions, subConditions)
 			continue
 		}

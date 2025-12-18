@@ -28,7 +28,9 @@ type RespData[T any] struct {
 func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
 	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
-	data, err := DefaultMarshaler.Marshal(res)
+	var data []byte
+	var err error
+	data, err = DefaultMarshaler.Marshal(res)
 	if err != nil {
 		data = []byte(err.Error())
 	}
