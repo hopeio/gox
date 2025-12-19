@@ -2,22 +2,26 @@ package sync
 
 import "sync"
 
-// Pool 泛型对象池
-type Pool[T any] sync.Pool
-
-// NewTypedPool 创建泛型对象池
-func NewTypedPool[T any](newFunc func() T) *Pool[T] {
-	return (*Pool[T])(&sync.Pool{
-		New: func() any { return newFunc() },
-	})
+type Pool[T any] struct {
+	pool sync.Pool
 }
 
-// Get 获取对象
+func NewPool[T any](fn func() T) *Pool[T] {
+	return &Pool[T]{
+		pool: sync.Pool{
+			New: func() any {
+				return fn()
+			},
+		},
+	}
+}
+
+// Get gets a T from the pool, or creates a new one if the pool is empty.
 func (p *Pool[T]) Get() T {
-	return (*sync.Pool)(p).Get().(T)
+	return p.pool.Get().(T)
 }
 
-// Put 放回对象
+// Put returns x into the pool.
 func (p *Pool[T]) Put(x T) {
-	(*sync.Pool)(p).Put(x)
+	p.pool.Put(x)
 }

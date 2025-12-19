@@ -9,9 +9,11 @@ package binding
 import (
 	"errors"
 	"mime/multipart"
+	"net/url"
 	"reflect"
 
 	"github.com/hopeio/gox/kvstruct"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 type MultipartSource multipart.Form
@@ -74,4 +76,69 @@ func setArrayOfMultipartFormFiles(value reflect.Value, field *reflect.StructFiel
 		}
 	}
 	return true, nil
+}
+
+func FormUnmarshal(data []byte, obj any) error {
+	vs, err := url.ParseQuery(string(data))
+	if err != nil {
+		return err
+	}
+	setter := kvstruct.KVsSource(vs)
+	value := reflect.ValueOf(obj).Elem()
+	typ := value.Type()
+	if fields, ok := cache.Load(typ); ok {
+		for _, field := range fields.([]Field) {
+			_, err = setter.TrySet(value.Field(field.Index), field.Field, field.Name, nil)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		var fields []Field
+		for i := 0; i < value.NumField(); i++ {
+			sf := typ.Field(i)
+			if sf.PkgPath != "" && !sf.Anonymous { // unexported
+				continue
+			}
+			var tag, tagValue string
+			var isSet bool
+			var tags []Tag
+			for _, tag = range defaultTags {
+				tagValue = sf.Tag.Get(tag)
+				if tagValue != "" && tagValue != "-" {
+					alias, options := kvstruct.ParseTag(tagValue)
+					tags = append(tags, Tag{
+						Key:     tag,
+						Value:   alias,
+						Options: options,
+					})
+					if setter == nil {
+						continue
+					}
+					if tag == "form" {
+						isSet, err = setter.TrySet(value.Field(i), &sf, alias, options)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+			field := Field{
+				Name:  stringsx.LowerCaseFirst(sf.Name),
+				Tags:  tags,
+				Index: i,
+				Field: &sf,
+			}
+
+			if !isSet {
+				isSet, err = setter.TrySet(value.Field(i), &sf, field.Name, nil)
+				if err != nil {
+					return err
+				}
+			}
+			fields = append(fields, field)
+			cache.Store(typ, fields)
+		}
+	}
+	return nil
 }

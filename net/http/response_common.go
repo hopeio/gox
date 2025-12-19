@@ -44,3 +44,17 @@ type CommonRequestWriter interface {
 type RespondStreamer interface {
 	RespondStream(ctx context.Context, seq iter.Seq[WriterToCloser]) (int, error)
 }
+
+func CommonRespond(ctx context.Context, w CommonResponseWriter, res any) (int, error) {
+	header := w.Header()
+	header.Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	if err, ok := res.(error); ok {
+		return ErrRespFrom(err).CommonRespond(ctx, w)
+	}
+	data, err := DefaultMarshaler.Marshal(res)
+	if err != nil {
+		header.Set(HeaderContentType, ContentTypeText)
+		data = []byte(err.Error())
+	}
+	return w.Write(data)
+}

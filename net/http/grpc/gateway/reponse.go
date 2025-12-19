@@ -21,9 +21,7 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		HandleForwardResponseTrailerHeader(w, md.Trailer)
 		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
 	}
-
-	w.Header().Set(httpx.HeaderContentType, codec.ContentType(message))
-
+	contentType := codec.ContentType(message)
 	var buf []byte
 	var err error
 	switch rb := message.(type) {
@@ -44,7 +42,16 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		buf, err = codec.Marshal(message)
 	}
 	if err != nil {
-		return err
+		contentType = httpx.ContentTypeText
+		buf = []byte(err.Error())
+	}
+	w.Header().Set(httpx.HeaderContentType, contentType)
+	ow := w
+	if ww, ok := w.(httpx.Unwrapper); ok {
+		ow = ww.Unwrap()
+	}
+	if recorder, ok := ow.(httpx.ResponseRecorder); ok {
+		recorder.RecordResponse(contentType, buf, message)
 	}
 	w.Write(buf)
 	if wantsTrailers {

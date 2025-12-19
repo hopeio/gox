@@ -26,13 +26,22 @@ type RespData[T any] struct {
 }
 
 func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	contentType := DefaultMarshaler.ContentType(res)
 	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
 	var data []byte
 	var err error
 	data, err = DefaultMarshaler.Marshal(res)
 	if err != nil {
+		contentType = ContentTypeText
 		data = []byte(err.Error())
+	}
+	w.Header().Set(HeaderContentType, contentType)
+	ow := w
+	if ww, ok := w.(Unwrapper); ok {
+		ow = ww.Unwrap()
+	}
+	if recorder, ok := ow.(ResponseRecorder); ok {
+		recorder.RecordResponse(contentType, data, res)
 	}
 	return w.Write(data)
 }
@@ -47,45 +56,42 @@ func NewRespData(code errorsx.ErrCode, msg string, data any) *RespAnyData {
 	}
 }
 
-func NewSuccessRespData(data any) *RespAnyData {
-	return &RespAnyData{
-		Data: data,
-	}
-}
-
-func NewErrResp(code errorsx.ErrCode, msg string) *ErrResp {
-	return &ErrResp{
-		Code: code,
-		Msg:  msg,
-	}
-}
-
-func RespErrCodeMsg(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string) (int, error) {
+func RespondErrCodeMsg(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string) (int, error) {
 	return NewRespData(code, msg, nil).Respond(ctx, w)
 }
 
-func RespErrResp(ctx context.Context, w http.ResponseWriter, rep *errorsx.ErrResp) (int, error) {
-	return (*ErrResp)(rep).Respond(ctx, w)
-}
-
-func RespError(ctx context.Context, w http.ResponseWriter, err error) (int, error) {
+func RespondError(ctx context.Context, w http.ResponseWriter, err error) (int, error) {
 	return ErrRespFrom(err).Respond(ctx, w)
 }
 
-func RespSuccess(ctx context.Context, w http.ResponseWriter, msg string, data any) (int, error) {
-	return NewRespData(errorsx.Success, msg, data).Respond(ctx, w)
+func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, error) {
+	contentType := DefaultMarshaler.ContentType(res)
+
+	data, err := DefaultMarshaler.Marshal(res)
+	if err != nil {
+		contentType = ContentTypeText
+		data = []byte(err.Error())
+	}
+	w.Header().Set(HeaderContentType, contentType)
+	ow := w
+	if ww, ok := w.(Unwrapper); ok {
+		ow = ww.Unwrap()
+	}
+	if recorder, ok := ow.(ResponseRecorder); ok {
+		recorder.RecordResponse(contentType, data, res)
+	}
+	return w.Write(data)
 }
 
-func RespSuccessData(ctx context.Context, w http.ResponseWriter, data any) (int, error) {
-	return NewRespData(errorsx.Success, errorsx.Success.String(), data).Respond(ctx, w)
+func Respond(ctx context.Context, w http.ResponseWriter, data any) (int, error) {
+	if err, ok := data.(error); ok {
+		return RespondError(ctx, w, err)
+	}
+	return RespondSuccess(ctx, w, data)
 }
-
-func Resp(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string, data any) (int, error) {
-	return NewRespData(code, msg, data).Respond(ctx, w)
-}
-func RespStatus(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string, data any, status int) (int, error) {
+func RespStatus(ctx context.Context, w http.ResponseWriter, status int, data any) (int, error) {
 	w.WriteHeader(status)
-	return NewRespData(code, msg, data).Respond(ctx, w)
+	return Respond(ctx, w, data)
 }
 
 type Response struct {
@@ -129,7 +135,20 @@ func (res *Response) CommonRespond(ctx context.Context, w CommonResponseWriter) 
 
 type ErrResp errorsx.ErrResp
 
+func NewErrResp(code errorsx.ErrCode, msg string) *ErrResp {
+	return &ErrResp{
+		Code: code,
+		Msg:  msg,
+	}
+}
+
 func ErrRespFrom(err error) *ErrResp {
+	if err == nil {
+		return nil
+	}
+	if errresp, ok := err.(*ErrResp); ok {
+		return errresp
+	}
 	return (*ErrResp)(errorsx.ErrRespFrom(err))
 }
 
@@ -142,11 +161,17 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
-	w.Header().Set(HeaderContentType, DefaultMarshaler.ContentType(res))
+	contentType := DefaultMarshaler.ContentType(res)
+
 	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
 	data, err := DefaultMarshaler.Marshal(res)
 	if err != nil {
+		contentType = ContentTypeText
 		data = []byte(err.Error())
+	}
+	w.Header().Set(HeaderContentType, contentType)
+	if recorder, ok := w.(ResponseRecorder); ok {
+		recorder.RecordResponse(contentType, data, res)
 	}
 	return w.Write(data)
 }

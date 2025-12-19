@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/hopeio/gox/kvstruct"
 	httpx "github.com/hopeio/gox/net/http"
@@ -38,16 +39,9 @@ func (s RequestSource) Header() kvstruct.Setter {
 	return (binding.HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() kvstruct.Setter {
+func (s RequestSource) MultipartForm() kvstruct.Setter {
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
-	if contentType == httpx.ContentTypeForm {
-		err := s.Request.ParseForm()
-		if err != nil {
-			return nil
-		}
-		return (kvstruct.KVsSource)(s.Request.PostForm)
-	}
-	if contentType == httpx.ContentTypeMultipart {
+	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) {
 		err := s.Request.ParseMultipartForm(binding.DefaultMemory)
 		if err != nil {
 			return nil
@@ -61,12 +55,19 @@ func (s RequestSource) BodyBind(obj any) error {
 	if s.Request.Method == http.MethodGet {
 		return nil
 	}
+	contentType := s.Request.Header.Get(httpx.HeaderContentType)
+	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) {
+		return nil
+	}
 	data, err := io.ReadAll(s.Request.Body)
 	if err != nil {
 		return fmt.Errorf("read body error: %w", err)
 	}
+	if recorder, ok := s.Request.Body.(httpx.RequestRecorder); ok {
+		recorder.RecordRequest(contentType, data, obj)
+	}
 	if len(data) == 0 {
 		return nil
 	}
-	return binding.BodyUnmarshaller(data, obj)
+	return binding.BodyUnmarshaller(contentType, data, obj)
 }

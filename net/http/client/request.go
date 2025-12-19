@@ -30,7 +30,7 @@ import (
 
 var (
 	DefaultClient = New().DisableLog()
-	bufPool       = &sync.Pool{New: func() interface{} { return &bytes.Buffer{} }}
+	bufPool       = &sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 )
 
 type Request struct {

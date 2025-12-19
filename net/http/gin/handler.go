@@ -15,7 +15,6 @@ import (
 	"github.com/hopeio/gox/net/http/gin/binding"
 	"github.com/hopeio/gox/net/http/handlerwrap"
 	"github.com/hopeio/gox/types"
-	"github.com/hopeio/pick"
 )
 
 type Service[REQ, RES any] func(*gin.Context, REQ) (RES, *httpx.ErrResp)
@@ -26,19 +25,21 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 		err := binding.Bind(ctx, req)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			Respond(ctx, errors.InvalidArgument.Wrap(err))
+			httpx.RespondError(ctx, ctx.Writer, errors.InvalidArgument.Wrap(err))
+			ctx.Abort()
 			return
 		}
 		res, reserr := service(ctx, req)
 		if reserr != nil {
 			reserr.Respond(ctx, ctx.Writer)
+			ctx.Abort()
 			return
 		}
 		if httpres, ok := any(res).(httpx.CommonResponder); ok {
 			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
 			return
 		}
-		httpx.NewSuccessRespData(res).Respond(ctx, ctx.Writer)
+		httpx.RespondSuccess(ctx, ctx.Writer, res)
 	}
 }
 
@@ -48,29 +49,29 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 		err := binding.Bind(ctx, req)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			Respond(ctx, errors.InvalidArgument.Wrap(err))
+			httpx.RespondError(ctx, ctx.Writer, errors.InvalidArgument.Wrap(err))
+			ctx.Abort()
 			return
 		}
 		res, err := service(handlerwrap.WrapContext(ctx), req)
 		if err != nil {
 			httpx.ErrRespFrom(err).Respond(ctx, ctx.Writer)
+			ctx.Abort()
 			return
 		}
 		if httpres, ok := any(res).(httpx.CommonResponder); ok {
 			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
 			return
 		}
-		httpx.NewSuccessRespData(res).Respond(ctx, ctx.Writer)
+		httpx.RespondSuccess(ctx, ctx.Writer, res)
 	}
 }
 
 func Respond(ctx *gin.Context, v any) (int, error) {
-	ctx.Header(httpx.HeaderContentType, pick.DefaultMarshaler.ContentType(v))
-	data, err := httpx.DefaultMarshaler.Marshal(v)
-	if err != nil {
-		data = []byte(err.Error())
+	if err, ok := v.(error); ok {
+		written, err := httpx.RespondError(ctx, ctx.Writer, err)
+		ctx.Abort()
+		return written, err
 	}
-	n, err := ctx.Writer.Write(data)
-	ctx.Abort()
-	return n, err
+	return httpx.RespondSuccess(ctx, ctx.Writer, v)
 }

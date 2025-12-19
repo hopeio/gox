@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	jsonx "github.com/hopeio/gox/encoding/json"
 	"github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/binding"
@@ -36,7 +35,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		req := new(REQ)
 		err := binding.Bind(r, req)
 		if err != nil {
-			httpx.RespErrCodeMsg(ctx, w, errors.InvalidArgument, err.Error())
+			httpx.RespondError(ctx, w, errors.InvalidArgument.Msg(err.Error()))
 			return
 		}
 		res, errResp := service(ReqResp{r, w}, req)
@@ -55,7 +54,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			httpres.Respond(ctx, w)
 			return
 		}
-		jsonx.NewEncoder(w).Encode(res)
+		httpx.RespondSuccess(ctx, w, res)
 	})
 }
 func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
@@ -64,7 +63,7 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 		req := new(REQ)
 		err := binding.Bind(r, req)
 		if err != nil {
-			httpx.RespSuccessData(ctx, w, errors.InvalidArgument.Wrap(err))
+			httpx.RespondError(ctx, w, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, err := method(WrapContext(ReqResp{r, w}), req)
@@ -83,7 +82,6 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 			httpres.Respond(ctx, w)
 			return
 		}
-		w.Header().Set(httpx.HeaderContentType, httpx.ContentTypeJsonUtf8)
-		jsonx.NewEncoder(w).Encode(res)
+		httpx.RespondSuccess(ctx, w, res)
 	})
 }

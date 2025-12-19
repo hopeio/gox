@@ -4,7 +4,6 @@ import (
 	"io"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
-	"github.com/hopeio/gox/errors"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -90,10 +89,10 @@ func (j *Json) Marshal(v any) ([]byte, error) {
 		v = msg.Value
 	case *wrapperspb.BytesValue:
 		v = msg.Value
-	case *RespAnyData:
+	case *RespAnyData, *ErrResp:
 		return jsonx.Marshal(msg)
 	case error:
-		return jsonx.Marshal(errors.ErrRespFrom(msg))
+		return jsonx.Marshal(ErrRespFrom(msg))
 	}
 	return jsonx.Marshal(&RespAnyData{Data: v})
 }

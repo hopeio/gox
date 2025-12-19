@@ -8,6 +8,7 @@ package context
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/hopeio/gox/idgen"
@@ -18,6 +19,8 @@ type Context struct {
 	ctx      context.Context
 	rootSpan trace.Span
 	traceID  string
+	sync.RWMutex
+	data map[any]any
 }
 
 func New(ctx context.Context) *Context {
@@ -132,4 +135,22 @@ func (c *Context) WithDeadlineCause(d time.Time, cause error) context.CancelFunc
 	var cancel context.CancelFunc
 	c.ctx, cancel = context.WithDeadlineCause(c.ctx, d, cause)
 	return cancel
+}
+
+func (c *Context) Set(k, v any) {
+	if c.data == nil {
+		c.data = make(map[any]any)
+	}
+	c.Lock()
+	defer c.Unlock()
+	c.data[k] = v
+}
+
+func (c *Context) Value(k any) any {
+	if c.data == nil {
+		return nil
+	}
+	c.RLock()
+	defer c.RUnlock()
+	return c.data[k]
 }

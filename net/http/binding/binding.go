@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
@@ -22,7 +23,7 @@ import (
 
 var (
 	DefaultMemory    int64 = 32 << 20
-	BodyUnmarshaller       = jsonx.Unmarshal
+	BodyUnmarshaller       = bodyUnmarshaller
 	CommonTag              = "json"
 	Validate               = validator.ValidateStruct
 	defaultTags            = []string{"uri", "path", "query", "header", "form", CommonTag}
@@ -32,7 +33,7 @@ type Source interface {
 	Uri() kvstruct.Setter
 	Query() kvstruct.Setter
 	Header() kvstruct.Setter
-	Form() kvstruct.Setter
+	MultipartForm() kvstruct.Setter
 	BodyBind(obj any) error
 }
 
@@ -55,6 +56,7 @@ func Bind(r *http.Request, obj any) error {
 	return CommonBind(RequestSource{r}, obj)
 }
 
+// unhandle multipart form data currently
 func CommonBind(s Source, obj any) error {
 	value := reflect.ValueOf(obj).Elem()
 	typ := value.Type()
@@ -62,8 +64,8 @@ func CommonBind(s Source, obj any) error {
 	if err != nil {
 		return err
 	}
-	uriSetter, querySetter, headerSetter, formSetter := s.Uri(), s.Query(), s.Header(), s.Form()
-	commonSetter := kvstruct.Setters{Setters: []kvstruct.Setter{uriSetter, querySetter, headerSetter, formSetter}}
+	uriSetter, querySetter, headerSetter, multipartFormSetter := s.Uri(), s.Query(), s.Header(), s.MultipartForm()
+	commonSetter := kvstruct.Setters{Setters: []kvstruct.Setter{uriSetter, querySetter, headerSetter, multipartFormSetter}}
 	if fields, ok := cache.Load(typ); ok {
 		var isSet bool
 		for _, field := range fields.([]Field) {
@@ -74,10 +76,10 @@ func CommonBind(s Source, obj any) error {
 					setter = uriSetter
 				case "query":
 					setter = querySetter
-				case "form":
-					setter = formSetter
 				case "header":
 					setter = headerSetter
+				case "form":
+					setter = multipartFormSetter
 				case CommonTag:
 					setter = commonSetter
 				}
@@ -111,9 +113,9 @@ func CommonBind(s Source, obj any) error {
 		var tag, tagValue string
 		var isSet bool
 		var setter kvstruct.Setter
+		var tags []Tag
 		for _, tag = range defaultTags {
 			tagValue = sf.Tag.Get(tag)
-			var tags []Tag
 			if tagValue != "" && tagValue != "-" {
 				switch tag {
 				case "uri", "path":
@@ -121,7 +123,7 @@ func CommonBind(s Source, obj any) error {
 				case "query":
 					setter = querySetter
 				case "form":
-					setter = formSetter
+					setter = multipartFormSetter
 				case "header":
 					setter = headerSetter
 				case CommonTag:
@@ -144,22 +146,22 @@ func CommonBind(s Source, obj any) error {
 					}
 				}
 			}
-			field := Field{
-				Name:  stringsx.LowerCaseFirst(sf.Name),
-				Tags:  tags,
-				Index: i,
-				Field: &sf,
-			}
-
-			if !isSet {
-				setter = commonSetter
-				isSet, err = setter.TrySet(value.Field(i), &sf, field.Name, nil)
-				if err != nil {
-					return err
-				}
-			}
-			fields = append(fields, field)
 		}
+		field := Field{
+			Name:  stringsx.LowerCaseFirst(sf.Name),
+			Tags:  tags,
+			Index: i,
+			Field: &sf,
+		}
+
+		if !isSet {
+			setter = commonSetter
+			isSet, err = setter.TrySet(value.Field(i), &sf, field.Name, nil)
+			if err != nil {
+				return err
+			}
+		}
+		fields = append(fields, field)
 	}
 	cache.Store(typ, fields)
 	return Validate(obj)
@@ -181,21 +183,14 @@ func (s RequestSource) Header() kvstruct.Setter {
 	return (HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() kvstruct.Setter {
+func (s RequestSource) MultipartForm() kvstruct.Setter {
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
-	if contentType == httpx.ContentTypeForm {
-		err := s.ParseForm()
-		if err != nil {
-			return nil
-		}
-		return (kvstruct.KVsSource)(s.PostForm)
-	}
-	if contentType == httpx.ContentTypeMultipart {
+	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) {
 		err := s.ParseMultipartForm(DefaultMemory)
 		if err != nil {
 			return nil
 		}
-		return (*MultipartSource)(s.MultipartForm)
+		return (*MultipartSource)(s.Request.MultipartForm)
 	}
 	return nil
 }
@@ -205,12 +200,28 @@ func (s RequestSource) BodyBind(obj any) error {
 		return nil
 	}
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
-	if contentType == httpx.ContentTypeForm || contentType == httpx.ContentTypeMultipart {
+	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) {
 		return nil
 	}
 	data, err := io.ReadAll(s.Body)
 	if err != nil {
 		return fmt.Errorf("read body error: %w", err)
 	}
-	return BodyUnmarshaller(data, obj)
+	if recorder, ok := s.Body.(httpx.RequestRecorder); ok {
+		recorder.RecordRequest(contentType, data, obj)
+	}
+	if len(data) == 0 {
+		return nil
+	}
+	return BodyUnmarshaller(contentType, data, obj)
+}
+
+func bodyUnmarshaller(contentType string, data []byte, obj any) error {
+	if strings.HasPrefix(contentType, httpx.ContentTypeForm) {
+		return FormUnmarshal(data, obj)
+	}
+	if strings.HasPrefix(contentType, httpx.ContentTypeJson) {
+		return jsonx.Unmarshal(data, obj)
+	}
+	return jsonx.Unmarshal(data, obj)
 }
