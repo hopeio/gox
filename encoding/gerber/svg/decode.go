@@ -31,7 +31,7 @@ func (p *Processor) UnmarshalJSON(b []byte) error {
 		residue = residue[1+closingK+2:]
 		var err error
 		switch key {
-		case "Raw":
+		case "Data":
 			residue, err = p.decodeData(residue)
 		case "MinX":
 			p.Min.X, residue, err = jsonx.DecodeFloat(residue)

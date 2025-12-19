@@ -269,7 +269,7 @@ func hackIntoNormalGrpcRequest(req *http.Request) (*http.Request, bool) {
 	incomingContentType := grpcWebContentType
 	isTextFormat := strings.HasPrefix(contentType, grpcWebTextContentType)
 	if isTextFormat {
-		// body is base64-encoded: decode it; Wrap it in readerCloser so RespBody is still closed
+		// body is base64-encoded: decode it; Wrap it in readerCloser so Body is still closed
 		decoder := base64.NewDecoder(base64.StdEncoding, req.Body)
 		req.Body = &readerCloser{reader: decoder, closer: req.Body}
 		incomingContentType = grpcWebTextContentType
