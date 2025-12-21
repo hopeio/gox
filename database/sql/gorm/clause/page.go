@@ -63,13 +63,25 @@ func (limit Limit) MergeClause(clause *clause.Clause) {
 	clause.Expression = limit
 }
 
+type Sort sqlx.Sort
+
+func (o *Sort) Clause() clause.Expression {
+	if o.Field == "" {
+		return nil
+	}
+	return SingleSortExpr(o.Field, o.Type)
+}
+func SingleSortExpr(field string, sortType sqlx.SortType) clause.Expression {
+	return clause.OrderBy{Columns: []clause.OrderByColumn{{Column: clause.Column{Name: field}, Desc: sortType == sqlx.SortTypeDesc}}}
+}
+
 type Sorts []sqlx.Sort
 
-func (o Sorts) Clauses() []clause.Expression {
+func (o Sorts) Clause() clause.Expression {
 	if len(o) == 0 {
 		return nil
 	}
-	return []clause.Expression{SortExpr(nil, o...)}
+	return SortExpr(nil, o...)
 }
 
 func SortExpr(expr clause.Expression, sorts ...sqlx.Sort) clause.Expression {
@@ -91,35 +103,30 @@ func SortExpr(expr clause.Expression, sorts ...sqlx.Sort) clause.Expression {
 
 type Pagination sqlx.Pagination
 
-func (req *Pagination) Clauses() []clause.Expression {
+func (req *Pagination) Clause() clause.Expression {
 	if req.No == 0 && req.Size == 0 {
 		return nil
 	}
-	return PaginationExpr(req.No, req.Size, req.Sort...)
+	return PaginationExpr(req.No, req.Size)
 }
 
 func (req *Pagination) Apply(db *gorm.DB) *gorm.DB {
-	return db.Clauses(req.Clauses()...)
+	return db.Clauses(req.Clause())
 }
 
-func PaginationExpr(pageNo, pageSize uint32, sort ...sqlx.Sort) []clause.Expression {
+func PaginationExpr(pageNo, pageSize uint32) clause.Expression {
 	if pageNo == 0 || pageSize == 0 {
-		if len(sort) > 0 {
-			return []clause.Expression{SortExpr(nil, sort...)}
-		}
 		return nil
 	}
 	limit := Limit{Limit: pageSize}
 	if pageNo > 1 {
 		limit.Offset = uint64(pageNo-1) * uint64(pageSize)
 	}
-	if len(sort) > 0 {
-		return []clause.Expression{limit, SortExpr(nil, sort...)}
-	}
-	return []clause.Expression{limit}
+
+	return limit
 }
 
-func FindPagination[T any](db *gorm.DB, req *Pagination, conds ...clause.Expression) ([]T, int64, error) {
+func FindPagination[T any](db *gorm.DB, page *Pagination, sort Sorts, conds ...clause.Expression) ([]T, int64, error) {
 	var models []T
 
 	if len(conds) > 0 {
@@ -134,8 +141,9 @@ func FindPagination[T any](db *gorm.DB, req *Pagination, conds ...clause.Express
 	if count == 0 {
 		return nil, 0, nil
 	}
-	pageClauses := (*Pagination)(req).Clauses()
-	err = db.Clauses(pageClauses...).Find(&models).Error
+	pageClauses := page.Clause()
+	sortClauses := sort.Clause()
+	err = db.Clauses(pageClauses, sortClauses).Find(&models).Error
 	if err != nil {
 		return nil, 0, err
 	}

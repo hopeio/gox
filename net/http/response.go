@@ -17,15 +17,15 @@ import (
 	errorsx "github.com/hopeio/gox/errors"
 )
 
-// RespData 主要用来接收返回，发送请使用ResAnyData
-type RespData[T any] struct {
+// CommonResp 主要用来接收返回，发送请使用ResAnyData
+type CommonResp[T any] struct {
 	Code errorsx.ErrCode `json:"code"`
 	Msg  string          `json:"msg,omitempty"`
 	//验证码
 	Data T `json:"data,omitempty"`
 }
 
-func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 	contentType := DefaultMarshaler.ContentType(res)
 	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
 	var data []byte
@@ -46,10 +46,10 @@ func (res *RespData[T]) Respond(ctx context.Context, w http.ResponseWriter) (int
 	return w.Write(data)
 }
 
-type RespAnyData = RespData[any]
+type CommonAnyResp = CommonResp[any]
 
-func NewRespData(code errorsx.ErrCode, msg string, data any) *RespAnyData {
-	return &RespAnyData{
+func NewCommonAnyResp(code errorsx.ErrCode, msg string, data any) *CommonAnyResp {
+	return &CommonAnyResp{
 		Code: code,
 		Msg:  msg,
 		Data: data,
@@ -57,7 +57,7 @@ func NewRespData(code errorsx.ErrCode, msg string, data any) *RespAnyData {
 }
 
 func RespondErrCodeMsg(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string) (int, error) {
-	return NewRespData(code, msg, nil).Respond(ctx, w)
+	return NewCommonAnyResp(code, msg, nil).Respond(ctx, w)
 }
 
 func RespondError(ctx context.Context, w http.ResponseWriter, err error) (int, error) {
@@ -66,7 +66,6 @@ func RespondError(ctx context.Context, w http.ResponseWriter, err error) (int, e
 
 func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, error) {
 	contentType := DefaultMarshaler.ContentType(res)
-
 	data, err := DefaultMarshaler.Marshal(res)
 	if err != nil {
 		contentType = ContentTypeText

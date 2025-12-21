@@ -40,7 +40,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		}
 		res, errResp := service(ReqResp{r, w}, req)
 		if err != nil {
-			errResp.Respond(ctx, w)
+			httpx.RespondError(ctx, w, errResp)
 			return
 		}
 		switch httpres := any(res).(type) {

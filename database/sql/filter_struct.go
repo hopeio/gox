@@ -6,12 +6,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type Pageable interface {
-	PageNo() uint32
-	PageSize() uint32
-	Sort() []Sort
-}
-
 type Ordered interface {
 	constraints.Ordered | time.Time | ~*time.Time
 }
@@ -19,27 +13,32 @@ type Ordered interface {
 type SortType uint8
 
 const (
-	_ SortType = iota
+	SortTypeDesc SortType = iota
 	SortTypeAsc
-	SortTypeDesc
 )
 
 type PaginationEmbedded struct {
 	PageNo   uint32 `json:"pageNo"`
 	PageSize uint32 `json:"pageSize"`
-	Sort     []Sort `json:"sort"`
 }
 
 type Pagination struct {
 	No   uint32 `json:"no"`
 	Size uint32 `json:"size"`
-	Sort []Sort `json:"sort"`
 }
 
 type Sort struct {
 	Field string   `json:"field"`
 	Type  SortType `json:"type,omitempty"`
 }
+
+type SortExpr struct {
+	Sql                string `json:"sql"`
+	Var                any    `json:"var"`
+	WithoutParenthesis bool   `json:"withoutParenthesis"`
+}
+
+type Sorts []Sort
 
 type Range[T any] struct {
 	Field string    `json:"field,omitempty"`
@@ -84,8 +83,9 @@ type Cursor[T any] struct {
 }
 
 type List struct {
-	PaginationEmbedded
-	Filters FilterExprs `json:"filters,omitempty"`
+	Pagination Pagination  `json:"page,omitempty"`
+	Sort       Sorts       `json:"sort,omitempty"`
+	Filters    FilterExprs `json:"filters,omitempty"`
 }
 
 type FilterExprMap map[string]FilterExpr

@@ -6,12 +6,19 @@
 
 package encoding
 
+import "io"
+
+type Codec interface {
+	Unmarshaler
+	Marshaler
+}
+
 type Decoder interface {
-	Decode(v interface{}) (err error)
+	Decode(io.Reader, any) error
 }
 
 type Encoder interface {
-	Encode(v interface{}) (err error)
+	Encode(io.Writer, any) error
 }
 
 type Unmarshaler interface {

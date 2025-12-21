@@ -89,12 +89,12 @@ func (j *Json) Marshal(v any) ([]byte, error) {
 		v = msg.Value
 	case *wrapperspb.BytesValue:
 		v = msg.Value
-	case *RespAnyData, *ErrResp:
+	case *CommonAnyResp, *ErrResp:
 		return jsonx.Marshal(msg)
 	case error:
 		return jsonx.Marshal(ErrRespFrom(msg))
 	}
-	return jsonx.Marshal(&RespAnyData{Data: v})
+	return jsonx.Marshal(&CommonAnyResp{Data: v})
 }
 
 func (j *Json) Name() string {

@@ -31,7 +31,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 		}
 		res, reserr := service(ctx, req)
 		if reserr != nil {
-			reserr.Respond(ctx, ctx.Writer)
+			httpx.RespondError(ctx, ctx.Writer, reserr)
 			ctx.Abort()
 			return
 		}
@@ -55,7 +55,7 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 		}
 		res, err := service(handlerwrap.WrapContext(ctx), req)
 		if err != nil {
-			httpx.ErrRespFrom(err).Respond(ctx, ctx.Writer)
+			httpx.RespondError(ctx, ctx.Writer, err)
 			ctx.Abort()
 			return
 		}

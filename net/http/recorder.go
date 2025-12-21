@@ -31,7 +31,13 @@ type ResponseRecorder interface {
 	RecordResponse(contentType string, raw []byte, v any)
 }
 
-var pool = sync.Pool{
+var reqPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
+
+var respPool = sync.Pool{
 	New: func() any {
 		return new(bytes.Buffer)
 	},
@@ -72,7 +78,7 @@ func (rw *Recorder) Write(buf []byte) (int, error) {
 	if len(buf) > 0 {
 		if rw.Reponse.Raw == nil {
 			if rw.Reponse.Body == nil {
-				rw.Reponse.Body = pool.Get().(*bytes.Buffer)
+				rw.Reponse.Body = respPool.Get().(*bytes.Buffer)
 			}
 			rw.Reponse.Body.Write(buf)
 		}
@@ -161,14 +167,14 @@ func parseContentLength(cl string) int64 {
 }
 
 func (rw *Recorder) Read(b []byte) (int, error) {
-	if rw.Reponse.Body == nil {
-		rw.Reponse.Body = pool.Get().(*bytes.Buffer)
+	if rw.Request.Body == nil {
+		rw.Request.Body = reqPool.Get().(*bytes.Buffer)
 	}
 	read, err := rw.originBody.Read(b)
 	if err != nil {
 		return read, err
 	}
-	return rw.Reponse.Body.Write(b)
+	return rw.Request.Body.Write(b)
 }
 
 func (rw *Recorder) Close() error {
@@ -177,22 +183,23 @@ func (rw *Recorder) Close() error {
 
 func (rw *Recorder) Reset() {
 	rw.Code = http.StatusOK
+	rw.Request.Body = nil
 	rw.Reponse.Body = nil
-	rw.Reponse.Raw = nil
-	if rw.Reponse.Body != nil {
-		rw.Reponse.Body.Reset()
-		pool.Put(rw.Reponse.Body)
+	rw.Request.Raw = nil
+	if rw.Request.Body != nil {
+		rw.Request.Body.Reset()
+		reqPool.Put(rw.Request.Body)
 	}
 	if rw.Reponse.Body != nil {
 		rw.Reponse.Body.Reset()
-		pool.Put(rw.Reponse.Body)
+		reqPool.Put(rw.Reponse.Body)
 	}
 }
 
 func (rw *Recorder) RecordRequest(contentType string, raw []byte, v any) {
-	rw.Reponse.Raw = raw
-	rw.Reponse.Value = v
-	rw.Reponse.ContentType = contentType
+	rw.Request.Raw = raw
+	rw.Request.Value = v
+	rw.Request.ContentType = contentType
 }
 
 func (rw *Recorder) RecordResponse(contentType string, raw []byte, v any) {

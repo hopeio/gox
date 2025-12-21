@@ -12,7 +12,7 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-type ResponseBody httpx.RespAnyData
+type ResponseBody httpx.CommonAnyResp
 
 func CommonResponse(response any) ResponseBodyCheck {
 	return &ResponseBody{Data: response}

@@ -16,7 +16,6 @@ type PaginationEmbedded = clause.PaginationEmbedded
 type Pagination = clause.Pagination
 type Sorts = clause.Sorts
 type Sort = sqlx.Sort
-
 type Range[T any] = clause.Range[T]
 
 type Id struct {
