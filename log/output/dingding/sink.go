@@ -7,9 +7,10 @@
 package dingding
 
 import (
+	"net/url"
+
 	"github.com/hopeio/gox/sdk/dingtalk"
 	"go.uber.org/zap"
-	"net/url"
 )
 
 type sink dingtalk.RobotConfig

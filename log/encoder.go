@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package output
+package log
 
 import (
 	"io"

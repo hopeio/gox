@@ -6,8 +6,16 @@
 
 package msgpack
 
-import "github.com/vmihailenco/msgpack/v5"
+import (
+	"bytes"
+
+	"github.com/ugorji/go/codec"
+)
+
+var handler = codec.MsgpackHandle{}
 
 func Marshal(v any) ([]byte, error) {
-	return msgpack.Marshal(v)
+	r := bytes.NewBuffer(nil)
+	decoder := codec.NewEncoder(r, &handler)
+	return r.Bytes(), decoder.Encode(v)
 }

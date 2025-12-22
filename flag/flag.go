@@ -14,15 +14,6 @@ import (
 
 const flagTagName = "flag"
 
-// TODO: 优先级高于其他Config,覆盖环境变量及配置中心的配置
-// example
-/*type FlagConfig struct {
-	// environment
-	Env string `flag:"name:env;short:e;default:dev;usage:环境"`
-	// 配置文件路径
-	ConfPath string `flag:"name:conf;short:c;default:config.toml;usage:配置文件路径,默认./config.toml或./config/config.toml"`
-}*/
-
 type flagTagSettings struct {
 	Name    string `meta:"name"`
 	Short   string `meta:"short"`
@@ -47,7 +38,7 @@ func (a anyValue) Set(v string) error {
 
 func Bind(args []string, v any) error {
 	commandLine := pflag.NewFlagSet(args[0], pflag.ContinueOnError)
-	commandLine.ParseErrorsWhitelist.UnknownFlags = true
+	commandLine.ParseErrorsAllowlist.UnknownFlags = true
 	err := AddFlag(commandLine, v)
 	if err != nil {
 		return err

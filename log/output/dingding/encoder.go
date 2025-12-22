@@ -12,7 +12,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/hopeio/gox/log/output"
+	"github.com/hopeio/gox/log"
 	"go.uber.org/zap/zapcore"
 
 	"go.uber.org/zap/buffer"
@@ -44,7 +44,7 @@ func newDingEncoder(cfg *zapcore.EncoderConfig) *dingEncoder {
 
 	// If no EncoderConfig.NewReflectedEncoder is provided by the user, then use default
 	if cfg.NewReflectedEncoder == nil {
-		cfg.NewReflectedEncoder = output.DefaultReflectedEncoder
+		cfg.NewReflectedEncoder = log.DefaultReflectedEncoder
 	}
 	return &dingEncoder{
 		EncoderConfig: cfg,

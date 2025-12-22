@@ -7,9 +7,10 @@
 package heap
 
 import (
+	"sync"
+
 	"github.com/hopeio/gox/cmp"
 	"github.com/hopeio/gox/container/heap"
-	"sync"
 )
 
 type MutexHeap[T cmp.Comparable[T]] struct {
