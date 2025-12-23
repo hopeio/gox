@@ -26,15 +26,8 @@ type CommonResp[T any] struct {
 }
 
 func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	contentType := DefaultMarshaler.ContentType(res)
 	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
-	var data []byte
-	var err error
-	data, err = DefaultMarshaler.Marshal(res)
-	if err != nil {
-		contentType = ContentTypeText
-		data = []byte(err.Error())
-	}
+	data, contentType := DefaultMarshal("", res)
 	w.Header().Set(HeaderContentType, contentType)
 	ow := w
 	if ww, ok := w.(Unwrapper); ok {
@@ -65,12 +58,7 @@ func RespondError(ctx context.Context, w http.ResponseWriter, err error) (int, e
 }
 
 func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, error) {
-	contentType := DefaultMarshaler.ContentType(res)
-	data, err := DefaultMarshaler.Marshal(res)
-	if err != nil {
-		contentType = ContentTypeText
-		data = []byte(err.Error())
-	}
+	data, contentType := DefaultMarshal("", res)
 	w.Header().Set(HeaderContentType, contentType)
 	ow := w
 	if ww, ok := w.(Unwrapper); ok {
@@ -160,14 +148,8 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) CommonRespond(ctx context.Context, w CommonResponseWriter) (int, error) {
-	contentType := DefaultMarshaler.ContentType(res)
-
 	w.Header().Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
-	data, err := DefaultMarshaler.Marshal(res)
-	if err != nil {
-		contentType = ContentTypeText
-		data = []byte(err.Error())
-	}
+	data, contentType := DefaultMarshal("", res)
 	w.Header().Set(HeaderContentType, contentType)
 	if recorder, ok := w.(ResponseRecorder); ok {
 		recorder.RecordResponse(contentType, data, res)

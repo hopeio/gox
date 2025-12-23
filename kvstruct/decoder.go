@@ -390,7 +390,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 }
 
 func isTextUnmarshaler(v reflect.Value) unmarshaler {
-	// Create a new unmarshaller instance
+	// Create a new unmarshaler instance
 	m := unmarshaler{}
 	if m.Unmarshaler, m.IsValid = v.Interface().(encoding.TextUnmarshaler); m.IsValid {
 		return m
@@ -409,7 +409,7 @@ func isTextUnmarshaler(v reflect.Value) unmarshaler {
 		t = t.Elem()
 	}
 	if t.Kind() == reflect.Slice {
-		// Check if the slice implements encoding.TextUnmarshaller
+		// Check if the slice implements encoding.TextUnmarshaler
 		if m.Unmarshaler, m.IsValid = v.Interface().(encoding.TextUnmarshaler); m.IsValid {
 			return m
 		}
@@ -431,7 +431,7 @@ func isTextUnmarshaler(v reflect.Value) unmarshaler {
 }
 
 // TextUnmarshaler helpers ----------------------------------------------------
-// unmarshaller contains information about a TextUnmarshaler type
+// unmarshaler contains information about a TextUnmarshaler type
 type unmarshaler struct {
 	Unmarshaler encoding.TextUnmarshaler
 	// IsValid indicates whether the resolved type indicated by the other

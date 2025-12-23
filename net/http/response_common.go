@@ -47,14 +47,10 @@ type RespondStreamer interface {
 
 func CommonRespond(ctx context.Context, w CommonResponseWriter, res any) (int, error) {
 	header := w.Header()
-	header.Set(HeaderContentType, DefaultMarshaler.ContentType(res))
 	if err, ok := res.(error); ok {
 		return ErrRespFrom(err).CommonRespond(ctx, w)
 	}
-	data, err := DefaultMarshaler.Marshal(res)
-	if err != nil {
-		header.Set(HeaderContentType, ContentTypeText)
-		data = []byte(err.Error())
-	}
+	data, contentType := DefaultMarshal("", res)
+	header.Set(HeaderContentType, contentType)
 	return w.Write(data)
 }

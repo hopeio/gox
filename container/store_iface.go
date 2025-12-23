@@ -13,19 +13,23 @@ import (
 )
 
 type Get[K constraints.Key, V any] interface {
-	Get(key K) V
+	Get(key K) (V, error)
 }
 
 type Set[K constraints.Key, V any] interface {
-	Set(key K, v V)
+	Set(key K, v V) error
 }
 
 type SetWithExpire[K constraints.Key, V any] interface {
-	SetWithExpire(key K, v V, expire time.Duration)
+	SetWithExpire(key K, v V, expire time.Duration) error
+}
+
+type Remove[K constraints.Key, V any] interface {
+	Remove(key K) bool
 }
 
 type Delete[K constraints.Key, V any] interface {
-	Delete(key K)
+	Delete(key K) error
 }
 
 type StoreWithExpire[K constraints.Key, V any] interface {

@@ -10,13 +10,13 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/hopeio/gox/strings"
-	unicodex "github.com/hopeio/gox/unicode"
-
 	"strconv"
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/hopeio/gox/strings"
+	unicodex "github.com/hopeio/gox/text/encoding/unicode"
 )
 
 // unquote converts a quoted JSON string literal s into an actual string t.

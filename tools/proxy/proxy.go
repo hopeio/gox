@@ -1,7 +1,9 @@
 package main
 
-import "github.com/hopeio/gox/net/http/proxy"
+import (
+	"github.com/hopeio/gox/net/http"
+)
 
 func main() {
-	proxy.DirectorServer(":8080")
+	http.DirectorServer(":8080")
 }

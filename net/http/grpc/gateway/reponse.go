@@ -73,7 +73,7 @@ func (t *CommonResp[T]) UnmarshalProto(data []byte) error {
 	}
 }
 
-func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.Marshaler) error {
+func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.MarshalFunc) error {
 	HandleForwardResponseServerMetadata(w, md.Header)
 	var wantsTrailers bool
 	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
@@ -81,9 +81,8 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		HandleForwardResponseTrailerHeader(w, md.Trailer)
 		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
 	}
-	contentType := codec.ContentType(message)
+	var contentType string
 	var buf []byte
-	var err error
 	switch rb := message.(type) {
 	case http.Handler:
 		rb.ServeHTTP(w, r)
@@ -97,14 +96,11 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	case httpx.ResponseBody:
 		buf = rb.ResponseBody()
 	case httpx.XXXResponseBody:
-		buf, err = codec.Marshal(rb.XXX_ResponseBody())
+		buf, contentType = codec(r.Header.Get(httpx.HeaderAccept), rb.XXX_ResponseBody())
 	default:
-		buf, err = codec.Marshal(message)
+		buf, contentType = codec(r.Header.Get(httpx.HeaderAccept), message)
 	}
-	if err != nil {
-		contentType = httpx.ContentTypeText
-		buf = []byte(err.Error())
-	}
+
 	w.Header().Set(httpx.HeaderContentType, contentType)
 	ow := w
 	if ww, ok := w.(httpx.Unwrapper); ok {

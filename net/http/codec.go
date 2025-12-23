@@ -1,11 +1,40 @@
 package http
 
 import (
-	"io"
+	"net/http"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+var (
+	DefaultMarshal MarshalFunc = func(accept string, v any) (data []byte, contentType string) {
+		switch msg := v.(type) {
+		case *CommonAnyResp, *ErrResp:
+			data, err := jsonx.Marshal(msg)
+			if err != nil {
+				data = []byte(err.Error())
+				return data, ContentTypeText
+			}
+			return data, ContentTypeJson
+		case error:
+			data, err := jsonx.Marshal(ErrRespFrom(msg))
+			if err != nil {
+				data = []byte(err.Error())
+				return data, ContentTypeText
+			}
+			return data, ContentTypeJson
+		}
+		data, err := jsonx.Marshal(&CommonAnyResp{Data: v})
+		if err != nil {
+			data = []byte(err.Error())
+			return data, ContentTypeText
+		}
+		return data, ContentTypeJson
+	}
+)
+
+type BindFunc func(r Source, v any) error
+type MarshalFunc func(accept string, v any) (data []byte, contentType string)
 
 type Codec interface {
 	Marshaler
@@ -13,27 +42,23 @@ type Codec interface {
 }
 
 type Unmarshaler interface {
-	Unmarshal(data []byte, v any) error
+	Unmarshal(contentType string, data []byte, v any) error
 }
 
 // Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
 type Marshaler interface {
 	// Marshal marshals "v" into byte sequence.
-	Marshal(v any) ([]byte, error)
-	// ContentType returns the Content-Type which this marshaler is responsible for.
-	// The parameter describes the type which is being marshalled, which can sometimes
-	// affect the content type returned.
-	ContentType(v any) string
+	Marshal(accept string, v any) (data []byte, contentType string)
 }
 
 // Decoder decodes a byte sequence
 type Decoder interface {
-	Decode(v any) error
+	Decode(*http.Request, http.ResponseWriter, any) error
 }
 
 // Encoder encodes gRPC payloads / fields into byte sequence.
 type Encoder interface {
-	Encode(v any) error
+	Encode(*http.Request, any) error
 }
 
 // DecoderFunc adapts an decoder function into Decoder.
@@ -60,61 +85,4 @@ type StreamContentType interface {
 	// same behaviour as for `Marshaler.ContentType`, but is called, if present,
 	// in the case of a streamed response.
 	StreamContentType(v any) string
-}
-
-type Json struct {
-}
-
-func (*Json) ContentType(_ any) string {
-	return ContentTypeJson
-}
-
-func (j *Json) Marshal(v any) ([]byte, error) {
-	switch msg := v.(type) {
-	case *wrapperspb.StringValue:
-		v = msg.Value
-	case *wrapperspb.BoolValue:
-		v = msg.Value
-	case *wrapperspb.Int32Value:
-		v = msg.Value
-	case *wrapperspb.Int64Value:
-		v = msg.Value
-	case *wrapperspb.UInt32Value:
-		v = msg.Value
-	case *wrapperspb.UInt64Value:
-		v = msg.Value
-	case *wrapperspb.FloatValue:
-		v = msg.Value
-	case *wrapperspb.DoubleValue:
-		v = msg.Value
-	case *wrapperspb.BytesValue:
-		v = msg.Value
-	case *CommonAnyResp, *ErrResp:
-		return jsonx.Marshal(msg)
-	case error:
-		return jsonx.Marshal(ErrRespFrom(msg))
-	}
-	return jsonx.Marshal(&CommonAnyResp{Data: v})
-}
-
-func (j *Json) Name() string {
-	return "json"
-}
-
-func (j *Json) Unmarshal(data []byte, v interface{}) error {
-	return jsonx.Unmarshal(data, v)
-}
-
-func (j *Json) Delimiter() []byte {
-	return []byte("\n")
-}
-
-// NewDecoder returns a runtime.Decoder which reads JSON stream from "r".
-func (j *Json) NewDecoder(r io.Reader) Decoder {
-	return jsonx.NewDecoder(r)
-}
-
-// NewEncoder returns an Encoder which writes JSON stream into "w".
-func (j *Json) NewEncoder(w io.Writer) Encoder {
-	return jsonx.NewEncoder(w)
 }

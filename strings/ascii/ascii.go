@@ -24,25 +24,25 @@ func IsDigit(c byte) bool {
 	return '0' <= c && c <= '9'
 }
 
-func IsLowers(s string) bool {
+func IsAllLower(s string) bool {
 	for _, c := range s {
-		if 'a' < c || c > 'z' {
+		if 'a' > c || c > 'z' {
 			return false
 		}
 	}
 	return true
 }
 
-func IsUppers(s string) bool {
+func IsAllUpper(s string) bool {
 	for _, c := range s {
-		if 'A' < c || c > 'Z' {
+		if 'A' > c || c > 'Z' {
 			return false
 		}
 	}
 	return true
 }
 
-func IsLetters(s string) bool {
+func IsAllLetter(s string) bool {
 	for _, c := range s {
 		if c < 'A' || c > 'z' || (c > 'Z' && c < 'a') {
 			return false

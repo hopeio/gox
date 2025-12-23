@@ -11,8 +11,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/hopeio/gox/log"
-	lightengine "github.com/hopeio/gox/scheduler/engine/light"
+	"github.com/hopeio/gox/scheduler/light"
+
 	"os"
 	"path/filepath"
 	"slices"
@@ -112,7 +114,7 @@ func supDirFiles(dir, path string, files *[]string, deep, step int8, num int) {
 }
 
 // path和filepath两个包，filepath文件专用
-func FindFiles2(path string, deep int8, num int) ([]string, error) {
+func FindFilesParallel(path string, deep int8, num int) ([]string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -129,13 +131,13 @@ func FindFiles2(path string, deep int8, num int) ([]string, error) {
 	}
 
 	ctx.AddTask(func() []lightengine.Task {
-		subTasks, err := subDirFiles2(wd, path, "", file, deep, 0)
+		subTasks, err := subDirFilesParallel(wd, path, "", file, deep, 0)
 		if err != nil {
 			log.Error(err)
 		}
 		return subTasks
 	}, func() []lightengine.Task {
-		subTasks, err := supDirFiles2(wd+PathSeparator, path, file, deep, 0)
+		subTasks, err := supDirFilesParallel(wd+PathSeparator, path, file, deep, 0)
 		if err != nil {
 			log.Error(err)
 		}
@@ -152,7 +154,7 @@ func FindFiles2(path string, deep int8, num int) ([]string, error) {
 	return files, nil
 }
 
-func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8) ([]lightengine.Task, error) {
+func subDirFilesParallel(dir, path, exclude string, file chan string, deep, step int8) ([]lightengine.Task, error) {
 	if step == deep {
 		return nil, nil
 	}
@@ -173,7 +175,7 @@ func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8) 
 				file <- filepath1
 			}
 			tasks = append(tasks, func() []lightengine.Task {
-				subTasks, err := subDirFiles2(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step)
+				subTasks, err := subDirFilesParallel(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step)
 				if err != nil {
 					log.Error(err)
 				}
@@ -184,7 +186,7 @@ func subDirFiles2(dir, path, exclude string, file chan string, deep, step int8) 
 	return tasks, nil
 }
 
-func supDirFiles2(dir, path string, file chan string, deep, step int8) ([]lightengine.Task, error) {
+func supDirFilesParallel(dir, path string, file chan string, deep, step int8) ([]lightengine.Task, error) {
 	if step == deep {
 		return nil, nil
 	}
@@ -200,13 +202,13 @@ func supDirFiles2(dir, path string, file chan string, deep, step int8) ([]lighte
 
 	return []lightengine.Task{
 		func() []lightengine.Task {
-			subTasks, err := subDirFiles2(dir, path, dirName, file, deep, 0)
+			subTasks, err := subDirFilesParallel(dir, path, dirName, file, deep, 0)
 			if err != nil {
 				log.Error(err)
 			}
 			return subTasks
 		}, func() []lightengine.Task {
-			subTasks, err := supDirFiles2(dir, path, file, deep, step)
+			subTasks, err := supDirFilesParallel(dir, path, file, deep, step)
 			if err != nil {
 				log.Error(err)
 			}

@@ -7,9 +7,10 @@
 package aop
 
 import (
-	"bou.ke/monkey"
 	"reflect"
 	"unsafe"
+
+	"bou.ke/monkey"
 )
 
 // Deprecated only support func var
