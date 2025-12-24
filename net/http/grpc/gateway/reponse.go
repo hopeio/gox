@@ -87,6 +87,9 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	case http.Handler:
 		rb.ServeHTTP(w, r)
 		return nil
+	case httpx.Responder:
+		rb.Respond(r.Context(), w)
+		return nil
 	case httpx.ResponseBody:
 		buf = rb.ResponseBody()
 	case httpx.XXXResponseBody:
