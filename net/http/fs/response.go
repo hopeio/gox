@@ -19,14 +19,20 @@ type ResponseFile struct {
 	Body httpx.WriterToCloser `json:"body,omitempty"`
 }
 
-func (res *ResponseFile) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	return res.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
+func (res *ResponseFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	res.Respond(r.Context(), w)
 }
 
-func (res *ResponseFile) CommonRespond(ctx context.Context, w httpx.CommonResponseWriter) (int, error) {
-	header := w.Header()
-	header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
-	header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
+func (res *ResponseFile) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	if wx, ok := w.(httpx.ResponseWriter); ok {
+		header := wx.HeaderX()
+		header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
+		header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
+	} else {
+		header := w.Header()
+		header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
+		header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
+	}
 	n, err := res.Body.WriteTo(w)
 	res.Body.Close()
 	return int(n), err

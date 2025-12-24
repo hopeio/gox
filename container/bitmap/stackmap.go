@@ -134,7 +134,7 @@ func (self *StackMap) String() string {
 
 func (self *StackMap) MarshalBinary() ([]byte, error) {
 	size := int(self.N)*int(self.L) + int(unsafe.Sizeof(self.L)) + int(unsafe.Sizeof(self.N))
-	return strings2.BytesFrom(unsafe.Pointer(self), size, size), nil
+	return reflect.BytesFrom(unsafe.Pointer(self), size, size), nil
 }
 
 var (
@@ -161,7 +161,7 @@ func (self *StackMapBuilder) Build() (p *StackMap) {
 	/* initialize as 1 bitmap of N bits */
 	p = (*StackMap)(bm)
 	p.N, p.L = 1, int32(self.b.N)
-	copy(strings2.BytesFrom(unsafe.Pointer(&p.B), nb, nb), self.b.B)
+	copy(reflect.BytesFrom(unsafe.Pointer(&p.B), nb, nb), self.b.B)
 	return
 }
 

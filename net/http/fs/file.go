@@ -26,17 +26,23 @@ type File struct {
 	Name string
 }
 
-func (f *File) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	return f.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: w})
+func (f *File) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f.Respond(r.Context(), w)
 }
 
-func (f *File) CommonRespond(ctx context.Context, w httpx.CommonResponseWriter) (int, error) {
-	header := w.Header()
-	header.Set(httpx.HeaderContentDisposition, "attachment; filename="+f.Name)
-	header.Set(httpx.HeaderContentType, http.DetectContentType(make([]byte, 512)))
-	n, err := io.Copy(w, f.File)
+func (f *File) Respond(ctx context.Context, w http.ResponseWriter) {
+	if wx, ok := w.(httpx.ResponseWriter); ok {
+		header := wx.HeaderX()
+		header.Set(httpx.HeaderContentDisposition, "attachment; filename="+f.Name)
+		header.Set(httpx.HeaderContentType, http.DetectContentType(make([]byte, 512)))
+	} else {
+		header := w.Header()
+		header.Set(httpx.HeaderContentDisposition, "attachment; filename="+f.Name)
+		header.Set(httpx.HeaderContentType, http.DetectContentType(make([]byte, 512)))
+	}
+
+	io.Copy(w, f.File)
 	f.File.Close()
-	return int(n), err
 }
 
 type FileInfo struct {

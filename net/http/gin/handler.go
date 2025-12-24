@@ -23,21 +23,21 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 		err := Bind(ctx, req)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			httpx.RespondError(ctx, ctx.Writer, errors.InvalidArgument.Wrap(err))
+			httpx.RespondError(ctx.Writer, ctx.Request, errors.InvalidArgument.Wrap(err))
 			ctx.Abort()
 			return
 		}
 		res, reserr := service(ctx, req)
 		if reserr != nil {
-			httpx.RespondError(ctx, ctx.Writer, reserr)
+			httpx.RespondError(ctx.Writer, ctx.Request, reserr)
 			ctx.Abort()
 			return
 		}
-		if httpres, ok := any(res).(httpx.CommonResponder); ok {
-			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
+		if httpres, ok := any(res).(httpx.Responder); ok {
+			httpres.Respond(ctx, ctx.Writer)
 			return
 		}
-		httpx.RespondSuccess(ctx, ctx.Writer, res)
+		httpx.RespondSuccess(ctx.Writer, ctx.Request, res)
 	}
 }
 
@@ -47,29 +47,29 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 		err := Bind(ctx, req)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			httpx.RespondError(ctx, ctx.Writer, errors.InvalidArgument.Wrap(err))
+			httpx.RespondError(ctx.Writer, ctx.Request, errors.InvalidArgument.Wrap(err))
 			ctx.Abort()
 			return
 		}
 		res, err := service(httpx.WrapContext(ctx), req)
 		if err != nil {
-			httpx.RespondError(ctx, ctx.Writer, err)
+			httpx.RespondError(ctx.Writer, ctx.Request, err)
 			ctx.Abort()
 			return
 		}
-		if httpres, ok := any(res).(httpx.CommonResponder); ok {
-			httpres.CommonRespond(ctx, httpx.ResponseWriterWrapper{ResponseWriter: ctx.Writer})
+		if httpres, ok := any(res).(httpx.Responder); ok {
+			httpres.Respond(ctx, ctx.Writer)
 			return
 		}
-		httpx.RespondSuccess(ctx, ctx.Writer, res)
+		httpx.RespondSuccess(ctx.Writer, ctx.Request, res)
 	}
 }
 
-func Respond(ctx *gin.Context, v any) (int, error) {
+func Respond(ctx *gin.Context, v any) {
 	if err, ok := v.(error); ok {
-		written, err := httpx.RespondError(ctx, ctx.Writer, err)
+		httpx.RespondError(ctx.Writer, ctx.Request, err)
 		ctx.Abort()
-		return written, err
+
 	}
-	return httpx.RespondSuccess(ctx, ctx.Writer, v)
+	httpx.RespondSuccess(ctx.Writer, ctx.Request, v)
 }

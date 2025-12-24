@@ -161,7 +161,7 @@ func AssertI2I(t *Type, i Iface) (r Iface) {
 //go:linkname GetItab runtime.getitab
 func GetItab(inter *InterfaceType, typ *Type, canfail bool) *Itab
 
-func GetFuncPC(fn interface{}) uintptr {
+func GetFuncPC(fn any) uintptr {
 	ft := UnpackEface(fn)
 	if ft.Type.Kind() != reflect.Func {
 		panic("not a function")
@@ -169,10 +169,16 @@ func GetFuncPC(fn interface{}) uintptr {
 	return *(*uintptr)(ft.Value)
 }
 
-func FuncAddr(f interface{}) unsafe.Pointer {
+func FuncAddr(f any) unsafe.Pointer {
 	if vv := UnpackEface(f); vv.Type.Kind() != reflect.Func {
 		panic("f is not a function")
 	} else {
 		return *(*unsafe.Pointer)(vv.Value)
 	}
+}
+func BytesFrom(p unsafe.Pointer, n int, c int) (r []byte) {
+	(*Slice)(unsafe.Pointer(&r)).Ptr = p
+	(*Slice)(unsafe.Pointer(&r)).Len = n
+	(*Slice)(unsafe.Pointer(&r)).Cap = c
+	return
 }

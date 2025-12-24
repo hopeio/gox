@@ -7,28 +7,90 @@ import (
 	encodingx "github.com/hopeio/gox/encoding/text"
 )
 
-type PeekV interface {
-	Peek(key string) (string, bool)
+type Get interface {
+	Get(key string) (string, bool)
 }
 
-type Args []PeekV
+type Gets []Get
 
-func (args Args) Peek(key string) (v string, ok bool) {
+func (args Gets) Get(key string) (v string, ok bool) {
 	for i := range args {
-		if v, ok = args[i].Peek(key); ok {
+		if v, ok = args[i].Get(key); ok {
 			return
 		}
 	}
 	return
 }
-func (args Args) TrySet(value reflect.Value, field *reflect.StructField, key string) (isSet bool, err error) {
-	return SetByKV(value, field, args, key)
+func (args Gets) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
+	return SetValueByKV(value, field, args, key, opt)
 }
 
-func SetByKV(value reflect.Value, field *reflect.StructField, kv PeekV, key string) (isSet bool, err error) {
-	vs, ok := kv.Peek(key)
-	if !ok {
-		return false, nil
+type KVSource map[string]string
+
+func (form KVSource) Get(key string) (string, bool) {
+	v, ok := form[key]
+	return v, ok
+}
+
+// TrySet tries to set a value by request's form source (like map[string][]string)
+func (form KVSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
+	return SetValueByKV(value, field, form, key, opt)
+}
+
+type KVsSource map[string][]string
+
+var _ Setter = KVsSource(nil)
+
+func (form KVsSource) GetVs(key string) ([]string, bool) {
+	v, ok := form[key]
+	return v, ok
+}
+
+func (form KVsSource) Has(key string) bool {
+	_, ok := form[key]
+	return ok
+}
+
+// TrySet tries to set a value by request's form source (like map[string][]string)
+func (form KVsSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
+	return SetValueByKVs(value, field, form, key, opt)
+}
+
+type GetVs interface {
+	GetVs(key string) ([]string, bool)
+}
+
+type GetVss []GetVs
+
+func (args GetVss) GetVs(key string) (v []string, ok bool) {
+	for i := range args {
+		if v, ok = args[i].GetVs(key); ok {
+			return
+		}
+	}
+	return
+}
+
+func (args GetVss) Has(key string) bool {
+	for i := range args {
+		if _, ok := args[i].GetVs(key); ok {
+			return ok
+		}
+	}
+	return false
+}
+
+func (args GetVss) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
+	return SetValueByKVs(value, field, args, key, opt)
+}
+
+func SetValueByKV(value reflect.Value, field *reflect.StructField, kv Get, key string, opt *Options) (isSet bool, err error) {
+	vs, _ := kv.Get(key)
+	if vs == "" {
+		if opt == nil || opt.Default == "" {
+			return false, nil
+		}
+		vs = opt.Default
 	}
 	err = encodingx.ParseSetReflectValue(value, vs, field)
 	if err != nil {
@@ -37,91 +99,8 @@ func SetByKV(value reflect.Value, field *reflect.StructField, kv PeekV, key stri
 	return true, nil
 }
 
-type KVSource map[string]string
-
-func (form KVSource) Peek(key string) (string, bool) {
-	v, ok := form[key]
-	return v, ok
-}
-
-// TrySet tries to set a value by request's form source (like map[string][]string)
-func (form KVSource) TrySet(value reflect.Value, field *reflect.StructField, key string) (isSet bool, err error) {
-	return SetByKV(value, field, form, key)
-}
-
-type KVsSource map[string][]string
-
-var _ Setter = KVsSource(nil)
-
-func (form KVsSource) Peek(key string) ([]string, bool) {
-	v, ok := form[key]
-	return v, ok
-}
-
-func (form KVsSource) HasValue(key string) bool {
-	_, ok := form[key]
-	return ok
-}
-
-// TrySet tries to set a value by request's form source (like map[string][]string)
-func (form KVsSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
-	return SetValueByKVsWithStructField(value, field, form, key, opt)
-}
-
-type PeekVs interface {
-	Peek(key string) ([]string, bool)
-}
-
-type Args2 []PeekVs
-
-func (args Args2) Peek(key string) (v []string, ok bool) {
-	for i := range args {
-		if v, ok = args[i].Peek(key); ok {
-			return
-		}
-	}
-	return
-}
-
-func (args Args2) HasValue(key string) bool {
-	for i := range args {
-		if _, ok := args[i].Peek(key); ok {
-			return ok
-		}
-	}
-	return false
-}
-
-func (args Args2) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
-	return SetValueByKVsWithStructField(value, field, args, key, opt)
-}
-
-type PeekVsSource []PeekVs
-
-func (args PeekVsSource) Peek(key string) (v []string, ok bool) {
-	for i := range args {
-		if v, ok = args[i].Peek(key); ok {
-			return
-		}
-	}
-	return
-}
-
-func (args PeekVsSource) HasValue(key string) bool {
-	for i := range args {
-		if _, ok := args[i].Peek(key); ok {
-			return ok
-		}
-	}
-	return false
-}
-
-func (args PeekVsSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
-	return SetValueByKVsWithStructField(value, field, args, key, opt)
-}
-
-func SetValueByKVsWithStructField(value reflect.Value, field *reflect.StructField, kv PeekVs, key string, opt *Options) (isSet bool, err error) {
-	vals, _ := kv.Peek(key)
+func SetValueByKVs(value reflect.Value, field *reflect.StructField, kv GetVs, key string, opt *Options) (isSet bool, err error) {
+	vals, _ := kv.GetVs(key)
 	if len(vals) == 0 {
 		if opt == nil || opt.Default == "" {
 			return false, nil

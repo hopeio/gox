@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/hopeio/gox/context/reqctx"
-	httpx "github.com/hopeio/gox/net/http"
 )
 
 type RequestCtx struct {
@@ -19,8 +18,8 @@ type RequestCtx struct {
 	http.ResponseWriter
 }
 
-func (ctx RequestCtx) RequestHeader() httpx.Header {
-	return httpx.HttpHeader(ctx.Request.Header)
+func (ctx RequestCtx) RequestHeader() http.Header {
+	return ctx.Request.Header
 }
 
 func (ctx RequestCtx) RequestContext() context.Context {

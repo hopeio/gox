@@ -8,6 +8,7 @@ package reqctx
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
 	contextx "github.com/hopeio/gox/context"
@@ -32,7 +33,7 @@ type Metadata struct {
 
 type ReqCtx interface {
 	RequestContext() context.Context
-	RequestHeader() httpx.Header
+	RequestHeader() http.Header
 }
 
 type Context[REQ ReqCtx] struct {

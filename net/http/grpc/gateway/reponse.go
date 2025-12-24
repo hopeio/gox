@@ -90,9 +90,6 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	case httpx.Responder:
 		rb.Respond(r.Context(), w)
 		return nil
-	case httpx.CommonResponder:
-		rb.CommonRespond(r.Context(), httpx.ResponseWriterWrapper{ResponseWriter: w})
-		return nil
 	case httpx.ResponseBody:
 		buf = rb.ResponseBody()
 	case httpx.XXXResponseBody:
@@ -106,8 +103,8 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	if ww, ok := w.(httpx.Unwrapper); ok {
 		ow = ww.Unwrap()
 	}
-	if recorder, ok := ow.(httpx.ResponseRecorder); ok {
-		recorder.RecordResponse(contentType, buf, message)
+	if recorder, ok := ow.(httpx.RecordBody); ok {
+		recorder.RecordBody(buf, message)
 	}
 	w.Write(buf)
 	if wantsTrailers {

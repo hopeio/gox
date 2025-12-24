@@ -23,50 +23,44 @@
 package strings
 
 import (
-	reflect2 "github.com/hopeio/gox/reflect"
 	"unsafe"
+
+	reflectx "github.com/hopeio/gox/reflect"
 )
 
 //go:nosplit
-func Mem2Str(v []byte) (s string) {
-	(*reflect2.String)(unsafe.Pointer(&s)).Len = (*reflect2.Slice)(unsafe.Pointer(&v)).Len
-	(*reflect2.String)(unsafe.Pointer(&s)).Ptr = (*reflect2.Slice)(unsafe.Pointer(&v)).Ptr
+func Bytes2Str(v []byte) (s string) {
+	(*reflectx.String)(unsafe.Pointer(&s)).Len = (*reflectx.Slice)(unsafe.Pointer(&v)).Len
+	(*reflectx.String)(unsafe.Pointer(&s)).Ptr = (*reflectx.Slice)(unsafe.Pointer(&v)).Ptr
 	return
 }
 
 //go:nosplit
-func Str2Mem(s string) (v []byte) {
-	(*reflect2.Slice)(unsafe.Pointer(&v)).Cap = (*reflect2.String)(unsafe.Pointer(&s)).Len
-	(*reflect2.Slice)(unsafe.Pointer(&v)).Len = (*reflect2.String)(unsafe.Pointer(&s)).Len
-	(*reflect2.Slice)(unsafe.Pointer(&v)).Ptr = (*reflect2.String)(unsafe.Pointer(&s)).Ptr
-	return
-}
-
-func BytesFrom(p unsafe.Pointer, n int, c int) (r []byte) {
-	(*reflect2.Slice)(unsafe.Pointer(&r)).Ptr = p
-	(*reflect2.Slice)(unsafe.Pointer(&r)).Len = n
-	(*reflect2.Slice)(unsafe.Pointer(&r)).Cap = c
+func Str2Bytes(s string) (v []byte) {
+	(*reflectx.Slice)(unsafe.Pointer(&v)).Cap = (*reflectx.String)(unsafe.Pointer(&s)).Len
+	(*reflectx.Slice)(unsafe.Pointer(&v)).Len = (*reflectx.String)(unsafe.Pointer(&s)).Len
+	(*reflectx.Slice)(unsafe.Pointer(&v)).Ptr = (*reflectx.String)(unsafe.Pointer(&s)).Ptr
 	return
 }
 
 //go:nocheckptr
 func IndexChar(src string, index int) unsafe.Pointer {
-	return unsafe.Pointer(uintptr((*reflect2.String)(unsafe.Pointer(&src)).Ptr) + uintptr(index))
+	return unsafe.Pointer(uintptr((*reflectx.String)(unsafe.Pointer(&src)).Ptr) + uintptr(index))
 }
 
 //go:nocheckptr
 func IndexByte(ptr []byte, index int) unsafe.Pointer {
-	return unsafe.Pointer(uintptr((*reflect2.Slice)(unsafe.Pointer(&ptr)).Ptr) + uintptr(index))
+	return unsafe.Pointer(uintptr((*reflectx.Slice)(unsafe.Pointer(&ptr)).Ptr) + uintptr(index))
 }
 
 //go:nosplit
-func StrPtr(s string) unsafe.Pointer {
-	return (*reflect2.String)(unsafe.Pointer(&s)).Ptr
+func UnsafePtr(s string) unsafe.Pointer {
+	return (*reflectx.String)(unsafe.Pointer(&s)).Ptr
 }
 
 //go:nosplit
-func StrFrom(p unsafe.Pointer, n int64) (s string) {
-	(*reflect2.String)(unsafe.Pointer(&s)).Ptr = p
-	(*reflect2.String)(unsafe.Pointer(&s)).Len = int(n)
+func FromUnsafePtr(p unsafe.Pointer, n int64) (s string) {
+	(*reflectx.String)(unsafe.Pointer(&s)).Ptr = p
+	(*reflectx.String)(unsafe.Pointer(&s)).Len = int(n)
 	return
 }

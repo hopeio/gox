@@ -23,19 +23,10 @@ type Bar struct {
 	C   string
 }
 
-func TestGetExpectTypeValue(t *testing.T) {
-	a := Bar{Foo: Foo{A: 1}}
-	b := Foo{}
-	v := CopyFieldValueByType(&a, &b)
-	if v {
-		t.Log(b)
-	}
-}
-
 func TestInitStruct(t *testing.T) {
 	var f *Foo
 	v := reflect.ValueOf(&f)
-	InitStruct(v)
+	InitValue(v)
 	t.Log(*f)
 	t.Log(*f.C)
 	t.Log(*f.D)

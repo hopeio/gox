@@ -33,53 +33,44 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		req := new(REQ)
 		err := Bind(r, req)
 		if err != nil {
-			RespondError(ctx, w, errors.InvalidArgument.Msg(err.Error()))
+			RespondError(w, r, errors.InvalidArgument.Msg(err.Error()))
 			return
 		}
 		res, errResp := service(ReqResp{r, w}, req)
 		if err != nil {
-			RespondError(ctx, w, errResp)
+			RespondError(w, r, errResp)
 			return
 		}
 		switch httpres := any(res).(type) {
 		case http.Handler:
 			httpres.ServeHTTP(w, r)
 			return
-		case CommonResponder:
-			httpres.CommonRespond(ctx, ResponseWriterWrapper{ResponseWriter: w})
-			return
 		case Responder:
 			httpres.Respond(ctx, w)
 			return
 		}
-		RespondSuccess(ctx, w, res)
+		RespondSuccess(w, r, res)
 	})
 }
 func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+
 		req := new(REQ)
 		err := Bind(r, req)
 		if err != nil {
-			RespondError(ctx, w, errors.InvalidArgument.Wrap(err))
+			RespondError(w, r, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, err := method(WrapContext(ReqResp{r, w}), req)
 		if err != nil {
-			ErrRespFrom(err).Respond(ctx, w)
+			ErrRespFrom(err).ServeHTTP(w, r)
 			return
 		}
 		switch httpres := any(res).(type) {
 		case http.Handler:
 			httpres.ServeHTTP(w, r)
 			return
-		case CommonResponder:
-			httpres.CommonRespond(ctx, ResponseWriterWrapper{ResponseWriter: w})
-			return
-		case Responder:
-			httpres.Respond(ctx, w)
-			return
 		}
-		RespondSuccess(ctx, w, res)
+		RespondSuccess(w, r, res)
 	})
 }

@@ -14,12 +14,10 @@ type Setter interface {
 	TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error)
 }
 
-type Setters struct {
-	Setters []Setter
-}
+type Setters []Setter
 
 func (receiver Setters) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
-	for _, arg := range receiver.Setters {
+	for _, arg := range receiver {
 		if arg != nil {
 			isSet, err = arg.TrySet(value, field, key, opt)
 			if isSet {
@@ -30,7 +28,7 @@ func (receiver Setters) TrySet(value reflect.Value, field *reflect.StructField, 
 	return
 }
 
-func MappingByTag(ptr interface{}, setter Setter, tag string) error {
+func MappingByTag(ptr any, setter Setter, tag string) error {
 	_, err := mapping(reflect.ValueOf(ptr), nil, setter, tag)
 	return err
 }
@@ -137,14 +135,14 @@ func tryToSetValue(value reflect.Value, field *reflect.StructField, setter Sette
 
 type CanSetter interface {
 	Setter
-	HasValue(key string) bool
+	Has(key string) bool
 }
 
 type CanSetters []CanSetter
 
 func (args CanSetters) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	for _, arg := range args {
-		if arg.HasValue(key) {
+		if arg.Has(key) {
 			return arg.TrySet(value, field, key, opt)
 		}
 	}
