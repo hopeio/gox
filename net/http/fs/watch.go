@@ -31,7 +31,7 @@ type Callback struct {
 
 type Handlers map[string]*Callback
 
-func New(interval time.Duration) *Watch {
+func NewWatch(interval time.Duration) *Watch {
 	w := &Watch{
 		interval: interval,
 		//1.map和数组做取舍

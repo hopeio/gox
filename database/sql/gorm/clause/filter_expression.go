@@ -17,7 +17,7 @@ func (f *FilterExpr) Condition() clause.Expression {
 
 type FilterExprs sqlx.FilterExprs
 
-func (f FilterExprs) Condition() clause.Expression {
+func (f FilterExprs) Conditions() []clause.Expression {
 	var exprs []clause.Expression
 	for _, filter := range f {
 		filter.Field = strings.TrimSpace(filter.Field)
@@ -28,6 +28,14 @@ func (f FilterExprs) Condition() clause.Expression {
 			exprs = append(exprs, expr)
 		}
 	}
+	if len(exprs) > 0 {
+		return exprs
+	}
+	return nil
+}
+
+func (f FilterExprs) Condition() clause.Expression {
+	exprs := f.Conditions()
 	if len(exprs) > 0 {
 		return clause.AndConditions{Exprs: exprs}
 	}
