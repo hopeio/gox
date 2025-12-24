@@ -29,7 +29,6 @@ type ReqResp struct {
 
 func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
 		req := new(REQ)
 		err := Bind(r, req)
 		if err != nil {
@@ -44,9 +43,6 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		switch httpres := any(res).(type) {
 		case http.Handler:
 			httpres.ServeHTTP(w, r)
-			return
-		case Responder:
-			httpres.Respond(ctx, w)
 			return
 		}
 		RespondSuccess(w, r, res)
