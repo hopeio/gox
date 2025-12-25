@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"context"
+
 	jsonx "github.com/hopeio/gox/encoding/json"
 	httpx "github.com/hopeio/gox/net/http"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -10,7 +12,7 @@ func init() {
 	httpx.DefaultMarshal = DefaultMarshal
 }
 
-var DefaultMarshal httpx.MarshalFunc = func(req any, v any) (data []byte, contentType string) {
+var DefaultMarshal httpx.MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string) {
 	switch msg := v.(type) {
 	case *wrapperspb.StringValue:
 		v = msg.Value

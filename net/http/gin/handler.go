@@ -38,7 +38,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 			return
 		}
 		if httpres, ok := any(res).(httpx.Responder); ok {
-			httpres.Respond(ctx, ctx.Writer, ctx)
+			httpres.Respond(ctx, ctx.Writer)
 			return
 		}
 		httpx.ServeSuccess(ctx.Writer, ctx.Request, res)
@@ -66,7 +66,7 @@ func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.Ha
 			return
 		}
 		if httpres, ok := any(res).(httpx.Responder); ok {
-			httpres.Respond(ctx, ctx.Writer, ctx)
+			httpres.Respond(ctx, ctx.Writer)
 			return
 		}
 		httpx.ServeSuccess(ctx.Writer, ctx.Request, res)

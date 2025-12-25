@@ -23,7 +23,7 @@ type ResponseWriter interface {
 }
 
 type Responder interface {
-	Respond(ctx context.Context, w http.ResponseWriter, req any)
+	Respond(ctx context.Context, w http.ResponseWriter) (int, error)
 }
 
 // CommonResp 主要用来接收返回，发送请使用 CommonAnyResp
@@ -37,12 +37,12 @@ type CommonResp[T any] struct {
 type CommonAnyResp CommonResp[any]
 
 func (res *CommonAnyResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	res.Respond(r.Context(), w, r)
+	res.Respond(r.Context(), w)
 }
 
-func (res *CommonAnyResp) Respond(ctx context.Context, w http.ResponseWriter, req any) {
+func (res *CommonAnyResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 
-	data, contentType := DefaultMarshal(req, res)
+	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
@@ -59,7 +59,7 @@ func (res *CommonAnyResp) Respond(ctx context.Context, w http.ResponseWriter, re
 	if recorder, ok := ow.(RecordBody); ok {
 		recorder.RecordBody(data, res)
 	}
-	w.Write(data)
+	return w.Write(data)
 }
 
 func NewCommonAnyResp(code errorsx.ErrCode, msg string, data any) *CommonAnyResp {
@@ -74,24 +74,24 @@ func ServeErrCodeMsg(w http.ResponseWriter, r *http.Request, code errorsx.ErrCod
 	NewErrResp(code, msg).ServeHTTP(w, r)
 }
 
-func RespondErrCodeMsg(ctx context.Context, w http.ResponseWriter, r any, code errorsx.ErrCode, msg string) {
-	NewErrResp(code, msg).Respond(ctx, w, r)
+func RespondErrCodeMsg(ctx context.Context, w http.ResponseWriter, code errorsx.ErrCode, msg string) {
+	NewErrResp(code, msg).Respond(ctx, w)
 }
 
 func ServeError(w http.ResponseWriter, r *http.Request, err error) {
 	ErrRespFrom(err).ServeHTTP(w, r)
 }
 
-func RespondError(ctx context.Context, w http.ResponseWriter, r any, err error) {
-	ErrRespFrom(err).Respond(ctx, w, r)
+func RespondError(ctx context.Context, w http.ResponseWriter, err error) (int, error) {
+	return ErrRespFrom(err).Respond(ctx, w)
 }
 
 func ServeSuccess(w http.ResponseWriter, r *http.Request, res any) {
-	RespondSuccess(r.Context(), w, r, res)
+	RespondSuccess(r.Context(), w, res)
 }
 
-func RespondSuccess(ctx context.Context, w http.ResponseWriter, r, res any) {
-	data, contentType := DefaultMarshal(r, res)
+func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, error) {
+	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		wx.HeaderX().Set(HeaderContentType, contentType)
 	} else {
@@ -104,7 +104,7 @@ func RespondSuccess(ctx context.Context, w http.ResponseWriter, r, res any) {
 	if recorder, ok := ow.(RecordBody); ok {
 		recorder.RecordBody(data, res)
 	}
-	w.Write(data)
+	return w.Write(data)
 }
 
 func Serve(w http.ResponseWriter, r *http.Request, data any) {
@@ -114,11 +114,11 @@ func Serve(w http.ResponseWriter, r *http.Request, data any) {
 	ServeSuccess(w, r, data)
 }
 
-func Respond(ctx context.Context, w http.ResponseWriter, req, data any) {
+func Respond(ctx context.Context, w http.ResponseWriter, data any) (int, error) {
 	if err, ok := data.(error); ok {
-		RespondError(ctx, w, req, err)
+		return RespondError(ctx, w, err)
 	}
-	RespondSuccess(ctx, w, req, data)
+	return RespondSuccess(ctx, w, data)
 }
 
 type Response struct {
@@ -133,10 +133,10 @@ type WriterToCloser interface {
 }
 
 func (res *Response) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	res.Respond(r.Context(), w, r)
+	res.Respond(r.Context(), w)
 }
 
-func (res *Response) Respond(ctx context.Context, w http.ResponseWriter, req any) {
+func (res *Response) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		for k, v := range res.Headers {
@@ -148,8 +148,9 @@ func (res *Response) Respond(ctx context.Context, w http.ResponseWriter, req any
 		CopyHttpHeader(w.Header(), res.Headers)
 	}
 	w.WriteHeader(res.Status)
-	res.Body.WriteTo(w)
+	n, err := res.Body.WriteTo(w)
 	res.Body.Close()
+	return int(n), err
 }
 
 type ErrResp errorsx.ErrResp
@@ -172,12 +173,12 @@ func ErrRespFrom(err error) *ErrResp {
 }
 
 func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	res.Respond(r.Context(), w, r)
+	res.Respond(r.Context(), w)
 }
 
-func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter, r any) {
+func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 
-	data, contentType := DefaultMarshal(r, res)
+	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
@@ -194,7 +195,7 @@ func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter, r any) {
 	if recorder, ok := ow.(RecordBody); ok {
 		recorder.RecordBody(data, res)
 	}
-	w.Write(data)
+	return w.Write(data)
 }
 
 func (res *ErrResp) ErrResp() *errorsx.ErrResp {
@@ -206,7 +207,7 @@ func (res *ErrResp) Error() string {
 }
 
 type RespondStreamer interface {
-	RespondStream(ctx context.Context, seq iter.Seq[WriterToCloser])
+	RespondStream(ctx context.Context, seq iter.Seq[WriterToCloser]) (int, error)
 }
 
 type ResponseStream struct {
@@ -215,17 +216,18 @@ type ResponseStream struct {
 	Body    iter.Seq[WriterToCloser] `json:"body,omitempty"`
 }
 
-func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) {
+func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 	if sw, ok := w.(RespondStreamer); ok {
-		sw.RespondStream(ctx, res.Body)
+		return sw.RespondStream(ctx, res.Body)
 	}
+	return 0, nil
 }
 
 func (res *ResponseStream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	RespondStream(r.Context(), w, res.Body)
 }
 
-func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[WriterToCloser]) {
+func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[WriterToCloser]) (int, error) {
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		header.Set(HeaderCacheControl, "no-cache")
@@ -235,20 +237,22 @@ func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.S
 		header.Set(HeaderCacheControl, "no-cache")
 		header.Set(HeaderTransferEncoding, "chunked")
 	}
+	var n int
 	flusher := w.(http.Flusher)
 	for data := range dataSource {
 		select {
 		case <-ctx.Done():
-			return
+			return n, ctx.Err()
 		default:
-			_, err := data.WriteTo(w)
+			writen, err := data.WriteTo(w)
+			n += int(writen)
 			if err != nil {
-				return
+				return n, err
 			}
 			flusher.Flush()
 		}
 	}
-
+	return n, nil
 }
 
 type XXXResponseBody interface {

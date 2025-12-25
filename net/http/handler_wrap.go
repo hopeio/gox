@@ -45,7 +45,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			httpres.ServeHTTP(w, r)
 			return
 		case Responder:
-			httpres.Respond(r.Context(), w, r)
+			httpres.Respond(r.Context(), w)
 			return
 		}
 		ServeSuccess(w, r, res)
@@ -70,7 +70,7 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 			httpres.ServeHTTP(w, r)
 			return
 		case Responder:
-			httpres.Respond(r.Context(), w, r)
+			httpres.Respond(r.Context(), w)
 			return
 		}
 		ServeSuccess(w, r, res)

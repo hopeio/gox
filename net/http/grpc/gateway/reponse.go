@@ -88,14 +88,14 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		rb.ServeHTTP(w, r)
 		return nil
 	case httpx.Responder:
-		rb.Respond(r.Context(), w, r)
+		rb.Respond(r.Context(), w)
 		return nil
 	case httpx.ResponseBody:
 		buf, contentType = rb.ResponseBody()
 	case httpx.XXXResponseBody:
-		buf, contentType = codec(r, rb.XXX_ResponseBody())
+		buf, contentType = codec(r.Context(), rb.XXX_ResponseBody())
 	default:
-		buf, contentType = codec(r, message)
+		buf, contentType = codec(r.Context(), message)
 	}
 	w.Header().Set(httpx.HeaderContentType, contentType)
 	ow := w
