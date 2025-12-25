@@ -74,12 +74,12 @@ func (rw *ResponseRecorder) Header() http.Header {
 
 func (rw *ResponseRecorder) Write(buf []byte) (int, error) {
 	if len(buf) > 0 {
-		/*		if rw.Raw == nil {
-				if rw.Body == nil {
-					rw.Body = respPool.Get().(*bytes.Buffer)
-				}
-				rw.Body.Write(buf)
-			}*/
+		if rw.Raw == nil {
+			if rw.Body == nil {
+				rw.Body = respPool.Get().(*bytes.Buffer)
+			}
+			rw.Body.Write(buf)
+		}
 		return rw.originWriter.Write(buf)
 	}
 	return 0, nil

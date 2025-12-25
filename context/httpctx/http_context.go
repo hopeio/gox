@@ -32,6 +32,6 @@ func FromContext(ctx context.Context) (*Context, bool) {
 	return reqctx.FromContext[RequestCtx](ctx)
 }
 
-func FromRequest(req RequestCtx) *Context {
-	return reqctx.New[RequestCtx](req)
+func FromRequest(w http.ResponseWriter, r *http.Request) *Context {
+	return reqctx.New[RequestCtx](RequestCtx{Request: r, ResponseWriter: w})
 }

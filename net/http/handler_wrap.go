@@ -32,12 +32,12 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		req := new(REQ)
 		err := Bind(r, req)
 		if err != nil {
-			RespondError(w, r, errors.InvalidArgument.Msg(err.Error()))
+			ServeError(w, r, errors.InvalidArgument.Msg(err.Error()))
 			return
 		}
 		res, errResp := service(ReqResp{r, w}, req)
 		if err != nil {
-			RespondError(w, r, errResp)
+			ServeError(w, r, errResp)
 			return
 		}
 		switch httpres := any(res).(type) {
@@ -45,10 +45,10 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			httpres.ServeHTTP(w, r)
 			return
 		case Responder:
-			httpres.Respond(r.Context(), w)
+			httpres.Respond(r.Context(), w, r)
 			return
 		}
-		RespondSuccess(w, r, res)
+		ServeSuccess(w, r, res)
 	})
 }
 func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
@@ -57,7 +57,7 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 		req := new(REQ)
 		err := Bind(r, req)
 		if err != nil {
-			RespondError(w, r, errors.InvalidArgument.Wrap(err))
+			ServeError(w, r, errors.InvalidArgument.Wrap(err))
 			return
 		}
 		res, err := method(WrapContext(ReqResp{r, w}), req)
@@ -70,9 +70,9 @@ func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Ha
 			httpres.ServeHTTP(w, r)
 			return
 		case Responder:
-			httpres.Respond(r.Context(), w)
+			httpres.Respond(r.Context(), w, r)
 			return
 		}
-		RespondSuccess(w, r, res)
+		ServeSuccess(w, r, res)
 	})
 }

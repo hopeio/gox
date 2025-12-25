@@ -22,7 +22,7 @@ func (l *Logger) Named(name string) *Logger {
 	return &Logger{l.Logger.Named(name)}
 }
 
-// WithOptions wrap the zap WithOptions, applies the supplied Options, and
+// WithOptions wrap the zap WithOptions, applies the supplied GzipOptions, and
 // returns the resulting Logger. It's safe to use concurrently.
 func (l *Logger) WithOptions(opts ...zap.Option) *Logger {
 	return &Logger{l.Logger.WithOptions(opts...)}

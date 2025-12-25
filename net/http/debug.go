@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package debug
+package http
 
 import (
 	"expvar"
@@ -13,8 +13,8 @@ import (
 	"runtime/debug"
 )
 
-func Handle(prefix string) {
-	http.HandleFunc(prefix+"/debug/stack", Stack)
+func HandleDebug(prefix string) {
+	http.HandleFunc(prefix+"/debug/stack", HandleStack)
 	if prefix != "" && prefix != "GET " {
 		http.HandleFunc(prefix+"/debug/pprof/", pprof.Index)
 		http.HandleFunc(prefix+"/debug/pprof/cmdline", pprof.Cmdline)
@@ -25,6 +25,6 @@ func Handle(prefix string) {
 	}
 }
 
-func Stack(w http.ResponseWriter, r *http.Request) {
+func HandleStack(w http.ResponseWriter, r *http.Request) {
 	w.Write(debug.Stack())
 }

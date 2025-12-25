@@ -88,20 +88,19 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 		rb.ServeHTTP(w, r)
 		return nil
 	case httpx.Responder:
-		rb.Respond(r.Context(), w)
+		rb.Respond(r.Context(), w, r)
 		return nil
 	case httpx.ResponseBody:
-		buf = rb.ResponseBody()
+		buf, contentType = rb.ResponseBody()
 	case httpx.XXXResponseBody:
-		buf, contentType = codec(r.Header.Get(httpx.HeaderAccept), rb.XXX_ResponseBody())
+		buf, contentType = codec(r, rb.XXX_ResponseBody())
 	default:
-		buf, contentType = codec(r.Header.Get(httpx.HeaderAccept), message)
+		buf, contentType = codec(r, message)
 	}
-
 	w.Header().Set(httpx.HeaderContentType, contentType)
 	ow := w
-	if ww, ok := w.(httpx.Unwrapper); ok {
-		ow = ww.Unwrap()
+	if uw, ok := w.(httpx.Unwrapper); ok {
+		ow = uw.Unwrap()
 	}
 	if recorder, ok := ow.(httpx.RecordBody); ok {
 		recorder.RecordBody(buf, message)

@@ -8,8 +8,12 @@ package reqctx
 
 import (
 	"net/http"
+)
 
-	http2 "github.com/hopeio/gox/net/http"
+const (
+	HeaderAuthorization    = "Authorization"
+	HeaderCookie           = "Cookie"
+	HeaderCookieValueToken = "token"
 )
 
 type AuthInfo interface {
@@ -51,16 +55,16 @@ func (x *Authorization) ParseToken(token string, secret []byte) error {
 
 func GetToken[REQ ReqCtx](r REQ) string {
 	header := r.RequestHeader()
-	if token := header.Get(http2.HeaderAuthorization); token != "" {
+	if token := header.Get(HeaderAuthorization); token != "" {
 		return token
 	}
-	cookie := header.Get(http2.HeaderCookie)
+	cookie := header.Get(HeaderCookie)
 	parsedCookie, err := http.ParseCookie(cookie)
 	if err != nil {
 		return ""
 	}
 	for _, v := range parsedCookie {
-		if v.Name == http2.HeaderCookieValueToken {
+		if v.Name == HeaderCookieValueToken {
 			return v.Value
 		}
 	}

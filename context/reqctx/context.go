@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	contextx "github.com/hopeio/gox/context"
-	httpx "github.com/hopeio/gox/net/http"
 )
 
 var pool *sync.Pool
@@ -22,6 +21,16 @@ func getPool[REQ ReqCtx]() *sync.Pool {
 		return new(Context[REQ])
 	}}
 }
+
+const (
+	HeaderDeviceInfo    = "Device-Info"
+	HeaderAppInfo       = "App-Info"
+	HeaderLocation      = "Location"
+	HeaderArea          = "Area"
+	HeaderInternal      = "Internal"
+	HeaderUserAgent     = "User-Agent"
+	HeaderXForwardedFor = "X-Forwarded-For"
+)
 
 type Metadata struct {
 	RequestTime
@@ -73,7 +82,7 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 	if ok {
 		c.ReqCtx = req
 		c.Metadata.RequestTime = NewRequestAt()
-		c.Metadata.Internal = req.RequestHeader().Get(httpx.HeaderInternal)
+		c.Metadata.Internal = req.RequestHeader().Get(HeaderInternal)
 		c.Metadata.Token = GetToken(req)
 		c.Context = contextx.New(ctx)
 		return c
@@ -82,7 +91,7 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 		Context: contextx.New(ctx),
 		Metadata: Metadata{
 			RequestTime: NewRequestAt(),
-			Internal:    req.RequestHeader().Get(httpx.HeaderInternal),
+			Internal:    req.RequestHeader().Get(HeaderInternal),
 			Token:       GetToken(req),
 		},
 		ReqCtx: req,
@@ -92,9 +101,9 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 func (c *Context[REQ]) Device() *DeviceInfo {
 	if c.device == nil {
 		header := c.ReqCtx.RequestHeader()
-		c.device = Device(header.Get(httpx.HeaderDeviceInfo), header.Get(httpx.HeaderAppInfo),
-			header.Get(httpx.HeaderArea), header.Get(httpx.HeaderLocation),
-			header.Get(httpx.HeaderUserAgent), header.Get(httpx.HeaderXForwardedFor))
+		c.device = Device(header.Get(HeaderDeviceInfo), header.Get(HeaderAppInfo),
+			header.Get(HeaderArea), header.Get(HeaderLocation),
+			header.Get(HeaderUserAgent), header.Get(HeaderXForwardedFor))
 	}
 	return c.device
 }

@@ -163,9 +163,9 @@ func (s *Server) redirectError(req *request.OauthReq, err error, w http.Response
 }
 
 func (s *Server) redirect(req *request.OauthReq, data map[string]interface{}, w http.ResponseWriter) {
-	w.WriteHeader(http.StatusFound)
 	if req.LoginURI != "" {
 		w.Header().Set(httpx.HeaderLocation, req.LoginURI)
+		w.WriteHeader(http.StatusFound)
 		w.Write([]byte("not logged in"))
 		return
 	}
@@ -174,7 +174,7 @@ func (s *Server) redirect(req *request.OauthReq, data map[string]interface{}, w 
 		w.Write([]byte(err.Error()))
 		return
 	}
-
+	w.WriteHeader(http.StatusFound)
 	w.Header().Set(httpx.HeaderLocation, uri)
 }
 

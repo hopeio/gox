@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package gzip
+package http
 
 import (
 	"compress/gzip"
@@ -18,6 +18,15 @@ import (
 	"sync"
 )
 
+var (
+	DefaultExcludedExtensions = NewExcludedExtensions([]string{
+		".png", ".gif", ".jpeg", ".jpg",
+	})
+	DefaultGzipOptions = &GzipOptions{
+		ExcludedExtensions: DefaultExcludedExtensions,
+	}
+)
+
 const (
 	BestCompression    = gzip.BestCompression
 	BestSpeed          = gzip.BestSpeed
@@ -25,8 +34,11 @@ const (
 	NoCompression      = gzip.NoCompression
 )
 
-func Gzip(level int, options ...Option) http.HandlerFunc {
-	return newGzipHandler(level, options...).Handle
+type GzipOptions struct {
+	ExcludedExtensions ExcludedExtensions
+	ExcludedPaths      ExcludedPaths
+	ExcludedPathsRegex ExcludedPathsRegex
+	Handler            http.HandlerFunc
 }
 
 type gzipWriter struct {
@@ -50,18 +62,17 @@ func (g *gzipWriter) Write(data []byte) (int, error) {
 	return n, nil
 }
 
-// Fix: https://github.com/mholt/caddy/issues/38
 func (g *gzipWriter) WriteHeader(code int) {
 	g.Header().Del("Content-Length")
 	g.ResponseWriter.WriteHeader(code)
 }
 
 type gzipHandler struct {
-	*Options
-	gzPool sync.Pool
+	*GzipOptions
+	gzPool *sync.Pool
 }
 
-func newGzipHandler(level int, options ...Option) *gzipHandler {
+func NewGzipHandler(level int, options *GzipOptions) *gzipHandler {
 	var gzPool sync.Pool
 	gzPool.New = func() interface{} {
 		gz, err := gzip.NewWriterLevel(ioutil.Discard, level)
@@ -70,17 +81,17 @@ func newGzipHandler(level int, options ...Option) *gzipHandler {
 		}
 		return gz
 	}
-	handler := &gzipHandler{
-		Options: DefaultOptions,
-		gzPool:  gzPool,
+	if options == nil {
+		options = DefaultGzipOptions
 	}
-	for _, setter := range options {
-		setter(handler.Options)
+	handler := &gzipHandler{
+		GzipOptions: options,
+		gzPool:      &gzPool,
 	}
 	return handler
 }
 
-func (g *gzipHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (g *gzipHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if !g.shouldCompress(r) {
 		return
@@ -94,7 +105,7 @@ func (g *gzipHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	header.Set("Content-Encoding", "gzip")
 	header.Set("Vary", "Accept-Encoding")
 	gw := &gzipWriter{w, gz, 0}
-	g.Options.Handler(w, r)
+	g.GzipOptions.Handler(w, r)
 	gz.Close()
 	header.Set("Content-Length", strconv.Itoa(gw.size))
 
@@ -123,23 +134,13 @@ func (g *gzipHandler) shouldCompress(req *http.Request) bool {
 	return true
 }
 
-func GzipBody(r *http.Request) ([]byte, error) {
+func GzipBody(r *http.Request) (io.ReadCloser, error) {
 	if r.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(r.Body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gzip reader %w", err)
 		}
-		defer reader.Close()
-
-		body, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read gzip body %w", err)
-		}
-		return body, nil
+		return reader, nil
 	}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read body %w", err)
-	}
-	return body, nil
+	return r.Body, nil
 }

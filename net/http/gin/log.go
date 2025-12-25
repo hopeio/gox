@@ -32,7 +32,7 @@ func ErrorLoggerT(typ gin.ErrorType) gin.HandlerFunc {
 		c.Next()
 		errs := c.Errors.ByType(typ)
 		if len(errs) > 0 {
-			data, contentType := httpx.DefaultMarshal(c.GetHeader(httpx.HeaderAccept), errors.InvalidArgument.Msg(strings.Join(errs.Errors(), "\n")))
+			data, contentType := httpx.DefaultMarshal(c, errors.InvalidArgument.Msg(strings.Join(errs.Errors(), "\n")))
 			c.Header(httpx.HeaderContentType, contentType)
 			c.Writer.Write(data)
 			return

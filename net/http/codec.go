@@ -1,30 +1,19 @@
 package http
 
 import (
-	"net/http"
-
 	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 var (
-	DefaultMarshal MarshalFunc = func(accept string, v any) (data []byte, contentType string) {
+	DefaultMarshal MarshalFunc = func(r any, v any) (data []byte, contentType string) {
+		var err error
 		switch msg := v.(type) {
 		case *CommonAnyResp, *ErrResp:
-			data, err := jsonx.Marshal(msg)
-			if err != nil {
-				data = []byte(err.Error())
-				return data, ContentTypeText
-			}
-			return data, ContentTypeJson
+			data, err = jsonx.Marshal(msg)
 		case error:
-			data, err := jsonx.Marshal(ErrRespFrom(msg))
-			if err != nil {
-				data = []byte(err.Error())
-				return data, ContentTypeText
-			}
-			return data, ContentTypeJson
+			data, err = jsonx.Marshal(ErrRespFrom(msg))
 		}
-		data, err := jsonx.Marshal(&CommonAnyResp{Data: v})
+		data, err = jsonx.Marshal(&CommonAnyResp{Data: v})
 		if err != nil {
 			data = []byte(err.Error())
 			return data, ContentTypeText
@@ -34,7 +23,7 @@ var (
 )
 
 type BindFunc func(r Source, v any) error
-type MarshalFunc func(accept string, v any) (data []byte, contentType string)
+type MarshalFunc func(request, v any) (data []byte, contentType string)
 
 type Codec interface {
 	Marshaler
@@ -48,17 +37,17 @@ type Unmarshaler interface {
 // Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
 type Marshaler interface {
 	// Marshal marshals "v" into byte sequence.
-	Marshal(accept string, v any) (data []byte, contentType string)
+	Marshal(request, v any) (data []byte, contentType string)
 }
 
 // Decoder decodes a byte sequence
 type Decoder interface {
-	Decode(*http.Request, http.ResponseWriter, any) error
+	Decode(any) error
 }
 
 // Encoder encodes gRPC payloads / fields into byte sequence.
 type Encoder interface {
-	Encode(*http.Request, any) error
+	Encode(any) error
 }
 
 // DecoderFunc adapts an decoder function into Decoder.

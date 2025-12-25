@@ -10,7 +10,7 @@ func init() {
 	httpx.DefaultMarshal = DefaultMarshal
 }
 
-var DefaultMarshal httpx.MarshalFunc = func(accept string, v any) (data []byte, contentType string) {
+var DefaultMarshal httpx.MarshalFunc = func(req any, v any) (data []byte, contentType string) {
 	switch msg := v.(type) {
 	case *wrapperspb.StringValue:
 		v = msg.Value

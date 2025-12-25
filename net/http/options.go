@@ -4,55 +4,12 @@
  * @Created by jyb
  */
 
-package gzip
+package http
 
 import (
-	"net/http"
 	"regexp"
 	"strings"
 )
-
-var (
-	DefaultExcludedExtensions = NewExcludedExtensions([]string{
-		".png", ".gif", ".jpeg", ".jpg",
-	})
-	DefaultOptions = &Options{
-		ExcludedExtensions: DefaultExcludedExtensions,
-	}
-)
-
-type Options struct {
-	ExcludedExtensions ExcludedExtensions
-	ExcludedPaths      ExcludedPaths
-	ExcludedPathsRegex ExcludedPathsRegex
-	Handler            http.HandlerFunc
-}
-
-type Option func(*Options)
-
-func WithExcludedExtensions(args []string) Option {
-	return func(o *Options) {
-		o.ExcludedExtensions = NewExcludedExtensions(args)
-	}
-}
-
-func WithExcludedPaths(args []string) Option {
-	return func(o *Options) {
-		o.ExcludedPaths = NewExcludedPaths(args)
-	}
-}
-
-func WithExcludedPathsRegexes(args []string) Option {
-	return func(o *Options) {
-		o.ExcludedPathsRegex = NewExcludedPathsRegex(args)
-	}
-}
-
-func WithHandler(decompressFn http.HandlerFunc) Option {
-	return func(o *Options) {
-		o.Handler = decompressFn
-	}
-}
 
 // Using map for better lookup performance
 type ExcludedExtensions map[string]bool
@@ -73,7 +30,7 @@ func (e ExcludedExtensions) Contains(target string) bool {
 type ExcludedPaths []string
 
 func NewExcludedPaths(paths []string) ExcludedPaths {
-	return ExcludedPaths(paths)
+	return paths
 }
 
 func (e ExcludedPaths) Contains(requestURI string) bool {
