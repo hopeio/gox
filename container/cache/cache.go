@@ -179,7 +179,7 @@ func (c *Cache) load(key any, cb func(any, time.Duration, error) (*item, error),
 			}
 		}()
 		c.mu.Lock()
-		it, err := c.store.get(key, false)
+		it, err := c.store.get(key, true)
 		c.mu.Unlock()
 		if err == nil {
 			return it, nil

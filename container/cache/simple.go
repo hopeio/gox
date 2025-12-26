@@ -37,7 +37,7 @@ func (c *Simple) get(k any, onLoad bool) (*item, error) {
 	if found {
 		if !item.Expired(nil) {
 			if !onLoad {
-				c.stats.IncrMissCount()
+				c.stats.IncrHitCount()
 			}
 			return item, nil
 		}
