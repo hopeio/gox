@@ -8,7 +8,7 @@ import (
 
 func TestARCGet(t *testing.T) {
 	size := 1000
-	gc := buildTestCache(t, TYPE_ARC, size)
+	gc := buildTestCache(t, size).ARC()
 	testSetCache(t, gc, size)
 	testGetCache(t, gc, size)
 }
@@ -16,11 +16,11 @@ func TestARCGet(t *testing.T) {
 func TestLoadingARCGet(t *testing.T) {
 	size := 1000
 	numbers := 1000
-	testGetCache(t, buildTestLoadingCache(t, TYPE_ARC, size, loader), numbers)
+	testGetCache(t, buildTestLoadingCache(t, size, loader).ARC(), numbers)
 }
 
 func TestARCLength(t *testing.T) {
-	gc := buildTestLoadingCacheWithExpiration(t, TYPE_ARC, 2, time.Millisecond)
+	gc := buildTestLoadingCacheWithExpiration(t, 2, time.Millisecond).ARC()
 	gc.Get("test1")
 	gc.Get("test2")
 	gc.Get("test3")
@@ -41,7 +41,7 @@ func TestARCLength(t *testing.T) {
 func TestARCEvictItem(t *testing.T) {
 	cacheSize := 10
 	numbers := cacheSize + 1
-	gc := buildTestLoadingCache(t, TYPE_ARC, cacheSize, loader)
+	gc := buildTestLoadingCache(t, cacheSize, loader).ARC()
 
 	for i := 0; i < numbers; i++ {
 		_, err := gc.Get(fmt.Sprintf("Key-%d", i))
@@ -51,16 +51,15 @@ func TestARCEvictItem(t *testing.T) {
 	}
 }
 
-func TestARCPurgeCache(t *testing.T) {
+func TestARCClearCache(t *testing.T) {
 	cacheSize := 10
-	purgeCount := 0
+	clearCount := 0
 	gc := New(cacheSize).
-		ARC().
 		LoaderFunc(loader).
-		PurgeVisitorFunc(func(k, v interface{}) {
-			purgeCount++
+		ClearVisitorFunc(func(k, v interface{}) {
+			clearCount++
 		}).
-		Build()
+		ARC()
 
 	for i := 0; i < cacheSize; i++ {
 		_, err := gc.Get(fmt.Sprintf("Key-%d", i))
@@ -69,15 +68,15 @@ func TestARCPurgeCache(t *testing.T) {
 		}
 	}
 
-	gc.Purge()
+	gc.Clear()
 
-	if purgeCount != cacheSize {
-		t.Errorf("failed to purge everything")
+	if clearCount != cacheSize {
+		t.Errorf("failed to clear everything")
 	}
 }
 
 func TestARCHas(t *testing.T) {
-	gc := buildTestLoadingCacheWithExpiration(t, TYPE_ARC, 2, 10*time.Millisecond)
+	gc := buildTestLoadingCacheWithExpiration(t, 2, 10*time.Millisecond).ARC()
 
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {

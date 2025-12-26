@@ -7,25 +7,58 @@ import (
 	"time"
 )
 
-func TestLoaderFunc(t *testing.T) {
-	size := 2
-	var testCaches = []*CacheBuilder{
-		New(size).LRU(),
-		New(size).LFU(),
-		New(size).ARC(),
+func getCaches(builder *CacheBuilder) []*Cache {
+	return []*Cache{
+		builder.LRU(),
+		builder.LFU(),
+		builder.ARC(),
+		builder.Simple(),
 	}
-	for _, builder := range testCaches {
+}
+
+func getCache(i int, builder *CacheBuilder) *Cache {
+	switch i {
+	case 0:
+		return builder.LRU()
+	case 1:
+		return builder.LFU()
+	case 2:
+		return builder.ARC()
+	case 3:
+		return builder.Simple()
+	}
+	return nil
+}
+
+func getName(i int) string {
+	switch i {
+	case 0:
+		return "LRU"
+	case 1:
+		return "LFU"
+	case 2:
+		return "ARC"
+	case 3:
+		return "Simple"
+	}
+	return ""
+}
+
+func TestLoaderFunc(t *testing.T) {
+
+	for i := range 4 {
 		var testCounter int64
 		counter := 1000
-		cache := builder.
+		builder := New(2).
 			LoaderFunc(func(key interface{}) (interface{}, time.Duration, error) {
 				time.Sleep(10 * time.Millisecond)
 				return atomic.AddInt64(&testCounter, 1), 0, nil
 			}).
 			EvictedFunc(func(key, value interface{}) {
 				panic(key)
-			}).Build()
+			})
 
+		cache := getCache(i, builder)
 		var wg sync.WaitGroup
 		for i := 0; i < counter; i++ {
 			wg.Add(1)
@@ -42,26 +75,22 @@ func TestLoaderFunc(t *testing.T) {
 		if testCounter != 1 {
 			t.Errorf("testCounter != %v", testCounter)
 		}
+
 	}
 }
 
 func TestLoaderExpireFuncWithoutExpire(t *testing.T) {
-	size := 2
-	var testCaches = []*CacheBuilder{
-		New(size).LRU(),
-		New(size).LFU(),
-		New(size).ARC(),
-	}
-	for _, builder := range testCaches {
+	for i := range 4 {
 		var testCounter int64
 		counter := 1000
-		cache := builder.
+		builder := New(2).
 			LoaderFunc(func(key interface{}) (interface{}, time.Duration, error) {
 				return atomic.AddInt64(&testCounter, 1), NoExpiration, nil
 			}).
 			EvictedFunc(func(key, value interface{}) {
 				panic(key)
-			}).Build()
+			})
+		cache := getCache(i, builder)
 
 		var wg sync.WaitGroup
 		for i := 0; i < counter; i++ {
@@ -84,22 +113,16 @@ func TestLoaderExpireFuncWithoutExpire(t *testing.T) {
 }
 
 func TestLoaderExpireFuncWithExpire(t *testing.T) {
-	size := 2
-	var testCaches = []*CacheBuilder{
-		New(size).LRU(),
-		New(size).LFU(),
-		New(size).ARC(),
-	}
-	for _, builder := range testCaches {
+
+	for i := range 4 {
 		var testCounter int64
 		counter := 1000
 		expire := 200 * time.Millisecond
-		cache := builder.
-			LoaderFunc(func(key interface{}) (interface{}, time.Duration, error) {
+		builder := New(2).
+			LoaderFunc(func(key interface{}) (any, time.Duration, error) {
 				return atomic.AddInt64(&testCounter, 1), expire, nil
-			}).
-			Build()
-
+			})
+		cache := getCache(i, builder)
 		var wg sync.WaitGroup
 		for i := 0; i < counter; i++ {
 			wg.Add(1)
@@ -111,7 +134,13 @@ func TestLoaderExpireFuncWithExpire(t *testing.T) {
 				}
 			}()
 		}
+		wg.Wait()
+
+		if testCounter != 1 {
+			t.Errorf("%s: testCounter %v != 1", getName(i), testCounter)
+		}
 		time.Sleep(expire) // Waiting for key expiration
+
 		for i := 0; i < counter; i++ {
 			wg.Add(1)
 			go func() {
@@ -124,48 +153,28 @@ func TestLoaderExpireFuncWithExpire(t *testing.T) {
 		}
 
 		wg.Wait()
-
+	
 		if testCounter != 2 {
-			t.Errorf("testCounter != %v", testCounter)
+			t.Errorf("%s: testCounter %v != 2", getName(i), testCounter)
 		}
 	}
 }
 
-func TestLoaderPurgeVisitorFunc(t *testing.T) {
-	size := 7
-	tests := []struct {
-		name         string
-		cacheBuilder *CacheBuilder
-	}{
-		{
-			name:         "lru",
-			cacheBuilder: New(size).LRU(),
-		},
-		{
-			name:         "lfu",
-			cacheBuilder: New(size).LFU(),
-		},
-		{
-			name:         "arc",
-			cacheBuilder: New(size).ARC(),
-		},
-	}
-
-	for _, test := range tests {
-		var purgeCounter, evictCounter, loaderCounter int64
+func TestLoaderClearVisitorFunc(t *testing.T) {
+	for i := range 4 {
+		var clearCounter, evictCounter, loaderCounter int64
 		counter := 1000
-		cache := test.cacheBuilder.
+		builder := New(7).
 			LoaderFunc(func(key interface{}) (interface{}, time.Duration, error) {
 				return atomic.AddInt64(&loaderCounter, 1), NoExpiration, nil
 			}).
 			EvictedFunc(func(key, value interface{}) {
 				atomic.AddInt64(&evictCounter, 1)
 			}).
-			PurgeVisitorFunc(func(k, v interface{}) {
-				atomic.AddInt64(&purgeCounter, 1)
-			}).
-			Build()
-
+			ClearVisitorFunc(func(k, v interface{}) {
+				atomic.AddInt64(&clearCounter, 1)
+			})
+		cache := getCache(i, builder)
 		var wg sync.WaitGroup
 		for i := 0; i < counter; i++ {
 			i := i
@@ -182,29 +191,26 @@ func TestLoaderPurgeVisitorFunc(t *testing.T) {
 		wg.Wait()
 
 		if loaderCounter != int64(counter) {
-			t.Errorf("%s: loaderCounter != %v", test.name, loaderCounter)
+			t.Errorf("%s: loaderCounter != %v", getName(i), loaderCounter)
 		}
 
-		cache.Purge()
+		cache.Clear()
 
-		if evictCounter+purgeCounter != loaderCounter {
-			t.Logf("%s: evictCounter: %d", test.name, evictCounter)
-			t.Logf("%s: purgeCounter: %d", test.name, purgeCounter)
-			t.Logf("%s: loaderCounter: %d", test.name, loaderCounter)
-			t.Errorf("%s: load != evict+purge", test.name)
+		if evictCounter+clearCounter != loaderCounter {
+			t.Logf("%s: evictCounter: %d", getName(i), evictCounter)
+			t.Logf("%s: clearCounter: %d", getName(i), clearCounter)
+			t.Logf("%s: loaderCounter: %d", getName(i), loaderCounter)
+			t.Errorf("%s: load != evict+clear", getName(i))
 		}
 	}
 }
 
 func TestExpiredItems(t *testing.T) {
-	var tps = []string{
-		TYPE_LRU,
-		TYPE_LFU,
-		TYPE_ARC,
-	}
-	for _, tp := range tps {
-		t.Run(tp, func(t *testing.T) {
-			testExpiredItems(t, tp)
+
+	for i := range 4 {
+		t.Run(getName(i), func(t *testing.T) {
+			testExpiredItems(t, getCache(i, New(8).
+				Expiration(time.Millisecond*100)))
 		})
 	}
 }

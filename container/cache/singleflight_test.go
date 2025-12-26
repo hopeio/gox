@@ -27,8 +27,7 @@ import (
 
 func TestDo(t *testing.T) {
 	var g Group
-	g.cache = New(32).Build()
-	v, _, err := g.Do("key", func() (interface{}, error) {
+	v, _, err := g.Do("key", func() (any, error) {
 		return "bar", nil
 	}, true)
 	if got, want := fmt.Sprintf("%v (%T)", v, v), "bar (string)"; got != want {
@@ -41,9 +40,8 @@ func TestDo(t *testing.T) {
 
 func TestDoErr(t *testing.T) {
 	var g Group
-	g.cache = New(32).Build()
 	someErr := errors.New("Some error")
-	v, _, err := g.Do("key", func() (interface{}, error) {
+	v, _, err := g.Do("key", func() (any, error) {
 		return nil, someErr
 	}, true)
 	if err != someErr {
@@ -56,7 +54,6 @@ func TestDoErr(t *testing.T) {
 
 func TestDoDupSuppress(t *testing.T) {
 	var g Group
-	g.cache = New(32).Build()
 	c := make(chan string)
 	var calls int32
 	fn := func() (interface{}, error) {
@@ -64,7 +61,7 @@ func TestDoDupSuppress(t *testing.T) {
 		return <-c, nil
 	}
 
-	const n = 10
+	const n = 1000
 	var wg sync.WaitGroup
 	for i := 0; i < n; i++ {
 		wg.Add(1)

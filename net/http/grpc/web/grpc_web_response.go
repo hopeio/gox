@@ -60,7 +60,7 @@ func (w *grpcWebResponse) WriteHeader(code int) {
 
 func (w *grpcWebResponse) Flush() {
 	if w.wroteHeaders || w.wroteBody {
-		// Work around the fact that WriteHeader and a call to Flush would have caused a 200 response.
+		// Work around the fact that WriteHeader and a call to Clear would have caused a 200 response.
 		// This is the case when there is no payload.
 		flushWriter(w.wrapped)
 	}
@@ -149,11 +149,11 @@ func (w *base64ResponseWriter) WriteHeader(code int) {
 }
 
 func (w *base64ResponseWriter) Flush() {
-	// Flush the base64 encoder by closing it. Grpc-web permits multiple padded base64 parts:
+	// Clear the base64 encoder by closing it. Grpc-web permits multiple padded base64 parts:
 	// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-WEB.md
 	err := w.encoder.Close()
 	if err != nil {
-		// Must ignore this error since Flush() is not defined as returning an error
+		// Must ignore this error since Clear() is not defined as returning an error
 		grpclog.Errorf("ignoring error Flushing base64 encoder: %v", err)
 	}
 	w.newEncoder()

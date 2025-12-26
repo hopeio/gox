@@ -8,19 +8,19 @@ import (
 
 func TestLRUGet(t *testing.T) {
 	size := 1000
-	gc := buildTestCache(t, TYPE_LRU, size)
+	gc := buildTestCache(t, size).LRU()
 	testSetCache(t, gc, size)
 	testGetCache(t, gc, size)
 }
 
 func TestLoadingLRUGet(t *testing.T) {
 	size := 1000
-	gc := buildTestLoadingCache(t, TYPE_LRU, size, loader)
+	gc := buildTestLoadingCache(t, size, loader).LRU()
 	testGetCache(t, gc, size)
 }
 
 func TestLRULength(t *testing.T) {
-	gc := buildTestLoadingCache(t, TYPE_LRU, 1000, loader)
+	gc := buildTestLoadingCache(t, 1000, loader).LRU()
 	gc.Get("test1")
 	gc.Get("test2")
 	length := gc.Len(true)
@@ -33,7 +33,7 @@ func TestLRULength(t *testing.T) {
 func TestLRUEvictItem(t *testing.T) {
 	cacheSize := 10
 	numbers := 11
-	gc := buildTestLoadingCache(t, TYPE_LRU, cacheSize, loader)
+	gc := buildTestLoadingCache(t, cacheSize, loader).LRU()
 
 	for i := 0; i < numbers; i++ {
 		_, err := gc.Get(fmt.Sprintf("Key-%d", i))
@@ -44,7 +44,7 @@ func TestLRUEvictItem(t *testing.T) {
 }
 
 func TestLRUHas(t *testing.T) {
-	gc := buildTestLoadingCacheWithExpiration(t, TYPE_LRU, 2, 10*time.Millisecond)
+	gc := buildTestLoadingCacheWithExpiration(t, 2, 10*time.Millisecond).LRU()
 
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
