@@ -13,7 +13,7 @@ import (
 
 func TestStrconv(t *testing.T) {
 	s := "test"
-	b := StringToBytes(s)
-	s2 := BytesToString(b)
+	b := ToBytes(s)
+	s2 := FromBytes(b)
 	fmt.Println(b, s2)
 }

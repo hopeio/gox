@@ -28,21 +28,6 @@ import (
 	reflectx "github.com/hopeio/gox/reflect"
 )
 
-//go:nosplit
-func Bytes2Str(v []byte) (s string) {
-	(*reflectx.String)(unsafe.Pointer(&s)).Len = (*reflectx.Slice)(unsafe.Pointer(&v)).Len
-	(*reflectx.String)(unsafe.Pointer(&s)).Ptr = (*reflectx.Slice)(unsafe.Pointer(&v)).Ptr
-	return
-}
-
-//go:nosplit
-func Str2Bytes(s string) (v []byte) {
-	(*reflectx.Slice)(unsafe.Pointer(&v)).Cap = (*reflectx.String)(unsafe.Pointer(&s)).Len
-	(*reflectx.Slice)(unsafe.Pointer(&v)).Len = (*reflectx.String)(unsafe.Pointer(&s)).Len
-	(*reflectx.Slice)(unsafe.Pointer(&v)).Ptr = (*reflectx.String)(unsafe.Pointer(&s)).Ptr
-	return
-}
-
 //go:nocheckptr
 func IndexChar(src string, index int) unsafe.Pointer {
 	return unsafe.Pointer(uintptr((*reflectx.String)(unsafe.Pointer(&src)).Ptr) + uintptr(index))
