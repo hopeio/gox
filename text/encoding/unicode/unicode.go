@@ -54,7 +54,7 @@ func Getu4(s []byte) rune {
 
 func ToUtf8(s []byte) string {
 	if len(s) < 6 {
-		return stringsx.BytesToString(s)
+		return stringsx.FromBytes(s)
 	}
 	b := make([]byte, len(s)+2*utf8.UTFMax)
 	begin, bbegin := 0, 0
@@ -63,7 +63,7 @@ func ToUtf8(s []byte) string {
 			bbegin += copy(b[bbegin:], s[begin:i])
 			rr := Getu4(s[i:])
 			if rr < 0 {
-				return stringsx.BytesToString(s)
+				return stringsx.FromBytes(s)
 			}
 			i += 6
 			if utf16.IsSurrogate(rr) {
@@ -84,7 +84,7 @@ func ToUtf8(s []byte) string {
 		}
 	}
 	bbegin += copy(b[bbegin:], s[begin:])
-	return stringsx.BytesToString(b[:bbegin])
+	return stringsx.FromBytes(b[:bbegin])
 }
 
 func ToLowerFirst(s string) string {

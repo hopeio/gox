@@ -51,7 +51,7 @@ func (d Date) MarshalJSON() ([]byte, error) {
 }
 
 func (d *Date) UnmarshalJSON(data []byte) error {
-	str := stringsx.BytesToString(data)
+	str := stringsx.FromBytes(data)
 	if len(data) == 0 || str == "null" {
 		return nil
 	}
@@ -76,7 +76,7 @@ func (d *Date) UnmarshalText(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
-	str := stringsx.BytesToString(data)
+	str := stringsx.FromBytes(data)
 	t, err := time.Parse(time.DateOnly, str)
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func (d DateTime) MarshalJSON() ([]byte, error) {
 }
 
 func (d *DateTime) UnmarshalJSON(data []byte) error {
-	str := stringsx.BytesToString(data)
+	str := stringsx.FromBytes(data)
 	if len(data) == 0 || str == "null" {
 		return nil
 	}
@@ -195,7 +195,7 @@ func (d *DateTime) UnmarshalText(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
-	str := stringsx.BytesToString(data)
+	str := stringsx.FromBytes(data)
 	t, err := time.Parse(time.DateTime, str)
 	if err != nil {
 		return err

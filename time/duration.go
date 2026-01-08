@@ -63,7 +63,7 @@ func (t *Duration) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
-	duration, err := time.ParseDuration(strings.BytesToString(data))
+	duration, err := time.ParseDuration(strings.FromBytes(data))
 	if err != nil {
 		return err
 	}

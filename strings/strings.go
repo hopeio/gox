@@ -97,7 +97,7 @@ func LowerCaseFirst(t string) string {
 	}
 	b := []byte(t)
 	b[0] = LowerCase(b[0])
-	return BytesToString(b)
+	return FromBytes(b)
 	//return string(LowerCase(t[0])) + t[1:]
 }
 
@@ -114,7 +114,7 @@ func UpperCaseFirst(t string) string {
 	}
 	b := []byte(t)
 	b[0] = UpperCase(b[0])
-	return BytesToString(b)
+	return FromBytes(b)
 	//return string(UpperCase(t[0])) + t[1:]
 }
 
@@ -293,7 +293,7 @@ func Rand(length int) string {
 			randId[i] = byte(n + '0')
 		}
 	}
-	return BytesToString(randId)
+	return FromBytes(randId)
 }
 
 /*

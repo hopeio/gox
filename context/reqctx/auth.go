@@ -48,7 +48,7 @@ func (x *Authorization) ParseToken(token string, secret []byte) error {
 	}
 	x.ID = x.AuthInfo.GetId()
 	authBytes, _ := json.Marshal(x.AuthInfo)
-	x.AuthRaw = stringsx.BytesToString(authBytes)
+	x.AuthRaw = stringsx.FromBytes(authBytes)
 	return nil
 }
 */

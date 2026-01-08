@@ -23,7 +23,7 @@ import (
 // The rules are different than for Go, so cannot use strconv.Unquote.
 func Unquote(s []byte) (t string, ok bool) {
 	s, ok = unquoteBytes(s)
-	t = strings.BytesToString(s)
+	t = strings.FromBytes(s)
 	return
 }
 

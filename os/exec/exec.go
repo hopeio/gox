@@ -36,7 +36,7 @@ func RunGetOut(s string, opts ...Option) (string, error) {
 	cmd := CMD(s, opts...)
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
-		return stringsx.BytesToString(buf), err
+		return stringsx.FromBytes(buf), err
 	}
 	if len(buf) == 0 {
 		return "", nil
@@ -48,7 +48,7 @@ func RunGetOut(s string, opts ...Option) (string, error) {
 	for _, opt := range opts {
 		opt(cmd)
 	}
-	return stringsx.BytesToString(buf), nil
+	return stringsx.FromBytes(buf), nil
 }
 
 func RunGetOutWithLog(s string, opts ...Option) (string, error) {

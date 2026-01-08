@@ -42,7 +42,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 		if strings.HasPrefix(param.Request.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson) {
 			reqField = zap.Reflect(key, json.RawMessage(param.ReqBody))
 		} else {
-			reqField = zap.String(key, stringsx.BytesToString(param.ReqBody))
+			reqField = zap.String(key, stringsx.FromBytes(param.ReqBody))
 		}
 	}
 	if len(param.RespBody) > 0 {
@@ -53,7 +53,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 			if strings.HasPrefix(param.Response.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson) {
 				respField = zap.Reflect(key, json.RawMessage(param.RespBody))
 			} else {
-				respField = zap.String(key, stringsx.BytesToString(param.RespBody))
+				respField = zap.String(key, stringsx.FromBytes(param.RespBody))
 			}
 
 		}
