@@ -7,16 +7,17 @@
 package fs
 
 import (
-	"bytes"
+	"io"
 )
 
-func WriteBuffer(buf *bytes.Buffer, filename string) (n int, err error) {
+func WriteReader(reader io.Reader, filename string) (int, error) {
 	f, _ := Create(filename)
 	defer f.Close()
-	return f.Write(buf.Bytes())
+	n, err := io.Copy(f, reader)
+	return int(n), err
 }
 
-func Write(data []byte, filename string) (n int, err error) {
+func Write(data []byte, filename string) (int, error) {
 	f, _ := Create(filename)
 	defer f.Close()
 	return f.Write(data)
