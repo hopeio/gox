@@ -26,7 +26,7 @@ type ReadCloserWrapper struct {
 }
 
 func (r ReadCloserWrapper) WriteTo(w io.Writer) (int64, error) {
-	return io.Copy(w, r)
+	return io.Copy(w, r.ReadCloser)
 }
 
 type Raw interface {
@@ -59,17 +59,24 @@ func (res RawBytes) Raw() []byte {
 	return res
 }
 
-type ReadCloser struct {
+type ReadWrapper struct {
 	io.Reader
 	close func() error
 }
 
-func (r *ReadCloser) Close() error {
+func (r *ReadWrapper) WriteTo(w1 io.Writer) (int64, error) {
+	return io.Copy(w1, r.Reader)
+}
+
+func (r *ReadWrapper) Close() error {
+	if r.close == nil {
+		return nil
+	}
 	return r.close()
 }
 
-func WrapReader(r io.Reader, close func() error) io.ReadCloser {
-	return &ReadCloser{
+func WrapReader(r io.Reader, close func() error) *ReadWrapper {
+	return &ReadWrapper{
 		Reader: r,
 		close:  close,
 	}

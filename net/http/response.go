@@ -8,12 +8,15 @@ package http
 
 import (
 	"context"
-	"io"
+	"fmt"
 	"iter"
+	"mime"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	errorsx "github.com/hopeio/gox/errors"
+	iox "github.com/hopeio/gox/io"
 )
 
 type ResponseWriter interface {
@@ -122,14 +125,9 @@ func Respond(ctx context.Context, w http.ResponseWriter, data any) (int, error) 
 }
 
 type Response struct {
-	Status  int            `json:"status,omitempty"`
-	Headers http.Header    `json:"header,omitempty"`
-	Body    WriterToCloser `json:"body,omitempty"`
-}
-
-type WriterToCloser interface {
-	io.WriterTo
-	io.Closer
+	Status  int                `json:"status,omitempty"`
+	Headers http.Header        `json:"header,omitempty"`
+	Body    iox.WriterToCloser `json:"body,omitempty"`
 }
 
 func (res *Response) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -207,13 +205,13 @@ func (res *ErrResp) Error() string {
 }
 
 type RespondStreamer interface {
-	RespondStream(ctx context.Context, seq iter.Seq[WriterToCloser]) (int, error)
+	RespondStream(ctx context.Context, seq iter.Seq[iox.WriterToCloser]) (int, error)
 }
 
 type ResponseStream struct {
-	Status  int                      `json:"status,omitempty"`
-	Headers http.Header              `json:"header,omitempty"`
-	Body    iter.Seq[WriterToCloser] `json:"body,omitempty"`
+	Status  int                          `json:"status,omitempty"`
+	Headers http.Header                  `json:"header,omitempty"`
+	Body    iter.Seq[iox.WriterToCloser] `json:"body,omitempty"`
 }
 
 func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
@@ -227,7 +225,7 @@ func (res *ResponseStream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	RespondStream(r.Context(), w, res.Body)
 }
 
-func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[WriterToCloser]) (int, error) {
+func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[iox.WriterToCloser]) (int, error) {
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		header.Set(HeaderCacheControl, "no-cache")
@@ -265,4 +263,59 @@ type ResponseBody interface {
 
 type StatusCode interface {
 	StatusCode(v any) int
+}
+
+type ResponseFile struct {
+	Name        string             `json:"name"`
+	Body        iox.WriterToCloser `json:"body"`
+	ContentType string
+}
+
+func (res *ResponseFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	res.Respond(r.Context(), w)
+}
+
+func (res *ResponseFile) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	contentType := res.ContentType
+	var limitedWriter iox.LimitedWriter
+	if contentType == "" {
+		if ext := filepath.Ext(res.Name); ext != "" {
+			contentType = mime.TypeByExtension(ext)
+			if contentType == "" {
+				contentType = ContentTypeOctetStream
+			}
+		} else {
+			limitedWriter = iox.NewLimitedWriter(512)
+			_, err := res.Body.WriteTo(&limitedWriter)
+			if err != nil {
+				return 0, err
+			}
+			contentType = http.DetectContentType(limitedWriter)
+		}
+	}
+	contentDisposition := "inline"
+	if res.Name != "" {
+		contentDisposition = fmt.Sprintf(AttachmentTmpl, res.Name)
+	}
+	if wx, ok := w.(ResponseWriter); ok {
+		header := wx.HeaderX()
+		header.Set(HeaderContentType, contentType)
+		header.Set(HeaderContentDisposition, contentDisposition)
+	} else {
+		header := w.Header()
+		header.Set(HeaderContentType, contentType)
+		header.Set(HeaderContentDisposition, contentDisposition)
+	}
+	if len(limitedWriter) > 0 {
+		n, err := w.Write(limitedWriter)
+		if err != nil {
+			return n, err
+		}
+	}
+	n, err := res.Body.WriteTo(w)
+	res.Body.Close()
+	if len(limitedWriter) > 0 {
+		n += int64(len(limitedWriter))
+	}
+	return int(n), err
 }

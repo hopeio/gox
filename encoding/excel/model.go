@@ -2,8 +2,9 @@ package excel
 
 import (
 	"fmt"
-	reflectx "github.com/hopeio/gox/reflect"
 	"reflect"
+
+	reflectx "github.com/hopeio/gox/reflect"
 )
 
 func export[T any](list []T, filename string) error {
@@ -12,7 +13,7 @@ func export[T any](list []T, filename string) error {
 }
 
 // TODO: support struct map array subField, merge cell
-func ModelToRow(v any) (headers []string, values []any, err error) {
+func ToRow(v any) (headers []string, values []any, err error) {
 	rv := reflect.ValueOf(v)
 	if kind := rv.Kind(); kind == reflect.Ptr || kind == reflect.Interface {
 		rv = reflectx.DerefValue(rv)

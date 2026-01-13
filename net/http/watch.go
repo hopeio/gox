@@ -4,38 +4,40 @@
  * @Created by jyb
  */
 
-package fs
+package http
 
 import (
 	"bytes"
 	"crypto/md5"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/hopeio/gox/log"
 )
 
-type Watch struct {
+type FileWatcher struct {
 	interval time.Duration
 	timer    *time.Ticker
-	handlers Handlers
+	handlers FileWatchInfos
+	mu       sync.Mutex
 }
 
-type Callback struct {
+type FileWatchInfo struct {
 	req         *http.Request
 	lastModTime time.Time
 	callback    func(file *FileInfo)
 	md5value    [16]byte
 }
 
-type Handlers map[string]*Callback
+type FileWatchInfos map[string]*FileWatchInfo
 
-func NewWatch(interval time.Duration) *Watch {
-	w := &Watch{
+func NewFileWatcher(interval time.Duration) *FileWatcher {
+	w := &FileWatcher{
 		interval: interval,
 		//1.map和数组做取舍
-		handlers: make(map[string]*Callback),
+		handlers: make(map[string]*FileWatchInfo),
 		timer:    time.NewTicker(interval),
 		//handlers:  make(map[string]map[fsnotify.Operate]func()),
 		//2.提高时间复杂度，用event做key，然后每次事件循环取值
@@ -47,7 +49,9 @@ func NewWatch(interval time.Duration) *Watch {
 	return w
 }
 
-func (w *Watch) Add(url string, callback func(file *FileInfo), opts ...func(r *http.Request)) error {
+func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...func(r *http.Request)) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -55,7 +59,7 @@ func (w *Watch) Add(url string, callback func(file *FileInfo), opts ...func(r *h
 	for _, option := range opts {
 		option(req)
 	}
-	c := &Callback{
+	c := &FileWatchInfo{
 		req:      req,
 		callback: callback,
 	}
@@ -65,13 +69,16 @@ func (w *Watch) Add(url string, callback func(file *FileInfo), opts ...func(r *h
 	return nil
 }
 
-func (w *Watch) Remove(url string) error {
+func (w *FileWatcher) Remove(url string) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	delete(w.handlers, url)
 	return nil
 }
 
-func (w *Watch) run() {
-
+func (w *FileWatcher) run() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	for range w.timer.C {
 		for _, callback := range w.handlers {
 			callback.Do()
@@ -79,11 +86,11 @@ func (w *Watch) run() {
 	}
 }
 
-func (w *Watch) Close() {
+func (w *FileWatcher) Close() {
 	w.timer.Stop()
 }
 
-func (c *Callback) Do() {
+func (c *FileWatchInfo) Do() {
 	file, err := FetchFileByRequest(c.req)
 	if err != nil {
 		log.Error(err)
@@ -111,7 +118,7 @@ func (c *Callback) Do() {
 	}
 }
 
-func (w *Watch) Update(interval time.Duration) {
+func (w *FileWatcher) Update(interval time.Duration) {
 	w.interval = interval
 	w.timer.Reset(interval)
 	go w.run()
