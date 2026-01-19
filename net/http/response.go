@@ -37,13 +37,11 @@ type CommonResp[T any] struct {
 	Data T `json:"data,omitempty"`
 }
 
-type CommonAnyResp CommonResp[any]
-
-func (res *CommonAnyResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (res *CommonResp[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res.Respond(r.Context(), w)
 }
 
-func (res *CommonAnyResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
@@ -64,6 +62,8 @@ func (res *CommonAnyResp) Respond(ctx context.Context, w http.ResponseWriter) (i
 	}
 	return w.Write(data)
 }
+
+type CommonAnyResp = CommonResp[any]
 
 func NewCommonAnyResp(code errorsx.ErrCode, msg string, data any) *CommonAnyResp {
 	return &CommonAnyResp{
