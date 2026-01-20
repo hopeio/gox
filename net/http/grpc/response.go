@@ -13,7 +13,7 @@ import (
 type CommonResp[T proto.Message] httpx.CommonResp[T]
 
 func (r *CommonResp[T]) MarshalProto() ([]byte, error) {
-	var buf []byte
+	buf := make([]byte, 0, 64)
 
 	if r.Code != 0 {
 		buf = protowire.AppendVarint(buf, 0x08)
@@ -27,8 +27,8 @@ func (r *CommonResp[T]) MarshalProto() ([]byte, error) {
 	}
 
 	// 编码 Data 字段 (field number 3, bytes)
-	if !reflect.ValueOf(r.Data).IsNil() {
-		buf = protowire.AppendVarint(buf, 0x1A)
+	if r.Code == 0 {
+		buf = append(buf, 0)
 		var err error
 		buf, err = proto.MarshalOptions{}.MarshalAppend(buf, r.Data)
 		if err != nil {
@@ -42,6 +42,15 @@ func (r *CommonResp[T]) MarshalProto() ([]byte, error) {
 // UnmarshalProto 手动解码 protobuf 数据到 CommonProtoResp
 func (r *CommonResp[T]) UnmarshalProto(data []byte) error {
 	var pos int
+	if data[0] == 0 {
+		if reflect.ValueOf(r.Data).IsNil() {
+			r.Data = r.Data.ProtoReflect().New().Interface().(T)
+		}
+		if len(data[pos:]) > 0 {
+			return proto.Unmarshal(data[1:], r.Data)
+		}
+		return nil
+	}
 	for pos < len(data) {
 		// 解析标签 (tag 和 wire type)
 		tag, n := protowire.ConsumeVarint(data[pos:])
@@ -73,18 +82,6 @@ func (r *CommonResp[T]) UnmarshalProto(data []byte) error {
 			}
 			r.Msg = msg
 			pos += n
-
-		case 3: // Data 字段
-			if wireType != protowire.BytesType {
-				return errors.New("invalid wire type for Data field")
-			}
-			if reflect.ValueOf(r.Data).IsNil() {
-				r.Data = r.Data.ProtoReflect().New().Interface().(T)
-			}
-			if len(data[pos:]) > 0 {
-				return proto.Unmarshal(data[pos:], r.Data)
-			}
-			return nil
 		}
 	}
 
