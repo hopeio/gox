@@ -52,6 +52,8 @@ const (
 	HeaderGrpcMsg      = "Grpc-Msg"
 	HeaderGrpcMessage  = "Grpc-Message"
 	HeaderErrorCode    = "Error-Code"
+	HeaderErrorMsg     = "Error-Msg"
+	HeaderErrorMessage = "Error-Message"
 )
 
 const (

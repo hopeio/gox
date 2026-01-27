@@ -29,6 +29,14 @@ type Responder interface {
 	Respond(ctx context.Context, w http.ResponseWriter) (int, error)
 }
 
+type errHeaderKey struct{}
+
+var ErrHeaderKey errHeaderKey
+
+func ResponseWithErrHeader(ctx context.Context) context.Context {
+	return context.WithValue(ctx, ErrHeaderKey, true)
+}
+
 // CommonResp 主要用来接收返回，发送请使用 CommonAnyResp
 type CommonResp[T any] struct {
 	Code errorsx.ErrCode `json:"code"`
@@ -42,15 +50,21 @@ func (res *CommonResp[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
-		header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+		if res.Code != errorsx.Success && ctx.Value(ErrHeaderKey) != nil {
+			header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+			header.Set(HeaderErrorMsg, res.Msg)
+		}
+
 		header.Set(HeaderContentType, contentType)
 	} else {
 		header := w.Header()
-		header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+		if res.Code != errorsx.Success && ctx.Value(ErrHeaderKey) != nil {
+			header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+			header.Set(HeaderErrorMsg, res.Msg)
+		}
 		header.Set(HeaderContentType, contentType)
 	}
 	ow := w
@@ -175,15 +189,20 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
-		header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+		if res.Code != errorsx.Success && ctx.Value(ErrHeaderKey) != nil {
+			header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+			header.Set(HeaderErrorMsg, res.Msg)
+		}
 		header.Set(HeaderContentType, contentType)
 	} else {
 		header := w.Header()
-		header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+		if res.Code != errorsx.Success && ctx.Value(ErrHeaderKey) != nil {
+			header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
+			header.Set(HeaderErrorMsg, res.Msg)
+		}
 		header.Set(HeaderContentType, contentType)
 	}
 	ow := w
