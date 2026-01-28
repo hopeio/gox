@@ -67,6 +67,14 @@ func (req *Request) Header(header http.Header) *Request {
 	return req
 }
 
+func (req *Request) HeaderX(header httpx.Header) *Request {
+	if req.header == nil {
+		req.header = make(http.Header)
+	}
+	httpx.HeaderIntoHttpHeader(header, req.header)
+	return req
+}
+
 func (req *Request) AddHeader(k, v string) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)

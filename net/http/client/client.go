@@ -91,6 +91,14 @@ func (d *Client) Header(header http.Header) *Client {
 	return d
 }
 
+func (d *Client) HeaderX(header httpx.Header) *Client {
+	if d.header == nil {
+		d.header = make(http.Header)
+	}
+	httpx.HeaderIntoHttpHeader(header, d.header)
+	return d
+}
+
 func (d *Client) AddHeader(k, v string) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)

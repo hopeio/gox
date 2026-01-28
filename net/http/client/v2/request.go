@@ -10,6 +10,7 @@ import (
 	"context"
 	"net/http"
 
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/client"
 )
 
@@ -38,6 +39,12 @@ func (req *Request[RES]) Header(header http.Header) *Request[RES] {
 	(*client.Request)(req).Header(header)
 	return req
 }
+
+func (req *Request[RES]) HeaderX(header httpx.Header) *Request[RES] {
+	(*client.Request)(req).HeaderX(header)
+	return req
+}
+
 func (req *Request[RES]) AddHeader(k, v string) *Request[RES] {
 	(*client.Request)(req).AddHeader(k, v)
 	return req

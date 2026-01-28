@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.28.0
-	github.com/modern-go/reflect2 v1.0.2
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/stretchr/testify v1.11.1
 	github.com/xuri/excelize/v2 v2.10.0
 	go.uber.org/multierr v1.11.0
