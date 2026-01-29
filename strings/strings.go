@@ -33,18 +33,6 @@ func IsQuoted[T ~string | ~[]byte](s T) bool {
 	return (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'')
 }
 
-func SimpleQuote(s string) string {
-	return fmt.Sprintf(`"%s"`, s)
-}
-
-func SimpleQuoteToBytes(s string) []byte {
-	b := make([]byte, 0, len(s)+2)
-	b = append(b, '"')
-	b = append(b, ToBytes(s)...)
-	b = append(b, '"')
-	return b
-}
-
 func CamelToSnake(name string) string {
 	var ret bytes.Buffer
 

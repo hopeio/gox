@@ -124,10 +124,24 @@ const (
 	ContentTypeImageVndMicrosoftIcon = "image/vnd.microsoft.icon"
 
 	ContentTypeCharsetUtf8 = "charset=UTF-8"
+
+	ContentTypeTextEventStream = "text/event-stream"
 )
 
 const (
 	FormDataFieldTmpl = `form-data; name="%s"`
 	FormDataFileTmpl  = `form-data; name="%s"; filename="%s"`
 	AttachmentTmpl    = `attachment; filename="%s"`
+)
+
+const (
+	CacheControlNoCache = "no-cache"
+)
+
+const (
+	TransferEncodingChunked = "chunked"
+)
+
+const (
+	ConnectionKeepAlive = "keep-alive"
 )

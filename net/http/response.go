@@ -9,6 +9,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"io"
 	"iter"
 	"mime"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 
 	errorsx "github.com/hopeio/gox/errors"
 	iox "github.com/hopeio/gox/io"
+	"github.com/hopeio/gox/strings"
 )
 
 type ResponseWriter interface {
@@ -29,12 +31,27 @@ type Responder interface {
 	Respond(ctx context.Context, w http.ResponseWriter) (int, error)
 }
 
+var errCodeHttpStatusMap = map[errorsx.ErrCode]int{
+	errorsx.Success: http.StatusOK,
+}
+
+func RegisterErrCodeHttpStatus(code errorsx.ErrCode, status int) {
+	errCodeHttpStatusMap[code] = status
+}
+
 type errHeaderKey struct{}
 
 var ErrHeaderKey errHeaderKey
 
-func ResponseWithErrHeader(ctx context.Context) context.Context {
+func RespodWithErrHeader(ctx context.Context) context.Context {
 	return context.WithValue(ctx, ErrHeaderKey, true)
+}
+
+func StatusFromErrCode(code errorsx.ErrCode) int {
+	if status, ok := errCodeHttpStatusMap[code]; ok {
+		return status
+	}
+	return http.StatusOK
 }
 
 // CommonResp 主要用来接收返回，发送请使用 CommonAnyResp
@@ -50,6 +67,11 @@ func (res *CommonResp[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	if res.Code != errorsx.Success {
+		w.WriteHeader(StatusFromErrCode(res.Code))
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
@@ -149,6 +171,7 @@ func (res *Response) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *Response) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	w.WriteHeader(res.Status)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		for k, v := range res.Headers {
@@ -159,7 +182,6 @@ func (res *Response) Respond(ctx context.Context, w http.ResponseWriter) (int, e
 	} else {
 		CopyHttpHeader(w.Header(), res.Headers)
 	}
-	w.WriteHeader(res.Status)
 	n, err := res.Body.WriteTo(w)
 	res.Body.Close()
 	return int(n), err
@@ -189,6 +211,11 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
+	if res.Code != errorsx.Success {
+		w.WriteHeader(StatusFromErrCode(res.Code))
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
@@ -223,10 +250,6 @@ func (res *ErrResp) Error() string {
 	return res.ErrResp().Error()
 }
 
-type RespondStreamer interface {
-	RespondStream(ctx context.Context, seq iter.Seq[iox.WriterToCloser]) (int, error)
-}
-
 type ResponseStream struct {
 	Status  int                          `json:"status,omitempty"`
 	Headers http.Header                  `json:"header,omitempty"`
@@ -234,25 +257,33 @@ type ResponseStream struct {
 }
 
 func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	if sw, ok := w.(RespondStreamer); ok {
-		return sw.RespondStream(ctx, res.Body)
+	w.WriteHeader(res.Status)
+	if wx, ok := w.(ResponseWriter); ok {
+		header := wx.HeaderX()
+		for k, v := range res.Headers {
+			for _, vv := range v {
+				header.Add(k, vv)
+			}
+		}
+	} else {
+		CopyHttpHeader(w.Header(), res.Headers)
 	}
-	return 0, nil
+	return RespondStream(ctx, w, res.Body)
 }
 
 func (res *ResponseStream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	RespondStream(r.Context(), w, res.Body)
+	res.Respond(r.Context(), w)
 }
 
 func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[iox.WriterToCloser]) (int, error) {
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
-		header.Set(HeaderCacheControl, "no-cache")
-		header.Set(HeaderTransferEncoding, "chunked")
+		header.Set(HeaderCacheControl, CacheControlNoCache)
+		header.Set(HeaderTransferEncoding, TransferEncodingChunked)
 	} else {
 		header := w.Header()
-		header.Set(HeaderCacheControl, "no-cache")
-		header.Set(HeaderTransferEncoding, "chunked")
+		header.Set(HeaderCacheControl, CacheControlNoCache)
+		header.Set(HeaderTransferEncoding, TransferEncodingChunked)
 	}
 	var n int
 	flusher := w.(http.Flusher)
@@ -270,6 +301,31 @@ func RespondStream(ctx context.Context, w http.ResponseWriter, dataSource iter.S
 		}
 	}
 	return n, nil
+}
+
+type SSEData string
+
+func (data SSEData) WriteTo(w io.Writer) (int64, error) {
+	n, err := w.Write(strings.ToBytes(fmt.Sprintf("data: %s\n\n", data)))
+	return int64(n), err
+}
+func (data SSEData) Close() error {
+	return nil
+}
+
+func RespondSSE[T ~string](ctx context.Context, w http.ResponseWriter, dataSource iter.Seq[T]) (int, error) {
+	if wx, ok := w.(ResponseWriter); ok {
+		header := wx.HeaderX()
+		header.Set(HeaderContentType, ContentTypeTextEventStream)
+	} else {
+		header := w.Header()
+		header.Set(HeaderContentType, ContentTypeTextEventStream)
+	}
+	return RespondStream(ctx, w, func(yield func(iox.WriterToCloser) bool) {
+		for data := range dataSource {
+			yield(SSEData(data))
+		}
+	})
 }
 
 type XXXResponseBody interface {
