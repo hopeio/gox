@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package snowflake
+package idgen
 
 import (
 	"sync"
@@ -12,7 +12,7 @@ import (
 )
 
 func TestSnowFlake(t *testing.T) {
-	node := NewNode(1, 1, 10)
+	node := NewSnowflake(1, 1)
 	wg := sync.WaitGroup{}
 	wg.Add(100)
 	for i := 0; i < 100; i++ {

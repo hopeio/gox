@@ -16,8 +16,8 @@ func TestIP(t *testing.T) {
 }
 
 func TestIPV6(t *testing.T) {
-	log.Println(LocalIPv6Addresses())
-	log.Println(IPv6Addresses())
+	log.Println(LocalIPv6s())
+	log.Println(IPv6s())
 }
 
 func TestCommonIP(t *testing.T) {

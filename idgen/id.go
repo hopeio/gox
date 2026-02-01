@@ -12,17 +12,17 @@ import (
 type ID [16]byte
 
 var (
-	nilTraceID ID
-	_          json.Marshaler = nilTraceID
+	nilBID ID
+	_      json.Marshaler = nilBID
 )
 
 // IsValid checks whether the trace TraceID is valid. A valid trace ID does
 // not consist of zeros only.
 func (t ID) IsValid() bool {
-	return !bytes.Equal(t[:], nilTraceID[:])
+	return !bytes.Equal(t[:], nilBID[:])
 }
 
-// MarshalJSON implements a custom marshal function to encode TraceID
+// MarshalJSON implements a custom marshal function to encode ID
 // as a hex string.
 func (t ID) MarshalJSON() ([]byte, error) {
 	return strings.ToBytes(`"` + t.String() + `"`), nil
