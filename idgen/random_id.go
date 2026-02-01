@@ -24,7 +24,7 @@ func NewRandomIDGenerator(randSource *rand.Rand) *randomIDGenerator {
 	return &randomIDGenerator{randSource: randSource}
 }
 
-func NewRandomID() ID {
+func NewRandomID() string {
 	defaultRandomIDGenerator.Lock()
 	defer defaultRandomIDGenerator.Unlock()
 	sid := ID{}
@@ -34,5 +34,5 @@ func NewRandomID() ID {
 			break
 		}
 	}
-	return sid
+	return sid.String()
 }

@@ -44,7 +44,7 @@ func New(ctx context.Context) *Context {
 		if spanContext := rootSpan.SpanContext(); spanContext.IsValid() {
 			traceId = spanContext.TraceID().String()
 		} else {
-			traceId = idgen.NewRandomID().String()
+			traceId = idgen.NewRandomID()
 		}
 	}
 	return &Context{
