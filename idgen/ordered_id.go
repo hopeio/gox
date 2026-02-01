@@ -8,12 +8,17 @@ package idgen
 
 import (
 	"sync/atomic"
-	"time"
 )
 
-var currentID uint64 = uint64(time.Now().Unix()) << 32
+var defaultOrderedIDGenerator = NewOrderedIDGenerator(0)
+
+func NewOrderedIDGenerator(initial uint64) func() uint64 {
+	return func() uint64 {
+		return atomic.AddUint64(&initial, 1)
+	}
+}
 
 // 单机顺序id
 func NewOrderedID() uint64 {
-	return atomic.AddUint64(&currentID, 1)
+	return defaultOrderedIDGenerator()
 }
