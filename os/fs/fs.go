@@ -37,30 +37,34 @@ func (d Dir) Open(name string) (*os.File, error) {
 }
 
 // path和filepath两个包，filepath文件专用
-func Find(path string) (string, error) {
-	files, err := FindFiles(path, 8, 1)
+func Find(src, dst string) (string, error) {
+	files, err := FindFiles(src, dst, 8, 1)
 	if err != nil {
 		return "", err
 	}
 	return files[0], nil
 }
 
-func FindFiles(path string, deep int8, num int) ([]string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
+func FindFiles(src, dst string, deep int8, num int) ([]string, error) {
+	if src == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		src = wd
 	}
+
 	var files []string
-	filepath1 := filepath.Join(wd, path)
-	if _, err = os.Stat(filepath1); !os.IsNotExist(err) {
+	filepath1 := filepath.Join(src, dst)
+	if _, err := os.Stat(filepath1); !os.IsNotExist(err) {
 		files = append(files, filepath1)
 		if len(files) == num {
 			return files, nil
 		}
 	}
 
-	subDirFiles(wd, path, "", &files, deep, 0, num)
-	supDirFiles(wd+string(os.PathSeparator), path, &files, deep, 0, num)
+	subDirFiles(src, dst, "", &files, deep, 0, num)
+	supDirFiles(src+string(os.PathSeparator), dst, &files, deep, 0, num)
 	if len(files) == 0 {
 		return nil, errors.New("找不到文件")
 	}
@@ -114,30 +118,34 @@ func supDirFiles(dir, path string, files *[]string, deep, step int8, num int) {
 }
 
 // path和filepath两个包，filepath文件专用
-func FindFilesParallel(path string, deep int8, num int) ([]string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
+func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
+	if src == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		src = wd
 	}
+
 	var file = make(chan string, 1)
 	//属于回调而不是通知
 	ctx := lightengine.New(context.Background())
 	ctx.OnStop(func() { close(file) })
 	defer ctx.Cancel()
 	// 当前目录下先找
-	filepath1 := filepath.Join(wd, path)
-	if _, err = os.Stat(filepath1); !os.IsNotExist(err) {
+	filepath1 := filepath.Join(src, dst)
+	if _, err := os.Stat(filepath1); !os.IsNotExist(err) {
 		file <- filepath1
 	}
 
 	ctx.AddTask(func() []lightengine.Task {
-		subTasks, err := subDirFilesParallel(wd, path, "", file, deep, 0)
+		subTasks, err := subDirFilesParallel(src, dst, "", file, deep, 0)
 		if err != nil {
 			log.Error(err)
 		}
 		return subTasks
 	}, func() []lightengine.Task {
-		subTasks, err := supDirFilesParallel(wd+PathSeparator, path, file, deep, 0)
+		subTasks, err := supDirFilesParallel(src+PathSeparator, dst, file, deep, 0)
 		if err != nil {
 			log.Error(err)
 		}
