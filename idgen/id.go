@@ -30,7 +30,7 @@ func (t ID) MarshalJSON() ([]byte, error) {
 
 func (t ID) UnmarshalJSON(data []byte) error {
 	if len(data) != 18 {
-		return errors.New("invalid random ID")
+		return errors.New("invalid ID")
 	}
 	_, err := hex.Decode(t[:], data[1:17])
 	return err
