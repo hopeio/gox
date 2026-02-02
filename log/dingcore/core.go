@@ -4,20 +4,29 @@
  * @Created by jyb
  */
 
-package dingding
+package dingcore
 
 import (
+	"fmt"
+
+	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/sdk/dingtalk"
 	"go.uber.org/zap/zapcore"
 )
 
 func NewCore(token, secret string, level zapcore.Level, encoderConfig *zapcore.EncoderConfig) zapcore.Core {
+	cfg := &log.CustomEncoderConfig{
+		EncoderConfig: encoderConfig,
+		TransferKey: func(key string) string {
+			return fmt.Sprintf(`**%s:** `, key)
+		},
+	}
 	return &core{
 		RobotConfig: dingtalk.RobotConfig{
 			Token:  token,
 			Secret: secret,
 		},
-		encoder: newDingEncoder(encoderConfig),
+		encoder: log.NewCustomEncoder(cfg),
 		Level:   level,
 	}
 }

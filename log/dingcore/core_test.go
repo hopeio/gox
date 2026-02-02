@@ -4,12 +4,13 @@
  * @Created by jyb
  */
 
-package dingding
+package dingcore
 
 import (
+	"testing"
+
 	"github.com/hopeio/gox/log"
 	"go.uber.org/zap/zapcore"
-	"testing"
 )
 
 func TestDingDing(t *testing.T) {

@@ -8,11 +8,12 @@ package log
 
 import (
 	"context"
+	"log/slog"
+	"runtime"
+
 	"github.com/hopeio/gox/slices"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"log/slog"
-	"runtime"
 )
 
 var _ slog.Handler = &Logger{}
