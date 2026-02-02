@@ -34,8 +34,7 @@ const (
 
 type Metadata struct {
 	RequestTime
-	Token string
-	Auth
+	auth     *AuthInfo
 	device   *DeviceInfo
 	Internal string
 }
@@ -83,7 +82,6 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 		c.ReqCtx = req
 		c.Metadata.RequestTime = NewRequestAt()
 		c.Metadata.Internal = req.RequestHeader().Get(HeaderInternal)
-		c.Metadata.Token = GetToken(req)
 		c.Context = contextx.New(ctx)
 		return c
 	}
@@ -92,10 +90,18 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 		Metadata: Metadata{
 			RequestTime: NewRequestAt(),
 			Internal:    req.RequestHeader().Get(HeaderInternal),
-			Token:       GetToken(req),
 		},
 		ReqCtx: req,
 	}
+}
+
+func (c *Context[REQ]) Auth() *AuthInfo {
+	if c.auth == nil {
+		c.auth = &AuthInfo{
+			Token: GetToken(c.ReqCtx),
+		}
+	}
+	return c.auth
 }
 
 func (c *Context[REQ]) Device() *DeviceInfo {

@@ -2,10 +2,17 @@ package gateway
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
+	"net/textproto"
 	"reflect"
+	"slices"
+	"strings"
 
 	errorsx "github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
+	"github.com/hopeio/gox/net/http/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 )
@@ -92,4 +99,83 @@ type CommonProtoResp = CommonResp[proto.Message]
 
 func NewCommonProtoResp(code errorsx.ErrCode, msg string, data proto.Message) *CommonProtoResp {
 	return &CommonProtoResp{Code: code, Msg: msg, Data: data}
+}
+
+func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.MarshalFunc) error {
+	HandleForwardResponseServerMetadata(w, md.Header)
+	var wantsTrailers bool
+	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
+		wantsTrailers = true
+		HandleForwardResponseTrailerHeader(w, md.Trailer)
+		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
+	}
+	var contentType string
+	var buf []byte
+	switch rb := message.(type) {
+	case http.Handler:
+		rb.ServeHTTP(w, r)
+		return nil
+	case httpx.Responder:
+		rb.Respond(r.Context(), w)
+		return nil
+	case httpx.ResponseBody:
+		buf, contentType = rb.ResponseBody()
+	case httpx.XXXResponseBody:
+		buf, contentType = codec(r.Context(), rb.XXX_ResponseBody())
+	default:
+		buf, contentType = codec(r.Context(), message)
+	}
+	w.Header().Set(httpx.HeaderContentType, contentType)
+	ow := w
+	if uw, ok := w.(httpx.Unwrapper); ok {
+		ow = uw.Unwrap()
+	}
+	if recorder, ok := ow.(httpx.RecordBody); ok {
+		recorder.RecordBody(buf, message)
+	}
+	w.Write(buf)
+	if wantsTrailers {
+		HandleForwardResponseTrailer(w, md.Trailer)
+	}
+	return nil
+}
+
+func InComingHeaderMatcher(key string) (string, bool) {
+	if slices.Contains(InComingHeader, key) {
+		return key, true
+	}
+	return "", false
+}
+
+func OutgoingHeaderMatcher(key string) (string, bool) {
+	if slices.Contains(OutgoingHeader, key) {
+		return key, true
+	}
+	return "", false
+}
+
+func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) {
+	for _, k := range OutgoingHeader {
+		if vs, ok := md[k]; ok {
+			for _, v := range vs {
+				w.Header().Add(k, v)
+			}
+		}
+	}
+}
+
+func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
+	for k := range md {
+		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
+		w.Header().Add(httpx.HeaderTrailer, tKey)
+	}
+}
+
+func HandleForwardResponseTrailer(w http.ResponseWriter, md metadata.MD) {
+	for k, vs := range md {
+		tKey := fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k)
+		for _, v := range vs {
+			w.Header().Add(tKey, v)
+		}
+	}
 }

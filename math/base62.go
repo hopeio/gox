@@ -13,7 +13,7 @@ import (
 )
 
 const fastSmalls = true // enable fast path for small integers
-const digits string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const base62Alphabet string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // FormatUint returns the string representation of i in the given base,
 // for 2 <= base <= 36. The result uses the lower-case letters 'a' to 'z'
@@ -40,7 +40,7 @@ func FormatInt(i int64, base int) string {
 // small returns the string for an i with 0 <= i < nSmalls.
 func small(i int) string {
 	if i < 10 {
-		return digits[i : i+1]
+		return base62Alphabet[i : i+1]
 	}
 	return smallsString[i*2 : i*2+2]
 }
@@ -66,10 +66,10 @@ const host32bit = ^uint(0)>>32 == 0
 // returned as the first result value; otherwise the string is returned
 // as the second result value.
 func formatBits(dst []byte, u uint64, base int, neg, append_ bool) (d []byte, s string) {
-	if base < 2 || base > len(digits) {
+	if base < 2 || base > len(base62Alphabet) {
 		panic("strconv: illegal AppendInt/FormatInt base")
 	}
-	// 2 <= base && base <= len(digits)
+	// 2 <= base && base <= len(base62Alphabet)
 
 	var a [64 + 1]byte // +1 for sign of 64bit value in base 2
 	i := len(a)
@@ -86,7 +86,7 @@ func formatBits(dst []byte, u uint64, base int, neg, append_ bool) (d []byte, s 
 		// the compiler can optimize it into a multiply+shift
 
 		if host32bit {
-			// convert the lower digits using 32bit operations
+			// convert the lower base62Alphabet using 32bit operations
 			for u >= 1e9 {
 				// Avoid using r = a%b in addition to q = a/b
 				// since 64bit division and modulo operations
@@ -132,7 +132,7 @@ func formatBits(dst []byte, u uint64, base int, neg, append_ bool) (d []byte, s 
 
 	} else if isPowerOfTwo(base) {
 		// Use shifts and masks instead of / and %.
-		// Base is a power of 2 and 2 <= base <= len(digits) where len(digits) is 36.
+		// Base is a power of 2 and 2 <= base <= len(base62Alphabet) where len(base62Alphabet) is 36.
 		// The largest power of 2 below or equal to 36 is 32, which is 1 << 5;
 		// i.e., the largest possible shift count is 5. By &-ind that value with
 		// the constant 7 we tell the compiler that the shift count is always
@@ -143,12 +143,12 @@ func formatBits(dst []byte, u uint64, base int, neg, append_ bool) (d []byte, s 
 		m := uint(base) - 1 // == 1<<shift - 1
 		for u >= b {
 			i--
-			a[i] = digits[uint(u)&m]
+			a[i] = base62Alphabet[uint(u)&m]
 			u >>= shift
 		}
 		// u < base
 		i--
-		a[i] = digits[uint(u)]
+		a[i] = base62Alphabet[uint(u)]
 	} else {
 		// general case
 		b := uint64(base)
@@ -158,12 +158,12 @@ func formatBits(dst []byte, u uint64, base int, neg, append_ bool) (d []byte, s 
 			// since 64bit division and modulo operations
 			// are calculated by runtime functions on 32bit machines.
 			q := u / b
-			a[i] = digits[uint(u-q*b)]
+			a[i] = base62Alphabet[uint(u-q*b)]
 			u = q
 		}
 		// u < base
 		i--
-		a[i] = digits[uint(u)]
+		a[i] = base62Alphabet[uint(u)]
 	}
 
 	// add sign, if any
@@ -285,7 +285,7 @@ func ParseUint(s string, base int, bitSize int) (uint64, error) {
 //
 // The errors that ParseInt returns have concrete type *NumError
 // and include err.Num = s. If s is empty or contains invalid
-// digits, err.Err = ErrSyntax and the returned value is 0;
+// base62Alphabet, err.Err = ErrSyntax and the returned value is 0;
 // if the value corresponding to s cannot be represented by a
 // signed integer of the given size, err.Err = ErrRange and the
 // returned value is the maximum magnitude integer of the
@@ -341,7 +341,7 @@ func ParseInt(s string, base int, bitSize int) (i int64, err error) {
 
 // underscoreOK reports whether the underscores in s are allowed.
 // Checking them in this one function lets all the parsers skip over them simply.
-// Underscore must appear only between digits or between a base prefix and a digit.
+// Underscore must appear only between base62Alphabet or between a base prefix and a digit.
 func underscoreOK(s string) bool {
 	// saw tracks the last character (class) we saw:
 	// ^ for beginning of number,

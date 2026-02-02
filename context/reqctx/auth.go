@@ -16,7 +16,7 @@ const (
 	HeaderCookieValueToken = "token"
 )
 
-type AuthInfo interface {
+type Auth interface {
 	GetId() string
 }
 
@@ -28,7 +28,7 @@ type ParseToken interface {
 type Authorization struct {
 	AuthInfo `json:"auth"`
 	jwt.RegisteredClaims
-	AuthRaw string `json:"-"`
+	Raw string `json:"-"`
 }
 
 func (x *Authorization) Validate() error {
@@ -48,7 +48,7 @@ func (x *Authorization) ParseToken(token string, secret []byte) error {
 	}
 	x.ID = x.AuthInfo.GetId()
 	authBytes, _ := json.Marshal(x.AuthInfo)
-	x.AuthRaw = stringsx.FromBytes(authBytes)
+	x.Raw = stringsx.FromBytes(authBytes)
 	return nil
 }
 */
@@ -71,8 +71,9 @@ func GetToken[REQ ReqCtx](r REQ) string {
 	return ""
 }
 
-type Auth struct {
-	AuthRaw string
-	AuthID  string
-	AuthInfo
+type AuthInfo struct {
+	Token string
+	Raw   []byte
+	ID    string
+	Info  Auth
 }
