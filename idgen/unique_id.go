@@ -5,8 +5,8 @@ import (
 	"io"
 )
 
-func UniqueID() string {
-	var id ID
+func UniqueID() ID {
+	id := make(ID, 16)
 	io.ReadFull(crand.Reader, id[:])
-	return id.String()
+	return id
 }

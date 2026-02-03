@@ -1,25 +1,26 @@
 package idgen
 
 import (
-	"bytes"
+	"encoding/base32"
+	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 
+	"github.com/hopeio/gox/encoding/multibase"
 	"github.com/hopeio/gox/strings"
 )
 
-type ID [16]byte
-
-var (
-	nilBID ID
-	_      json.Marshaler = nilBID
-)
+type ID []byte
 
 // IsValid checks whether the trace TraceID is valid. A valid trace ID does
 // not consist of zeros only.
 func (t ID) IsValid() bool {
-	return !bytes.Equal(t[:], nilBID[:])
+	for _, b := range t {
+		if b != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // MarshalJSON implements a custom marshal function to encode ID
@@ -39,4 +40,28 @@ func (t ID) UnmarshalJSON(data []byte) error {
 // String returns the hex string representation form of a TraceID.
 func (t ID) String() string {
 	return hex.EncodeToString(t[:])
+}
+
+func (t ID) Hex() string {
+	return hex.EncodeToString(t[:])
+}
+
+func (t ID) Bytes() []byte {
+	return t[:]
+}
+
+func (t ID) Base32() string {
+	return base32.StdEncoding.EncodeToString(t)
+}
+
+func (t ID) Base58() string {
+	return multibase.EncodeBase58(t)
+}
+
+func (t ID) Base62() string {
+	return multibase.EncodeBase62(t)
+}
+
+func (t ID) Base64() string {
+	return base64.StdEncoding.EncodeToString(t)
 }

@@ -27,16 +27,14 @@ const (
 	HeaderAppInfo       = "App-Info"
 	HeaderLocation      = "Location"
 	HeaderArea          = "Area"
-	HeaderInternal      = "Internal"
 	HeaderUserAgent     = "User-Agent"
 	HeaderXForwardedFor = "X-Forwarded-For"
 )
 
 type Metadata struct {
 	RequestTime
-	auth     *AuthInfo
-	device   *DeviceInfo
-	Internal string
+	auth   *AuthInfo
+	device *DeviceInfo
 }
 
 type ReqCtx interface {
@@ -81,7 +79,6 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 	if ok {
 		c.ReqCtx = req
 		c.Metadata.RequestTime = NewRequestAt()
-		c.Metadata.Internal = req.RequestHeader().Get(HeaderInternal)
 		c.Context = contextx.New(ctx)
 		return c
 	}
@@ -89,7 +86,6 @@ func New[REQ ReqCtx](req REQ) *Context[REQ] {
 		Context: contextx.New(ctx),
 		Metadata: Metadata{
 			RequestTime: NewRequestAt(),
-			Internal:    req.RequestHeader().Get(HeaderInternal),
 		},
 		ReqCtx: req,
 	}

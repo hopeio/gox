@@ -39,11 +39,11 @@ func New(ctx context.Context) *Context {
 		ctx = context.Background()
 	}
 	if rootSpan == nil || traceId == "" {
-		ctx, rootSpan = StartSpan(ctx, "")
+		ctx, rootSpan = StartSpan(ctx, "NewContext")
 		if spanContext := rootSpan.SpanContext(); spanContext.IsValid() {
 			traceId = spanContext.TraceID().String()
 		} else {
-			traceId = idgen.NewRandomID()
+			traceId = idgen.UniqueID().String()
 		}
 	}
 	return &Context{
@@ -134,4 +134,8 @@ func (c *Context) WithDeadlineCause(d time.Time, cause error) context.CancelFunc
 	var cancel context.CancelFunc
 	c.ctx, cancel = context.WithDeadlineCause(c.ctx, d, cause)
 	return cancel
+}
+
+func (c *Context) Value(key any) any {
+	return c.ctx.Value(key)
 }

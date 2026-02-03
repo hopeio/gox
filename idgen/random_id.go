@@ -24,15 +24,15 @@ func NewRandomIDGenerator(randSource *rand.Rand) *randomIDGenerator {
 	return &randomIDGenerator{randSource: randSource}
 }
 
-func NewRandomID() string {
+func NewRandomID() ID {
 	defaultRandomIDGenerator.Lock()
 	defer defaultRandomIDGenerator.Unlock()
-	sid := ID{}
+	sid := make(ID, 16)
 	for {
 		_, _ = defaultRandomIDGenerator.randSource.Read(sid[:])
 		if sid.IsValid() {
 			break
 		}
 	}
-	return sid.String()
+	return sid
 }

@@ -39,11 +39,11 @@ const encodeBase58Map = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVW
 
 var decodeBase58Map [256]byte
 
-// FormatIntBase32 uses the z-base-32 character set but encodes and decodes similar
+// FormatUintBase32 uses the z-base-32 character set but encodes and decodes similar
 // to base58, allowing it to create an even smaller result string.
 // NOTE: There are many different base32 implementations so becareful when
 // doing any interoperation.
-func FormatIntBase32(f int64) string {
+func FormatUintBase32(f uint64) string {
 
 	if f < 32 {
 		return string(encodeBase32Map[f])
@@ -63,23 +63,23 @@ func FormatIntBase32(f int64) string {
 	return string(b)
 }
 
-// ParseBase32Int parses a base32 []byte into a uint64
+// ParseBase32Uint parses a base32 []byte into a uint64
 // NOTE: There are many different base32 implementations so becareful when
 // doing any interoperation.
-func ParseBase32Int(b []byte) (int64, error) {
-	var id int64
+func ParseBase32Uint(b []byte) (uint64, error) {
+	var id uint64
 	for i := range b {
 		if decodeBase32Map[b[i]] == 0xFF {
 			return 0, ErrInvalidBase32
 		}
-		id = id*32 + int64(decodeBase32Map[b[i]])
+		id = id*32 + uint64(decodeBase32Map[b[i]])
 	}
 
 	return id, nil
 }
 
-// FormatIntBase58 returns a base58 string of the uint64
-func FormatIntBase58(f int64) string {
+// FormatUintBase58 returns a base58 string of the uint64
+func FormatUintBase58(f uint64) string {
 
 	if f < 58 {
 		return string(encodeBase58Map[f])
@@ -99,14 +99,14 @@ func FormatIntBase58(f int64) string {
 	return string(b)
 }
 
-// ParseBase58Int parses a base58 []byte into a uint64
-func ParseBase58Int(b []byte) (int64, error) {
-	var id int64
+// ParseBase58Uint parses a base58 []byte into a uint64
+func ParseBase58Uint(b []byte) (uint64, error) {
+	var id uint64
 	for i := range b {
 		if decodeBase58Map[b[i]] == 0xFF {
 			return 0, ErrInvalidBase58
 		}
-		id = id*58 + int64(decodeBase58Map[b[i]])
+		id = id*58 + uint64(decodeBase58Map[b[i]])
 	}
 
 	return id, nil

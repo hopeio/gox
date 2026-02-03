@@ -41,7 +41,7 @@ func TestEncodeBase62(t *testing.T) {
 		{
 			name:     "Two bytes - larger value", // Two bytes representing a larger number
 			input:    []byte{1, 0},               // Equals 256 in decimal
-			expected: "4c",                       // 256 in base62 is "4c"
+			expected: "48",                       // 256 in base62 is "4c"
 		},
 		{
 			name:     "Value equals 62", // Value that equals base (62) should be "10"
