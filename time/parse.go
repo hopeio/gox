@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-func Format(t time.Time) string {
-	return t.Format(LayoutTimeMacro)
-}
-
-func Parse(layout, value string) (time.Time, error) {
-	return time.Parse(layout, value)
-}
-
 func FormatRelativeTime(fromTime time.Time) string {
 	now := time.Now()
 	duration := now.Sub(fromTime)

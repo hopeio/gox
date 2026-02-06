@@ -12,7 +12,7 @@ import (
 
 type EncodingTime struct {
 	time.Time
-	Encoding
+	*Encoding
 }
 
 func (u EncodingTime) MarshalJSON() ([]byte, error) {

@@ -11,16 +11,16 @@ import (
 	"fmt"
 )
 
-type ITime interface {
+type Time interface {
 	GetSeconds() int64
 	GetNanos() int32
 }
 
-func IsValid(x ITime) bool {
+func IsValid(x Time) bool {
 	return x != nil && Check(x) == 0
 }
 
-func CheckValid(x ITime) error {
+func CheckValid(x Time) error {
 	switch Check(x) {
 	case InvalidNil:
 		return errors.New("invalid nil Timestamp")
@@ -43,15 +43,16 @@ const (
 	InvalidNanos
 )
 
-func Check(x ITime) uint {
+func Check(x Time) uint {
+	if x == nil {
+		return InvalidNil
+	}
 	const minTimestamp = -62135596800  // Seconds between 1970-01-01T00:00:00Z and 0001-01-01T00:00:00Z, inclusive
 	const maxTimestamp = +253402300799 // Seconds between 1970-01-01T00:00:00Z and 9999-12-31T23:59:59Z, inclusive
 
 	secs := x.GetSeconds()
 	nanos := x.GetNanos()
 	switch {
-	case x == nil:
-		return InvalidNil
 	case secs < minTimestamp:
 		return InvalidUnderflow
 	case secs > maxTimestamp:

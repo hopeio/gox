@@ -18,28 +18,28 @@ type Ticker interface {
 	Channel() <-chan time.Time
 }
 
-type FixTicker time.Ticker
+type FixedTicker time.Ticker
 
-func (t *FixTicker) Stop() bool {
+func (t *FixedTicker) Stop() bool {
 	(*time.Ticker)(t).Stop()
 	return true
 }
 
-func (t *FixTicker) Reset(d time.Duration) bool {
+func (t *FixedTicker) Reset(d time.Duration) bool {
 	(*time.Ticker)(t).Reset(d)
 	return true
 }
 
-func (t *FixTicker) Wait() {
+func (t *FixedTicker) Wait() {
 	<-t.C
 }
 
-func (t *FixTicker) Channel() <-chan time.Time {
+func (t *FixedTicker) Channel() <-chan time.Time {
 	return t.C
 }
 
 func NewTicker(interval time.Duration) Ticker {
-	return (*FixTicker)(time.NewTicker(interval))
+	return (*FixedTicker)(time.NewTicker(interval))
 }
 
 var _ Ticker = &RandTicker{}

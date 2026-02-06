@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-func Cost(start time.Time) time.Duration {
-	return time.Since(start)
-}
-
 func UnixNano(nsec int64) time.Time {
 	return time.Unix(0, nsec)
 }
