@@ -34,6 +34,15 @@ func (l *Logger) With(fields ...zap.Field) *Logger {
 	return &Logger{l.Logger.With(fields...)}
 }
 
+func (l *Logger) WithLazy(fields ...zap.Field) *Logger {
+	if len(fields) == 0 {
+		return l
+	}
+	return &Logger{l.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		return zapcore.NewLazyWith(core, fields)
+	}))}
+}
+
 // Sugar wrap the zap Sugar.
 func (l *Logger) Zap() *zap.Logger {
 	return l.Logger
@@ -52,8 +61,8 @@ func (l *Logger) AddCore(newCore zapcore.Core) *Logger {
 	}))
 }
 
-// AddSkip wrap the zap AddCallerSkip.
-func (l *Logger) AddSkip(skip int) *Logger {
+// AddCallerSkip wrap the zap AddCallerSkip.
+func (l *Logger) AddCallerSkip(skip int) *Logger {
 	return &Logger{l.Logger.WithOptions(zap.AddCallerSkip(skip))}
 }
 

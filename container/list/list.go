@@ -7,11 +7,11 @@
 package list
 
 import (
-	"github.com/hopeio/gox/container"
+	"github.com/hopeio/gox/container/node"
 )
 
 type List[T any] struct {
-	head, tail *container.Node[T]
+	head, tail *node.Node[T]
 	size       uint
 	zero       T
 }
@@ -24,14 +24,14 @@ func (l *List[T]) Len() uint {
 	return l.size
 }
 
-func (l *List[T]) Head() *container.Node[T] {
+func (l *List[T]) Head() *node.Node[T] {
 	if l.size == 0 {
 		return nil
 	}
 	return l.head
 }
 
-func (l *List[T]) Tail() *container.Node[T] {
+func (l *List[T]) Tail() *node.Node[T] {
 	if l.size == 0 {
 		return nil
 	}
@@ -67,7 +67,7 @@ func (l *List[T]) Pop() (T, bool) {
 }
 
 func (l *List[T]) PushFront(v T) {
-	node := &container.Node[T]{l.head, v}
+	node := &node.Node[T]{l.head, v}
 	if l.size == 0 {
 		l.head = node
 		l.tail = node
@@ -79,7 +79,7 @@ func (l *List[T]) PushFront(v T) {
 }
 
 func (l *List[T]) Push(v T) {
-	node := &container.Node[T]{nil, v}
+	node := &node.Node[T]{nil, v}
 	if l.size == 0 {
 		l.head = node
 		l.tail = node
@@ -95,7 +95,7 @@ func (l *List[T]) PushAt(idx int, v T) {
 	if idx < 0 || idx > int(l.size) {
 		panic("index out of range")
 	}
-	node := &container.Node[T]{nil, v}
+	node := &node.Node[T]{nil, v}
 	if idx == 0 {
 		l.PushFront(v)
 		return

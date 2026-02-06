@@ -20,12 +20,19 @@ func BasicAuth(username, password string) string {
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
-func GetToken(r *http.Request) string {
-	if token := r.Header.Get(HeaderAuthorization); token != "" {
+func GetToken(header http.Header) string {
+	if token := header.Get(HeaderAuthorization); token != "" {
 		return token
 	}
-	if cookie, _ := r.Cookie(HeaderCookieValueToken); cookie != nil {
-		return cookie.Value
+	cookie := header.Get(HeaderCookie)
+	parsedCookie, err := http.ParseCookie(cookie)
+	if err != nil {
+		return ""
+	}
+	for _, v := range parsedCookie {
+		if v.Name == HeaderCookieValueToken {
+			return v.Value
+		}
 	}
 	return ""
 }

@@ -116,7 +116,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 		defer func() {
 			if r := recover(); r != nil {
 				worker.canExecute = false
-				log.StackError(r, spew.Sdump(readyTask))
+				log.StackLogger().Error(r, spew.Sdump(readyTask))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.wg.Done()
 				// 创建一个新的
@@ -225,7 +225,7 @@ func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration
 		defer func() {
 			if r := recover(); r != nil {
 				worker.canExecute = false
-				log.StackError(r, spew.Sdump(task))
+				log.StackLogger().Error(r, spew.Sdump(task))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.wg.Done()
 				// 创建一个新的

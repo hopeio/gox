@@ -301,8 +301,15 @@ func (enc *CustomEncoder) Clone() zapcore.Encoder {
 }
 
 func (enc *CustomEncoder) clone() *CustomEncoder {
-	clone := NewCustomEncoder(enc.CustomEncoderConfig)
-	return clone
+	buf := buffer.NewPool().Get()
+	buf.Write(enc.buf.Bytes())
+	return &CustomEncoder{
+		CustomEncoderConfig: enc.CustomEncoderConfig,
+		buf:                 buf,
+		openNamespaces:      enc.openNamespaces,
+		reflectBuf:          nil,
+		reflectEnc:          nil,
+	}
 }
 
 func (enc *CustomEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {

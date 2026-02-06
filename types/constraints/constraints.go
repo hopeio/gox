@@ -12,6 +12,10 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+type Pointer[T any] interface {
+	*T
+}
+
 type Number interface {
 	constraints.Integer | constraints.Float
 }

@@ -46,7 +46,7 @@ type RequestRecorder struct {
 type ResponseRecorder struct {
 	Record
 	originWriter http.ResponseWriter
-	Code         int
+	StatusCode   int
 }
 
 type Record struct {
@@ -86,9 +86,9 @@ func (rw *ResponseRecorder) Write(buf []byte) (int, error) {
 }
 
 // WriteHeader implements http.ResponseWriter.
-func (rw *ResponseRecorder) WriteHeader(code int) {
-	rw.Code = code
-	rw.originWriter.WriteHeader(code)
+func (rw *ResponseRecorder) WriteHeader(statusCode int) {
+	rw.StatusCode = statusCode
+	rw.originWriter.WriteHeader(statusCode)
 }
 
 // Flush implements http.Flusher. To test whether Flush was
@@ -114,7 +114,7 @@ func (rw *RequestRecorder) Close() error {
 }
 
 func (rw *Recorder) Reset() {
-	rw.Code = http.StatusOK
+	rw.StatusCode = http.StatusOK
 	rw.RequestRecorder.Body = nil
 	rw.ResponseRecorder.Body = nil
 	rw.RequestRecorder.Raw = nil

@@ -40,7 +40,7 @@ func SetDefaultLogger(lf *Config, cores ...zapcore.Core) {
 	defer mu.Unlock()
 
 	defaultLogger = lf.NewLogger(cores...)
-	stackLogger = defaultLogger.WithOptions(zap.WithCaller(true), zap.AddStacktrace(zapcore.ErrorLevel))
+	stackLogger = defaultLogger.WithOptions(zap.WithCaller(true), zap.AddStacktrace(zapcore.DebugLevel))
 	noCallerLogger = defaultLogger.WithOptions(zap.WithCaller(false))
 	clf := *lf
 	clf.SkipLineEnding = true
@@ -62,7 +62,7 @@ func CallerSkipLogger(skip int) *Logger {
 	idx := skip + 3
 	if skipLoggers[idx].needUpdate || skipLoggers[idx].Logger == nil {
 		mu.Lock()
-		skipLoggers[idx].Logger = defaultLogger.AddSkip(skip)
+		skipLoggers[idx].Logger = defaultLogger.AddCallerSkip(skip)
 		skipLoggers[idx].needUpdate = false
 		mu.Unlock()
 	}

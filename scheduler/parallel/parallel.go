@@ -25,7 +25,7 @@ func New(workNum uint, opts ...Option) *Parallel {
 	g := func() {
 		defer func() {
 			if err := recover(); err != nil {
-				log.StackError(err)
+				log.StackLogger().Error(err)
 			}
 		}()
 		for task := range taskCh {

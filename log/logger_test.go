@@ -13,7 +13,7 @@ func TestLog(t *testing.T) {
 }
 
 func TestLogStack(t *testing.T) {
-	StackError("test")
+	stackLogger.Debug("test")
 }
 
 func TestLogNoCaller(t *testing.T) {

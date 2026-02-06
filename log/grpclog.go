@@ -65,7 +65,7 @@ func (l *Logger) Fatalln(args ...any) {
 
 // InfoDepth logs to INFO log at the specified depth. Arguments are handled in the manner of fmt.Println.
 func (l *Logger) InfoDepth(depth int, args ...any) {
-	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
+	if ce := l.AddCallerSkip(depth).Check(zap.InfoLevel, ""); ce != nil {
 		ce.Message = sprintln(args...)
 		ce.Write()
 	}
@@ -73,7 +73,7 @@ func (l *Logger) InfoDepth(depth int, args ...any) {
 
 // WarningDepth logs to WARNING log at the specified depth. Arguments are handled in the manner of fmt.Println.
 func (l *Logger) WarningDepth(depth int, args ...any) {
-	if ce := l.Check(zap.WarnLevel, ""); ce != nil {
+	if ce := l.AddCallerSkip(depth).Check(zap.WarnLevel, ""); ce != nil {
 		ce.Message = sprintln(args...)
 		ce.Write()
 	}
@@ -81,7 +81,7 @@ func (l *Logger) WarningDepth(depth int, args ...any) {
 
 // ErrorDepth logs to ERROR log at the specified depth. Arguments are handled in the manner of fmt.Println.
 func (l *Logger) ErrorDepth(depth int, args ...any) {
-	if ce := l.Check(zap.ErrorLevel, ""); ce != nil {
+	if ce := l.AddCallerSkip(depth).Check(zap.ErrorLevel, ""); ce != nil {
 		ce.Message = sprintln(args...)
 		ce.Write()
 	}
@@ -89,7 +89,7 @@ func (l *Logger) ErrorDepth(depth int, args ...any) {
 
 // FatalDepth logs to FATAL log at the specified depth. Arguments are handled in the manner of fmt.Println.
 func (l *Logger) FatalDepth(depth int, args ...any) {
-	if ce := l.Check(zap.FatalLevel, ""); ce != nil {
+	if ce := l.AddCallerSkip(depth).Check(zap.FatalLevel, ""); ce != nil {
 		ce.Message = sprintln(args...)
 		ce.Write()
 	}

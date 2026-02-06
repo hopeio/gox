@@ -38,10 +38,15 @@ type core struct {
 }
 
 func (c *core) With(fields []zapcore.Field) zapcore.Core {
+	enc := c.encoder.Clone()
 	for i := range fields {
-		fields[i].AddTo(c.encoder)
+		fields[i].AddTo(enc)
 	}
-	return c
+	return &core{
+		RobotConfig: c.RobotConfig,
+		Level:       c.Level,
+		encoder:     enc,
+	}
 }
 func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
