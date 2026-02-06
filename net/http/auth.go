@@ -20,12 +20,63 @@ func BasicAuth(username, password string) string {
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
-func GetToken(r *http.Request) string {
-	if token := r.Header.Get(HeaderAuthorization); token != "" {
+func GetToken(header http.Header) string {
+	if token := header.Get(HeaderAuthorization); token != "" {
 		return token
 	}
-	if cookie, _ := r.Cookie(HeaderCookieValueToken); cookie != nil {
-		return cookie.Value
+	cookie := header.Get(HeaderCookie)
+	parsedCookie, err := http.ParseCookie(cookie)
+	if err != nil {
+		return ""
+	}
+	for _, v := range parsedCookie {
+		if v.Name == HeaderCookieValueToken {
+			return v.Value
+		}
 	}
 	return ""
+}
+
+type Auth interface {
+	GetId() string
+}
+
+type ParseToken interface {
+	ParseToken(token string, secret []byte) error
+}
+
+/*
+type Authorization struct {
+	AuthInfo `json:"auth"`
+	jwt.RegisteredClaims
+	Raw string `json:"-"`
+}
+
+func (x *Authorization) Validate() error {
+	return nil
+}
+
+func (x *Authorization) GenerateToken(secret []byte) (string, error) {
+	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, x)
+	token, err := tokenClaims.SignedString(secret)
+	return token, err
+}
+
+func (x *Authorization) ParseToken(token string, secret []byte) error {
+	_, err := jwti.ParseToken(x, token, secret)
+	if err != nil {
+		return err
+	}
+	x.ID = x.AuthInfo.GetId()
+	authBytes, _ := json.Marshal(x.AuthInfo)
+	x.Raw = stringsx.FromBytes(authBytes)
+	return nil
+}
+*/
+
+type AuthInfo struct {
+	Token string
+	Raw   []byte
+	ID    string
+	Info  Auth
 }
