@@ -56,7 +56,8 @@ func Copy(dst, src string) error {
 	}
 	defer r.Close()
 
-	return CreateFromReader(dst, r)
+	_, err = WriteFile(dst, r)
+	return err
 }
 
 func CopyByMode(dst, src string, c mode) error {
@@ -72,44 +73,35 @@ func CopyByMode(dst, src string, c mode) error {
 	if skip {
 		return nil
 	}
-	return CreateFromReader(dst, r)
+	_, err = WriteFile(dst, r)
+	return err
 }
 
 const DownloadKey = ".downloading"
 
-func CreateFromReader(filepath string, reader io.Reader) error {
+func WriteFile(filepath string, reader io.Reader) (int64, error) {
 	f, err := Create(filepath)
 	if err != nil {
-		return err
+		return 0, err
 	}
-
-	if _, err = io.Copy(f, reader); err != nil {
+	n, err := io.Copy(f, reader)
+	if err != nil {
 		f.Close()
 		os.Remove(filepath)
-		return err
+		return 0, err
 	}
 
 	if err = f.Close(); err != nil {
 		os.Remove(filepath)
-		return err
+		return 0, err
 	}
-	return nil
+	return n, nil
 }
 
-func CreateFromReaderByMode(filepath string, reader io.Reader, c mode) error {
-	skip, err := c.handle(filepath, reader)
-	if err != nil {
-		return err
-	}
-	if skip {
-		return nil
-	}
-	return CreateFromReader(filepath, reader)
-}
 
 func Download(filepath string, reader io.Reader) error {
 	tmpFilepath := filepath + DownloadKey
-	err := CreateFromReader(tmpFilepath, reader)
+	_, err := WriteFile(tmpFilepath, reader)
 	if err != nil {
 		return err
 	}

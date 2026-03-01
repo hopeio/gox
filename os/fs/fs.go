@@ -21,6 +21,11 @@ import (
 	"strconv"
 )
 
+const(
+	ModeDir = 0755
+	ModeFile = 0644
+)
+
 type Dir string
 
 func (d Dir) Open(name string) (*os.File, error) {
@@ -228,7 +233,7 @@ func supDirFilesParallel(dir, path string, file chan string, deep, step int8) ([
 func Mkdir(src string) error {
 	_, err := os.Stat(src)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(src, os.ModePerm)
+		err = os.Mkdir(src, ModeDir)
 		if err != nil {
 			return err
 		}
@@ -237,7 +242,7 @@ func Mkdir(src string) error {
 }
 
 func MkdirAll(src string) error {
-	return os.MkdirAll(src, os.ModePerm)
+	return os.MkdirAll(src, ModeDir)
 }
 
 func IsExist(src string) bool {
@@ -247,13 +252,11 @@ func IsExist(src string) bool {
 
 func IsNotExist(src string) bool {
 	_, err := os.Stat(src)
-
 	return os.IsNotExist(err)
 }
 
 func IsPermission(src string) bool {
 	_, err := os.Stat(src)
-
 	return os.IsPermission(err)
 }
 
@@ -273,11 +276,11 @@ func MustOpen(filePath string) (*os.File, error) {
 }
 
 func Create(filepath string) (*os.File, error) {
-	return OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	return OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, ModeFile)
 }
 
 func Open(filepath string) (*os.File, error) {
-	return OpenFile(filepath, os.O_RDWR, 0666)
+	return OpenFile(filepath, os.O_RDWR, ModeFile)
 }
 
 func OpenFile(path string, flag int, perm os.FileMode) (*os.File, error) {
