@@ -43,11 +43,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to get Zone ID: %v", err)
 	}
-	ipv6s, err := neti.IPv6Addresses()
+	ipv6s, err := neti.IPv6s()
 	if err != nil || len(ipv6s) == 0 {
 		log.Fatalf("failed to get IPv6 ipv6s: %v", err)
 	}
-	lastIP := ipv6s[0]
+	lastIP := ipv6s[0].String()
 	log.Infof("ipv6: %v", lastIP)
 	needUpdateRecord := make([]cloudflare.UpdateDNSRecordParams, 0, 2)
 	// 获取 DNS 记录
@@ -93,14 +93,14 @@ func main() {
 			timer.Stop()
 			return
 		case <-timer.C:
-			ipv6s, err = neti.IPv6Addresses()
+			ipv6s, err = neti.IPv6s()
 			if err != nil || len(ipv6s) == 0 {
 				log.Errorf("failed to get IPv6 ipv6s: %v", err)
 				timer.Reset(time.Second)
 				continue
 			}
-			if lastIP != ipv6s[0] {
-				lastIP = ipv6s[0]
+			if lastIP != ipv6s[0].String() {
+				lastIP = ipv6s[0].String()
 				for _, record := range needUpdateRecord {
 					record.Content = lastIP
 					retry.Run(func(int) bool {

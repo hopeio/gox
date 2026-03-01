@@ -16,14 +16,14 @@ func DDNSV6(ctx context.Context, api *cloudflare.API, zoneID, recordID string) e
 	if err != nil {
 		return fmt.Errorf("failed to get DNS record: %v", err)
 	}
-	addresses, err := netx.IPv6Addresses()
+	addresses, err := netx.IPv6s()
 	if err != nil {
 		return err
 	}
-	if len(addresses) == 0 || strings.HasPrefix(addresses[0], "fe80") {
+	if len(addresses) == 0 || strings.HasPrefix(addresses[0].String(), "fe80") {
 		return fmt.Errorf("no IPv6 addresses found")
 	}
-	currentIP := addresses[0]
+	currentIP := addresses[0].String()
 	if record.Content == currentIP {
 		log.Printf("DNS record for %s (%s) is already up-to-date with IP %s\n", record.Name, record.Type, currentIP)
 		return nil

@@ -19,7 +19,6 @@ package bitmap
 import (
 	"fmt"
 	"github.com/hopeio/gox/reflect"
-	strings2 "github.com/hopeio/gox/strings"
 	"strings"
 	"unsafe"
 )
