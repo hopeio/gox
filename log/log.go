@@ -12,6 +12,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
 )
 
 func init() {
@@ -72,9 +73,11 @@ func CallerSkipLogger(skip int) *Logger {
 func NoCallerLogger() *Logger {
 	return noCallerLogger
 }
+
 func StackLogger() *Logger {
 	return stackLogger
 }
+
 func Sync() error {
 	return defaultLogger.Sync()
 }

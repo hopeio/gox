@@ -233,11 +233,12 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 		ustdout, ustderr := false, false
 		consolePaths := make([]string, 0, len(lc.OutputPaths.Console))
 		slices.ForEachIndex(lc.OutputPaths.Console, func(i int) {
-			if lc.OutputPaths.Console[i] == stdout {
+			switch lc.OutputPaths.Console[i] {
+			case stdout:
 				ustdout = true
-			} else if lc.OutputPaths.Console[i] == "stderr" {
+			case stderr:
 				ustderr = true
-			} else {
+			default:
 				consolePaths = append(consolePaths, lc.OutputPaths.Console[i])
 			}
 		})

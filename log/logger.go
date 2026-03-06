@@ -7,8 +7,10 @@
 package log
 
 import (
+	"context"
 	"fmt"
 
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -41,6 +43,17 @@ func (l *Logger) WithLazy(fields ...zap.Field) *Logger {
 	return &Logger{l.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 		return zapcore.NewLazyWith(core, fields)
 	}))}
+}
+
+func (l *Logger) WithContext(ctx context.Context) *Logger {
+	if ctx == nil {
+		return l
+	}
+	spanContext := trace.SpanFromContext(ctx).SpanContext()
+	if !spanContext.HasTraceID() {
+		return l
+	}
+	return l.With(zap.String(FieldTraceId, spanContext.TraceID().String()), zap.String(FieldSpanId, spanContext.SpanID().String()))
 }
 
 // Sugar wrap the zap Sugar.
