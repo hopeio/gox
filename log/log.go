@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	SetDefaultLogger(&Config{Development: true, Level: zapcore.DebugLevel})
+	SetDefaultLogger((&Config{Development: true, Level: zapcore.DebugLevel}).NewLogger())
 }
 
 type skipLogger struct {
@@ -36,15 +36,13 @@ func DefaultLogger() *Logger {
 	return defaultLogger
 }
 
-func SetDefaultLogger(lf *Config, cores ...zapcore.Core) {
+func SetDefaultLogger(logger *Logger) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	defaultLogger = lf.NewLogger(cores...)
+	defaultLogger =logger
 	stackLogger = defaultLogger.WithOptions(zap.WithCaller(true), zap.AddStacktrace(zapcore.DebugLevel))
 	noCallerLogger = defaultLogger.WithOptions(zap.WithCaller(false))
-	clf := *lf
-	clf.SkipLineEnding = true
 	for i := range len(skipLoggers) {
 		if skipLoggers[i].Logger != nil {
 			skipLoggers[i].needUpdate = true

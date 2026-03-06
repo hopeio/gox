@@ -14,12 +14,12 @@ import (
 )
 
 func TestDingDing(t *testing.T) {
-
-	log.SetDefaultLogger(&log.Config{
+	lconf:=&log.Config{
 		Development: false,
 		Level:       zapcore.DebugLevel,
 		OutputPaths: log.OutPutPaths{},
 		Name:        "",
-	}, NewCore("", "", zapcore.DebugLevel, &zapcore.EncoderConfig{}))
+	}
+	log.SetDefaultLogger(lconf.NewLogger(NewCore("", "", zapcore.DebugLevel, &zapcore.EncoderConfig{})))
 	log.Info("测试")
 }
