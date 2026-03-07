@@ -109,6 +109,9 @@ func (d FloatArray[T]) Value() (driver.Value, error) {
 type StringArray []string
 
 func (d *StringArray) Scan(value any) error {
+	if value == nil{
+		return nil
+	}
 	str, ok := value.(string)
 	if !ok {
 		data, ok := value.([]byte)
@@ -116,6 +119,9 @@ func (d *StringArray) Scan(value any) error {
 			return errors.New(fmt.Sprint("failed to scan string array value:", value))
 		}
 		str = stringsx.FromBytes(data)
+	}
+	if str == ""{
+		return nil
 	}
 	strs := strings.Split(str[1:len(str)-1], ",")
 	var arr []string

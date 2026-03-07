@@ -7,12 +7,13 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
 )
 
 func init() {
@@ -40,7 +41,7 @@ func SetDefaultLogger(logger *Logger) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	defaultLogger =logger
+	defaultLogger = logger
 	stackLogger = defaultLogger.WithOptions(zap.WithCaller(true), zap.AddStacktrace(zapcore.DebugLevel))
 	noCallerLogger = defaultLogger.WithOptions(zap.WithCaller(false))
 	for i := range len(skipLoggers) {
@@ -240,4 +241,26 @@ func Println(args ...any) {
 		ce.Message = sprintln(args...)
 		ce.Write()
 	}
+}
+
+func Context(ctx context.Context) zapcore.Field {
+	return zapcore.Field{
+		Type: zapcore.InlineMarshalerType,
+		Interface: contextObjectMarshaler{
+			Context: ctx,
+		},
+	}
+}
+
+type contextObjectMarshaler struct {
+	context.Context
+}
+
+func (m contextObjectMarshaler) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	spanContext := trace.SpanContextFromContext(m.Context)
+	if spanContext.IsValid() {
+		enc.AddString(FieldTraceId, spanContext.TraceID().String())
+		enc.AddString(FieldSpanId, spanContext.SpanID().String())
+	}
+	return nil
 }

@@ -225,10 +225,10 @@ func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	lc.Init()
 
-	var consoleEncoder, jsonEncoder zapcore.Encoder
+	var encoder zapcore.Encoder
 
 	if len(lc.OutputPaths.Console) > 0 {
-		consoleEncoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
+		encoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
 		// 如果输出同时有stdout和stderr,那么warn级别及以下的用stdout,error级别及以上的用stderr
 		ustdout, ustderr := false, false
 		consolePaths := make([]string, 0, len(lc.OutputPaths.Console))
@@ -243,8 +243,8 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 			}
 		})
 		if ustdout && ustderr {
-			cores = append(cores, zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Level)),
-				zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Level)))
+			cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Level)),
+				zapcore.NewCore(encoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Level)))
 		} else {
 			if ustdout {
 				consolePaths = append(consolePaths, stdout)
@@ -257,22 +257,22 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 		if err != nil {
 			log.Fatal(err)
 		}
-		cores = append(cores, zapcore.NewCore(consoleEncoder, sink, lc.Level))
+		cores = append(cores, zapcore.NewCore(encoder, sink, lc.Level))
 	}
 
 	if len(lc.OutputPaths.Json) > 0 {
 		lc.EncoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
-		jsonEncoder = zapcore.NewJSONEncoder(lc.EncoderConfig)
+		encoder = zapcore.NewJSONEncoder(lc.EncoderConfig)
 		sink, _, err := zap.Open(lc.OutputPaths.Json...)
 		if err != nil {
 			log.Fatal(err)
 		}
-		cores = append(cores, zapcore.NewCore(jsonEncoder, sink, lc.Level))
+		cores = append(cores, zapcore.NewCore(encoder, sink, lc.Level))
 	}
 	//如果没有设置输出，默认控制台
 	if len(cores) == 0 {
-		consoleEncoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
-		cores = append(cores, zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), lc.Level))
+		encoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
+		cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), lc.Level))
 	}
 
 	core := zapcore.NewTee(cores...)

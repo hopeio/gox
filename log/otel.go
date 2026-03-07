@@ -7,5 +7,5 @@ import (
 )
 
 func NewOtelLogger(name string, provider *otellog.LoggerProvider) *Logger {
-	return &Logger{zap.New(otelzap.NewCore(name, otelzap.WithLoggerProvider(provider)))}
+	return &Logger{zap.New(otelzap.NewCore(name, otelzap.WithLoggerProvider(provider)),zap.AddCallerSkip(1))}
 }
