@@ -26,6 +26,7 @@ var (
 
 type BindFunc func(r Source, v any) error
 type MarshalFunc func(ctx context.Context, v any) (data []byte, contentType string)
+type UnmarshalFunc func(contentType string, data []byte, v any) error
 
 type Codec interface {
 	Marshaler

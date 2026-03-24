@@ -13,19 +13,19 @@ import (
 	"github.com/hopeio/gox/net/http/client"
 )
 
-type CommonResp[RES any] httpx.CommonResp[RES]
+type CommonResp[RESP any] httpx.CommonResp[RESP]
 
-func CommonResponse[RES any]() client.ResponseBodyCheck {
-	return &CommonResp[RES]{}
+func CommonResponse[RESP any]() client.ResponseBodyCheck {
+	return &CommonResp[RESP]{}
 }
 
-func (res *CommonResp[RES]) CheckError() error {
+func (res *CommonResp[RESP]) CheckError() error {
 	if res.Code != 0 {
 		return fmt.Errorf("code: %d, msg: %s", res.Code, res.Msg)
 	}
 	return nil
 }
 
-func (res *CommonResp[RES]) GetData() *RES {
+func (res *CommonResp[RESP]) GetData() *RESP {
 	return &res.Data
 }

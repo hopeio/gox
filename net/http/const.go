@@ -99,6 +99,7 @@ const (
 	ContentTypeYaml = "application/yaml"
 	// ContentTypeProtobuf header value for Protobuf messages data.
 	ContentTypeProtobuf = "application/protobuf"
+	ContentTypeXProtobuf = "application/x-protobuf"
 	// ContentTypeMsgPack header value for MsgPack data.
 	ContentTypeMsgPack = "application/msgpack"
 	// ContentTypeForm header value for post form data.

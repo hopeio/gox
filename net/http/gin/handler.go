@@ -15,9 +15,9 @@ import (
 	"github.com/hopeio/gox/types"
 )
 
-type Service[REQ, RES any] func(*gin.Context, REQ) (RES, *httpx.ErrResp)
+type Service[REQ, RESP any] func(*gin.Context, REQ) (RESP, *httpx.ErrResp)
 
-func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
+func HandlerWrap[REQ, RESP any](service Service[*REQ, *RESP]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		req := new(REQ)
 		err := Bind(ctx, req)
@@ -45,7 +45,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) gin.HandlerFunc {
 	}
 }
 
-func HandlerWrapGRPC[REQ, RES any](service types.GrpcService[*REQ, *RES]) gin.HandlerFunc {
+func HandlerWrapGRPC[REQ, RESP any](service types.GrpcService[*REQ, *RESP]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		req := new(REQ)
 		err := Bind(ctx, req)

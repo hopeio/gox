@@ -258,24 +258,21 @@ type HeaderSource map[string][]string
 
 var _ kvstruct.Setter = HeaderSource(nil)
 
-func (hs HeaderSource) GetVs(key string) ([]string, bool) {
+func (hs HeaderSource) Get(key string) ([]string, bool) {
 	v, ok := hs[textproto.CanonicalMIMEHeaderKey(key)]
 	return v, ok
 }
 
-func (hs HeaderSource) Has(key string) bool {
-	_, ok := hs[textproto.CanonicalMIMEHeaderKey(key)]
-	return ok
-}
+
 func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
-	return kvstruct.SetValueByKVs(value, field, hs, key, opt)
+	return kvstruct.SetValueByValuesGetter(value, field, hs, key, opt)
 }
 
 type UriSource http.Request
 
 var _ kvstruct.Setter = (*UriSource)(nil)
 
-func (req *UriSource) GetVs(key string) ([]string, bool) {
+func (req *UriSource) Get(key string) ([]string, bool) {
 	if req.Pattern == "" {
 		return nil, false
 	}
@@ -283,27 +280,16 @@ func (req *UriSource) GetVs(key string) ([]string, bool) {
 	return []string{v}, v != ""
 }
 
-func (req *UriSource) Has(key string) bool {
-	v := (*http.Request)(req).PathValue(key)
-	return v != ""
-}
+
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
 func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
-	return kvstruct.SetValueByKVs(value, field, req, key, opt)
+	return kvstruct.SetValueByValuesGetter(value, field, req, key, opt)
 }
 
 type MultipartSource multipart.Form
 
 var _ kvstruct.Setter = (*MultipartSource)(nil)
-
-func (ms *MultipartSource) Has(key string) bool {
-	if _, ok := ms.File[key]; ok {
-		return true
-	}
-	_, ok := ms.Value[key]
-	return ok
-}
 
 // TrySet tries to set a value by the multipart request with the binding a form file
 func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
@@ -311,7 +297,7 @@ func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructFiel
 		return SetMultipartFrormFile(value, field, files)
 	}
 
-	return kvstruct.SetValueByKVs(value, field, kvstruct.KVsSource(ms.Value), key, opt)
+	return kvstruct.SetValueByValuesGetter(value, field, kvstruct.KVsSource(ms.Value), key, opt)
 }
 
 func SetMultipartFrormFile(value reflect.Value, field *reflect.StructField, files []*multipart.FileHeader) (isSet bool, err error) {

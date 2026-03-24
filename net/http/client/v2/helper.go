@@ -10,34 +10,34 @@ import (
 	"github.com/hopeio/gox/net/http/client"
 )
 
-func GetRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.GetRequest(url))
+func GetRequest[RESP any](url string) *Request[RESP] {
+	return (*Request[RESP])(client.GetRequest(url))
 }
 
-func PostRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.PostRequest(url))
+func PostRequest[RESP any](url string) *Request[RESP] {
+	return (*Request[RESP])(client.PostRequest(url))
 }
 
-func PutRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.PutRequest(url))
+func PutRequest[RESP any](url string) *Request[RESP] {
+	return (*Request[RESP])(client.PutRequest(url))
 }
 
-func DeleteRequest[RES any](url string) *Request[RES] {
-	return (*Request[RES])(client.DeleteRequest(url))
+func DeleteRequest[RESP any](url string) *Request[RESP] {
+	return (*Request[RESP])(client.DeleteRequest(url))
 }
 
-func Get[RES any](url string, param any) (*RES, error) {
-	return GetRequest[RES](url).Do(param)
+func Get[RESP any](url string, param any) (*RESP, error) {
+	return GetRequest[RESP](url).Do(param)
 }
 
-func Post[RES any](url string, param any) (*RES, error) {
-	return PostRequest[RES](url).Do(param)
+func Post[RESP any](url string, param any) (*RESP, error) {
+	return PostRequest[RESP](url).Do(param)
 }
 
-func Put[RES any](url string, param any) (*RES, error) {
-	return PutRequest[RES](url).Do(param)
+func Put[RESP any](url string, param any) (*RESP, error) {
+	return PutRequest[RESP](url).Do(param)
 }
 
-func Delete[RES any](url string, param any) (*RES, error) {
-	return DeleteRequest[RES](url).Do(param)
+func Delete[RESP any](url string, param any) (*RESP, error) {
+	return DeleteRequest[RESP](url).Do(param)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/hopeio/gox/types"
 )
 
-type Service[REQ, RES any] func(ctx ReqResp, req REQ) (RES, *ErrResp)
+type Service[REQ, RESP any] func(ctx ReqResp, req REQ) (RESP, *ErrResp)
 
 type wrapKey struct{}
 
@@ -27,7 +27,7 @@ type ReqResp struct {
 	http.ResponseWriter
 }
 
-func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
+func HandlerWrap[REQ, RESP any](service Service[*REQ, *RESP]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		req := new(REQ)
 		err := Bind(r, req)
@@ -35,9 +35,9 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 			ServeError(w, r, errors.InvalidArgument.Msg(err.Error()))
 			return
 		}
-		res, errResp := service(ReqResp{r, w}, req)
+		res, err := service(ReqResp{r, w}, req)
 		if err != nil {
-			ServeError(w, r, errResp)
+			ServeError(w, r, err)
 			return
 		}
 		switch httpres := any(res).(type) {
@@ -51,7 +51,7 @@ func HandlerWrap[REQ, RES any](service Service[*REQ, *RES]) http.Handler {
 		ServeSuccess(w, r, res)
 	})
 }
-func HandlerWrapGRPC[REQ, RES any](method types.GrpcService[*REQ, *RES]) http.Handler {
+func HandlerWrapGRPC[REQ, RESP any](method types.GrpcService[*REQ, *RESP]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		req := new(REQ)

@@ -80,7 +80,7 @@ type uriSource gin.Params
 
 var _ kvstruct.Setter = uriSource(nil)
 
-func (param uriSource) GetVs(key string) ([]string, bool) {
+func (param uriSource) Get(key string) ([]string, bool) {
 	for i := range param {
 		if param[i].Key == key {
 			return []string{param[i].Value}, true
@@ -89,16 +89,7 @@ func (param uriSource) GetVs(key string) ([]string, bool) {
 	return nil, false
 }
 
-func (param uriSource) Has(key string) bool {
-	for i := range param {
-		if param[i].Key == key {
-			return true
-		}
-	}
-	return false
-}
-
 // TrySet tries to set a value by request's form source (like map[string][]string)
 func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
-	return kvstruct.SetValueByKVs(value, field, param, key, opt)
+	return kvstruct.SetValueByValuesGetter(value, field, param, key, opt)
 }
