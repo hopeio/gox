@@ -3,7 +3,7 @@
  * Licensed under the MIT License that can be found in the LICENSE file.
  * @Created by jyb
  */
-
+//go:build windows
 package win
 
 import (

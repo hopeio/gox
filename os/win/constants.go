@@ -4,6 +4,7 @@
  * @Created by jyb
  */
 
+ //go:build windows
 package win
 
 const (

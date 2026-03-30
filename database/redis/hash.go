@@ -4,14 +4,14 @@
  * @Created by jyb
  */
 
-package hash
+package redis
 
 import (
 	"reflect"
 	"strconv"
 )
 
-func Unmarshal(v interface{}, args map[string]string) {
+func HashDecode(v any, args map[string]string) {
 	uValue := reflect.ValueOf(v).Elem()
 	uType := uValue.Type()
 	for i := 0; i < uValue.NumField(); i++ {
@@ -34,4 +34,14 @@ func Unmarshal(v interface{}, args map[string]string) {
 			fieldValue.SetBool(v)
 		}
 	}
+}
+
+func HashEncode(v any) []any {
+	uValue := reflect.ValueOf(v).Elem()
+	uType := uValue.Type()
+	var redisArgs = make([]interface{}, 0, uValue.NumField())
+	for i := range uValue.NumField() {
+		redisArgs = append(redisArgs, uType.Field(i).Name, uValue.Field(i).Interface())
+	}
+	return redisArgs
 }

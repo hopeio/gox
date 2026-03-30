@@ -4,10 +4,9 @@
  * @Created by jyb
  */
 
-package hash
+package redis
 
 import (
-	"reflect"
 	"testing"
 	"time"
 )
@@ -21,11 +20,10 @@ type Bar struct {
 	Int int
 }
 
-func TestMarshal(t *testing.T) {
-	e := new(encodeState)
+func TestHashEncode(t *testing.T) {
 	u := &Foo{Time: time.Now(), Bar: Bar{Int: 1}}
-	e.encode("", reflect.ValueOf(u))
-	for i := 0; i < len(e.strings); i += 2 {
-		t.Log(e.strings[i], e.strings[i+1])
+	redisArgs := HashEncode(u)
+	for i := 0; i < len(redisArgs); i += 2 {
+		t.Log(redisArgs[i], redisArgs[i+1])
 	}
 }
