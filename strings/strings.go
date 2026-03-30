@@ -16,7 +16,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/hopeio/gox/strings/ascii"
+	"github.com/hopeio/gox/text/encoding/ascii"
 )
 
 func FormatLen(s string, length int) string {

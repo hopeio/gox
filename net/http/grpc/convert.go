@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hopeio/gox/encoding/text"
+	strconvx "github.com/hopeio/gox/strconv"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -55,7 +55,7 @@ func Enum(val string, enumValMap map[string]int32) (int32, error) {
 		return e, nil
 	}
 
-	i, err := text.Int32(val)
+	i, err := strconvx.Int32(val)
 	if err != nil {
 		return 0, fmt.Errorf("%s is not valid", val)
 	}
@@ -74,7 +74,7 @@ func EnumP(val string, enumValMap map[string]int32) (*int32, error) {
 	if ok {
 		return &e, nil
 	}
-	return text.Int32P(val)
+	return strconvx.Int32P(val)
 }
 
 // EnumSlice converts 'val' where individual enums are separated by 'sep'
@@ -102,48 +102,48 @@ func StringValue(val string) (*wrapperspb.StringValue, error) {
 
 // FloatValue well-known type support as wrapper around float32 type
 func FloatValue(val string) (*wrapperspb.FloatValue, error) {
-	parsedVal, err := text.Float32(val)
+	parsedVal, err := strconvx.Float32(val)
 	return wrapperspb.Float(parsedVal), err
 }
 
 // DoubleValue well-known type support as wrapper around float64 type
 func DoubleValue(val string) (*wrapperspb.DoubleValue, error) {
-	parsedVal, err := text.Float64(val)
+	parsedVal, err := strconvx.Float64(val)
 	return wrapperspb.Double(parsedVal), err
 }
 
 // BoolValue well-known type support as wrapper around bool type
 func BoolValue(val string) (*wrapperspb.BoolValue, error) {
-	parsedVal, err := text.Bool(val)
+	parsedVal, err := strconvx.Bool(val)
 	return wrapperspb.Bool(parsedVal), err
 }
 
 // Int32Value well-known type support as wrapper around int32 type
 func Int32Value(val string) (*wrapperspb.Int32Value, error) {
-	parsedVal, err := text.Int32(val)
+	parsedVal, err := strconvx.Int32(val)
 	return wrapperspb.Int32(parsedVal), err
 }
 
 // UInt32Value well-known type support as wrapper around uint32 type
 func UInt32Value(val string) (*wrapperspb.UInt32Value, error) {
-	parsedVal, err := text.Uint32(val)
+	parsedVal, err := strconvx.Uint32(val)
 	return wrapperspb.UInt32(parsedVal), err
 }
 
 // Int64Value well-known type support as wrapper around int64 type
 func Int64Value(val string) (*wrapperspb.Int64Value, error) {
-	parsedVal, err := text.Int64(val)
+	parsedVal, err := strconvx.Int64(val)
 	return wrapperspb.Int64(parsedVal), err
 }
 
 // UInt64Value well-known type support as wrapper around uint64 type
 func UInt64Value(val string) (*wrapperspb.UInt64Value, error) {
-	parsedVal, err := text.Uint64(val)
+	parsedVal, err := strconvx.Uint64(val)
 	return wrapperspb.UInt64(parsedVal), err
 }
 
 // BytesValue well-known type support as wrapper around bytes[] type
 func BytesValue(val string) (*wrapperspb.BytesValue, error) {
-	parsedVal, err := text.Bytes(val)
+	parsedVal, err := strconvx.Bytes(val)
 	return wrapperspb.Bytes(parsedVal), err
 }

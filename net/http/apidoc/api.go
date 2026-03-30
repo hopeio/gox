@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/hopeio/gox/reflect/structtag"
+	"github.com/hopeio/gox/structtag"
 )
 
 type APIOpts func(*API)

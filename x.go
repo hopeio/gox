@@ -19,16 +19,16 @@ func Pointer[T any](t T) *T {
 }
 
 func Zero[T any]() T {
-	return *new(T)
-}
-
-func Nil[T any]() T {
-	return *(*T)(nil)
-}
-
-func Zero2[T any]() T {
 	var zero T
 	return zero
+}
+
+func Nil[T any]() *T {
+	return (*T)(nil)
+}
+
+func zero[T any]() T {
+	return *new(T)
 }
 
 // 两种转换,any(i).(T), T(any(i))

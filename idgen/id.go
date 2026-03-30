@@ -6,7 +6,8 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/hopeio/gox/encoding/multibase"
+	"github.com/hopeio/gox/encoding/base58"
+	"github.com/hopeio/gox/encoding/base62"
 	"github.com/hopeio/gox/strings"
 )
 
@@ -55,11 +56,11 @@ func (t ID) Base32() string {
 }
 
 func (t ID) Base58() string {
-	return multibase.EncodeBase58(t)
+	return base58.EncodeToString(t)
 }
 
 func (t ID) Base62() string {
-	return multibase.EncodeBase62(t)
+	return base62.EncodeToString(t)
 }
 
 func (t ID) Base64() string {

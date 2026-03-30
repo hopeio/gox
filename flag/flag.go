@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hopeio/gox/encoding/text"
+	"github.com/hopeio/gox/strconv"
 	reflectx "github.com/hopeio/gox/reflect"
-	"github.com/hopeio/gox/reflect/structtag"
+	"github.com/hopeio/gox/structtag"
 	"github.com/spf13/pflag"
 )
 

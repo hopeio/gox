@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode"
 
-	strconv2 "github.com/hopeio/gox/encoding/text"
+	strconvx "github.com/hopeio/gox/strconv"
 	stringsx "github.com/hopeio/gox/strings"
 )
 
@@ -224,7 +224,7 @@ func ConvertParams(v any, escaper string) string {
 		}
 		return escaper + "<binary>" + escaper
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return strconv2.FormatInteger(v)
+		return strconvx.FormatInteger(v)
 	case float64, float32:
 		return fmt.Sprintf("%.6f", v)
 	case string:

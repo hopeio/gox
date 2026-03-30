@@ -4,9 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	encodingx "github.com/hopeio/gox/encoding/text"
+	"github.com/hopeio/gox/strconv"
 )
-
 
 // Setter tries to set value on a walking by fields of a struct
 type Setter interface {
@@ -181,7 +180,6 @@ func (form KVsSource) Get(key string) ([]string, bool) {
 	return v, ok
 }
 
-
 // TrySet tries to set a value by request's form source (like map[string][]string)
 func (form KVsSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	return SetValueByValuesGetter(value, field, form, key, opt)
@@ -214,7 +212,7 @@ func SetValueByGetter(value reflect.Value, field *reflect.StructField, getter Ge
 		}
 		vs = opt.Default
 	}
-	err = encodingx.ParseSetReflectValue(value, vs, field)
+	err = strconv.ParseStringSetReflectValue(value, vs, field)
 	if err != nil {
 		return false, err
 	}
@@ -230,7 +228,7 @@ func SetValueByValuesGetter(value reflect.Value, field *reflect.StructField, get
 		vals = strings.Split(opt.Default, ",")
 	}
 
-	err = encodingx.ParseStringsSetReflectValue(value, vals, field)
+	err = strconv.ParseStringsSetReflectValue(value, vals, field)
 	if err != nil {
 		return false, err
 	}

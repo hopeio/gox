@@ -3,7 +3,7 @@ package sql
 import (
 	"database/sql"
 
-	textx "github.com/hopeio/gox/encoding/text"
+	strconvx "github.com/hopeio/gox/strconv"
 )
 
 func StringConvertFor[T any](str string) (T, error) {
@@ -20,5 +20,5 @@ func StringConvertFor[T any](str string) (T, error) {
 		}
 		return t, nil
 	}
-	return textx.ParseFor[T](str)
+	return strconvx.ParseFor[T](str)
 }

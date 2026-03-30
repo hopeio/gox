@@ -263,7 +263,6 @@ func (hs HeaderSource) Get(key string) ([]string, bool) {
 	return v, ok
 }
 
-
 func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
 	return kvstruct.SetValueByValuesGetter(value, field, hs, key, opt)
 }
@@ -279,8 +278,6 @@ func (req *UriSource) Get(key string) ([]string, bool) {
 	v := (*http.Request)(req).PathValue(key)
 	return []string{v}, v != ""
 }
-
-
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
 func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {

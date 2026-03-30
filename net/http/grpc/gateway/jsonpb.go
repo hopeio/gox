@@ -6,14 +6,14 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-type Json struct {
+type JsonCodec struct {
 }
 
-func (*Json) ContentType(_ any) string {
+func (*JsonCodec) ContentType(_ any) string {
 	return httpx.ContentTypeJson
 }
 
-func (j *Json) Marshal(v any) ([]byte, error) {
+func (j *JsonCodec) Marshal(v any) ([]byte, error) {
 	switch msg := v.(type) {
 	case *wrapperspb.StringValue:
 		v = msg.Value
@@ -41,14 +41,14 @@ func (j *Json) Marshal(v any) ([]byte, error) {
 	return jsonx.Marshal(&httpx.CommonAnyResp{Data: v})
 }
 
-func (j *Json) Name() string {
+func (j *JsonCodec) Name() string {
 	return "json"
 }
 
-func (j *Json) Unmarshal(data []byte, v interface{}) error {
+func (j *JsonCodec) Unmarshal(data []byte, v interface{}) error {
 	return jsonx.Unmarshal(data, v)
 }
 
-func (j *Json) Delimiter() []byte {
+func (j *JsonCodec) Delimiter() []byte {
 	return []byte("\n")
 }

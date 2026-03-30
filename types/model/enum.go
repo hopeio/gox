@@ -7,7 +7,7 @@
 package model
 
 import (
-	"github.com/hopeio/gox/database/sql/datatypes"
+	sqlx "github.com/hopeio/gox/database/sql"
 )
 
 type Enum struct {
@@ -19,7 +19,7 @@ type Enum struct {
 
 type PostgresEnum struct {
 	ID    uint `gorm:"primaryKey"`
-	Enums datatypes.StringArray
+	Enums sqlx.StringArray
 }
 
 type EnumValue struct {

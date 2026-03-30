@@ -3,7 +3,7 @@ package sql
 import (
 	"reflect"
 
-	"github.com/hopeio/gox/reflect/structtag"
+	"github.com/hopeio/gox/structtag"
 )
 
 const (

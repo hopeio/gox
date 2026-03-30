@@ -11,9 +11,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func DeleteById(db *gorm.DB, tableName string, id uint64) error {
+func DeleteByPrimary(db *gorm.DB, tableName string, primary any) error {
 	sql := sqlx.DeleteByIdSQL(tableName)
-	return db.Exec(sql, id).Error
+	return db.Exec(sql, primary).Error
 }
 
 func Delete(db *gorm.DB, tableName string, column string, value any) error {
@@ -21,11 +21,11 @@ func Delete(db *gorm.DB, tableName string, column string, value any) error {
 	return db.Exec(sql, value).Error
 }
 
-func ExistsByColumn(db *gorm.DB, tableName, column string, value interface{}) (bool, error) {
+func ExistsByColumn(db *gorm.DB, tableName, column string, value any) (bool, error) {
 	return ExistsBySQL(db, sqlx.ExistsSQL(tableName, column, false), value)
 }
 
-func ExistsByColumnWithDeletedAt(db *gorm.DB, tableName, column string, value interface{}) (bool, error) {
+func ExistsByColumnWithDeletedAt(db *gorm.DB, tableName, column string, value any) (bool, error) {
 	return ExistsBySQL(db, sqlx.ExistsSQL(tableName, column, true), value)
 }
 
@@ -48,7 +48,7 @@ func ExistsByQuery(db *gorm.DB, qsql string, value ...any) (bool, error) {
 	return exists, nil
 }
 
-func Exists(db *gorm.DB, tableName, column string, value interface{}, withDeletedAt bool) (bool, error) {
+func Exists(db *gorm.DB, tableName, column string, value any, withDeletedAt bool) (bool, error) {
 	return ExistsBySQL(db, sqlx.ExistsSQL(tableName, column, withDeletedAt), value)
 }
 
@@ -61,8 +61,8 @@ func ExistsByFilterExprs(db *gorm.DB, tableName string, filters sqlx.FilterExprs
 	return exists, nil
 }
 
-func GetById[T any](db *gorm.DB, id any) (*T, error) {
+func GetByPrimary[T any](db *gorm.DB, primary any) (*T, error) {
 	t := new(T)
-	err := db.First(t, id).Error
+	err := db.First(t, primary).Error
 	return t, err
 }

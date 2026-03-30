@@ -19,6 +19,7 @@ var CommonTemp = template.New("all")
 func init() {
 	CommonTemp.Funcs(template.FuncMap{"join": strings.Join})
 }
+
 func Parse(tpl string) *template.Template {
 	t, err := CommonTemp.Parse(tpl)
 	if err != nil {

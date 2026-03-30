@@ -8,15 +8,15 @@ package request
 
 import (
 	sqlx "github.com/hopeio/gox/database/sql"
-	"github.com/hopeio/gox/database/sql/gorm/clause"
+	gormx "github.com/hopeio/gox/database/sql/gorm"
 )
 
-type PaginationEmbedded = clause.PaginationEmbedded
+type PaginationEmbedded = gormx.PaginationEmbedded
 
-type Pagination = clause.Pagination
-type Sorts = clause.Sorts
+type Pagination = gormx.Pagination
+type Sorts = gormx.Sorts
 type Sort = sqlx.Sort
-type Range[T any] = clause.Range[T]
+type Range[T any] = gormx.Range[T]
 
 type Id struct {
 	Id uint64 `json:"id"`
