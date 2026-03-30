@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strconv"
 
-	strconvx "github.com/hopeio/gox/encoding/text"
+	strconvx "github.com/hopeio/gox/strconv"
 )
 
 var Sep = ","
