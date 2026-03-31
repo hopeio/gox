@@ -26,7 +26,7 @@ func Rewrite(ctx context.Context, url string, localPath string) chromedp.Action 
 					{Name: "Content-Type", Value: "application/javascript"},
 				}).WithBody(base64.StdEncoding.EncodeToString(data)))
 				if err != nil {
-					log.Error("failed to run: %v", err)
+					log.Errorf("failed to run: %v", err)
 				}
 			}()
 		}

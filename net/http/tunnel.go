@@ -39,6 +39,6 @@ func transfer(destination io.WriteCloser, source io.ReadCloser) {
 	defer destination.Close()
 	defer source.Close()
 	if _, err := io.Copy(destination, source); err != nil {
-		log.Error("transfer failed: %v", err)
+		log.Errorf("transfer failed: %v", err)
 	}
 }

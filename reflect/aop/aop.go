@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"bou.ke/monkey"
+	"github.com/agiledragon/gomonkey/v2"
 )
 
 // Deprecated only support func var
@@ -63,7 +63,7 @@ func aop(before func(), target any, after func()) {
 
 		return oldFuncVal.Call(in)
 	})
-	monkey.Patch(target, newFuncVal.Interface())
+	gomonkey.ApplyFunc(target, newFuncVal.Interface())
 }
 
 type value struct {

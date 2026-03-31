@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/kvstruct"
+	"github.com/hopeio/gox/mapstruct"
 	httpx "github.com/hopeio/gox/net/http"
 	stringsx "github.com/hopeio/gox/strings"
 )
@@ -27,19 +27,19 @@ type RequestSource struct {
 	*gin.Context
 }
 
-func (s RequestSource) Uri() kvstruct.Setter {
+func (s RequestSource) Uri() mapstruct.Setter {
 	return (uriSource)(s.Params)
 }
 
-func (s RequestSource) Query() kvstruct.Setter {
-	return (kvstruct.KVsSource)(s.Request.URL.Query())
+func (s RequestSource) Query() mapstruct.Setter {
+	return (mapstruct.KVsSource)(s.Request.URL.Query())
 }
 
-func (s RequestSource) Header() kvstruct.Setter {
+func (s RequestSource) Header() mapstruct.Setter {
 	return (httpx.HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() kvstruct.Setter {
+func (s RequestSource) Form() mapstruct.Setter {
 	contentType := s.Request.Header.Get(httpx.HeaderContentType)
 	if strings.HasPrefix(contentType, httpx.ContentTypeForm) {
 		data, err := io.ReadAll(s.Request.Body)
@@ -53,7 +53,7 @@ func (s RequestSource) Form() kvstruct.Setter {
 		if recorder, ok := s.Request.Body.(httpx.RecordBody); ok {
 			recorder.RecordBody(data, nil)
 		}
-		return kvstruct.KVsSource(vs)
+		return mapstruct.KVsSource(vs)
 	}
 	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) {
 		err := s.Request.ParseMultipartForm(httpx.DefaultMemory)
@@ -78,7 +78,7 @@ func (s RequestSource) Body() (string, io.ReadCloser) {
 
 type uriSource gin.Params
 
-var _ kvstruct.Setter = uriSource(nil)
+var _ mapstruct.Setter = uriSource(nil)
 
 func (param uriSource) Get(key string) ([]string, bool) {
 	for i := range param {
@@ -90,6 +90,6 @@ func (param uriSource) Get(key string) ([]string, bool) {
 }
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
-	return kvstruct.SetValueByValuesGetter(value, field, param, key, opt)
+func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mapstruct.Options) (isSet bool, err error) {
+	return mapstruct.SetValueByValuesGetter(value, field, param, key, opt)
 }

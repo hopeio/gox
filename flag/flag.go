@@ -25,7 +25,7 @@ type flagTagSettings struct {
 type anyValue reflect.Value
 
 func (a anyValue) String() string {
-	return text.FormatReflectValue(reflect.Value(a))
+	return strconv.FormatReflectValue(reflect.Value(a))
 }
 
 func (a anyValue) Type() string {
@@ -33,7 +33,7 @@ func (a anyValue) Type() string {
 }
 
 func (a anyValue) Set(v string) error {
-	return text.ParseSetReflectValue(reflect.Value(a), v, nil)
+	return strconv.ParseStringSetReflectValue(reflect.Value(a), v, nil)
 }
 
 func Bind(args []string, v any) error {
@@ -80,7 +80,7 @@ func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) er
 			// 从环境变量设置
 			if flagTagSettings.Env != "" {
 				if value, ok := os.LookupEnv(strings.ToUpper(flagTagSettings.Env)); ok {
-					err := text.ParseSetReflectValue(fcValue.Field(i), value, nil)
+					err := strconv.ParseStringSetReflectValue(fcValue.Field(i), value, nil)
 					if err != nil {
 						return err
 					}

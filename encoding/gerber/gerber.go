@@ -395,7 +395,7 @@ func (p *regionParser) processModalD01(lineIdx int, word string) error {
 func (p *regionParser) processD01(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
-		return fmt.Errorf(fmt.Sprintf("\"%s\"", word))
+		return fmt.Errorf("%q", word)
 	}
 	x, y := p.cp.findXY(coords)
 

@@ -9,12 +9,11 @@ package aop
 import (
 	"log"
 
-	"bou.ke/monkey"
-	_ "github.com/agiledragon/gomonkey/v2" // todo
+	"github.com/agiledragon/gomonkey/v2"
 )
 
 func init() {
-	monkey.Patch(NewDao, func() Dao {
+	gomonkey.ApplyFunc(NewDao, func() Dao {
 		return &UserProxy{&User{}}
 	})
 }

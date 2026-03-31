@@ -20,7 +20,7 @@ import (
 
 	jsonx "github.com/hopeio/gox/encoding/json"
 	iox "github.com/hopeio/gox/io"
-	"github.com/hopeio/gox/kvstruct"
+	"github.com/hopeio/gox/mapstruct"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/gox/validator"
 )
@@ -34,10 +34,10 @@ var (
 )
 
 type Source interface {
-	Uri() kvstruct.Setter
-	Query() kvstruct.Setter
-	Header() kvstruct.Setter
-	Form() kvstruct.Setter
+	Uri() mapstruct.Setter
+	Query() mapstruct.Setter
+	Header() mapstruct.Setter
+	Form() mapstruct.Setter
 	Body() (string, io.ReadCloser)
 }
 
@@ -51,7 +51,7 @@ type Field struct {
 type Tag struct {
 	Key     string
 	Value   string
-	Options *kvstruct.Options
+	Options *mapstruct.Options
 }
 
 var cache = sync.Map{}
@@ -90,12 +90,12 @@ func CommonBind(s Source, obj any) error {
 	}
 
 	uriSetter, querySetter, headerSetter, multipartFormSetter := s.Uri(), s.Query(), header, s.Form()
-	commonSetter := kvstruct.Setters([]kvstruct.Setter{uriSetter, querySetter, headerSetter, multipartFormSetter})
+	commonSetter := mapstruct.Setters([]mapstruct.Setter{uriSetter, querySetter, headerSetter, multipartFormSetter})
 	var err error
 	if fields, ok := cache.Load(typ); ok {
 		var isSet bool
 		for _, field := range fields.([]Field) {
-			var setter kvstruct.Setter
+			var setter mapstruct.Setter
 			for _, tag := range field.Tags {
 				switch tag.Key {
 				case "uri", "path":
@@ -138,7 +138,7 @@ func CommonBind(s Source, obj any) error {
 		}
 		var tag, tagValue string
 		var isSet bool
-		var setter kvstruct.Setter
+		var setter mapstruct.Setter
 		var tags []Tag
 		for _, tag = range defaultTags {
 			tagValue = sf.Tag.Get(tag)
@@ -156,7 +156,7 @@ func CommonBind(s Source, obj any) error {
 					setter = commonSetter
 				}
 
-				alias, options := kvstruct.ParseTag(tagValue)
+				alias, options := mapstruct.ParseTag(tagValue)
 				tags = append(tags, Tag{
 					Key:     tag,
 					Value:   alias,
@@ -197,19 +197,19 @@ type RequestSource struct {
 	*http.Request
 }
 
-func (s RequestSource) Uri() kvstruct.Setter {
+func (s RequestSource) Uri() mapstruct.Setter {
 	return (*UriSource)(s.Request)
 }
 
-func (s RequestSource) Query() kvstruct.Setter {
-	return (kvstruct.KVsSource)(s.URL.Query())
+func (s RequestSource) Query() mapstruct.Setter {
+	return (mapstruct.KVsSource)(s.URL.Query())
 }
 
-func (s RequestSource) Header() kvstruct.Setter {
+func (s RequestSource) Header() mapstruct.Setter {
 	return (HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() kvstruct.Setter {
+func (s RequestSource) Form() mapstruct.Setter {
 	contentType := s.Request.Header.Get(HeaderContentType)
 	if strings.HasPrefix(contentType, ContentTypeForm) {
 		data, err := io.ReadAll(s.Request.Body)
@@ -224,7 +224,7 @@ func (s RequestSource) Form() kvstruct.Setter {
 		if recorder, ok := s.Request.Body.(RecordBody); ok {
 			recorder.RecordBody(data, nil)
 		}
-		return kvstruct.KVsSource(vs)
+		return mapstruct.KVsSource(vs)
 	}
 	if strings.HasPrefix(contentType, ContentTypeMultipart) {
 		err := s.ParseMultipartForm(DefaultMemory)
@@ -256,20 +256,20 @@ func bodyUnmarshaler(contentType string, data []byte, obj any) error {
 
 type HeaderSource map[string][]string
 
-var _ kvstruct.Setter = HeaderSource(nil)
+var _ mapstruct.Setter = HeaderSource(nil)
 
 func (hs HeaderSource) Get(key string) ([]string, bool) {
 	v, ok := hs[textproto.CanonicalMIMEHeaderKey(key)]
 	return v, ok
 }
 
-func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
-	return kvstruct.SetValueByValuesGetter(value, field, hs, key, opt)
+func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mapstruct.Options) (isSet bool, err error) {
+	return mapstruct.SetValueByValuesGetter(value, field, hs, key, opt)
 }
 
 type UriSource http.Request
 
-var _ kvstruct.Setter = (*UriSource)(nil)
+var _ mapstruct.Setter = (*UriSource)(nil)
 
 func (req *UriSource) Get(key string) ([]string, bool) {
 	if req.Pattern == "" {
@@ -280,21 +280,21 @@ func (req *UriSource) Get(key string) ([]string, bool) {
 }
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
-	return kvstruct.SetValueByValuesGetter(value, field, req, key, opt)
+func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mapstruct.Options) (isSet bool, err error) {
+	return mapstruct.SetValueByValuesGetter(value, field, req, key, opt)
 }
 
 type MultipartSource multipart.Form
 
-var _ kvstruct.Setter = (*MultipartSource)(nil)
+var _ mapstruct.Setter = (*MultipartSource)(nil)
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
+func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mapstruct.Options) (isSet bool, err error) {
 	if files := ms.File[key]; len(files) != 0 {
 		return SetMultipartFrormFile(value, field, files)
 	}
 
-	return kvstruct.SetValueByValuesGetter(value, field, kvstruct.KVsSource(ms.Value), key, opt)
+	return mapstruct.SetValueByValuesGetter(value, field, mapstruct.KVsSource(ms.Value), key, opt)
 }
 
 func SetMultipartFrormFile(value reflect.Value, field *reflect.StructField, files []*multipart.FileHeader) (isSet bool, err error) {
