@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	sqlx "github.com/hopeio/gox/database/sql"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -24,6 +25,7 @@ const (
 )
 
 type OTelPlugin struct {
+	prefix   string
 	tracer   trace.Tracer
 	meter    metric.Meter
 	defaultAttrs []attribute.KeyValue
@@ -33,17 +35,8 @@ type OTelPlugin struct {
 	rows     metric.Int64Histogram
 	inflight metric.Int64UpDownCounter
 
-	dbOpenConns        metric.Int64ObservableGauge
-	dbInUseConns       metric.Int64ObservableGauge
-	dbIdleConns        metric.Int64ObservableGauge
-	dbWaitCount        metric.Int64ObservableCounter
-	dbWaitDurationMs   metric.Float64ObservableGauge
-	dbMaxOpenConns     metric.Int64ObservableGauge
-	dbMaxIdleClosed    metric.Int64ObservableCounter
-	dbMaxLifeClosed    metric.Int64ObservableCounter
-	dbStatsReg         metric.Registration
+	dbStats            *sqlx.OTelDBStats
 	customMetrics      []CustomMetric
-	collectors         []Collector
 }
 
 type Option func(*OTelPlugin)
@@ -61,12 +54,12 @@ type RecordContext struct {
 }
 
 type CustomMetric interface {
-	Init(metric.Meter) error
+	Init(meter metric.Meter) error
 	Record(*RecordContext)
 }
 
 type Collector interface {
-	Init(db *gorm.DB, meter metric.Meter) error
+	Init(prefix string, db *gorm.DB, meter metric.Meter) error
 	Close(context.Context) error
 }
 
@@ -76,20 +69,14 @@ func WithCustomMetrics(metrics ...CustomMetric) Option {
 	}
 }
 
-func WithCollectors(collectors ...Collector) Option {
-	return func(p *OTelPlugin) {
-		p.collectors = append(p.collectors, collectors...)
-	}
-}
-
 func WithAttributes(attrs ...attribute.KeyValue) Option {
 	return func(p *OTelPlugin) {
 		p.defaultAttrs = append(p.defaultAttrs, attrs...)
 	}
 }
 
-func NewOTelPlugin(opts ...Option) *OTelPlugin {
-	p := &OTelPlugin{tracer: otel.Tracer(ScopeName), meter: otel.Meter(ScopeName)}
+func NewOTelPlugin(prefix string, opts ...Option) *OTelPlugin {
+	p := &OTelPlugin{prefix: prefix, tracer: otel.Tracer(ScopeName), meter: otel.Meter(ScopeName)}
 	for _, opt := range opts {
 		opt(p)
 	}
@@ -109,10 +96,6 @@ func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 		return err
 	}
 	if err := p.registerDBStats(db); err != nil {
-		return err
-	}
-	if err := p.initCollectors(db); err != nil {
-		_ = p.Close(context.Background())
 		return err
 	}
 	if err := p.register("create",
@@ -151,23 +134,11 @@ func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 	)
 }
 
-func (p *OTelPlugin) initCollectors(db *gorm.DB) error {
-	for _, c := range p.collectors {
-		if err := c.Init(db, p.meter); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (p *OTelPlugin) Close(ctx context.Context) error {
 	var err error
-	if p.dbStatsReg != nil {
-		p.dbStatsReg.Unregister()
-		p.dbStatsReg = nil
-	}
-	for _, c := range p.collectors {
-		err = errors.Join(err, c.Close(ctx))
+	if p.dbStats != nil {
+		err = errors.Join(err, p.dbStats.Close())
+		p.dbStats = nil
 	}
 	return err
 }
@@ -194,7 +165,7 @@ func (p *OTelPlugin) initMetrics() error {
 	if err != nil {
 		return err
 	}
-	return p.initDBStatsInstruments()
+	return nil
 }
 
 func (p *OTelPlugin) initCustomMetrics() error {
@@ -206,72 +177,13 @@ func (p *OTelPlugin) initCustomMetrics() error {
 	return nil
 }
 
-func (p *OTelPlugin) initDBStatsInstruments() error {
-	var err error
-	p.dbOpenConns, err = p.meter.Int64ObservableGauge("gorm.db.pool.open_connections")
-	if err != nil {
-		return err
-	}
-	p.dbInUseConns, err = p.meter.Int64ObservableGauge("gorm.db.pool.in_use")
-	if err != nil {
-		return err
-	}
-	p.dbIdleConns, err = p.meter.Int64ObservableGauge("gorm.db.pool.idle")
-	if err != nil {
-		return err
-	}
-	p.dbWaitCount, err = p.meter.Int64ObservableCounter("gorm.db.pool.wait_count")
-	if err != nil {
-		return err
-	}
-	p.dbWaitDurationMs, err = p.meter.Float64ObservableGauge("gorm.db.pool.wait_duration_ms")
-	if err != nil {
-		return err
-	}
-	p.dbMaxOpenConns, err = p.meter.Int64ObservableGauge("gorm.db.pool.max_open_connections")
-	if err != nil {
-		return err
-	}
-	p.dbMaxIdleClosed, err = p.meter.Int64ObservableCounter("gorm.db.pool.max_idletime_closed")
-	if err != nil {
-		return err
-	}
-	p.dbMaxLifeClosed, err = p.meter.Int64ObservableCounter("gorm.db.pool.max_lifetime_closed")
-	return err
-}
-
 func (p *OTelPlugin) registerDBStats(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return err
 	}
-	attrOpt := metric.WithAttributes(attribute.String("db.system", db.Dialector.Name()))
-	reg, err := p.meter.RegisterCallback(func(_ context.Context, o metric.Observer) error {
-		st := sqlDB.Stats()
-		o.ObserveInt64(p.dbOpenConns, int64(st.OpenConnections), attrOpt)
-		o.ObserveInt64(p.dbInUseConns, int64(st.InUse), attrOpt)
-		o.ObserveInt64(p.dbIdleConns, int64(st.Idle), attrOpt)
-		o.ObserveInt64(p.dbWaitCount, st.WaitCount, attrOpt)
-		o.ObserveFloat64(p.dbWaitDurationMs, float64(st.WaitDuration)/float64(time.Millisecond), attrOpt)
-		o.ObserveInt64(p.dbMaxOpenConns, int64(st.MaxOpenConnections), attrOpt)
-		o.ObserveInt64(p.dbMaxIdleClosed, st.MaxIdleClosed, attrOpt)
-		o.ObserveInt64(p.dbMaxLifeClosed, st.MaxLifetimeClosed, attrOpt)
-		return nil
-	},
-		p.dbOpenConns,
-		p.dbInUseConns,
-		p.dbIdleConns,
-		p.dbWaitCount,
-		p.dbWaitDurationMs,
-		p.dbMaxOpenConns,
-		p.dbMaxIdleClosed,
-		p.dbMaxLifeClosed,
-	)
-	if err != nil {
-		return err
-	}
-	p.dbStatsReg = reg
-	return nil
+	p.dbStats = sqlx.NewOTelDBStats(p.prefix, p.meter)
+	return p.dbStats.Register(sqlDB, attribute.String("db.system", db.Dialector.Name()))
 }
 
 type registerHook func(name string, fn func(*gorm.DB)) error
@@ -361,7 +273,8 @@ func (p *OTelPlugin) attrsFor(op string, tx *gorm.DB, errType string, success bo
 }
 
 func (p *OTelPlugin) attrsFromBase(baseAttrs []attribute.KeyValue, errType string, success bool) []attribute.KeyValue {
-	attrs := append(baseAttrs, attribute.Bool("db.success", success))
+	attrs := append([]attribute.KeyValue{}, baseAttrs...)
+	attrs = append(attrs, attribute.Bool("db.success", success))
 	if errType != "" {
 		attrs = append(attrs, attribute.String("db.error_type", errType))
 	}

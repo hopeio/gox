@@ -12,11 +12,12 @@ import (
 	"fmt"
 	"github.com/hopeio/gox/log"
 	"os"
+	"errors"
 )
 
 func NewServerTLSConfig(certFile, keyFile string, clients ...string) (*tls.Config, error) {
 	if certFile == "" || keyFile == "" {
-		return nil, nil
+		return nil, errors.New("certFile or keyFile is empty")
 	}
 	var err error
 	certs := make([]tls.Certificate, 1)
