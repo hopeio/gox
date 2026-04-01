@@ -11,7 +11,6 @@ import (
 )
 
 type OTelCollector struct {
-	prefix         string
 	meter          metric.Meter
 	db             *sql.DB
 
@@ -23,8 +22,8 @@ type OTelCollector struct {
 	closeOnce      sync.Once
 }
 
-func NewOTelCollector(prefix string, db *sql.DB, meter metric.Meter) *OTelCollector {
-	return &OTelCollector{prefix: prefix, db: db, meter: meter}
+func NewOTelCollector(db *sql.DB, meter metric.Meter) *OTelCollector {
+	return &OTelCollector{db: db, meter: meter}
 }
 
 func (c *OTelCollector) Init() error {
@@ -41,19 +40,19 @@ func (c *OTelCollector) Init() error {
 
 func (c *OTelCollector) initInstruments() error {
 	var err error
-	c.lagGauge, err = c.meter.Float64ObservableGauge(c.prefix + "db.postgres.replication_lag_seconds")
+	c.lagGauge, err = c.meter.Float64ObservableGauge("db.postgres.replication_lag_seconds")
 	if err != nil {
 		return err
 	}
-	c.startGauge, err = c.meter.Float64ObservableGauge(c.prefix + "db.postgres.postmaster_start_time_seconds")
+	c.startGauge, err = c.meter.Float64ObservableGauge("db.postgres.postmaster_start_time_seconds")
 	if err != nil {
 		return err
 	}
-	c.dbSizeGauge, err = c.meter.Float64ObservableGauge(c.prefix + "db.postgres.database_size_bytes")
+	c.dbSizeGauge, err = c.meter.Float64ObservableGauge("db.postgres.database_size_bytes")
 	if err != nil {
 		return err
 	}
-	c.tableRowsGauge, err = c.meter.Float64ObservableGauge(c.prefix + "db.postgres.table_rows")
+	c.tableRowsGauge, err = c.meter.Float64ObservableGauge("db.postgres.table_rows")
 	return err
 }
 

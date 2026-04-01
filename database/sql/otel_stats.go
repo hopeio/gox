@@ -10,7 +10,6 @@ import (
 )
 
 type OTelDBStats struct {
-	prefix string
 	meter  metric.Meter
 
 	openConns      metric.Int64ObservableGauge
@@ -25,8 +24,8 @@ type OTelDBStats struct {
 	reg metric.Registration
 }
 
-func NewOTelDBStats(prefix string, meter metric.Meter) *OTelDBStats {
-	return &OTelDBStats{prefix: prefix, meter: meter}
+func NewOTelDBStats(meter metric.Meter) *OTelDBStats {
+	return &OTelDBStats{meter: meter}
 }
 
 func (s *OTelDBStats) Register(db *stdsql.DB, attrs ...attribute.KeyValue) error {
@@ -72,34 +71,34 @@ func (s *OTelDBStats) Close() error {
 
 func (s *OTelDBStats) initInstruments() error {
 	var err error
-	s.openConns, err = s.meter.Int64ObservableGauge(s.prefix + "db.pool.open_connections")
+	s.openConns, err = s.meter.Int64ObservableGauge("db.pool.open_connections")
 	if err != nil {
 		return err
 	}
-	s.inUseConns, err = s.meter.Int64ObservableGauge(s.prefix + "db.pool.in_use")
+	s.inUseConns, err = s.meter.Int64ObservableGauge("db.pool.in_use")
 	if err != nil {
 		return err
 	}
-	s.idleConns, err = s.meter.Int64ObservableGauge(s.prefix + "db.pool.idle")
+	s.idleConns, err = s.meter.Int64ObservableGauge("db.pool.idle")
 	if err != nil {
 		return err
 	}
-	s.waitCount, err = s.meter.Int64ObservableCounter(s.prefix + "db.pool.wait_count")
+	s.waitCount, err = s.meter.Int64ObservableCounter("db.pool.wait_count")
 	if err != nil {
 		return err
 	}
-	s.waitDurationMs, err = s.meter.Float64ObservableGauge(s.prefix + "db.pool.wait_duration_ms")
+	s.waitDurationMs, err = s.meter.Float64ObservableGauge("db.pool.wait_duration_ms")
 	if err != nil {
 		return err
 	}
-	s.maxOpenConns, err = s.meter.Int64ObservableGauge(s.prefix + "db.pool.max_open_connections")
+	s.maxOpenConns, err = s.meter.Int64ObservableGauge("db.pool.max_open_connections")
 	if err != nil {
 		return err
 	}
-	s.maxIdleClosed, err = s.meter.Int64ObservableCounter(s.prefix + "db.pool.max_idletime_closed")
+	s.maxIdleClosed, err = s.meter.Int64ObservableCounter("db.pool.max_idletime_closed")
 	if err != nil {
 		return err
 	}
-	s.maxLifeClosed, err = s.meter.Int64ObservableCounter(s.prefix + "db.pool.max_lifetime_closed")
+	s.maxLifeClosed, err = s.meter.Int64ObservableCounter("db.pool.max_lifetime_closed")
 	return err
 }

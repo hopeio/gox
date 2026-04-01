@@ -13,7 +13,6 @@ import (
 
 type OTelCollector struct {
 	VariableNames []string
-	prefix        string
 	meter         metric.Meter
 	db            *sql.DB
 	allowSet      map[string]struct{}
@@ -22,8 +21,8 @@ type OTelCollector struct {
 	closeOnce     sync.Once
 }
 
-func NewOTelCollector(prefix string, db *sql.DB, meter metric.Meter, variableNames ...string) *OTelCollector {
-	return &OTelCollector{prefix: prefix, db: db, meter: meter, VariableNames: variableNames}
+func NewOTelCollector(db *sql.DB, meter metric.Meter, variableNames ...string) *OTelCollector {
+	return &OTelCollector{db: db, meter: meter, VariableNames: variableNames}
 }
 
 func (c *OTelCollector) Init() error {
@@ -31,7 +30,7 @@ func (c *OTelCollector) Init() error {
 	for _, name := range c.VariableNames {
 		c.allowSet[name] = struct{}{}
 	}
-	gauge, err := c.meter.Int64ObservableGauge(c.prefix + "db.mysql.status")
+	gauge, err := c.meter.Int64ObservableGauge("db.mysql.status")
 	if err != nil {
 		return err
 	}

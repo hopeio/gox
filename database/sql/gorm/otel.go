@@ -25,7 +25,6 @@ const (
 )
 
 type OTelPlugin struct {
-	prefix   string
 	tracer   trace.Tracer
 	meter    metric.Meter
 	defaultAttrs []attribute.KeyValue
@@ -75,8 +74,8 @@ func WithAttributes(attrs ...attribute.KeyValue) Option {
 	}
 }
 
-func NewOTelPlugin(prefix string, opts ...Option) *OTelPlugin {
-	p := &OTelPlugin{prefix: prefix, tracer: otel.Tracer(ScopeName), meter: otel.Meter(ScopeName)}
+func NewOTelPlugin(opts ...Option) *OTelPlugin {
+	p := &OTelPlugin{tracer: otel.Tracer(ScopeName), meter: otel.Meter(ScopeName)}
 	for _, opt := range opts {
 		opt(p)
 	}
@@ -182,7 +181,7 @@ func (p *OTelPlugin) registerDBStats(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	p.dbStats = sqlx.NewOTelDBStats(p.prefix, p.meter)
+	p.dbStats = sqlx.NewOTelDBStats(p.meter)
 	return p.dbStats.Register(sqlDB, attribute.String("db.system", db.Dialector.Name()))
 }
 
