@@ -25,17 +25,17 @@ const (
 )
 
 type OTelPlugin struct {
-	tracer   trace.Tracer
-	meter    metric.Meter
+	tracer       trace.Tracer
+	meter        metric.Meter
 	defaultAttrs []attribute.KeyValue
-	duration metric.Float64Histogram
-	requests metric.Int64Counter
-	failures metric.Int64Counter
-	rows     metric.Int64Histogram
-	inflight metric.Int64UpDownCounter
+	duration     metric.Float64Histogram
+	requests     metric.Int64Counter
+	failures     metric.Int64Counter
+	rows         metric.Int64Histogram
+	inflight     metric.Int64UpDownCounter
 
-	dbStats            *sqlx.OTelDBStats
-	customMetrics      []CustomMetric
+	dbStats       *sqlx.OTelDBStats
+	customMetrics []CustomMetric
 }
 
 type Option func(*OTelPlugin)
@@ -43,12 +43,12 @@ type Option func(*OTelPlugin)
 type RecordContext struct {
 	Ctx        context.Context
 	Operation  string
-	Tx         *gorm.DB
+	DB         *gorm.DB
 	Attrs      []attribute.KeyValue
 	BaseAttrs  []attribute.KeyValue
 	ErrorType  string
 	Success    bool
-	Start      time.Time
+	StartTime  time.Time
 	DurationMs float64
 }
 
@@ -86,7 +86,6 @@ func (p *OTelPlugin) Name() string {
 	return pluginName
 }
 
-
 func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 	if err := p.initMetrics(); err != nil {
 		return err
@@ -98,38 +97,62 @@ func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 		return err
 	}
 	if err := p.register("create",
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Create().Before("gorm:create").Register(name, fn) },
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Create().After(callbackAfter+"create").Register(name, fn) },
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Create().Before("gorm:create").Register(name, fn)
+		},
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Create().After(callbackAfter+"create").Register(name, fn)
+		},
 	); err != nil {
 		return err
 	}
 	if err := p.register("query",
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Query().Before("gorm:query").Register(name, fn) },
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Query().After(callbackAfter+"query").Register(name, fn) },
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Query().Before("gorm:query").Register(name, fn)
+		},
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Query().After(callbackAfter+"query").Register(name, fn)
+		},
 	); err != nil {
 		return err
 	}
 	if err := p.register("update",
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Update().Before("gorm:update").Register(name, fn) },
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Update().After(callbackAfter+"update").Register(name, fn) },
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Update().Before("gorm:update").Register(name, fn)
+		},
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Update().After(callbackAfter+"update").Register(name, fn)
+		},
 	); err != nil {
 		return err
 	}
 	if err := p.register("delete",
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Delete().Before("gorm:delete").Register(name, fn) },
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Delete().After(callbackAfter+"delete").Register(name, fn) },
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Delete().Before("gorm:delete").Register(name, fn)
+		},
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Delete().After(callbackAfter+"delete").Register(name, fn)
+		},
 	); err != nil {
 		return err
 	}
 	if err := p.register("row",
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Row().Before("gorm:row").Register(name, fn) },
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Row().After(callbackAfter+"row").Register(name, fn) },
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Row().Before("gorm:row").Register(name, fn)
+		},
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Row().After(callbackAfter+"row").Register(name, fn)
+		},
 	); err != nil {
 		return err
 	}
 	return p.register("raw",
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Raw().Before("gorm:raw").Register(name, fn) },
-		func(name string, fn func(*gorm.DB)) error { return db.Callback().Raw().After(callbackAfter+"raw").Register(name, fn) },
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Raw().Before("gorm:raw").Register(name, fn)
+		},
+		func(name string, fn func(*gorm.DB)) error {
+			return db.Callback().Raw().After(callbackAfter+"raw").Register(name, fn)
+		},
 	)
 }
 
@@ -200,8 +223,7 @@ func (p *OTelPlugin) before(op string) func(*gorm.DB) {
 	return func(tx *gorm.DB) {
 		ctx := getContext(tx)
 		baseAttrs := p.baseAttrs(op, tx)
-		attrs := p.attrsFromBase(baseAttrs, "", true)
-		ctx, span := p.tracer.Start(ctx, "gorm."+op, trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attrs...))
+		ctx, span := p.tracer.Start(ctx, "gorm."+op, trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(baseAttrs...))
 		tx.Statement.Context = ctx
 		tx.InstanceSet(startTimeKey+op, time.Now())
 		tx.InstanceSet(spanKey+op, span)
@@ -214,7 +236,8 @@ func (p *OTelPlugin) after(op string) func(*gorm.DB) {
 		ctx := getContext(tx)
 		errType := errorType(tx.Error)
 		baseAttrs := p.baseAttrs(op, tx)
-		attrs := p.attrsFromBase(baseAttrs, errType, tx.Error == nil)
+		extraAttrs := p.extraAttrs(errType, tx.Error == nil)
+		attrs := append(baseAttrs, extraAttrs...)
 		attrOpt := metric.WithAttributes(attrs...)
 		baseAttrOpt := metric.WithAttributes(baseAttrs...)
 		var start time.Time
@@ -234,15 +257,15 @@ func (p *OTelPlugin) after(op string) func(*gorm.DB) {
 		p.recordCustomMetrics(&RecordContext{
 			Ctx:        ctx,
 			Operation:  op,
-			Tx:         tx,
+			DB:         tx,
 			Attrs:      attrs,
 			BaseAttrs:  baseAttrs,
 			ErrorType:  errType,
 			Success:    tx.Error == nil,
-			Start:      start,
+			StartTime:  start,
 			DurationMs: durationMs,
 		})
-		finishSpan(tx, op)
+		finishSpan(tx, op, extraAttrs...)
 	}
 }
 
@@ -267,13 +290,8 @@ func (p *OTelPlugin) baseAttrs(op string, tx *gorm.DB) []attribute.KeyValue {
 	return attrs
 }
 
-func (p *OTelPlugin) attrsFor(op string, tx *gorm.DB, errType string, success bool) []attribute.KeyValue {
-	return p.attrsFromBase(p.baseAttrs(op, tx), errType, success)
-}
-
-func (p *OTelPlugin) attrsFromBase(baseAttrs []attribute.KeyValue, errType string, success bool) []attribute.KeyValue {
-	attrs := append([]attribute.KeyValue{}, baseAttrs...)
-	attrs = append(attrs, attribute.Bool("db.success", success))
+func (p *OTelPlugin) extraAttrs(errType string, success bool) []attribute.KeyValue {
+	attrs := []attribute.KeyValue{attribute.Bool("db.success", success)}
 	if errType != "" {
 		attrs = append(attrs, attribute.String("db.error_type", errType))
 	}
@@ -312,7 +330,7 @@ func getStartTime(tx *gorm.DB, op string) (time.Time, bool) {
 	return start, ok
 }
 
-func finishSpan(tx *gorm.DB, op string) {
+func finishSpan(tx *gorm.DB, op string, attrs ...attribute.KeyValue) {
 	if tx == nil {
 		return
 	}
@@ -323,6 +341,9 @@ func finishSpan(tx *gorm.DB, op string) {
 	span, ok := val.(trace.Span)
 	if !ok || span == nil {
 		return
+	}
+	if len(attrs) > 0 {
+		span.SetAttributes(attrs...)
 	}
 	if tx.Error != nil {
 		span.RecordError(tx.Error)
