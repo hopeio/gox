@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	sqlx "github.com/hopeio/gox/database/sql"
@@ -25,17 +26,35 @@ const (
 )
 
 type OTelPlugin struct {
-	tracer       trace.Tracer
-	meter        metric.Meter
-	defaultAttrs []attribute.KeyValue
-	duration     metric.Float64Histogram
-	requests     metric.Int64Counter
-	failures     metric.Int64Counter
-	rows         metric.Int64Histogram
-	inflight     metric.Int64UpDownCounter
-
-	dbStats       *sqlx.OTelDBStats
+	tracer        trace.Tracer
+	metrics       *GlobalMetrics
+	defaultAttrs  []attribute.KeyValue
 	customMetrics []CustomMetric
+}
+
+type target struct {
+	db      *gorm.DB
+	attrOpt metric.ObserveOption
+}
+
+type GlobalMetrics struct {
+	meter    metric.Meter
+	mu       sync.RWMutex
+	targets  []target
+	duration metric.Float64Histogram
+	requests metric.Int64Counter
+	failures metric.Int64Counter
+	rows     metric.Int64Histogram
+	inflight metric.Int64UpDownCounter
+}
+
+var globalMetrics = sync.OnceValue(func() *GlobalMetrics {
+	meter := otel.GetMeterProvider().Meter(ScopeName)
+	return &GlobalMetrics{meter: meter}
+})
+
+func GlobalGormMetrics() *GlobalMetrics {
+	return globalMetrics()
 }
 
 type Option func(*OTelPlugin)
@@ -53,13 +72,7 @@ type RecordContext struct {
 }
 
 type CustomMetric interface {
-	Init(meter metric.Meter) error
 	Record(*RecordContext)
-}
-
-type Collector interface {
-	Init(prefix string, db *gorm.DB, meter metric.Meter) error
-	Close(context.Context) error
 }
 
 func WithCustomMetrics(metrics ...CustomMetric) Option {
@@ -75,7 +88,7 @@ func WithAttributes(attrs ...attribute.KeyValue) Option {
 }
 
 func NewOTelPlugin(opts ...Option) *OTelPlugin {
-	p := &OTelPlugin{tracer: otel.Tracer(ScopeName), meter: otel.Meter(ScopeName)}
+	p := &OTelPlugin{tracer: otel.Tracer(ScopeName), metrics: GlobalGormMetrics()}
 	for _, opt := range opts {
 		opt(p)
 	}
@@ -87,12 +100,10 @@ func (p *OTelPlugin) Name() string {
 }
 
 func (p *OTelPlugin) Initialize(db *gorm.DB) error {
-	if err := p.initMetrics(); err != nil {
+	if err := p.initMetrics(db); err != nil {
 		return err
 	}
-	if err := p.initCustomMetrics(); err != nil {
-		return err
-	}
+
 	if err := p.registerDBStats(db); err != nil {
 		return err
 	}
@@ -158,54 +169,67 @@ func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 
 func (p *OTelPlugin) Close(ctx context.Context) error {
 	var err error
-	if p.dbStats != nil {
-		err = errors.Join(err, p.dbStats.Close())
-		p.dbStats = nil
+	if sqlx.GlobalOTelDBStats() != nil {
+		err = errors.Join(err, sqlx.GlobalOTelDBStats().Close())
 	}
 	return err
 }
 
-func (p *OTelPlugin) initMetrics() error {
+func (p *OTelPlugin) initMetrics(db *gorm.DB) error {
+	if p.metrics == nil {
+		p.metrics = GlobalGormMetrics()
+	}
+	return p.metrics.Register(db, append(p.defaultAttrs, attribute.String("db.system", db.Dialector.Name()))...)
+}
+
+func (m *GlobalMetrics) Register(db *gorm.DB, attrs ...attribute.KeyValue) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, target := range m.targets {
+		if target.db == db {
+			return nil
+		}
+	}
+	m.targets = append(m.targets, target{db: db, attrOpt: metric.WithAttributes(attrs...)})
+
+	if m.duration != nil {
+		return nil
+	}
 	var err error
-	p.duration, err = p.meter.Float64Histogram("gorm.db.operation.duration_ms", metric.WithUnit("ms"))
+	m.duration, err = m.meter.Float64Histogram("gorm.db.operation.duration_ms", metric.WithUnit("ms"))
 	if err != nil {
 		return err
 	}
-	p.requests, err = p.meter.Int64Counter("gorm.db.operation.requests")
+	m.requests, err = m.meter.Int64Counter("gorm.db.operation.requests")
+	if err != nil {
+
+		return err
+	}
+	m.failures, err = m.meter.Int64Counter("gorm.db.operation.failures")
+	if err != nil {
+
+		return err
+	}
+	m.rows, err = m.meter.Int64Histogram("gorm.db.operation.rows_affected")
+	if err != nil {
+
+		return err
+	}
+	m.inflight, err = m.meter.Int64UpDownCounter("gorm.db.operation.inflight")
 	if err != nil {
 		return err
 	}
-	p.failures, err = p.meter.Int64Counter("gorm.db.operation.failures")
-	if err != nil {
-		return err
-	}
-	p.rows, err = p.meter.Int64Histogram("gorm.db.operation.rows_affected")
-	if err != nil {
-		return err
-	}
-	p.inflight, err = p.meter.Int64UpDownCounter("gorm.db.operation.inflight")
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
-func (p *OTelPlugin) initCustomMetrics() error {
-	for _, cm := range p.customMetrics {
-		if err := cm.Init(p.meter); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func (p *OTelPlugin) registerDBStats(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return err
 	}
-	p.dbStats = sqlx.NewOTelDBStats(p.meter)
-	return p.dbStats.Register(sqlDB, attribute.String("db.system", db.Dialector.Name()))
+	return sqlx.GlobalOTelDBStats().Register(sqlDB, append(p.defaultAttrs, attribute.String("db.system", db.Dialector.Name()))...)
 }
 
 type registerHook func(name string, fn func(*gorm.DB)) error
@@ -225,9 +249,9 @@ func (p *OTelPlugin) before(op string) func(*gorm.DB) {
 		baseAttrs := p.baseAttrs(op, tx)
 		ctx, span := p.tracer.Start(ctx, "gorm."+op, trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(baseAttrs...))
 		tx.Statement.Context = ctx
-		tx.InstanceSet(startTimeKey+op, time.Now())
-		tx.InstanceSet(spanKey+op, span)
-		p.inflight.Add(ctx, 1, metric.WithAttributes(baseAttrs...))
+		tx.Set(startTimeKey+op, time.Now())
+		tx.Set(spanKey+op, span)
+		p.metrics.inflight.Add(ctx, 1, metric.WithAttributes(baseAttrs...))
 	}
 }
 
@@ -242,17 +266,17 @@ func (p *OTelPlugin) after(op string) func(*gorm.DB) {
 		baseAttrOpt := metric.WithAttributes(baseAttrs...)
 		var start time.Time
 		var durationMs float64
-		p.requests.Add(ctx, 1, attrOpt)
-		p.inflight.Add(ctx, -1, baseAttrOpt)
+		p.metrics.requests.Add(ctx, 1, attrOpt)
+		p.metrics.inflight.Add(ctx, -1, baseAttrOpt)
 		if tx.Error != nil {
-			p.failures.Add(ctx, 1, attrOpt)
+			p.metrics.failures.Add(ctx, 1, attrOpt)
 		}
 		if tx.RowsAffected >= 0 {
-			p.rows.Record(ctx, tx.RowsAffected, attrOpt)
+			p.metrics.rows.Record(ctx, tx.RowsAffected, attrOpt)
 		}
 		if start, ok := getStartTime(tx, op); ok {
 			durationMs = float64(time.Since(start)) / float64(time.Millisecond)
-			p.duration.Record(ctx, durationMs, attrOpt)
+			p.metrics.duration.Record(ctx, durationMs, attrOpt)
 		}
 		p.recordCustomMetrics(&RecordContext{
 			Ctx:        ctx,
@@ -322,7 +346,7 @@ func getStartTime(tx *gorm.DB, op string) (time.Time, bool) {
 	if tx == nil {
 		return time.Time{}, false
 	}
-	val, ok := tx.InstanceGet(startTimeKey + op)
+	val, ok := tx.Get(startTimeKey + op)
 	if !ok {
 		return time.Time{}, false
 	}
@@ -334,7 +358,7 @@ func finishSpan(tx *gorm.DB, op string, attrs ...attribute.KeyValue) {
 	if tx == nil {
 		return
 	}
-	val, ok := tx.InstanceGet(spanKey + op)
+	val, ok := tx.Get(spanKey + op)
 	if !ok {
 		return
 	}

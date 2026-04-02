@@ -3,14 +3,18 @@ package sql
 import (
 	"context"
 	stdsql "database/sql"
+	"sync"
 	"time"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
 
+const ScopeName = "github.com/hopeio/gox/database/sql"
+
 type OTelDBStats struct {
-	meter  metric.Meter
+	meter metric.Meter
 
 	openConns      metric.Int64ObservableGauge
 	inUseConns     metric.Int64ObservableGauge
@@ -21,39 +25,46 @@ type OTelDBStats struct {
 	maxIdleClosed  metric.Int64ObservableCounter
 	maxLifeClosed  metric.Int64ObservableCounter
 
-	reg metric.Registration
+	mu      sync.RWMutex
+	targets []target
+	reg     metric.Registration
 }
 
-func NewOTelDBStats(meter metric.Meter) *OTelDBStats {
-	return &OTelDBStats{meter: meter}
+
+type target struct {
+	db *stdsql.DB
+	attrOpt metric.ObserveOption
+}
+
+var globalOTelDBStats = sync.OnceValue(func() *OTelDBStats {
+	meter := otel.GetMeterProvider().Meter(ScopeName)
+	return &OTelDBStats{meter: meter, targets: make([]target, 0)}
+})
+
+func GlobalOTelDBStats() *OTelDBStats {
+	return globalOTelDBStats()
 }
 
 func (s *OTelDBStats) Register(db *stdsql.DB, attrs ...attribute.KeyValue) error {
+	if db == nil {
+		return stdsql.ErrConnDone
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, target := range s.targets {
+		if target.db == db {
+			return nil
+		}
+	}
+	s.targets = append(s.targets, target{db: db, attrOpt: metric.WithAttributes(attrs...)})
+	if s.reg != nil {
+		return nil
+	}
 	if err := s.initInstruments(); err != nil {
 		return err
 	}
-	attrOpt := metric.WithAttributes(attrs...)
-	reg, err := s.meter.RegisterCallback(func(_ context.Context, o metric.Observer) error {
-		st := db.Stats()
-		o.ObserveInt64(s.openConns, int64(st.OpenConnections), attrOpt)
-		o.ObserveInt64(s.inUseConns, int64(st.InUse), attrOpt)
-		o.ObserveInt64(s.idleConns, int64(st.Idle), attrOpt)
-		o.ObserveInt64(s.waitCount, st.WaitCount, attrOpt)
-		o.ObserveFloat64(s.waitDurationMs, float64(st.WaitDuration)/float64(time.Millisecond), attrOpt)
-		o.ObserveInt64(s.maxOpenConns, int64(st.MaxOpenConnections), attrOpt)
-		o.ObserveInt64(s.maxIdleClosed, st.MaxIdleClosed, attrOpt)
-		o.ObserveInt64(s.maxLifeClosed, st.MaxLifetimeClosed, attrOpt)
-		return nil
-	},
-		s.openConns,
-		s.inUseConns,
-		s.idleConns,
-		s.waitCount,
-		s.waitDurationMs,
-		s.maxOpenConns,
-		s.maxIdleClosed,
-		s.maxLifeClosed,
-	)
+	reg, err := s.meter.RegisterCallback(s.observe, s.openConns, s.inUseConns, s.idleConns, s.waitCount, s.waitDurationMs, s.maxOpenConns, s.maxIdleClosed, s.maxLifeClosed)
 	if err != nil {
 		return err
 	}
@@ -62,14 +73,33 @@ func (s *OTelDBStats) Register(db *stdsql.DB, attrs ...attribute.KeyValue) error
 }
 
 func (s *OTelDBStats) Close() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.reg != nil {
 		s.reg.Unregister()
 		s.reg = nil
+	}
+	clear(s.targets)
+	return nil
+}
+
+func (s *OTelDBStats) observe(_ context.Context, o metric.Observer) error {
+	for _, target := range s.targets {
+		st := target.db.Stats()
+		o.ObserveInt64(s.openConns, int64(st.OpenConnections), target.attrOpt)
+		o.ObserveInt64(s.inUseConns, int64(st.InUse), target.attrOpt)
+		o.ObserveInt64(s.idleConns, int64(st.Idle), target.attrOpt)
+		o.ObserveInt64(s.waitCount, st.WaitCount, target.attrOpt)
+		o.ObserveFloat64(s.waitDurationMs, float64(st.WaitDuration)/float64(time.Millisecond), target.attrOpt)
+		o.ObserveInt64(s.maxOpenConns, int64(st.MaxOpenConnections), target.attrOpt)
+		o.ObserveInt64(s.maxIdleClosed, st.MaxIdleClosed, target.attrOpt)
+		o.ObserveInt64(s.maxLifeClosed, st.MaxLifetimeClosed, target.attrOpt)
 	}
 	return nil
 }
 
 func (s *OTelDBStats) initInstruments() error {
+
 	var err error
 	s.openConns, err = s.meter.Int64ObservableGauge("db.pool.open_connections")
 	if err != nil {
@@ -100,5 +130,8 @@ func (s *OTelDBStats) initInstruments() error {
 		return err
 	}
 	s.maxLifeClosed, err = s.meter.Int64ObservableCounter("db.pool.max_lifetime_closed")
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
