@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	strconvx "github.com/hopeio/gox/strconv"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 /*
@@ -113,7 +113,7 @@ func ParseSettingTagIntoStruct(tag, sep, assignSep string, settings any) error {
 			name = structField.Name
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := strconvx.ParseStringSetReflectValue(settingsValue.Field(i), flagtag, &structField)
+			err := stringsx.ParseStringSetReflectValue(settingsValue.Field(i), flagtag, &structField)
 			if err != nil {
 				return err
 			}

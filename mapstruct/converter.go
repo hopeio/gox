@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strconv"
 
-	strconvx "github.com/hopeio/gox/strconv"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 var Sep = ","
@@ -124,84 +124,84 @@ func stringConvertBool(value string) (any, error) {
 	return strconv.ParseBool(value)
 }
 func stringConvertBoolSlice(value string) (any, error) {
-	return strconvx.BoolSlice(value, Sep)
+	return stringsx.BoolSlice(value, Sep)
 }
 func stringConvertFloat32(value string) (any, error) {
-	return strconvx.Float32(value)
+	return stringsx.Float32(value)
 }
 func stringConvertFloat32Slice(value string) (any, error) {
-	return strconvx.Float32Slice(value, Sep)
+	return stringsx.Float32Slice(value, Sep)
 }
 func stringConvertFloat64(value string) (any, error) {
 	return strconv.ParseFloat(value, 64)
 }
 func stringConvertFloat64Slice(value string) (any, error) {
-	return strconvx.Float64Slice(value, Sep)
+	return stringsx.Float64Slice(value, Sep)
 }
 func stringConvertInt(value string) (any, error) {
-	return strconvx.Int(value)
+	return stringsx.Int(value)
 }
 func stringConvertIntSlice(value string) (any, error) {
-	return strconvx.IntSlice(value, Sep)
+	return stringsx.IntSlice(value, Sep)
 }
 func stringConvertInt8(value string) (any, error) {
-	return strconvx.Int8(value)
+	return stringsx.Int8(value)
 }
 func stringConvertInt8Slice(value string) (any, error) {
-	return strconvx.Int8Slice(value, Sep)
+	return stringsx.Int8Slice(value, Sep)
 }
 func stringConvertInt16(value string) (any, error) {
-	return strconvx.Int16(value)
+	return stringsx.Int16(value)
 }
 func stringConvertInt16Slice(value string) (any, error) {
-	return strconvx.Int16Slice(value, Sep)
+	return stringsx.Int16Slice(value, Sep)
 }
 func stringConvertInt32(value string) (any, error) {
-	return strconvx.Int32(value)
+	return stringsx.Int32(value)
 }
 func stringConvertInt32Slice(value string) (any, error) {
-	return strconvx.Int32Slice(value, Sep)
+	return stringsx.Int32Slice(value, Sep)
 }
 func stringConvertInt64(value string) (any, error) {
 	return strconv.ParseInt(value, 10, 64)
 }
 func stringConvertInt64Slice(value string) (any, error) {
-	return strconvx.Int64Slice(value, Sep)
+	return stringsx.Int64Slice(value, Sep)
 }
 func stringConvertString(value string) (any, error) {
 	return value, nil
 }
 
 func stringConvertStringSlice(value string) (any, error) {
-	return strconvx.StringSlice(value, Sep)
+	return stringsx.StringSlice(value, Sep)
 }
 func stringConvertUint(value string) (any, error) {
-	return strconvx.Uint(value)
+	return stringsx.Uint(value)
 }
 func stringConvertUintSlice(value string) (any, error) {
-	return strconvx.UintSlice(value, Sep)
+	return stringsx.UintSlice(value, Sep)
 }
 func stringConvertUint8(value string) (any, error) {
-	return strconvx.Uint8(value)
+	return stringsx.Uint8(value)
 }
 func stringConvertUint8Slice(value string) (any, error) {
-	return strconvx.Uint8Slice(value, Sep)
+	return stringsx.Uint8Slice(value, Sep)
 }
 func stringConvertUint16(value string) (any, error) {
-	return strconvx.Uint16(value)
+	return stringsx.Uint16(value)
 }
 func stringConvertUint16Slice(value string) (any, error) {
-	return strconvx.Uint16Slice(value, Sep)
+	return stringsx.Uint16Slice(value, Sep)
 }
 func stringConvertUint32(value string) (any, error) {
-	return strconvx.Uint32(value)
+	return stringsx.Uint32(value)
 }
 func stringConvertUint32Slice(value string) (any, error) {
-	return strconvx.Uint32Slice(value, Sep)
+	return stringsx.Uint32Slice(value, Sep)
 }
 func stringConvertUint64(value string) (any, error) {
 	return strconv.ParseUint(value, 10, 64)
 }
 func stringConvertUint64Slice(value string) (any, error) {
-	return strconvx.Uint64Slice(value, Sep)
+	return stringsx.Uint64Slice(value, Sep)
 }

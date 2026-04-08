@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package strconv
+package strings
 
 import (
 	"testing"

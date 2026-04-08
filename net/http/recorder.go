@@ -17,7 +17,7 @@ type Unwrapper interface {
 	Unwrap() http.ResponseWriter
 }
 
-type RecordBody interface {
+type RecordBodyer interface {
 	RecordBody(raw []byte, v any)
 }
 

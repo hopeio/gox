@@ -2,11 +2,51 @@ package http
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"strings"
 
+	iox "github.com/hopeio/gox/io"
 	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
 var (
+	DefaultDecoder DecoderFunc = func(ctx context.Context, contentType string, body io.Reader, v any) error {
+		var data []byte
+		if raw, ok := body.(iox.RawByter); ok {
+			data = raw.Raw()
+		} else {
+			var err error
+			data, err = io.ReadAll(body)
+			if err != nil {
+				return fmt.Errorf("read body error: %w", err)
+			}
+		}
+		if len(data) == 0 {
+			return nil
+		}
+		err := DefaultUnmarshal(ctx, contentType, data, v)
+		if err != nil {
+			return err
+		}
+		if recorder, ok := body.(RecordBodyer); ok {
+			recorder.RecordBody(data, v)
+		}
+		return DefaultUnmarshal(ctx, contentType, data, v)
+	}
+
+	DefaultEncoder EncoderFunc = func(ctx context.Context, v any) (body io.Reader, contentType string) {
+		data, contentType := DefaultMarshal(ctx, v)
+		return iox.RawBytes(data), contentType
+	}
+
+	DefaultUnmarshal UnmarshalFunc = func(ctx context.Context, contentType string, data []byte, v any) error {
+		if strings.HasPrefix(contentType, ContentTypeJson) {
+			return jsonx.Unmarshal(data, v)
+		}
+		return jsonx.Unmarshal(data, v)
+	}
+
 	DefaultMarshal MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string) {
 		var err error
 		switch msg := v.(type) {
@@ -26,7 +66,7 @@ var (
 
 type BindFunc func(r Source, v any) error
 type MarshalFunc func(ctx context.Context, v any) (data []byte, contentType string)
-type UnmarshalFunc func(contentType string, data []byte, v any) error
+type UnmarshalFunc func(ctx context.Context, contentType string, data []byte, v any) error
 
 type Codec interface {
 	Marshaler
@@ -34,7 +74,7 @@ type Codec interface {
 }
 
 type Unmarshaler interface {
-	Unmarshal(contentType string, data []byte, v any) error
+	Unmarshal(ctx context.Context, contentType string, data []byte, v any) error
 }
 
 // Marshaler defines a conversion between byte sequence and gRPC payloads / fields.
@@ -43,27 +83,13 @@ type Marshaler interface {
 	Marshal(ctx context.Context, v any) (data []byte, contentType string)
 }
 
-// Decoder decodes a byte sequence
-type Decoder interface {
-	Decode(any) error
-}
-
-// Encoder encodes gRPC payloads / fields into byte sequence.
-type Encoder interface {
-	Encode(any) error
-}
 
 // DecoderFunc adapts an decoder function into Decoder.
-type DecoderFunc func(v any) error
+type DecoderFunc func(ctx context.Context, contentType string, body io.Reader, v any) error
 
-// Decode delegates invocations to the underlying function itself.
-func (f DecoderFunc) Decode(v any) error { return f(v) }
 
 // EncoderFunc adapts an encoder function into Encoder
-type EncoderFunc func(v any) error
-
-// Encode delegates invocations to the underlying function itself.
-func (f EncoderFunc) Encode(v any) error { return f(v) }
+type EncoderFunc func(ctx context.Context, v any) (body io.Reader, contentType string)
 
 // Delimited defines the streaming delimiter.
 type Delimited interface {

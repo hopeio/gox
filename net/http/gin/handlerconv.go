@@ -57,14 +57,6 @@ func FromStdWithNext(h func(w http.ResponseWriter, r *http.Request, next http.Ha
 	}
 }
 
-func Converts(handlers []http.HandlerFunc) []gin.HandlerFunc {
-	var rets []gin.HandlerFunc
-	for _, handler := range handlers {
-		rets = append(rets, Wrap(handler))
-	}
-	return rets
-}
-
 func Convert(handler http.HandlerFunc) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		handler(ctx.Writer, ctx.Request)

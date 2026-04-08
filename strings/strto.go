@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package strconv
+package strings
 
 import (
 	"encoding"
@@ -11,7 +11,6 @@ import (
 	"strings"
 	"unsafe"
 
-	stringsx "github.com/hopeio/gox/strings"
 	"golang.org/x/exp/constraints"
 )
 
@@ -23,7 +22,7 @@ func ParseFor[T any](str string) (T, error) {
 		itv, ok = ap.(encoding.TextUnmarshaler)
 	}
 	if ok {
-		err := itv.UnmarshalText(stringsx.ToBytes(str))
+		err := itv.UnmarshalText(ToBytes(str))
 		if err != nil {
 			return t, err
 		}

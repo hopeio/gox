@@ -29,7 +29,7 @@ func (r ReadCloserWrapper) WriteTo(w io.Writer) (int64, error) {
 	return io.Copy(w, r.ReadCloser)
 }
 
-type Raw interface {
+type RawByter interface {
 	Raw() []byte
 }
 

@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package strconv
+package strings
 
 import (
 	"encoding"
@@ -14,8 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	stringsx "github.com/hopeio/gox/strings"
 )
 
 var (
@@ -33,7 +31,7 @@ func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.
 		tuV, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
 	}
 	if ok {
-		return tuV.UnmarshalText(stringsx.ToBytes(val))
+		return tuV.UnmarshalText(ToBytes(val))
 	}
 	switch kind := value.Kind(); kind {
 	case reflect.Int:

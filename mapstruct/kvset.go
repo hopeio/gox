@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hopeio/gox/strconv"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 // Setter tries to set value on a walking by fields of a struct
@@ -189,6 +189,16 @@ type ValuesGetter interface {
 	Get(key string) ([]string, bool)
 }
 
+type ValuesGetFunc func(key string) ([]string, bool)
+
+func (f ValuesGetFunc) Get(key string) ([]string, bool) {
+	return f(key)
+}
+
+func (f ValuesGetFunc) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
+	return SetValueByValuesGetter(value, field, f, key, opt)
+}
+
 type ValuesGetters []ValuesGetter
 
 func (args ValuesGetters) Get(key string) (v []string, ok bool) {
@@ -212,7 +222,7 @@ func SetValueByGetter(value reflect.Value, field *reflect.StructField, getter Ge
 		}
 		vs = opt.Default
 	}
-	err = strconv.ParseStringSetReflectValue(value, vs, field)
+	err = stringsx.ParseStringSetReflectValue(value, vs, field)
 	if err != nil {
 		return false, err
 	}
@@ -228,7 +238,7 @@ func SetValueByValuesGetter(value reflect.Value, field *reflect.StructField, get
 		vals = strings.Split(opt.Default, ",")
 	}
 
-	err = strconv.ParseStringsSetReflectValue(value, vals, field)
+	err = stringsx.ParseStringsSetReflectValue(value, vals, field)
 	if err != nil {
 		return false, err
 	}

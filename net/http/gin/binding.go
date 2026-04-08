@@ -7,16 +7,15 @@
 package gin
 
 import (
+	"context"
 	"io"
 	"net/http"
-	"net/url"
+
 	"reflect"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hopeio/gox/mapstruct"
 	httpx "github.com/hopeio/gox/net/http"
-	stringsx "github.com/hopeio/gox/strings"
 )
 
 func Bind(ctx *gin.Context, obj any) error {
@@ -27,53 +26,23 @@ type RequestSource struct {
 	*gin.Context
 }
 
-func (s RequestSource) Uri() mapstruct.Setter {
-	return (uriSource)(s.Params)
+func (s RequestSource) Uri() mapstruct.Getter {
+	return s.Params
 }
 
-func (s RequestSource) Query() mapstruct.Setter {
+func (s RequestSource) Query() mapstruct.ValuesGetter {
 	return (mapstruct.KVsSource)(s.Request.URL.Query())
 }
 
-func (s RequestSource) Header() mapstruct.Setter {
+func (s RequestSource) Header() mapstruct.ValuesGetter {
 	return (httpx.HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() mapstruct.Setter {
-	contentType := s.Request.Header.Get(httpx.HeaderContentType)
-	if strings.HasPrefix(contentType, httpx.ContentTypeForm) {
-		data, err := io.ReadAll(s.Request.Body)
-		if err != nil || len(data) == 0 {
-			return nil
-		}
-		vs, err := url.ParseQuery(stringsx.FromBytes(data))
-		if err != nil {
-			return nil
-		}
-		if recorder, ok := s.Request.Body.(httpx.RecordBody); ok {
-			recorder.RecordBody(data, nil)
-		}
-		return mapstruct.KVsSource(vs)
-	}
-	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) {
-		err := s.Request.ParseMultipartForm(httpx.DefaultMemory)
-		if err != nil {
-			return nil
-		}
-		return (*httpx.MultipartSource)(s.Request.MultipartForm)
-	}
-	return nil
-}
-
-func (s RequestSource) Body() (string, io.ReadCloser) {
+func (s RequestSource) Body() (context.Context, string, io.ReadCloser) {
 	if s.Request.Method == http.MethodGet {
-		return "", nil
+		return s, "", nil
 	}
-	contentType := s.Request.Header.Get(httpx.HeaderContentType)
-	if strings.HasPrefix(contentType, httpx.ContentTypeMultipart) || strings.HasPrefix(contentType, httpx.ContentTypeForm) {
-		return contentType, nil
-	}
-	return contentType, s.Request.Body
+	return s, s.Request.Header.Get(httpx.HeaderContentType), s.Request.Body
 }
 
 type uriSource gin.Params

@@ -7,9 +7,10 @@
 package http
 
 import (
+	"context"
 	"errors"
-	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -18,27 +19,23 @@ import (
 	"strings"
 	"sync"
 
-	jsonx "github.com/hopeio/gox/encoding/json"
-	iox "github.com/hopeio/gox/io"
 	"github.com/hopeio/gox/mapstruct"
 	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/gox/validator"
 )
 
 var (
-	DefaultMemory    int64 = 32 << 20
-	DefaultUnmarshal       = bodyUnmarshaler
-	CommonTag              = "json"
-	Validate               = validator.ValidateStruct
-	defaultTags            = []string{"uri", "path", "query", "header", "form", CommonTag}
+	DefaultMemory int64 = 32 << 20
+	CommonTag           = "json"
+	Validate            = validator.ValidateStruct
+	defaultTags         = []string{"uri", "path", "query", "header", "form", CommonTag}
 )
 
 type Source interface {
-	Uri() mapstruct.Setter
-	Query() mapstruct.Setter
-	Header() mapstruct.Setter
-	Form() mapstruct.Setter
-	Body() (string, io.ReadCloser)
+	Uri() mapstruct.Getter
+	Query() mapstruct.ValuesGetter
+	Header() mapstruct.ValuesGetter
+	Body() (context.Context, string, io.ReadCloser)
 }
 
 type Field struct {
@@ -65,31 +62,43 @@ func CommonBind(s Source, obj any) error {
 	value := reflect.ValueOf(obj).Elem()
 	typ := value.Type()
 	header := s.Header()
-	contentType, body := s.Body()
+	var multipartFormSetter mapstruct.Setter
+	ctx, contentType, body := s.Body()
 	if body != nil {
-		var data []byte
-		if raw, ok := body.(iox.Raw); ok {
-			data = raw.Raw()
-		} else {
-			var err error
-			data, err = io.ReadAll(body)
+		if strings.HasPrefix(contentType, ContentTypeForm) {
+			data, err := io.ReadAll(body)
 			if err != nil {
-				return fmt.Errorf("read body error: %w", err)
+				return err
+			}
+
+			vs, err := url.ParseQuery(stringsx.FromBytes(data))
+			if err != nil {
+				return nil
+			}
+			if recorder, ok := body.(RecordBodyer); ok {
+				recorder.RecordBody(data, nil)
+			}
+			multipartFormSetter = mapstruct.KVsSource(vs)
+		}else if strings.HasPrefix(contentType, ContentTypeMultipart) {
+			mr,err := multipartReader(true,contentType,body)
+			if err != nil {
+				return nil
+			}
+			multipartForm, err := mr.ReadForm(DefaultMemory)
+			if err != nil {
+				return err
+			}
+			multipartFormSetter = (*MultipartSource)(multipartForm)
+		}else{
+			err := DefaultDecoder(ctx, contentType, body, obj)
+			if err != nil {
+				return err
 			}
 		}
-		if len(data) == 0 {
-			return nil
-		}
-		err := DefaultUnmarshal(contentType, data, obj)
-		if err != nil {
-			return err
-		}
-		if recorder, ok := body.(RecordBody); ok {
-			recorder.RecordBody(data, obj)
-		}
+
 	}
 
-	uriSetter, querySetter, headerSetter, multipartFormSetter := s.Uri(), s.Query(), header, s.Form()
+	uriSetter, querySetter, headerSetter := mapstruct.GetFunc(s.Uri().Get), mapstruct.ValuesGetFunc(s.Query().Get), mapstruct.ValuesGetFunc(header.Get)
 	commonSetter := mapstruct.Setters([]mapstruct.Setter{uriSetter, querySetter, headerSetter, multipartFormSetter})
 	var err error
 	if fields, ok := cache.Load(typ); ok {
@@ -193,65 +202,49 @@ func CommonBind(s Source, obj any) error {
 	return Validate(obj)
 }
 
+func multipartReader(allowMixed bool,contentType string,body io.Reader) (*multipart.Reader, error) {
+	if contentType == "" {
+		return nil, http.ErrNotMultipart
+	}
+	if body == nil {
+		return nil, errors.New("missing form body")
+	}
+	d, params, err := mime.ParseMediaType(contentType)
+	if err != nil || !(d == "multipart/form-data" || allowMixed && d == "multipart/mixed") {
+		return nil, http.ErrNotMultipart
+	}
+	boundary, ok := params["boundary"]
+	if !ok {
+		return nil, http.ErrMissingBoundary
+	}
+	return multipart.NewReader(body, boundary), nil
+}
+
 type RequestSource struct {
 	*http.Request
 }
 
-func (s RequestSource) Uri() mapstruct.Setter {
+func (s RequestSource) Uri() mapstruct.Getter {
 	return (*UriSource)(s.Request)
 }
 
-func (s RequestSource) Query() mapstruct.Setter {
+func (s RequestSource) Query() mapstruct.ValuesGetter {
 	return (mapstruct.KVsSource)(s.URL.Query())
 }
 
-func (s RequestSource) Header() mapstruct.Setter {
+func (s RequestSource) Header() mapstruct.ValuesGetter {
 	return (HeaderSource)(s.Request.Header)
 }
 
-func (s RequestSource) Form() mapstruct.Setter {
-	contentType := s.Request.Header.Get(HeaderContentType)
-	if strings.HasPrefix(contentType, ContentTypeForm) {
-		data, err := io.ReadAll(s.Request.Body)
-		if err != nil || len(data) == 0 {
-			return nil
-		}
-
-		vs, err := url.ParseQuery(stringsx.FromBytes(data))
-		if err != nil {
-			return nil
-		}
-		if recorder, ok := s.Request.Body.(RecordBody); ok {
-			recorder.RecordBody(data, nil)
-		}
-		return mapstruct.KVsSource(vs)
-	}
-	if strings.HasPrefix(contentType, ContentTypeMultipart) {
-		err := s.ParseMultipartForm(DefaultMemory)
-		if err != nil {
-			return nil
-		}
-		return (*MultipartSource)(s.Request.MultipartForm)
-	}
-	return nil
-}
-
-func (s RequestSource) Body() (string, io.ReadCloser) {
+func (s RequestSource) Body() (context.Context, string, io.ReadCloser) {
 	if s.Method == http.MethodGet {
-		return "", nil
+		return s.Context(), "", nil
 	}
 	contentType := s.Request.Header.Get(HeaderContentType)
 	if strings.HasPrefix(contentType, ContentTypeMultipart) || strings.HasPrefix(contentType, ContentTypeForm) {
-		return "", nil
+		return s.Context(), contentType, nil
 	}
-	return contentType, s.Request.Body
-}
-
-func bodyUnmarshaler(contentType string, data []byte, obj any) error {
-	if strings.HasPrefix(contentType, ContentTypeJson) {
-		return jsonx.Unmarshal(data, obj)
-	}
-	return jsonx.Unmarshal(data, obj)
+	return s.Context(), contentType, s.Request.Body
 }
 
 type HeaderSource map[string][]string
@@ -269,20 +262,16 @@ func (hs HeaderSource) TrySet(value reflect.Value, field *reflect.StructField, k
 
 type UriSource http.Request
 
-var _ mapstruct.Setter = (*UriSource)(nil)
+var _ mapstruct.Getter = (*UriSource)(nil)
 
-func (req *UriSource) Get(key string) ([]string, bool) {
+func (req *UriSource) Get(key string) (string, bool) {
 	if req.Pattern == "" {
-		return nil, false
+		return "", false
 	}
 	v := (*http.Request)(req).PathValue(key)
-	return []string{v}, v != ""
+	return v, v != ""
 }
 
-// TrySet tries to set a value by request's form source (like map[string][]string)
-func (req *UriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mapstruct.Options) (isSet bool, err error) {
-	return mapstruct.SetValueByValuesGetter(value, field, req, key, opt)
-}
 
 type MultipartSource multipart.Form
 

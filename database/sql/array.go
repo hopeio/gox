@@ -15,7 +15,6 @@ import (
 	"time"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
-	strconvx "github.com/hopeio/gox/strconv"
 	stringsx "github.com/hopeio/gox/strings"
 
 	"strconv"
@@ -217,7 +216,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 			if err != nil {
 				return nil, err
 			}
-			buf.WriteString(strconvx.Format(v))
+			buf.WriteString(stringsx.Format(v))
 			continue
 		}
 		itv, ok := a.(encoding.TextMarshaler)
@@ -232,7 +231,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 			buf.WriteString(strconv.Quote(stringsx.FromBytes(v)))
 			continue
 		}
-		buf.WriteString(strconvx.Format(v))
+		buf.WriteString(stringsx.Format(v))
 	}
 	buf.WriteByte('}')
 	return buf.String(), nil

@@ -130,7 +130,7 @@ func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.Serv
 	if uw, ok := w.(httpx.Unwrapper); ok {
 		ow = uw.Unwrap()
 	}
-	if recorder, ok := ow.(httpx.RecordBody); ok {
+	if recorder, ok := ow.(httpx.RecordBodyer); ok {
 		recorder.RecordBody(buf, message)
 	}
 	w.Write(buf)

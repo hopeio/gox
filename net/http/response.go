@@ -93,7 +93,7 @@ func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (i
 	if uw, ok := w.(Unwrapper); ok {
 		ow = uw.Unwrap()
 	}
-	if recorder, ok := ow.(RecordBody); ok {
+	if recorder, ok := ow.(RecordBodyer); ok {
 		recorder.RecordBody(data, res)
 	}
 	return w.Write(data)
@@ -140,7 +140,7 @@ func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, e
 	if uw, ok := w.(Unwrapper); ok {
 		ow = uw.Unwrap()
 	}
-	if recorder, ok := ow.(RecordBody); ok {
+	if recorder, ok := ow.(RecordBodyer); ok {
 		recorder.RecordBody(data, res)
 	}
 	return w.Write(data)
@@ -236,7 +236,7 @@ func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, er
 	if uw, ok := w.(Unwrapper); ok {
 		ow = uw.Unwrap()
 	}
-	if recorder, ok := ow.(RecordBody); ok {
+	if recorder, ok := ow.(RecordBodyer); ok {
 		recorder.RecordBody(data, res)
 	}
 	return w.Write(data)

@@ -15,6 +15,9 @@ type Middleware func(http.Handler) http.Handler
 func UseMiddleware(handler http.Handler, middlewares ...Middleware) http.Handler {
 	for _, mw := range middlewares {
 		handler = mw(handler)
+		if handler == nil {
+			return nil
+		}
 	}
 	return handler
 }
