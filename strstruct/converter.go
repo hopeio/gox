@@ -1,4 +1,4 @@
-package mapstruct
+package strstruct
 
 import (
 	"reflect"
@@ -21,28 +21,6 @@ func (c StringConverterE) IgnoreError() StringConverter {
 		return r
 	}
 }
-
-var (
-	invalidValue = reflect.Value{}
-)
-
-// Default converters for basic types.
-/*var stringConverterMaps = map[reflect.Kind]StringConverterE{
-	reflect.Bool:    stringConvertBool,
-	reflect.Float32: stringConvertFloat32,
-	reflect.Float64: stringConvertFloat64,
-	reflect.Int:     stringConvertInt,
-	reflect.Int8:    stringConvertInt8,
-	reflect.Int16:   stringConvertInt16,
-	reflect.Int32:   stringConvertInt32,
-	reflect.Int64:   stringConvertInt64,
-	reflect.FormatReflectValue:  stringConvertString,
-	reflect.Uint:    stringConvertUint,
-	reflect.Uint8:   stringConvertUint8,
-	reflect.Uint16:  stringConvertUint16,
-	reflect.Uint32:  stringConvertUint32,
-	reflect.Uint64:  stringConvertUint64,
-}*/
 
 var stringConverterArrays = [...]StringConverterE{
 	reflect.Invalid: nil,

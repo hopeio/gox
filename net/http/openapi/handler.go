@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package apidoc
+package openapi
 
 import (
 	"bytes"
@@ -22,9 +22,9 @@ import (
 )
 
 // 目录结构 ./api/mod/mod.openapi.json
-// 请求路由 /apidoc /apidoc/openapi/mod/mod.openapi.json
-var UriPrefix = "/apidoc"
-var Dir = "./apidoc/"
+// 请求路由 /openapi /openapi/mod.openapi.json
+var UriPrefix = "/openapi"
+var DocDir = "./apidoc/"
 
 const TypeOpenapi = "openapi"
 const OpenapiEXT = ".openapi.json"
@@ -32,9 +32,9 @@ const SwaggerEXT = ".swagger.json"
 const JsonEXT = ".json"
 
 func OpenApi(w http.ResponseWriter, r *http.Request) {
-	prefixUri := UriPrefix + "/" + TypeOpenapi + "/"
+	prefixUri := UriPrefix + "/"
 	if r.RequestURI[len(r.RequestURI)-5:] == ".json" {
-		b, err := os.ReadFile(Dir + r.RequestURI[len(prefixUri):])
+		b, err := os.ReadFile(DocDir + r.RequestURI[len(prefixUri):])
 		if err != nil {
 			w.Write([]byte(err.Error()))
 			return
@@ -52,35 +52,34 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
 func DocList(w http.ResponseWriter, r *http.Request) {
-	fileInfos, err := os.ReadDir(Dir)
+	fileInfos, err := os.ReadDir(DocDir)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
 	var buff bytes.Buffer
 	for i := range fileInfos {
-
 		if strings.HasSuffix(fileInfos[i].Name(), JsonEXT) {
 			mod := strings.TrimSuffix(fileInfos[i].Name(), JsonEXT)
-			buff.Write([]byte(`<a href="` + r.RequestURI + "/openapi/" + mod + `"> ` + mod + `</a><br>`))
+			buff.Write([]byte(`<a href="` + r.RequestURI + "/" + mod + `"> ` + mod + `</a><br>`))
 		}
 	}
 	w.Write(buff.Bytes())
 }
 
-func ApiDoc(mux *http.ServeMux, uriPrefix, dir string) {
+func Openapi(mux *http.ServeMux, uriPrefix, dir string) {
 	if dir != "" {
 		if b := dir[len(dir)-1:]; b == "/" || b == "\\" {
-			Dir = dir
+			DocDir = dir
 		} else {
-			Dir = dir + fs.PathSeparator
+			DocDir = dir + fs.PathSeparator
 		}
 	}
 	if uriPrefix != "" {
 		UriPrefix = uriPrefix
 	}
 	mux.HandleFunc(UriPrefix, DocList)
-	mux.HandleFunc(UriPrefix+"/openapi/{file...}", OpenApi)
+	mux.HandleFunc(UriPrefix+"/{file...}", OpenApi)
 }
 
 func WriteToFile(docDir, modName string, doc *openapi3.T) error {
@@ -88,7 +87,7 @@ func WriteToFile(docDir, modName string, doc *openapi3.T) error {
 		return errors.New("doc is nil")
 	}
 	if docDir == "" {
-		docDir = Dir
+		docDir = DocDir
 	}
 
 	err := os.MkdirAll(docDir, os.ModePerm)

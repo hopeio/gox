@@ -1,4 +1,4 @@
-package mapstruct
+package strstruct
 
 import (
 	"errors"

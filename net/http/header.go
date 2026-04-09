@@ -214,7 +214,7 @@ func ParseContentDisposition(header string) (string, error) {
 	if header[0] == '"' && header[len(header)-1] == '"' {
 		header = header[1 : len(header)-1]
 	}
-	return url.PathUnescape(header)
+	return url.QueryUnescape(header)
 }
 
 func GetContentLength(header http.Header) int64 {

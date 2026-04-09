@@ -286,8 +286,6 @@ func Rand(length int) string {
 
 /*
 从字符串尾开始,返回指定字符截断后的字符串
-ReverseCutPart("https://video.weibo.com/media/play?livephoto=https%3A%2F%2Flivephoto.us.sinaimg.cn%2F002OnXdGgx07YpcajtkH0f0f0100gv8Q0k01.mov", "%2F")
-002OnXdGgx07YpcajtkH0f0f0100gv8Q0k01.mov
 */
 func ReverseCutPart(s, key string) string {
 	keyLen := len(key)
@@ -306,8 +304,6 @@ func ReverseCutPart(s, key string) string {
 
 /*
 指定字符截断，返回阶段前的字符串
-CutPart("https://wx1.sinaimg.cn/orj360/6ebedee6ly1h566bbzyc6j20n00cuabd.jpg", "wx1")
-https://
 */
 func CutPart(s, sep string) string {
 	sepLen := len(sep)
@@ -323,8 +319,6 @@ func CutPart(s, sep string) string {
 
 /*
 指定字符截断，返回阶段前加指定字符的字符串
-CutPartContain("https://f.video.weibocdn.com/o0/F9Nmm1ZJlx080UxqxlJK010412004rJS0E010.mp4?label=mp4_hd&template=540x960.24.0&ori=0&ps=1CwnkDw1GXwCQx&Expires=1670569613&ssig=fAQcBh4HGt&KID=unistore,video", "mp4")
-https://f.video.weibocdn.com/o0/F9Nmm1ZJlx080UxqxlJK010412004rJS0E010.mp4
 */
 func CutPartContain(s, sep string) string {
 	sepLen := len(sep)

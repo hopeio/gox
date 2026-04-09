@@ -1,10 +1,8 @@
-package mapstruct
+package strstruct
 
 import (
 	"reflect"
 	"strings"
-
-	stringsx "github.com/hopeio/gox/strings"
 )
 
 // Setter tries to set value on a walking by fields of a struct
@@ -26,7 +24,7 @@ func (receiver Setters) TrySet(value reflect.Value, field *reflect.StructField, 
 	return
 }
 
-func MappingByTag(ptr any, setter Setter, tag string) error {
+func Mapping(ptr any, setter Setter, tag string) error {
 	_, err := mapping(reflect.ValueOf(ptr), nil, setter, tag)
 	return err
 }
@@ -222,7 +220,7 @@ func SetValueByGetter(value reflect.Value, field *reflect.StructField, getter Ge
 		}
 		vs = opt.Default
 	}
-	err = stringsx.ParseStringSetReflectValue(value, vs, field)
+	err = ParseStringSetReflectValue(value, vs, field)
 	if err != nil {
 		return false, err
 	}
@@ -238,7 +236,7 @@ func SetValueByValuesGetter(value reflect.Value, field *reflect.StructField, get
 		vals = strings.Split(opt.Default, ",")
 	}
 
-	err = stringsx.ParseStringsSetReflectValue(value, vals, field)
+	err = ParseStringsSetReflectValue(value, vals, field)
 	if err != nil {
 		return false, err
 	}

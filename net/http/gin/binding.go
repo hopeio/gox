@@ -14,7 +14,7 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hopeio/gox/mapstruct"
+	"github.com/hopeio/gox/strstruct"
 	httpx "github.com/hopeio/gox/net/http"
 )
 
@@ -26,15 +26,15 @@ type RequestSource struct {
 	*gin.Context
 }
 
-func (s RequestSource) Uri() mapstruct.Getter {
+func (s RequestSource) Uri() strstruct.Getter {
 	return s.Params
 }
 
-func (s RequestSource) Query() mapstruct.ValuesGetter {
-	return (mapstruct.KVsSource)(s.Request.URL.Query())
+func (s RequestSource) Query() strstruct.ValuesGetter {
+	return (strstruct.KVsSource)(s.Request.URL.Query())
 }
 
-func (s RequestSource) Header() mapstruct.ValuesGetter {
+func (s RequestSource) Header() strstruct.ValuesGetter {
 	return (httpx.HeaderSource)(s.Request.Header)
 }
 
@@ -47,7 +47,7 @@ func (s RequestSource) Body() (context.Context, string, io.ReadCloser) {
 
 type uriSource gin.Params
 
-var _ mapstruct.Setter = uriSource(nil)
+var _ strstruct.Setter = uriSource(nil)
 
 func (param uriSource) Get(key string) ([]string, bool) {
 	for i := range param {
@@ -59,6 +59,6 @@ func (param uriSource) Get(key string) ([]string, bool) {
 }
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *mapstruct.Options) (isSet bool, err error) {
-	return mapstruct.SetValueByValuesGetter(value, field, param, key, opt)
+func (param uriSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *strstruct.Options) (isSet bool, err error) {
+	return strstruct.SetValueByValuesGetter(value, field, param, key, opt)
 }

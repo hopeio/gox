@@ -1,4 +1,4 @@
-package apidoc
+package openapi
 
 import (
 	"bytes"
