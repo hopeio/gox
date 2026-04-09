@@ -56,16 +56,23 @@ type Tag struct {
 var cache = sync.Map{}
 
 type Binder interface {
+	Bind(r *http.Request, v any) error
+}
+
+type CommonBinder interface {
 	Bind(r Source, v any) error
 }
 
 func Bind(r *http.Request, v any) error {
+	if b, ok := v.(Binder); ok {
+		return b.Bind(r, v)
+	}
 	return CommonBind(RequestSource{r}, v)
 }
 
 // unhandle multipart form data currently
 func CommonBind(s Source, v any) error {
-	if b, ok := s.(Binder); ok {
+	if b, ok := s.(CommonBinder); ok {
 		err := b.Bind(s, v)
 		if err != nil {
 			return err
