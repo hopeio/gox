@@ -9,7 +9,6 @@ package validator
 import (
 	"errors"
 	"reflect"
-	"regexp"
 	"strings"
 
 	"github.com/go-playground/locales/en"
@@ -44,13 +43,6 @@ func init() {
 		}
 		return sf.Name
 	})
-	DefaultValidate.RegisterValidation("phone", func(fl validator.FieldLevel) bool {
-		match, _ := regexp.MatchString(phonePattern, fl.Field().String())
-		return match
-	})
-	DefaultValidate.RegisterTranslation("phone", trans, func(ut ut.Translator) error {
-		return ut.Add("phone", "{0}必须是一个有效的手机号!", true)
-	}, translateFunc)
 }
 
 func TransError(err error, locale string) string {
