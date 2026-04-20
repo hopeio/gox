@@ -4,9 +4,14 @@
  * @Created by jyb
  */
 
-package watch
+package fsnotify
 
-import "time"
+import (
+	"path/filepath"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
+)
 
 type Callback struct {
 	LastModTime time.Time
@@ -15,30 +20,101 @@ type Callback struct {
 
 type Handlers map[string]*Callback
 
-// Op describes a set of file operations.
-type Op uint32
+type Watch struct {
+	*fsnotify.Watcher
+	interval time.Duration
+	handlers Handlers
+	errHandler func(error)
+}
 
-const (
-	// A new pathname was created.
-	Create Op = 1 << iota
+type Option func(*Watch)
 
-	// The pathname was written to; this does *not* mean the write has finished,
-	// and a write can be followed by more writes.
-	Write
+func WithWatcher(watcher *fsnotify.Watcher) Option {
+	return func(watch *Watch) {
+		watch.Watcher = watcher
+	}
+}
 
-	// The path was removed; any watches on it will be removed. Some "remove"
-	// operations may trigger a Rename if the file is actually moved (for
-	// example "remove to trash" is often a rename).
-	Remove
+func WithInterval(interval time.Duration) Option {
+	return func(watch *Watch) {
+		watch.interval = interval
+	}
+}
 
-	// The path was renamed to something else; any watched on it will be
-	// removed.
-	Rename
+func WithErrHandler(errHandler func(error)) Option {
+	return func(watch *Watch) {
+		watch.errHandler = errHandler
+	}
+}
 
-	// File attributes were changed.
-	//
-	// It's generally not recommended to take action on this event, as it may
-	// get triggered very frequently by some software. For example, Spotlight
-	// indexing on macOS, anti-virus software, backup software, etc.
-	Chmod
-)
+func New(opts ...Option) (*Watch, error) {
+	watch := &Watch{
+		handlers: make(Handlers),
+	}
+	for _, opt := range opts {
+		opt(watch)
+	}
+	if watch.Watcher == nil {
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			return nil, err
+		}
+		watch.Watcher = watcher
+	}
+	if watch.interval == 0 {
+		watch.interval = time.Second
+	}
+	go watch.run()
+	return watch, nil
+}
+
+func (w *Watch) Add(path string, op fsnotify.Op, callback func(string)) error {
+	path = filepath.Clean(path)
+	handler, ok := w.handlers[path]
+	if !ok {
+		err := w.Watcher.Add(path)
+		if err != nil {
+			return err
+		}
+		handler = &Callback{}
+		w.handlers[path] = handler
+	}
+	handler.Callbacks[op-1] = callback
+	return nil
+}
+
+func (w *Watch) run() {
+	for {
+		select {
+		case event, ok := <-w.Watcher.Events:
+			if !ok {
+				return
+			}
+			if handle, ok := w.handlers[event.Name]; ok {
+				now := time.Now()
+				if now.Sub(handle.LastModTime) < w.interval  {
+					continue
+				}
+				handle.LastModTime = now
+				for i := range handle.Callbacks {
+					if event.Op&fsnotify.Op(i+1) == fsnotify.Op(i+1) && handle.Callbacks[i] != nil {
+						handle.Callbacks[i](event.Name)
+					}
+				}
+			}
+		case err, ok := <-w.Watcher.Errors:
+			if !ok {
+				return
+			}
+			if w.errHandler != nil {
+				w.errHandler(err)
+			}
+		}
+	}
+}
+
+func (w *Watch) Close() error {
+	close(w.Events)
+	close(w.Errors)
+	return w.Watcher.Close()
+}
