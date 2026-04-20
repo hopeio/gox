@@ -15,15 +15,15 @@ import (
 
 type Callback struct {
 	LastModTime time.Time
-	Callbacks   [5]func(string)
+	Callback    func(fsnotify.Event)
 }
 
 type Handlers map[string]*Callback
 
 type Watch struct {
 	*fsnotify.Watcher
-	interval time.Duration
-	handlers Handlers
+	interval   time.Duration
+	handlers   Handlers
 	errHandler func(error)
 }
 
@@ -68,7 +68,7 @@ func New(opts ...Option) (*Watch, error) {
 	return watch, nil
 }
 
-func (w *Watch) Add(path string, op fsnotify.Op, callback func(string)) error {
+func (w *Watch) Add(path string, callback func(fsnotify.Event)) error {
 	path = filepath.Clean(path)
 	handler, ok := w.handlers[path]
 	if !ok {
@@ -79,7 +79,7 @@ func (w *Watch) Add(path string, op fsnotify.Op, callback func(string)) error {
 		handler = &Callback{}
 		w.handlers[path] = handler
 	}
-	handler.Callbacks[op-1] = callback
+	handler.Callback = callback
 	return nil
 }
 
@@ -92,15 +92,11 @@ func (w *Watch) run() {
 			}
 			if handle, ok := w.handlers[event.Name]; ok {
 				now := time.Now()
-				if now.Sub(handle.LastModTime) < w.interval  {
+				if now.Sub(handle.LastModTime) < w.interval {
 					continue
 				}
 				handle.LastModTime = now
-				for i := range handle.Callbacks {
-					if event.Op&fsnotify.Op(i+1) == fsnotify.Op(i+1) && handle.Callbacks[i] != nil {
-						handle.Callbacks[i](event.Name)
-					}
-				}
+				handle.Callback(event)
 			}
 		case err, ok := <-w.Watcher.Errors:
 			if !ok {
