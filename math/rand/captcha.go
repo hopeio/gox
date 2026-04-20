@@ -22,11 +22,20 @@ func RandomCode(n int) string {
 }
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
+const number = "0123456789"
 func RandomChars(n int) string {
 	result := make([]byte, n)
 	for i := range result {
 		result[i] = charset[rand.N(len(charset))]
+	}
+	return string(result)
+}
+
+
+func RandomNumber(n int) string {
+	result := make([]byte, n)
+	for i := range result {
+		result[i] = number[rand.N(len(number))]
 	}
 	return string(result)
 }
