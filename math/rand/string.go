@@ -26,7 +26,7 @@ const codes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 func English() string {
 	bytes := make([]byte, 5)
 	for i := range bytes {
-		bytes[i] = codes[rand.N[int](52)]
+		bytes[i] = codes[rand.N(52)]
 	}
 	return string(bytes)
 }

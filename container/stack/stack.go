@@ -25,7 +25,7 @@ func (s *Stack[T]) Pop() (T, bool) {
 	if len(h) == 0 {
 		return *new(T), false
 	}
-	v := h[len(h)]
+	v := h[len(h)-1]
 	*s = h[:len(h)-1]
 	return v, true
 }

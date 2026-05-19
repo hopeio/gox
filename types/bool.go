@@ -40,14 +40,19 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 		switch string(data) {
 		case "true":
 			*b = 1
+			return nil
 		case "false":
 			*b = 2
+			return nil
 		case "null":
 			*b = 0
+			return nil
 		case "1":
 			*b = 1
+			return nil
 		case "2":
 			*b = 2
+			return nil
 		}
 	}
 
@@ -73,14 +78,19 @@ func (b *Bool) UnmarshalText(data []byte) error {
 		switch string(data) {
 		case "true":
 			*b = 1
+			return nil
 		case "false":
 			*b = 2
+			return nil
 		case "null":
 			*b = 0
+			return nil
 		case "1":
 			*b = 1
+			return nil
 		case "2":
 			*b = 2
+			return nil
 		}
 	}
 	return errors.New("invalid bool value")
@@ -107,10 +117,13 @@ func (b *Bool) UnmarshalBinary(data []byte) error {
 	switch data[0] {
 	case 1:
 		*b = 1
+		return nil
 	case 2:
 		*b = 2
+		return nil
 	case 0:
 		*b = 0
+		return nil
 	}
 	return errors.New("invalid bool value")
 }

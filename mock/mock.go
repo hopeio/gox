@@ -22,7 +22,7 @@ func New[T any]() T {
 	return v
 }
 
-func Mock(v interface{}) {
+func Mock(v any) {
 	value := reflect.ValueOf(v)
 	typMap := make(map[reflect.Type]uint8)
 	mock(value, nil, typMap)
