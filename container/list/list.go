@@ -67,7 +67,7 @@ func (l *List[T]) Pop() (T, bool) {
 }
 
 func (l *List[T]) PushFront(v T) {
-	node := &node.Node[T]{l.head, v}
+	node := &node.Node[T]{Next: l.head, Value: v}
 	if l.size == 0 {
 		l.head = node
 		l.tail = node
@@ -79,7 +79,7 @@ func (l *List[T]) PushFront(v T) {
 }
 
 func (l *List[T]) Push(v T) {
-	node := &node.Node[T]{nil, v}
+	node := &node.Node[T]{Next: nil, Value: v}
 	if l.size == 0 {
 		l.head = node
 		l.tail = node
@@ -95,7 +95,7 @@ func (l *List[T]) PushAt(idx int, v T) {
 	if idx < 0 || idx > int(l.size) {
 		panic("index out of range")
 	}
-	node := &node.Node[T]{nil, v}
+	node := &node.Node[T]{Next: nil, Value: v}
 	if idx == 0 {
 		l.PushFront(v)
 		return

@@ -7,13 +7,14 @@
 package url
 
 import (
-	"github.com/hopeio/gox/math"
-	stringsx "github.com/hopeio/gox/strings"
 	stdurl "net/url"
 	"path"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/hopeio/gox/math"
+	stringsx "github.com/hopeio/gox/strings"
 )
 
 var tag = "json"
@@ -116,7 +117,6 @@ func getFieldValue(v reflect.Value) string {
 	default:
 		panic("unhandled default case")
 	}
-	return ""
 }
 
 func AppendQueryParamByTag(url string, param interface{}, tag string) string {

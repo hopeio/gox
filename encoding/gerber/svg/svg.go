@@ -124,7 +124,7 @@ type Path struct {
 }
 
 func (e Path) Bounds() (*geom.Bounds, error) {
-	bounds := geom.Bounds{Min: geom.Point{math.MaxFloat64, math.MaxFloat64}, Max: geom.Point{-math.MaxFloat64, -math.MaxFloat64}}
+	bounds := geom.Bounds{Min: geom.Point{X: math.MaxFloat64, Y: math.MaxFloat64}, Max: geom.Point{X: -math.MaxFloat64, Y: -math.MaxFloat64}}
 	updateMinMax := func(x, y float64) {
 		bounds.Min.X = min(bounds.Min.X, x)
 		bounds.Max.X = max(bounds.Max.X, x)
@@ -275,7 +275,7 @@ func (p *Processor) Obround(obround *gerber.Obround) {
 	r := min(obround.Width, obround.Height) / 2
 	obround.Center.X -= obround.Width / 2
 	obround.Center.Y += obround.Height / 2
-	p.Data = append(p.Data, Rectangle{Aperture: "O", Rectangle: &gerber.Rectangle{obround.Line, obround.Polarity, obround.Rectangle}, RadiusX: r, RadiusY: r, Fill: p.fill(obround.Polarity)})
+	p.Data = append(p.Data, Rectangle{Aperture: "O", Rectangle: &gerber.Rectangle{Line: obround.Line, Polarity: obround.Polarity, Rectangle: obround.Rectangle}, RadiusX: r, RadiusY: r, Fill: p.fill(obround.Polarity)})
 }
 
 func (p *Processor) Contour(contour *gerber.Contour) {
@@ -285,7 +285,7 @@ func (p *Processor) Contour(contour *gerber.Contour) {
 			if s.X == contour.X && s.Y == contour.Y {
 				vx, vy := s.X-s.CenterX, s.Y-s.CenterY
 				r := math.Round(math.Sqrt(vx*vx + vy*vy))
-				c := Circle{Circle: &gerber.Circle{Line: contour.Line, Circle: geom.Circle{geom.Pt(s.X, s.Y), r * 2}},
+				c := Circle{Circle: &gerber.Circle{Line: contour.Line, Circle: geom.Circle{Centre: geom.Pt(s.X, s.Y), Diameter: r * 2}},
 					Fill: p.fill(contour.Polarity)}
 				p.Data = append(p.Data, c)
 				return

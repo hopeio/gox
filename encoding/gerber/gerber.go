@@ -3,12 +3,13 @@ package gerber
 import (
 	"bufio"
 	"fmt"
-	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/math/geom"
 	"io"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/hopeio/gox/log"
+	"github.com/hopeio/gox/math/geom"
 )
 
 // fork: github.com/fumin/gerber
@@ -672,7 +673,7 @@ func (p *commandProcessor) processD01(lineIdx int, word string) error {
 
 	switch p.interpolation {
 	case InterpolationLinear:
-		p.pc.Line(&Line{lineIdx, geom.LineSegment{geom.Pt(p.x, p.y), geom.Pt(x, y)}, diameter, LineCapRound})
+		p.pc.Line(&Line{LineNo: lineIdx, LineSegment: geom.LineSegment{Start: geom.Pt(p.x, p.y), End: geom.Pt(x, y)}, StrokeWidth: diameter, Cap: LineCapRound})
 	case InterpolationClockwise:
 		fallthrough
 	case InterpolationCCW:
@@ -681,7 +682,7 @@ func (p *commandProcessor) processD01(lineIdx int, word string) error {
 			return fmt.Errorf("%+v", coords)
 		}
 		xc, yc := p.x+i, p.y+j
-		p.pc.Arc(&Arc{lineIdx, geom.CircularArc2{geom.Pt(p.x, p.y), geom.Pt(x, y), geom.Pt(xc, yc)}, diameter, p.interpolation})
+		p.pc.Arc(&Arc{Line: lineIdx, CircularArc2: geom.CircularArc2{Start: geom.Pt(p.x, p.y), End: geom.Pt(x, y), Center: geom.Pt(xc, yc)}, StrokeWidth: diameter, Interpolation: p.interpolation})
 	default:
 		return fmt.Errorf("%d", p.interpolation)
 	}
@@ -721,7 +722,7 @@ func (p *commandProcessor) flash(lineIdx int) error {
 	params := p.ap.Params
 	switch p.ap.Template.Name {
 	case templateNameCircle:
-		c := Circle{lineIdx, p.polarity, geom.Circle{geom.Pt(p.x, p.y), params[0]}}
+		c := Circle{Line: lineIdx, Polarity: p.polarity, Circle: geom.Circle{Centre: geom.Pt(p.x, p.y), Diameter: params[0]}}
 		p.pc.Circle(&c)
 		p.bounds(c.Bounds())
 	case templateNameRectangle:
@@ -729,7 +730,7 @@ func (p *commandProcessor) flash(lineIdx int) error {
 		p.pc.Rectangle(&r)
 		p.bounds(r.Bounds())
 	case templateNameObround:
-		o := Obround{lineIdx, p.polarity, geom.Rectangle{geom.Pt(p.x, p.y), params[0], params[1], 0}}
+		o := Obround{Line: lineIdx, Polarity: p.polarity, Rectangle: geom.Rectangle{Center: geom.Pt(p.x, p.y), Width: params[0], Height: params[1]}}
 		p.pc.Obround(&o)
 		p.bounds(o.Bounds())
 	default:
@@ -749,7 +750,7 @@ func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 			if !pm.Exposure {
 				return fmt.Errorf("%d %+v", i, pm)
 			}
-			c := Circle{lineIdx, p.polarity, geom.Circle{geom.Pt(p.x+pm.CenterX, p.y+pm.CenterY), pm.Diameter}}
+			c := Circle{Line: lineIdx, Polarity: p.polarity, Circle: geom.Circle{Centre: geom.Pt(p.x+pm.CenterX, p.y+pm.CenterY), Diameter: pm.Diameter}}
 			p.pc.Circle(&c)
 			p.bounds(c.Bounds())
 		case vectorLinePrimitive:
@@ -759,7 +760,7 @@ func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 			if pm.Rotation != 0 {
 				return fmt.Errorf("%d %+v", i, pm)
 			}
-			l := Line{lineIdx, geom.LineSegment{geom.Pt(p.x+pm.StartX, p.y+pm.StartY), geom.Pt(p.x+pm.EndX, p.y+pm.EndY)}, pm.Width, LineCapButt}
+			l := Line{LineNo: lineIdx, LineSegment: geom.LineSegment{Start: geom.Pt(p.x+pm.StartX, p.y+pm.StartY), End: geom.Pt(p.x+pm.EndX, p.y+pm.EndY)}, StrokeWidth: pm.Width, Cap: LineCapButt}
 			p.pc.Line(&l)
 			p.bounds(l.Bounds())
 		case outlinePrimitive:
@@ -799,7 +800,7 @@ func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 			if !pm.Exposure {
 				return fmt.Errorf("%d %+v", i, pm)
 			}
-			p.pc.Obround(&Obround{lineIdx, p.polarity, geom.Rectangle{geom.Pt(p.x, +p.y), pm.Width, pm.Height, pm.Rotation}})
+			p.pc.Obround(&Obround{Line: lineIdx, Polarity: p.polarity, Rectangle: geom.Rectangle{Center: geom.Pt(p.x, +p.y), Width: pm.Width, Height: pm.Height, Angle: pm.Rotation}})
 		default:
 			return fmt.Errorf("%d %+v", i, p)
 		}

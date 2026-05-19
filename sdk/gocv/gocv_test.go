@@ -4,21 +4,21 @@
  * @Created by jyb
  */
 
-
 package gocv
 
 import (
 	"fmt"
-	"gocv.io/x/gocv"
 	"testing"
+
+	"gocv.io/x/gocv"
 )
 
 func TestAffineMatrix(t *testing.T) {
-	p1, p2, p3, q1, q2, q3 := gocv.Point2f{2000, 7000}, gocv.Point2f{48000, 80000}, gocv.Point2f{2000, 85000}, gocv.Point2f{3558, 17895}, gocv.Point2f{11016, 5997}, gocv.Point2f{3538, 5182}
+	p1, p2, p3, q1, q2, q3 := gocv.Point2f{X: 2000, Y: 7000}, gocv.Point2f{X: 48000, Y: 80000}, gocv.Point2f{X: 2000, Y: 85000}, gocv.Point2f{X: 3558, Y: 17895}, gocv.Point2f{X: 11016, Y: 5997}, gocv.Point2f{X: 3538, Y: 5182}
 	affineMat := AffineMat([]gocv.Point2f{p1, p2, p3}, []gocv.Point2f{q1, q2, q3})
 	t.Log(AffineTransform(affineMat, []gocv.Point2f{{X: 48000, Y: 13000}}))
 
-	affineMat = AffineMat([]gocv.Point2f{{128.08328, 13.295279}, {123.16628, 24.473278}, {110.23628, 17.256279}}, []gocv.Point2f{{26.525, 10.1625}, {24.475, 21.3}, {9, 14}})
+	affineMat = AffineMat([]gocv.Point2f{{X: 128.08328, Y: 13.295279}, {X: 123.16628, Y: 24.473278}, {X: 110.23628, Y: 17.256279}}, []gocv.Point2f{{X: 26.525, Y: 10.1625}, {X: 24.475, Y: 21.3}, {X: 9, Y: 14}})
 	fmt.Println(affineMat.Type())
 	for i := range affineMat.Rows() {
 		for j := range affineMat.Cols() {

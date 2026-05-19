@@ -69,7 +69,7 @@ func (h *MutexHeap[T]) Pop() (T, bool) {
 	return item, true
 }
 
-func (h MutexHeap[T]) Last() (T, bool) {
+func (h *MutexHeap[T]) Last() (T, bool) {
 	h.mu.Lock()
 	if len(h.data) == 0 {
 		h.mu.Unlock()

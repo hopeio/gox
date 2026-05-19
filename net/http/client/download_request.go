@@ -53,6 +53,11 @@ func NewDownloadReq(url string) *DownloadReq {
 	}
 }
 
+func (dReq *DownloadReq) Context(ctx context.Context) *DownloadReq {
+	dReq.ctx = ctx
+	return dReq
+}
+
 func (dReq *DownloadReq) Downloader(c *Downloader) *DownloadReq {
 	dReq.downloader = c
 	return dReq
@@ -63,6 +68,7 @@ func (dReq *DownloadReq) SetDownloader(set func(c *Downloader)) *DownloadReq {
 	set(dReq.downloader)
 	return dReq
 }
+
 func (dReq *DownloadReq) Header(header http.Header) *DownloadReq {
 	if dReq.header == nil {
 		dReq.header = make(http.Header)
@@ -291,7 +297,6 @@ func (dReq *DownloadReq) continuationDownload(filepath string) error {
 	var reader io.ReadCloser
 	for range dReq.downloader.retryTimes {
 		dReq.header.Set(httpx.HeaderRange, httpx.FormatRange(offset, 0))
-
 		reader, err = dReq.GetReader()
 		if err != nil {
 			if errors.Is(err, ErrRangeNotSatisfiable) {
@@ -320,12 +325,11 @@ const defaultRange = "bytes=0-"
 const defaultSize = 30 * 1024 * 1024
 
 // TODO: 利用简单任务调度实现
-func (dReq *DownloadReq) ConcurrencyDownload(filepath string, url string, concurrencyNum int) error {
+func (dReq *DownloadReq) ConcurrencyDownload(filepath string, concurrencyNum int) error {
 	if dReq.mode&DModeOverwrite == 0 && fs.Exist(filepath) {
 		return nil
 	}
-	panic("TODO")
-	return nil
+	panic("not implemented")
 }
 
 func GetReader(url string) (io.ReadCloser, error) {

@@ -18,11 +18,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
-	"github.com/hopeio/gox/log"
 	httpx "github.com/hopeio/gox/net/http"
-	stringsx "github.com/hopeio/gox/strings"
+)
+
+const (
+	defaultChunkSize = 5 * 1024 * 1024 // 每个分块的大小，这里是5MB
 )
 
 var (
@@ -45,13 +48,14 @@ type UploadReq struct {
 	header    http.Header //请求级请求头
 	boundary  string
 	mode      UploadMode
-	chunkSize int
+	chunkSize int64
 }
 
 type Multipart struct {
-	Param       string
-	Name        string
-	ContentType string
+	Name     string
+	Value    string
+	Filename string
+	Header   textproto.MIMEHeader
 	io.Reader
 }
 
@@ -73,30 +77,15 @@ func NewFile(path string) (*File, error) {
 
 func (f *File) ToMutilPart(param string) *Multipart {
 	contentType := mime.TypeByExtension(filepath.Ext(f.Path))
-	return NewMultipart(param, path.Base(f.Path), contentType, f.File)
+	return NewMultipart(param, path.Base(f.Path), textproto.MIMEHeader{httpx.HeaderContentType: []string{contentType}}, f.File)
 }
 
-func NewMultipart(param, name, contentType string, reader io.Reader) *Multipart {
+func NewMultipart(name, filename string, header textproto.MIMEHeader, reader io.Reader) *Multipart {
 	return &Multipart{
-		Param:       param,
-		Name:        name,
-		ContentType: contentType,
-		Reader:      reader,
-	}
-}
-
-func (f *Multipart) setHeader(header textproto.MIMEHeader) {
-	var contentDispositionValue string
-	if stringsx.IsEmpty(f.Name) {
-		contentDispositionValue = fmt.Sprintf(httpx.FormDataFieldTmpl, escapeQuotes(f.Param))
-	} else {
-		contentDispositionValue = fmt.Sprintf(httpx.FormDataFileTmpl,
-			escapeQuotes(f.Param), escapeQuotes(f.Name))
-	}
-	header.Set(httpx.HeaderContentDisposition, contentDispositionValue)
-
-	if !stringsx.IsEmpty(f.ContentType) {
-		header.Set(ContentTypeKey, f.ContentType)
+		Name:     name,
+		Filename: filename,
+		Header:   header,
+		Reader:   reader,
 	}
 }
 
@@ -106,6 +95,11 @@ func NewUploadReq(url string) *UploadReq {
 		Url:      url,
 		uploader: DefaultUploader,
 	}
+}
+
+func (r *UploadReq) Context(ctx context.Context) *UploadReq {
+	r.ctx = ctx
+	return r
 }
 
 func (r *UploadReq) Uploader(u *Uploader) *UploadReq {
@@ -123,7 +117,7 @@ func (r *UploadReq) Mode(mode UploadMode) *UploadReq {
 	return r
 }
 
-func (r *UploadReq) ChunkSize(chunkSize int) *UploadReq {
+func (r *UploadReq) ChunkSize(chunkSize int64) *UploadReq {
 	if chunkSize < 512 {
 		panic("buffer size should > 512")
 	}
@@ -133,6 +127,10 @@ func (r *UploadReq) ChunkSize(chunkSize int) *UploadReq {
 
 func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multipart) error {
 	body := bufPool.Get().(*bytes.Buffer)
+	defer func() {
+		body.Reset()
+		bufPool.Put(body)
+	}()
 	w := multipart.NewWriter(body)
 
 	if r.boundary != "" {
@@ -140,10 +138,11 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 			return err
 		}
 	}
-	header := make(textproto.MIMEHeader)
+
+	h := make(textproto.MIMEHeader)
 	for k, v := range formData {
-		header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.FormDataFieldTmpl, escapeQuotes(k)))
-		part, err := w.CreatePart(header)
+		h.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.FormDataFieldTmpl, escapeQuotes(k)))
+		part, err := w.CreatePart(h)
 		if err != nil {
 			return err
 		}
@@ -153,41 +152,22 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 		}
 	}
 
+	h.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
 	for _, file := range files {
-		if file.ContentType == "" {
-			cbuf := make([]byte, 512)
-			size, err := file.Reader.Read(cbuf)
-			if err != nil && err != io.EOF {
-				return err
-			}
-			file.ContentType = http.DetectContentType(cbuf[:size])
-			file.setHeader(header)
-			partWriter, err := w.CreatePart(header)
-			if err != nil {
-				return err
-			}
-			if _, err = partWriter.Write(cbuf[:size]); err != nil {
-				return err
-			}
-
-			_, err = io.Copy(partWriter, file.Reader)
-			if err != nil {
-				return err
-			}
-		} else {
-			file.setHeader(header)
-			partWriter, err := w.CreatePart(header)
-			if err != nil {
-				return err
-			}
-
-			_, err = io.Copy(partWriter, file.Reader)
-			if err != nil {
-				return err
-			}
+		h.Set(httpx.HeaderContentDisposition, multipart.FileContentDisposition(file.Name, file.Filename))
+		part, err := w.CreatePart(h)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(part, file.Reader)
+		if err != nil {
+			return err
 		}
 	}
-
+	err := w.Close()
+	if err != nil {
+		return err
+	}
 	req, err := http.NewRequest(http.MethodPost, r.Url, body)
 	if err != nil {
 		return err
@@ -195,126 +175,18 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 	if r.header != nil {
 		req.Header = r.header
 	}
-	r.header.Set(httpx.HeaderContentType, w.FormDataContentType())
-	err = w.Close()
-	if err != nil {
-		return err
-	}
+
 	d := r.uploader
 	httpx.CopyHttpHeader(req.Header, d.header)
 	for _, opt := range d.httpRequestOptions {
 		opt(req)
 	}
+	req.Header.Set(httpx.HeaderContentType, w.FormDataContentType())
 	_, err = d.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	// TODO: error handler, retry
-	return nil
-}
-
-// 默认单文件
-func (r *UploadReq) UploadMultipartChunked(formData map[string]string, file Multipart) error {
-	u := r.uploader
-	body := bufPool.Get().(*bytes.Buffer)
-	w := multipart.NewWriter(body)
-	var start, total int64
-	var end int64 = -1
-
-	req, err := http.NewRequest(http.MethodPost, r.Url, nil)
-	if err != nil {
-		return err
-	}
-
-	if r.boundary != "" {
-		if err := w.SetBoundary(r.boundary); err != nil {
-			return err
-		}
-	}
-	header := make(textproto.MIMEHeader)
-	for k, v := range formData {
-		header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.FormDataFieldTmpl, escapeQuotes(k)))
-		part, err := w.CreatePart(header)
-		if err != nil {
-			return err
-		}
-		_, err = part.Write([]byte(v))
-		if err != nil {
-			return err
-		}
-	}
-	fieldSize := body.Len()
-	for {
-		body.Reset()
-		body.Truncate(fieldSize)
-		buf := make([]byte, chunkSize)
-		size, er := file.Reader.Read(buf)
-		if er != nil && er != io.EOF {
-			return er
-		}
-		if size > 0 {
-			if file.ContentType == "" {
-				file.ContentType = http.DetectContentType(buf[:min(size, 512)])
-			}
-
-			file.setHeader(header)
-			partWriter, err := w.CreatePart(header)
-			if err != nil {
-				return err
-			}
-			if _, err = partWriter.Write(buf[:size]); err != nil {
-				return err
-			}
-
-			end += int64(size)
-			if er == io.EOF {
-				total = end + 1
-			}
-			req.Body = io.NopCloser(bytes.NewReader(buf[0:size]))
-			req.Header.Set(httpx.HeaderContentRange, httpx.FormatContentRange(start, end, total))
-			resp, err := u.httpClient.Do(req)
-			if err != nil {
-				return err
-			}
-			resp.Body.Close()
-		}
-		if er == io.EOF {
-			return nil
-		}
-	}
-}
-
-func (r *UploadReq) UploadStream(oReader io.Reader) error {
-	u := r.uploader
-
-	// 创建一个HTTP请求
-	req, err := http.NewRequest(http.MethodPost, r.Url, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
-	req.Header.Set(httpx.HeaderTransferEncoding, httpx.HeaderTransferEncodingChunked)
-	// 使用io.Pipe创建一个管道，用于流式传输文件内容
-	reader, writer := io.Pipe()
-
-	// 创建一个goroutine来读取文件内容并写入管道
-	go func() {
-		defer writer.Close()
-		_, err = io.Copy(writer, oReader)
-		if err != nil && err != io.EOF {
-			log.Error("error copying file to pipe: ", err)
-		}
-	}()
-
-	// 将管道的读取端作为请求体发送到服务器
-	req.Body = reader
-
-	// 发送请求
-	resp, err := u.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	resp.Body.Close()
 	return nil
 }
 
@@ -324,10 +196,10 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-func (r *UploadReq) UploadRaw(reader io.Reader, name string) error {
+func (r *UploadReq) UploadReader(reader io.Reader, name string) error {
 	u := r.uploader
 
-	req, err := http.NewRequest(http.MethodPost, r.Url, reader)
+	req, err := http.NewRequestWithContext(r.ctx, http.MethodPost, r.Url, reader)
 	if err != nil {
 		return err
 	}
@@ -335,10 +207,9 @@ func (r *UploadReq) UploadRaw(reader io.Reader, name string) error {
 		req.Header = r.header
 	}
 	httpx.CopyHttpHeader(req.Header, u.header)
-	name = escapeQuotes(name)
 	req.Header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
-	req.Header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.FormDataFileTmpl,
-		name, name))
+	req.Header.Set(httpx.HeaderContentLength, strconv.FormatInt(r.chunkSize, 10))
+	req.Header.Set(httpx.HeaderContentDisposition, httpx.FormatAttachment(name))
 	resp, err := u.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -347,41 +218,43 @@ func (r *UploadReq) UploadRaw(reader io.Reader, name string) error {
 	return nil
 }
 
-func (r *UploadReq) UploadRawChunked(reader io.Reader, name string) error {
+func (r *UploadReq) UploadReaderChunked(reader io.ReaderAt, name string, total int64) error {
 
-	var start, total int64
-	var end int64 = -1
+	var start int64
+	var end int64 = r.chunkSize - 1
 
 	u := r.uploader
-	buf := make([]byte, r.chunkSize)
-	req, err := http.NewRequest(http.MethodPost, r.Url, nil)
+
+	req, err := http.NewRequestWithContext(r.ctx, http.MethodPost, r.Url, nil)
 	if err != nil {
 		return err
 	}
 	req.Header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
-	name = escapeQuotes(name)
-	req.Header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.FormDataFileTmpl,
-		name, name))
-	for {
-		nr, er := reader.Read(buf)
-		if er != nil && er != io.EOF {
-			return er
+	for start < total {
+		body := io.NewSectionReader(reader, start, r.chunkSize)
+		req.Body = io.NopCloser(body)
+		req.Header.Set(httpx.HeaderContentRange, httpx.FormatContentRange(start, end, total))
+		req.Header.Set(httpx.HeaderContentLength, strconv.FormatInt(r.chunkSize, 10))
+		resp, err := u.httpClient.Do(req)
+		if err != nil {
+			return err
 		}
-		if nr > 0 {
-			end += int64(nr)
-			if er == io.EOF {
-				total = end + 1
-			}
-			req.Body = io.NopCloser(bytes.NewReader(buf[0:nr]))
-			req.Header.Set(httpx.HeaderContentRange, httpx.FormatContentRange(start, end, total))
-			resp, err := u.httpClient.Do(req)
-			if err != nil {
-				return err
-			}
-			resp.Body.Close()
-		}
-		if er == io.EOF {
-			return nil
+		resp.Body.Close()
+		start += r.chunkSize
+		end += r.chunkSize
+		if end >= total {
+			end = total - 1
 		}
 	}
+	return nil
+}
+
+
+func (r *UploadReq) Upload(filepath string) error {
+	panic("not implemented")
+}
+
+
+func (r *UploadReq) ConcurrentUploadReaderChunked(reader io.ReaderAt, name string, total int64, concurrencyNum int) error {
+	panic("not implemented")
 }

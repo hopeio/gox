@@ -92,6 +92,7 @@ func (req *Request) Context(ctx context.Context) *Request {
 	req.ctx = ctx
 	return req
 }
+
 func (req *Request) DoRaw(param any) (RawBytes, error) {
 	var raw RawBytes
 	err := req.Do(param, &raw)

@@ -92,9 +92,9 @@ func main() {
 	for _, circle := range circles {
 		if rotation != 0 {
 			newP := affineMatrix.Transform(geom.Pt(float64(circle.Center.X)/factor, float64(circle.Center.Y)/factor))
-			p.Circle(&gerber.Circle{Circle: geom.Circle{newP, float64(circle.Center.Y) / (factor / 2)}})
+			p.Circle(&gerber.Circle{Circle: geom.Circle{Centre: newP, Diameter: float64(circle.Center.Y) / (factor / 2)}})
 		} else {
-			p.Circle(&gerber.Circle{Circle: geom.Circle{geom.Pt(float64(circle.Center.X)/factor, float64(circle.Center.Y)/factor), float64(circle.Radius) / (factor / 2)}})
+			p.Circle(&gerber.Circle{Circle: geom.Circle{Centre: geom.Pt(float64(circle.Center.X)/factor, float64(circle.Center.Y)/factor), Diameter: float64(circle.Radius) / (factor / 2)}})
 		}
 	}
 	var removeRectCount int
@@ -116,9 +116,9 @@ func main() {
 		}
 		if rotation != 0 {
 			newP := affineMatrix.Transform(geom.Pt(float64(rect.Center.X-imageRect.Min.X)/factor, float64(rect.Center.Y-imageRect.Min.Y)/factor))
-			p.Rectangle(&gerber.Rectangle{Rectangle: geom.Rectangle{newP, float64(rect.Width) / factor, float64(rect.Height) / factor, rect.Angle + 90}})
+			p.Rectangle(&gerber.Rectangle{Rectangle: geom.Rectangle{Center: newP, Width: float64(rect.Width) / factor, Height: float64(rect.Height) / factor, Angle: rect.Angle + 90}})
 		} else {
-			p.Rectangle(&gerber.Rectangle{Rectangle: geom.Rectangle{geom.Pt(float64(rect.Center.X-imageRect.Min.X)/factor, float64(rect.Center.Y-imageRect.Min.Y)/factor), float64(rect.Width) / factor, float64(rect.Height) / factor, rect.Angle}})
+			p.Rectangle(&gerber.Rectangle{Rectangle: geom.Rectangle{Center: geom.Pt(float64(rect.Center.X-imageRect.Min.X)/factor, float64(rect.Center.Y-imageRect.Min.Y)/factor), Width: float64(rect.Width) / factor, Height: float64(rect.Height) / factor, Angle: rect.Angle}})
 		}
 	}
 }
@@ -205,7 +205,7 @@ func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect,
 		pixels := gocv.CountNonZero(region)
 		fillRatio := float64(pixels) / float64(area)
 		if fillRatio >= 0.7 {
-			circles = append(circles, &imagex.Circle{image.Pt(x, y), r})
+			circles = append(circles, &imagex.Circle{Center: image.Pt(x, y), Radius: r})
 		}
 	}
 	//debug

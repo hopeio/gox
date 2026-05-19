@@ -1,5 +1,7 @@
 package http
 
+import "fmt"
+
 const (
 	HeaderUserAgent                   = "User-Agent"
 	HeaderXForwardedFor               = "X-Forwarded-For"
@@ -33,6 +35,7 @@ const (
 	HeaderOrigin                      = "Origin"
 	HeaderConnection                  = "Connection"
 	HeaderRange                       = "Range"
+	HeaderAllow                       = "Allow"
 	HeaderHost                        = "Host"
 	HeaderVia                         = "Via"
 	HeaderDate                        = "Date"
@@ -98,7 +101,7 @@ const (
 	// ContentTypeYaml header value for YAML data.
 	ContentTypeYaml = "application/yaml"
 	// ContentTypeProtobuf header value for Protobuf messages data.
-	ContentTypeProtobuf = "application/protobuf"
+	ContentTypeProtobuf  = "application/protobuf"
 	ContentTypeXProtobuf = "application/x-protobuf"
 	// ContentTypeMsgPack header value for MsgPack data.
 	ContentTypeMsgPack = "application/msgpack"
@@ -134,6 +137,16 @@ const (
 	FormDataFileTmpl  = `form-data; name="%s"; filename="%s"`
 	AttachmentTmpl    = `attachment; filename="%s"`
 )
+
+func FormatFormDataField(name string) string {
+	return fmt.Sprintf(FormDataFieldTmpl, name)
+}
+func FormatFormDataFile(name, filename string) string {
+	return fmt.Sprintf(FormDataFileTmpl, name, filename)
+}
+func FormatAttachment(filename string) string {
+	return fmt.Sprintf(AttachmentTmpl, filename)
+}
 
 const (
 	CacheControlNoCache = "no-cache"

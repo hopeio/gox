@@ -99,8 +99,8 @@ func CommonBind(s Source, v any) error {
 				recorder.RecordBody(data, nil)
 			}
 			multipartFormSetter = strstruct.KVsSource(vs)
-		}else if strings.HasPrefix(contentType, ContentTypeMultipart) {
-			mr,err := multipartReader(true,contentType,body)
+		} else if strings.HasPrefix(contentType, ContentTypeMultipart) {
+			mr, err := multipartReader(true, contentType, body)
 			if err != nil {
 				return nil
 			}
@@ -109,28 +109,28 @@ func CommonBind(s Source, v any) error {
 				return err
 			}
 			multipartFormSetter = (*MultipartSource)(multipartForm)
-		}else{
-			var data []byte
-		if raw, ok := body.(iox.RawByter); ok {
-			data = raw.Raw()
 		} else {
-			var err error
-			data, err = io.ReadAll(body)
-			if err != nil {
-				return fmt.Errorf("read body error: %w", err)
+			var data []byte
+			if raw, ok := body.(iox.RawByter); ok {
+				data = raw.Raw()
+			} else {
+				var err error
+				data, err = io.ReadAll(body)
+				if err != nil {
+					return fmt.Errorf("read body error: %w", err)
+				}
 			}
-		}
-		if len(data) == 0 {
-			return nil
-		}
-		err := DefaultUnmarshal(ctx, contentType, data, v)
-		if err != nil {
-			return err
-		}
-		if recorder, ok := body.(RecordBodyer); ok {
-			recorder.RecordBody(data, v)
-		}
-		return DefaultUnmarshal(ctx, contentType, data, v)
+			if len(data) == 0 {
+				return nil
+			}
+			err := DefaultUnmarshal(ctx, contentType, data, v)
+			if err != nil {
+				return err
+			}
+			if recorder, ok := body.(RecordBodyer); ok {
+				recorder.RecordBody(data, v)
+			}
+			return DefaultUnmarshal(ctx, contentType, data, v)
 		}
 
 	}
@@ -239,7 +239,7 @@ func CommonBind(s Source, v any) error {
 	return Validate(v)
 }
 
-func multipartReader(allowMixed bool,contentType string,body io.Reader) (*multipart.Reader, error) {
+func multipartReader(allowMixed bool, contentType string, body io.Reader) (*multipart.Reader, error) {
 	if contentType == "" {
 		return nil, http.ErrNotMultipart
 	}
@@ -296,7 +296,6 @@ func (hs HeaderSource) Get(key string) ([]string, bool) {
 	return v, ok
 }
 
-
 type UriSource http.Request
 
 var _ strstruct.Getter = (*UriSource)(nil)
@@ -308,7 +307,6 @@ func (req *UriSource) Get(key string) (string, bool) {
 	v := (*http.Request)(req).PathValue(key)
 	return v, v != ""
 }
-
 
 type QuerySource map[string][]string
 
