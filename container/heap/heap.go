@@ -59,7 +59,7 @@ func (heap Heap[T]) Last() (T, bool) {
 	if len(heap) == 0 {
 		return *new(T), false
 	}
-	return heap[len(heap)-1], false
+	return heap[len(heap)-1], true
 }
 
 func (heap *Heap[T]) Remove(i int) (T, bool) {

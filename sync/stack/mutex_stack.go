@@ -23,7 +23,7 @@ func (s *MutexStack[T]) Pop() (T, bool) {
 		s.mu.Unlock()
 		return *new(T), false
 	}
-	v := s.v[len(s.v)]
+	v := s.v[len(s.v)-1]
 	s.v = s.v[:len(s.v)-1]
 	s.mu.Unlock()
 	return v, true

@@ -130,8 +130,8 @@ func (d Date) String() string {
 // 01-01-01 00:00:00~9999-12-31 23:59:59
 type DateTime int64
 
-func DateTimeFromTime(t time.Time) Date {
-	return Date(t.Unix())
+func DateTimeFromTime(t time.Time) DateTime {
+	return DateTime(t.Unix())
 }
 
 func (d DateTime) Time() time.Time {

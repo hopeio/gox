@@ -10,6 +10,11 @@ import (
 	"errors"
 )
 
+type Node[T any] struct {
+	data T
+	next *Node[T]
+}
+
 // 链表
 type LinkedList[T comparable] struct {
 	head, tail *Node[T]
@@ -158,7 +163,13 @@ func (l *LinkedList[T]) DeleteNode(node *Node[T]) {
 	if l.Exist(node) {
 		//如果是头部结点
 		if node == l.head {
-			l.head = l.head.next
+			if node == l.tail {
+				l.head = nil
+				l.tail = nil
+			} else {
+				l.head = l.head.next
+			}
+			return
 			//如果是尾部结点
 		} else if node == l.tail {
 			//寻找指向其前一个结点的指针

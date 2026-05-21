@@ -225,13 +225,17 @@ func OrderedArrayIntersection[S ~[]T, T constraints.Ordered](a S, b S) S {
 		if x > b[len(b)-1] {
 			return ret
 		}
-		for j := idx; idx < len(b)-1; j++ {
+		for j := idx; j < len(b); j++ {
 			if a[len(a)-1] < b[idx] {
 				return ret
 			}
-			if x == b[idx] {
+			if x == b[j] {
 				ret = append(ret, x)
+				idx = j + 1
+				break
+			} else if x < b[j] {
 				idx = j
+				break
 			}
 		}
 	}

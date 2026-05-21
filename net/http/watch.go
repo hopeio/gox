@@ -77,12 +77,12 @@ func (w *FileWatcher) Remove(url string) error {
 }
 
 func (w *FileWatcher) run() {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	for range w.timer.C {
+		w.mu.Lock()
 		for _, callback := range w.handlers {
 			callback.Do()
 		}
+		w.mu.Unlock()
 	}
 }
 

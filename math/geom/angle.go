@@ -22,8 +22,8 @@ func NormalizeAngleRadian(theta float64) float64 {
 		return 0
 	}
 	pi2 := math.Pi * 2
-	if theta > pi2 {
-		for theta > pi2 {
+	if theta > 0 {
+		for theta >= pi2 {
 			theta -= pi2
 		}
 	} else {

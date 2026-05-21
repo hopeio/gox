@@ -67,11 +67,6 @@ func (res *CommonResp[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	if res.Code != errorsx.Success {
-		w.WriteHeader(StatusFromErrCode(res.Code))
-	} else {
-		w.WriteHeader(http.StatusOK)
-	}
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
@@ -89,6 +84,13 @@ func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (i
 		}
 		header.Set(HeaderContentType, contentType)
 	}
+
+	if res.Code != errorsx.Success {
+		w.WriteHeader(StatusFromErrCode(res.Code))
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
 	ow := w
 	if uw, ok := w.(Unwrapper); ok {
 		ow = uw.Unwrap()
@@ -171,7 +173,6 @@ func (res *Response) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *Response) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	w.WriteHeader(res.Status)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		for k, v := range res.Headers {
@@ -182,6 +183,7 @@ func (res *Response) Respond(ctx context.Context, w http.ResponseWriter) (int, e
 	} else {
 		CopyHttpHeader(w.Header(), res.Headers)
 	}
+	w.WriteHeader(res.Status)
 	n, err := res.Body.WriteTo(w)
 	res.Body.Close()
 	return int(n), err
@@ -211,11 +213,6 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	if res.Code != errorsx.Success {
-		w.WriteHeader(StatusFromErrCode(res.Code))
-	} else {
-		w.WriteHeader(http.StatusOK)
-	}
 	data, contentType := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
@@ -231,6 +228,11 @@ func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, er
 			header.Set(HeaderErrorMsg, res.Msg)
 		}
 		header.Set(HeaderContentType, contentType)
+	}
+	if res.Code != errorsx.Success {
+		w.WriteHeader(StatusFromErrCode(res.Code))
+	} else {
+		w.WriteHeader(http.StatusOK)
 	}
 	ow := w
 	if uw, ok := w.(Unwrapper); ok {
@@ -257,7 +259,6 @@ type ResponseStream struct {
 }
 
 func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	w.WriteHeader(res.Status)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		for k, v := range res.Headers {
@@ -268,6 +269,7 @@ func (res *ResponseStream) Respond(ctx context.Context, w http.ResponseWriter) (
 	} else {
 		CopyHttpHeader(w.Header(), res.Headers)
 	}
+	w.WriteHeader(res.Status)
 	return RespondStream(ctx, w, res.Body)
 }
 

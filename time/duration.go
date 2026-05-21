@@ -47,6 +47,7 @@ func NormalizeDuration(td time.Duration, stdTd time.Duration) time.Duration {
 	if td == 0 {
 		return td
 	}
+	// 如果传入的值非常小，那么很可能是没带单位的数值（如 5），将其作为倍数处理
 	if td < stdTd {
 		return td * stdTd
 	}

@@ -59,7 +59,10 @@ func UnPadding(origData []byte) []byte {
 	// 去掉最后一个字节 unpadding 次
 	unPadding := int(origData[length-1])
 	//解密去补码时需取最后一个字节，值为m，则从数据尾部删除m个字节，剩余数据即为加密前的原文
-	return origData[:(length - unPadding)]
+	if unPadding > length || unPadding == 0 {
+		return nil
+	}
+	return origData[:length-unPadding]
 }
 
 func Pkcs5Padding(cipherText []byte, blockSize int) []byte {

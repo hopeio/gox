@@ -94,6 +94,9 @@ func NewGzipHandler(level int, options *GzipOptions) *gzipHandler {
 func (g *gzipHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if !g.shouldCompress(r) {
+		if g.GzipOptions != nil && g.GzipOptions.Handler != nil {
+			g.GzipOptions.Handler(w, r)
+		}
 		return
 	}
 
@@ -105,7 +108,9 @@ func (g *gzipHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	header.Set("Content-Encoding", "gzip")
 	header.Set("Vary", "Accept-Encoding")
 	gw := &gzipWriter{w, gz, 0}
-	g.GzipOptions.Handler(w, r)
+	if g.GzipOptions != nil && g.GzipOptions.Handler != nil {
+		g.GzipOptions.Handler(gw, r)
+	}
 	gz.Close()
 	header.Set("Content-Length", strconv.Itoa(gw.size))
 

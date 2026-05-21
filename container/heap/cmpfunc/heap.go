@@ -115,5 +115,5 @@ func (h Heap[T]) Last() (T, bool) {
 	if len(h.arr) == 0 {
 		return *new(T), false
 	}
-	return h.arr[len(h.arr)-1], false
+	return h.arr[len(h.arr)-1], true
 }
