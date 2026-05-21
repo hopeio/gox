@@ -14,6 +14,6 @@ func SetSysTime(t time.Time) {
 }
 
 func SyncHwTime() {
-	cmd := exec.Command("clock --systohc")
+	cmd := exec.Command("clock", "--systohc")
 	cmd.Run()
 }
