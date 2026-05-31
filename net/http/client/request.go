@@ -129,7 +129,6 @@ func (req *Request) Do(param, response any) error {
 	}
 	c := req.client
 
-	var accessLogParam AccessLogParam
 	var reqBody, respBody []byte
 	var reqTimes int
 	var err error
@@ -139,7 +138,6 @@ func (req *Request) Do(param, response any) error {
 	// 日志记录
 	defer func(now time.Time) {
 		if c.logLevel == LogLevelInfo || (err != nil && c.logLevel == LogLevelError) {
-			accessLogParam.Duration = time.Since(reqTime)
 			c.logger(&AccessLogParam{
 				Method:   req.Method,
 				Url:      req.Url,
@@ -190,9 +188,6 @@ func (req *Request) Do(param, response any) error {
 		}
 
 		if len(reqBody) > 0 {
-			if c.reqBodyMarshal != nil {
-				reqBody, err = c.reqBodyMarshal(reqBody)
-			}
 			body = bytes.NewReader(reqBody)
 		}
 	}
@@ -208,9 +203,13 @@ func (req *Request) Do(param, response any) error {
 	if req.contentType != 0 {
 		request.Header.Set(httpx.HeaderContentType, req.contentType.String())
 	}
+	for _, opt := range c.httpRequestOptions {
+		opt(request)
+	}
 
 Retry:
 	if reqTimes > 0 {
+		closeResponse(resp)
 		if c.retryInterval != 0 {
 			time.Sleep(c.retryInterval)
 		}
@@ -262,11 +261,6 @@ Retry:
 		return err
 	}
 
-	if httpresp, ok := response.(**http.Response); ok {
-		*httpresp = resp
-		return err
-	}
-
 	var reader io.Reader
 	// net/http会自动处理gzip
 	// go1.22 发现没有处理(并不是,是请求时header标明Content-Encoding时不会处理)
@@ -307,6 +301,16 @@ Retry:
 		resp.Uncompressed = true
 	}
 
+	if httpresp, ok := response.(**http.Response); ok {
+		if rc, ok := reader.(io.ReadCloser); ok {
+			resp.Body = rc
+		} else {
+			resp.Body = io.NopCloser(reader)
+		}
+		*httpresp = resp
+		return nil
+	}
+
 	if httpresp, ok := response.(*io.Reader); ok {
 		*httpresp = reader
 		return err
@@ -316,6 +320,7 @@ Retry:
 		var retry bool
 		retry, reader, err = c.responseHandler(resp)
 		if retry {
+			closeResponse(resp)
 			if c.logLevel > LogLevelSilent {
 				c.logger(&AccessLogParam{
 					Method:   req.Method,
@@ -329,14 +334,22 @@ Retry:
 			}
 			goto Retry
 		} else if err != nil {
+			closeResponse(resp)
 			return err
 		}
 	}
 
 	respBody, err = io.ReadAll(reader)
-	resp.Body.Close()
+	closeResponse(resp)
 	if err != nil {
 		return err
+	}
+
+	if c.respBodyHandler != nil {
+		respBody, err = c.respBodyHandler(respBody)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(respBody) > 0 && response != nil {

@@ -182,11 +182,15 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 		opt(req)
 	}
 	req.Header.Set(httpx.HeaderContentType, w.FormDataContentType())
-	_, err = d.httpClient.Do(req)
+	resp, err := d.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
-	// TODO: error handler, retry
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		data, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("status:%s %s", resp.Status, string(data))
+	}
 	return nil
 }
 

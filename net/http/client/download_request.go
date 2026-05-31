@@ -130,7 +130,11 @@ func (dReq *DownloadReq) GetResponse(options ...func(*http.Request)) (*http.Resp
 	}
 
 	var resp *http.Response
-	for i := range d.retryTimes {
+	times := d.retryTimes
+	if times <= 0 {
+		times = 1
+	}
+	for i := 0; i < times; i++ {
 		if i > 0 {
 			time.Sleep(d.retryInterval)
 		}

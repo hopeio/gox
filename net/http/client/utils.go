@@ -34,8 +34,23 @@ func setTimeout(client *http.Client, timeout time.Duration) {
 	client.Timeout = timeout
 }
 
+func ensureTransport(client *http.Client) *http.Transport {
+	if t, ok := client.Transport.(*http.Transport); ok && t != nil {
+		return t
+	}
+	t := apiTransport()
+	client.Transport = t
+	return t
+}
+
 func setProxy(client *http.Client, proxy func(*http.Request) (*url.URL, error)) {
-	client.Transport.(*http.Transport).Proxy = proxy
+	ensureTransport(client).Proxy = proxy
+}
+
+func closeResponse(resp *http.Response) {
+	if resp != nil && resp.Body != nil {
+		resp.Body.Close()
+	}
 }
 
 func CloseReaderWrap(err error) error {

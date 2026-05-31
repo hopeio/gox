@@ -29,28 +29,30 @@ const timeout = time.Minute
 type ClientType uint8
 
 const (
-	ClientTypeApi      ClientType = iota
-	ClientTypeDownload ClientType = iota
-	ClientTypeUpload   ClientType = iota
+	ClientTypeApi ClientType = iota
+	ClientTypeDownload
+	ClientTypeUpload
 )
 
-func newHttpClient(typ ClientType) *http.Client {
-	if typ == ClientTypeApi {
-		return &http.Client{
-			//Timeout: timeout * 2,
-			Transport: &http.Transport{
-				Proxy:             http.ProxyFromEnvironment, // 代理使用
-				ForceAttemptHTTP2: true,
-				DialContext: (&net.Dialer{
-					Timeout:   timeout,
-					KeepAlive: 30 * time.Second,
-				}).DialContext,
-				//DisableKeepAlives: true,
-				TLSHandshakeTimeout: timeout,
-			},
-		}
+func apiTransport() *http.Transport {
+	return &http.Transport{
+		Proxy:             http.ProxyFromEnvironment,
+		ForceAttemptHTTP2: true,
+		DialContext: (&net.Dialer{
+			Timeout:   timeout,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: timeout,
 	}
-	return newDownloadHttpClient()
+}
+
+func newHttpClient(typ ClientType) *http.Client {
+	switch typ {
+	case ClientTypeDownload, ClientTypeUpload:
+		return newDownloadHttpClient()
+	default:
+		return &http.Client{Transport: apiTransport()}
+	}
 }
 
 // Client ...
@@ -146,7 +148,7 @@ func (d *Client) RespBodyUnMarshal(handler func(data []byte, v any) error) *Clie
 	return d
 }
 
-func (d *Client) HttpRequestOptions(opts ...HttpRequestOption) *Downloader {
+func (d *Client) HttpRequestOptions(opts ...HttpRequestOption) *Client {
 	d.httpRequestOptions = append(d.httpRequestOptions, opts...)
 	return d
 }
@@ -192,23 +194,36 @@ func (d *Client) RetryHandler(handle func(r *http.Request)) *Client {
 	return d
 }
 
-func (d *Client) Proxy(proxyUrl string) *Client {
+func (d *Client) ensureOwnHttpClient() {
 	if !d.newHttpClient {
 		d.httpClient = newHttpClient(d.typ)
 		d.newHttpClient = true
 	}
-	if proxyUrl != "" {
-		purl, _ := stdurl.Parse(proxyUrl)
-		setProxy(d.httpClient, http.ProxyURL(purl))
+}
+
+func (d *Client) Proxy(proxyUrl string) *Client {
+	d.ensureOwnHttpClient()
+	if proxyUrl == "" {
+		return d
 	}
+	purl, err := stdurl.Parse(proxyUrl)
+	if err != nil {
+		return d
+	}
+	setProxy(d.httpClient, http.ProxyURL(purl))
+	return d
+}
+
+// NoProxy 禁用代理（不读取 HTTP_PROXY 等环境变量）。
+func (d *Client) NoProxy() *Client {
+	d.ensureOwnHttpClient()
+	setProxy(d.httpClient, nil)
 	return d
 }
 
 func (d *Client) ResetProxy() *Client {
-	if !d.newHttpClient {
-		return d
-	}
-	d.httpClient.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
+	d.ensureOwnHttpClient()
+	setProxy(d.httpClient, http.ProxyFromEnvironment)
 	return d
 }
 
