@@ -29,3 +29,13 @@ func CMD(s string, opts ...Option) *exec.Cmd {
 	}
 	return cmd
 }
+
+func CmdString(cmd *exec.Cmd) string {
+	if cmd.SysProcAttr != nil && cmd.SysProcAttr.CmdLine != "" {
+		return cmd.Path + cmd.SysProcAttr.CmdLine
+	}
+	if len(cmd.Args) == 0 {
+		return cmd.Path
+	}
+	return strings.Join(cmd.Args, " ")
+}

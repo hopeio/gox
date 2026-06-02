@@ -4,6 +4,7 @@ package exec
 
 import (
 	"os/exec"
+	"strings"
 
 	osx "github.com/hopeio/gox/os"
 )
@@ -15,4 +16,11 @@ func CMD(s string, opts ...Option) *exec.Cmd {
 		opt(cmd)
 	}
 	return cmd
+}
+
+func CmdString(cmd *exec.Cmd) string {
+	if len(cmd.Args) == 0 {
+		return cmd.Path
+	}
+	return strings.Join(cmd.Args, " ")
 }

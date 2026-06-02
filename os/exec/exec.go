@@ -25,7 +25,7 @@ func Run(s string, opts ...Option) error {
 
 func RunWithLog(s string, opts ...Option) error {
 	opts = append(opts, func(cmd *exec.Cmd) {
-		log.Printf(`exec:"%v"`, cmd)
+		log.Printf(`exec:"%s"`, CmdString(cmd))
 	})
 	return Run(s, opts...)
 }
@@ -33,7 +33,10 @@ func RunWithLog(s string, opts ...Option) error {
 type Option func(cmd *exec.Cmd)
 
 func RunGetOut(s string, opts ...Option) (string, error) {
-	cmd := CMD(s, opts...)
+	return runGetOutCmd(CMD(s, opts...))
+}
+
+func runGetOutCmd(cmd *exec.Cmd) (string, error) {
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
 		return stringsx.FromBytes(buf), err
@@ -45,19 +48,18 @@ func RunGetOut(s string, opts ...Option) (string, error) {
 	if buf[lastIndex] == '\n' {
 		buf = buf[:lastIndex]
 	}
-	for _, opt := range opts {
-		opt(cmd)
-	}
 	return stringsx.FromBytes(buf), nil
 }
 
 func RunGetOutWithLog(s string, opts ...Option) (string, error) {
-	out, err := RunGetOut(s, opts...)
+	cmd := CMD(s, opts...)
+	out, err := runGetOutCmd(cmd)
+	line := CmdString(cmd)
 	if err != nil {
-		log.Printf(`exec:"%s" failed,out:%v,err:%v`, s, out, err)
+		log.Printf(`exec:"%s" failed,out:%v,err:%v`, line, out, err)
 		return out, err
 	}
-	log.Printf(`exec:"%s"`, s)
+	log.Printf(`exec:"%s"`, line)
 	return out, err
 }
 
