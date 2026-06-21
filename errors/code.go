@@ -51,3 +51,10 @@ var codeMsgMap = map[ErrCode]string{
 func Register(code ErrCode, msg string) {
 	codeMsgMap[code] = msg
 }
+
+
+func RegisterMap(enum map[int32]string) {
+	for code, msg := range enum {
+		codeMsgMap[ErrCode(code)] = msg
+	}
+}

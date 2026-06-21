@@ -38,6 +38,10 @@ func Register(code ErrCode, msg string) {
 	errors.Register(errors.ErrCode(code), msg)
 }
 
+func RegisterMap(m map[int32]string) {
+	errors.RegisterMap(m)
+}
+
 type ErrCode errors.ErrCode
 
 func (x ErrCode) String() string {
