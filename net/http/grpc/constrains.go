@@ -12,7 +12,7 @@ type ProtoMessage[T any] interface {
 	proto.Message
 }
 
-type GrpcHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(ctx context.Context, in ReqPtr, opts ...grpc.CallOption) (RespPtr, error)
+type GrpcHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(ctx context.Context, in ReqPtr) (RespPtr, error)
 
 
 type ServerSideStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(in ReqPtr, stream ServerSideStream[Resp, RespPtr]) error
