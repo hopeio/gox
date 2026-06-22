@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"strings"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
 
@@ -10,9 +9,6 @@ import (
 
 var (
 	DefaultUnmarshal UnmarshalFunc = func(ctx context.Context, contentType string, data []byte, v any) error {
-		if strings.HasPrefix(contentType, ContentTypeJson) {
-			return jsonx.Unmarshal(data, v)
-		}
 		return jsonx.Unmarshal(data, v)
 	}
 

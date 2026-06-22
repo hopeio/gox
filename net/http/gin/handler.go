@@ -45,7 +45,7 @@ func HandlerWrap[REQ, RESP any](service Service[*REQ, *RESP]) gin.HandlerFunc {
 	}
 }
 
-func HandlerWrapGRPC[REQ, RESP any](service types.GrpcService[*REQ, *RESP]) gin.HandlerFunc {
+func HandlerWrapCommon[REQ, RESP any](service types.Service[*REQ, *RESP]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		req := new(REQ)
 		err := Bind(ctx, req)

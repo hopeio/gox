@@ -10,7 +10,7 @@ import (
 	"context"
 )
 
-type GrpcService[REQ, RESP any] func(context.Context, REQ) (RESP, error)
+type Service[REQ, RESP any] func(context.Context, REQ) (RESP, error)
 
 type Func func()
 

@@ -51,7 +51,7 @@ func HandlerWrap[REQ, RESP any](service Service[*REQ, *RESP]) http.Handler {
 		ServeSuccess(w, r, res)
 	})
 }
-func HandlerWrapGRPC[REQ, RESP any](method types.GrpcService[*REQ, *RESP]) http.Handler {
+func HandlerWrapCommon[REQ, RESP any](method types.Service[*REQ, *RESP]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		req := new(REQ)

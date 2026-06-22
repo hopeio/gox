@@ -7,12 +7,15 @@ import (
 	"net/textproto"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	errorsx "github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/net/http/grpc"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 )
@@ -101,7 +104,7 @@ func NewCommonProtoResp(code errorsx.ErrCode, msg string, data proto.Message) *C
 	return &CommonProtoResp{Code: code, Msg: msg, Data: data}
 }
 
-func ForwardResponseMessage(w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.MarshalFunc) error {
+var ForwardResponseMessage = func (w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.MarshalFunc) error {
 	HandleForwardResponseServerMetadata(w, md.Header)
 	var wantsTrailers bool
 	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
@@ -177,5 +180,22 @@ func HandleForwardResponseTrailer(w http.ResponseWriter, md metadata.MD) {
 		for _, v := range vs {
 			w.Header().Add(tKey, v)
 		}
+	}
+}
+
+var HttpError = func(w http.ResponseWriter, r *http.Request, err error) {
+	s, ok := status.FromError(err)
+	if !ok {
+		grpclog.Warningf("Failed to convert error to status: %v", err)
+	}
+	delete(r.Header, httpx.HeaderTrailer)
+	errcodeHeader := strconv.Itoa(int(s.Code()))
+	buf, contentType := DefaultMarshal(r.Context(), s)
+	header := w.Header()
+	header.Set(httpx.HeaderContentType, contentType)
+	header.Set(httpx.HeaderGrpcStatus, errcodeHeader)
+	header.Set(httpx.HeaderErrorCode, errcodeHeader)
+	if _, err := w.Write(buf); err != nil {
+		grpclog.Infof("Failed to write response: %v", err)
 	}
 }

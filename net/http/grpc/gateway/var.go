@@ -2,14 +2,19 @@ package gateway
 
 import (
 	"context"
+	"strings"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
 	httpx "github.com/hopeio/gox/net/http"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func init() {
 	httpx.DefaultMarshal = DefaultMarshal
+	httpx.DefaultUnmarshal = Unmarshaller
 }
 
 var DefaultMarshal httpx.MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string) {
@@ -83,3 +88,24 @@ var InComingHeader = []string{
 }
 
 var OutgoingHeader = []string{httpx.HeaderSetCookie}
+
+var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v any) error {
+	if strings.HasPrefix(contentType, httpx.ContentTypeProtobuf) {
+		return proto.Unmarshal(data, v.(proto.Message))
+	}
+	var wrapped httpx.CommonAnyResp
+	if err := jsonx.Unmarshal(data, &wrapped); err == nil && wrapped.Data != nil {
+		inner, err := jsonx.Marshal(wrapped.Data)
+		if err != nil {
+			return status.Errorf(codes.InvalidArgument, "marshal frame data: %v", err)
+		}
+		if err := jsonx.Unmarshal(inner, v); err != nil {
+			return status.Errorf(codes.InvalidArgument, "unmarshal frame: %v", err)
+		}
+		return nil
+	}
+	if err := jsonx.Unmarshal(data, v); err != nil {
+		return status.Errorf(codes.InvalidArgument, "unmarshal frame: %v", err)
+	}
+	return nil
+}
