@@ -14,15 +14,14 @@ type ProtoMessage[T any] interface {
 
 type GrpcHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(ctx context.Context, in ReqPtr) (RespPtr, error)
 
-
-type ServerSideStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(in ReqPtr, stream ServerSideStream[Resp, RespPtr]) error
+type ServerSideStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp], S ServerSideStream[Resp, RespPtr]] func(ReqPtr, S) error
 
 type ServerSideStream[Resp any, RespPtr ProtoMessage[Resp]] interface {
 	Send(RespPtr) error
 	grpc.ServerStream
 }
 
-type ClientSideStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(stream ClientSideStream[Req, Resp, ReqPtr, RespPtr]) error
+type ClientSideStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp], S ClientSideStream[Req, Resp, ReqPtr, RespPtr]] func(S) error
 
 type ClientSideStream[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] interface {
 	Recv() (ReqPtr, error)
@@ -30,7 +29,7 @@ type ClientSideStream[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMess
 	grpc.ServerStream
 }
 
-type BidiStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] func(stream BidiStream[Req, Resp, ReqPtr, RespPtr]) error
+type BidiStreamHandler[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp], S BidiStream[Req, Resp, ReqPtr, RespPtr]] func(S) error
 
 type BidiStream[Req, Resp any, ReqPtr ProtoMessage[Req], RespPtr ProtoMessage[Resp]] interface {
 	Recv() (ReqPtr, error)

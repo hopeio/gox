@@ -6,13 +6,10 @@ import (
 	"net/http"
 	"net/textproto"
 	"reflect"
-	"slices"
 	"strconv"
-	"strings"
 
 	errorsx "github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
-	"github.com/hopeio/gox/net/http/grpc"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -104,14 +101,7 @@ func NewCommonProtoResp(code errorsx.ErrCode, msg string, data proto.Message) *C
 	return &CommonProtoResp{Code: code, Msg: msg, Data: data}
 }
 
-var ForwardResponseMessage = func (w http.ResponseWriter, r *http.Request, md grpc.ServerMetadata, message proto.Message, codec httpx.MarshalFunc) error {
-	HandleForwardResponseServerMetadata(w, md.Header)
-	var wantsTrailers bool
-	if te := r.Header.Get(httpx.HeaderTE); strings.Contains(strings.ToLower(te), "trailers") {
-		wantsTrailers = true
-		HandleForwardResponseTrailerHeader(w, md.Trailer)
-		w.Header().Set(httpx.HeaderTransferEncoding, "chunked")
-	}
+var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message proto.Message, codec httpx.MarshalFunc) error {
 	var contentType string
 	var buf []byte
 	switch rb := message.(type) {
@@ -136,54 +126,41 @@ var ForwardResponseMessage = func (w http.ResponseWriter, r *http.Request, md gr
 	if recorder, ok := ow.(httpx.RecordBodyer); ok {
 		recorder.RecordBody(buf, message)
 	}
-	w.Write(buf)
-	if wantsTrailers {
-		HandleForwardResponseTrailer(w, md.Trailer)
-	}
-	return nil
-}
-
-func InComingHeaderMatcher(key string) (string, bool) {
-	if slices.Contains(InComingHeader, key) {
-		return key, true
-	}
-	return "", false
-}
-
-func OutgoingHeaderMatcher(key string) (string, bool) {
-	if slices.Contains(OutgoingHeader, key) {
-		return key, true
-	}
-	return "", false
-}
-
-func HandleForwardResponseServerMetadata(w http.ResponseWriter, md metadata.MD) {
-	for _, k := range OutgoingHeader {
-		if vs, ok := md[k]; ok {
-			for _, v := range vs {
-				w.Header().Add(k, v)
-			}
-		}
-	}
+	_, err := w.Write(buf)
+	return err
 }
 
 func HandleForwardResponseTrailerHeader(w http.ResponseWriter, md metadata.MD) {
 	for k := range md {
-		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k))
+		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", MetadataTrailerPrefix, k))
 		w.Header().Add(httpx.HeaderTrailer, tKey)
 	}
 }
 
 func HandleForwardResponseTrailer(w http.ResponseWriter, md metadata.MD) {
 	for k, vs := range md {
-		tKey := fmt.Sprintf("%s%s", grpc.MetadataTrailerPrefix, k)
+		tKey := fmt.Sprintf("%s%s", MetadataTrailerPrefix, k)
 		for _, v := range vs {
 			w.Header().Add(tKey, v)
 		}
 	}
 }
 
-var HttpError = func(w http.ResponseWriter, r *http.Request, err error) {
+// FinalizeStreamTrailers 在流式响应结束时写出 grpc-status / grpc-message 及自定义 trailer metadata。
+func FinalizeStreamTrailers(w http.ResponseWriter, started bool, err error, trailers metadata.MD) {
+	if !started {
+		return
+	}
+	if err != nil {
+		w.Header().Set(httpx.HeaderGrpcStatus, strconv.Itoa(int(status.Code(err))))
+		w.Header().Set(httpx.HeaderGrpcMessage, err.Error())
+	} else {
+		w.Header().Set(httpx.HeaderGrpcStatus, "0")
+	}
+	HandleForwardResponseTrailer(w, trailers)
+}
+
+var HandleError = func(w http.ResponseWriter, r *http.Request, err error) {
 	s, ok := status.FromError(err)
 	if !ok {
 		grpclog.Warningf("Failed to convert error to status: %v", err)

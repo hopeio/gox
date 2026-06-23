@@ -60,35 +60,6 @@ var DefaultMarshal httpx.MarshalFunc = func(ctx context.Context, v any) (data []
 	return data, httpx.ContentTypeJson
 }
 
-var InComingHeader = []string{
-	httpx.HeaderAccept,
-	httpx.HeaderAcceptCharset,
-	httpx.HeaderAcceptLanguage,
-	httpx.HeaderAcceptRanges,
-	httpx.HeaderCacheControl,
-	httpx.HeaderContentType,
-	httpx.HeaderHost,
-	httpx.HeaderVia,
-	httpx.HeaderDate,
-	httpx.HeaderReferer,
-	httpx.HeaderOrigin,
-	httpx.HeaderUserAgent,
-	httpx.HeaderExpect,
-	httpx.HeaderFrom,
-	httpx.HeaderPragma,
-	httpx.HeaderWarning,
-	//"Token",
-	//"Cookie",
-	"If-Match",
-	"If-Modified-Since",
-	"If-None-Match",
-	"If-Schedule-Key-Match",
-	"If-Unmodified-Since",
-	"Max-Forwards",
-}
-
-var OutgoingHeader = []string{httpx.HeaderSetCookie}
-
 var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v any) error {
 	if strings.HasPrefix(contentType, httpx.ContentTypeProtobuf) {
 		return proto.Unmarshal(data, v.(proto.Message))
@@ -99,7 +70,7 @@ var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v 
 		if err != nil {
 			return status.Errorf(codes.InvalidArgument, "marshal frame data: %v", err)
 		}
-		if err := jsonx.Unmarshal(inner, v); err != nil {
+		if err := unmarshalInner(inner, v); err != nil {
 			return status.Errorf(codes.InvalidArgument, "unmarshal frame: %v", err)
 		}
 		return nil
@@ -108,4 +79,67 @@ var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v 
 		return status.Errorf(codes.InvalidArgument, "unmarshal frame: %v", err)
 	}
 	return nil
+}
+
+func unmarshalInner(inner []byte, v any) error {
+	if err := jsonx.Unmarshal(inner, v); err == nil {
+		return nil
+	}
+	switch msg := v.(type) {
+	case *wrapperspb.StringValue:
+		var s string
+		if err := jsonx.Unmarshal(inner, &s); err == nil {
+			msg.Value = s
+			return nil
+		}
+	case *wrapperspb.BoolValue:
+		var b bool
+		if err := jsonx.Unmarshal(inner, &b); err == nil {
+			msg.Value = b
+			return nil
+		}
+	case *wrapperspb.Int32Value:
+		var n int32
+		if err := jsonx.Unmarshal(inner, &n); err == nil {
+			msg.Value = n
+			return nil
+		}
+	case *wrapperspb.Int64Value:
+		var n int64
+		if err := jsonx.Unmarshal(inner, &n); err == nil {
+			msg.Value = n
+			return nil
+		}
+	case *wrapperspb.UInt32Value:
+		var n uint32
+		if err := jsonx.Unmarshal(inner, &n); err == nil {
+			msg.Value = n
+			return nil
+		}
+	case *wrapperspb.UInt64Value:
+		var n uint64
+		if err := jsonx.Unmarshal(inner, &n); err == nil {
+			msg.Value = n
+			return nil
+		}
+	case *wrapperspb.FloatValue:
+		var f float32
+		if err := jsonx.Unmarshal(inner, &f); err == nil {
+			msg.Value = f
+			return nil
+		}
+	case *wrapperspb.DoubleValue:
+		var f float64
+		if err := jsonx.Unmarshal(inner, &f); err == nil {
+			msg.Value = f
+			return nil
+		}
+	case *wrapperspb.BytesValue:
+		var b []byte
+		if err := jsonx.Unmarshal(inner, &b); err == nil {
+			msg.Value = b
+			return nil
+		}
+	}
+	return jsonx.Unmarshal(inner, v)
 }
