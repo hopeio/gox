@@ -58,6 +58,7 @@ func newHttpClient(typ ClientType) *http.Client {
 // Client ...
 type Client struct {
 	typ ClientType
+	baseUrl string
 	// httpClient settings
 	httpClient    *http.Client
 	newHttpClient bool
@@ -83,6 +84,11 @@ type Client struct {
 
 func New() *Client {
 	return &Client{httpClient: DefaultHttpClient, logger: DefaultLogger, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
+}
+
+func (d *Client) BaseUrl(url string) *Client {
+	d.baseUrl = url
+	return d
 }
 
 func (d *Client) Header(header http.Header) *Client {

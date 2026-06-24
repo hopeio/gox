@@ -128,6 +128,9 @@ func (req *Request) Do(param, response any) error {
 		req.client = DefaultClient
 	}
 	c := req.client
+	if c.baseUrl != "" && !strings.HasPrefix(req.Url, "http://") && !strings.HasPrefix(req.Url, "https://") {
+		req.Url = c.baseUrl + req.Url
+	}
 
 	var reqBody, respBody []byte
 	var reqTimes int
