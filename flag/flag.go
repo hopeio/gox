@@ -8,7 +8,7 @@ import (
 
 	stringsx "github.com/hopeio/gox/strings"
 	reflectx "github.com/hopeio/gox/reflect"
-	"github.com/hopeio/gox/strstruct"
+	"github.com/hopeio/gox/kvstruct"
 	"github.com/hopeio/gox/structtag"
 	"github.com/spf13/pflag"
 )
@@ -34,7 +34,7 @@ func (a anyValue) Type() string {
 }
 
 func (a anyValue) Set(v string) error {
-	return strstruct.ParseStringSetReflectValue(reflect.Value(a), v, nil)
+	return kvstruct.ParseStringSetReflectValue(reflect.Value(a), v, nil)
 }
 
 func Bind(args []string, v any) error {
@@ -81,7 +81,7 @@ func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) er
 			// 从环境变量设置
 			if flagTagSettings.Env != "" {
 				if value, ok := os.LookupEnv(strings.ToUpper(flagTagSettings.Env)); ok {
-					err := strstruct.ParseStringSetReflectValue(fcValue.Field(i), value, nil)
+					err := kvstruct.ParseStringSetReflectValue(fcValue.Field(i), value, nil)
 					if err != nil {
 						return err
 					}

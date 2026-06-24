@@ -1,4 +1,4 @@
-package strstruct
+package kvstruct
 
 import (
 	"errors"

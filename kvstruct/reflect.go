@@ -4,7 +4,7 @@
  * @Created by jyb
  */
 
-package strstruct
+package kvstruct
 
 import (
 	"encoding"

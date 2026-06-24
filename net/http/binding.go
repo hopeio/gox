@@ -22,7 +22,7 @@ import (
 
 	iox "github.com/hopeio/gox/io"
 	stringsx "github.com/hopeio/gox/strings"
-	"github.com/hopeio/gox/strstruct"
+	"github.com/hopeio/gox/kvstruct"
 	"github.com/hopeio/gox/validator"
 )
 
@@ -34,9 +34,9 @@ var (
 )
 
 type Source interface {
-	Uri() strstruct.Getter
-	Query() strstruct.ValuesGetter
-	Header() strstruct.ValuesGetter
+	Uri() kvstruct.Getter
+	Query() kvstruct.ValuesGetter
+	Header() kvstruct.ValuesGetter
 	Body() (context.Context, string, io.ReadCloser)
 }
 
@@ -50,7 +50,7 @@ type Field struct {
 type Tag struct {
 	Key     string
 	Value   string
-	Options *strstruct.Options
+	Options *kvstruct.Options
 }
 
 var cache = sync.Map{}
@@ -82,7 +82,7 @@ func CommonBind(s Source, v any) error {
 	value := reflect.ValueOf(v).Elem()
 	typ := value.Type()
 	header := s.Header()
-	var multipartFormSetter strstruct.Setter
+	var multipartFormSetter kvstruct.Setter
 	ctx, contentType, body := s.Body()
 	if body != nil {
 		if strings.HasPrefix(contentType, ContentTypeForm) {
@@ -98,7 +98,7 @@ func CommonBind(s Source, v any) error {
 			if recorder, ok := body.(RecordBodyer); ok {
 				recorder.RecordBody(data, nil)
 			}
-			multipartFormSetter = strstruct.KVsSource(vs)
+			multipartFormSetter = kvstruct.KVsSource(vs)
 		} else if strings.HasPrefix(contentType, ContentTypeMultipart) {
 			mr, err := multipartReader(true, contentType, body)
 			if err != nil {
@@ -135,13 +135,13 @@ func CommonBind(s Source, v any) error {
 
 	}
 
-	uriSetter, querySetter, headerSetter := strstruct.GetFunc(s.Uri().Get), strstruct.ValuesGetFunc(s.Query().Get), strstruct.ValuesGetFunc(header.Get)
-	commonSetter := strstruct.Setters([]strstruct.Setter{uriSetter, querySetter, headerSetter, multipartFormSetter})
+	uriSetter, querySetter, headerSetter := kvstruct.GetFunc(s.Uri().Get), kvstruct.ValuesGetFunc(s.Query().Get), kvstruct.ValuesGetFunc(header.Get)
+	commonSetter := kvstruct.Setters([]kvstruct.Setter{uriSetter, querySetter, headerSetter, multipartFormSetter})
 	var err error
 	if fields, ok := cache.Load(typ); ok {
 		var isSet bool
 		for _, field := range fields.([]Field) {
-			var setter strstruct.Setter
+			var setter kvstruct.Setter
 			for _, tag := range field.Tags {
 				switch tag.Key {
 				case "uri", "path":
@@ -184,7 +184,7 @@ func CommonBind(s Source, v any) error {
 		}
 		var tag, tagValue string
 		var isSet bool
-		var setter strstruct.Setter
+		var setter kvstruct.Setter
 		var tags []Tag
 		for _, tag = range defaultTags {
 			tagValue = sf.Tag.Get(tag)
@@ -202,7 +202,7 @@ func CommonBind(s Source, v any) error {
 					setter = commonSetter
 				}
 
-				alias, options := strstruct.ParseTag(tagValue)
+				alias, options := kvstruct.ParseTag(tagValue)
 				tags = append(tags, Tag{
 					Key:     tag,
 					Value:   alias,
@@ -261,15 +261,15 @@ type RequestSource struct {
 	*http.Request
 }
 
-func (s RequestSource) Uri() strstruct.Getter {
+func (s RequestSource) Uri() kvstruct.Getter {
 	return (*UriSource)(s.Request)
 }
 
-func (s RequestSource) Query() strstruct.ValuesGetter {
-	return (strstruct.KVsSource)(s.URL.Query())
+func (s RequestSource) Query() kvstruct.ValuesGetter {
+	return (kvstruct.KVsSource)(s.URL.Query())
 }
 
-func (s RequestSource) Header() strstruct.ValuesGetter {
+func (s RequestSource) Header() kvstruct.ValuesGetter {
 	return (HeaderSource)(s.Request.Header)
 }
 
@@ -286,7 +286,7 @@ func (s RequestSource) Body() (context.Context, string, io.ReadCloser) {
 
 type HeaderSource map[string][]string
 
-var _ strstruct.ValuesGetter = HeaderSource(nil)
+var _ kvstruct.ValuesGetter = HeaderSource(nil)
 
 func (hs HeaderSource) Get(key string) ([]string, bool) {
 	v, ok := hs[textproto.CanonicalMIMEHeaderKey(key)]
@@ -298,7 +298,7 @@ func (hs HeaderSource) Get(key string) ([]string, bool) {
 
 type UriSource http.Request
 
-var _ strstruct.Getter = (*UriSource)(nil)
+var _ kvstruct.Getter = (*UriSource)(nil)
 
 func (req *UriSource) Get(key string) (string, bool) {
 	if req.Pattern == "" {
@@ -310,7 +310,7 @@ func (req *UriSource) Get(key string) (string, bool) {
 
 type QuerySource map[string][]string
 
-var _ strstruct.Getter = (*UriSource)(nil)
+var _ kvstruct.Getter = (*UriSource)(nil)
 
 func (req QuerySource) Get(key string) ([]string, bool) {
 	v, ok := req[key]
@@ -322,15 +322,15 @@ func (req QuerySource) Get(key string) ([]string, bool) {
 
 type MultipartSource multipart.Form
 
-var _ strstruct.Setter = (*MultipartSource)(nil)
+var _ kvstruct.Setter = (*MultipartSource)(nil)
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *strstruct.Options) (isSet bool, err error) {
+func (ms *MultipartSource) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *kvstruct.Options) (isSet bool, err error) {
 	if files := ms.File[key]; len(files) != 0 {
 		return SetMultipartFrormFile(value, field, files)
 	}
 
-	return strstruct.SetValueByValuesGetter(value, field, QuerySource(ms.Value), key, opt)
+	return kvstruct.SetValueByValuesGetter(value, field, QuerySource(ms.Value), key, opt)
 }
 
 func SetMultipartFrormFile(value reflect.Value, field *reflect.StructField, files []*multipart.FileHeader) (isSet bool, err error) {

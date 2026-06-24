@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	strstruct "github.com/hopeio/gox/strstruct"
+	kvstruct "github.com/hopeio/gox/kvstruct"
 )
 
 /*
@@ -113,7 +113,7 @@ func ParseSettingTagIntoStruct(tag, sep, assignSep string, settings any) error {
 			name = structField.Name
 		}
 		if flagtag, ok := tagSettings[strings.ToUpper(name)]; ok {
-			err := strstruct.ParseStringSetReflectValue(settingsValue.Field(i), flagtag, &structField)
+			err := kvstruct.ParseStringSetReflectValue(settingsValue.Field(i), flagtag, &structField)
 			if err != nil {
 				return err
 			}
