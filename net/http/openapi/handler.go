@@ -17,7 +17,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	jsonx "github.com/hopeio/gox/encoding/json"
-	http2 "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 	"github.com/hopeio/gox/os/fs"
 )
 
@@ -39,7 +39,7 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		w.Header().Set(http2.HeaderContentType, "application/json; charset=utf-8")
+		w.Header().Set(httpx.HeaderContentType, "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 		return

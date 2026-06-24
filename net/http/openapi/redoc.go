@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"path"
 
-	http2 "github.com/hopeio/gox/net/http"
+	httpx "github.com/hopeio/gox/net/http"
 )
 
 // RedocOpts configures the Redoc middlewares
@@ -114,7 +114,7 @@ const ()
 func serveUI(pth string, assets []byte, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if path.Clean(r.URL.Path) == pth {
-			rw.Header().Set(http2.HeaderContentType, "text/html; charset=utf-8")
+			rw.Header().Set(httpx.HeaderContentType, "text/html; charset=utf-8")
 			rw.WriteHeader(http.StatusOK)
 			_, _ = rw.Write(assets)
 
@@ -127,7 +127,7 @@ func serveUI(pth string, assets []byte, next http.Handler) http.Handler {
 			return
 		}
 
-		rw.Header().Set(http2.HeaderContentType, "text/plain")
+		rw.Header().Set(httpx.HeaderContentType, "text/plain")
 		rw.WriteHeader(http.StatusNotFound)
 		_, _ = rw.Write([]byte(fmt.Sprintf("%q not found", pth)))
 	})

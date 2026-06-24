@@ -9,17 +9,14 @@ package grpc
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/binary"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
 
 	httpx "github.com/hopeio/gox/net/http"
-	"golang.org/x/net/http2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -34,33 +31,15 @@ type HTTPClient struct {
 // NewHTTPClient 创建 gRPC 客户端，根据 baseURL scheme 自动选择 h2c 或 TLS。
 func NewHTTPClient(baseURL string) *HTTPClient {
 	var transport http.RoundTripper
-	if strings.HasPrefix(baseURL, "https://") {
-		transport = &http2.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-	} else {
-		transport = &http2.Transport{
-			AllowHTTP: true,
-			DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
-				return (&net.Dialer{}).DialContext(ctx, network, addr)
-			},
-		}
+	if strings.HasPrefix(baseURL, "http://") {
+		tr := &http.Transport{}
+		tr.Protocols = new(http.Protocols)
+		tr.Protocols.SetUnencryptedHTTP2(true)
+		transport = tr
 	}
 	return &HTTPClient{BaseURL: baseURL, Client: &http.Client{Transport: transport}}
 }
 
-// NewHTTPClientTLS 创建 TLS gRPC 客户端。
-func NewHTTPClientTLS(baseURL string, tlsCfg *tls.Config) *HTTPClient {
-	if tlsCfg == nil {
-		tlsCfg = &tls.Config{InsecureSkipVerify: true}
-	}
-	return &HTTPClient{
-		BaseURL: baseURL,
-		Client: &http.Client{
-			Transport: &http2.Transport{
-				TLSClientConfig: tlsCfg,
-			},
-		},
-	}
-}
 
 // NewHTTPClientWithClient 使用自定义 http.Client 创建 gRPC 客户端。
 func NewHTTPClientWithClient(baseURL string, client *http.Client) *HTTPClient {
