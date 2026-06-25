@@ -275,11 +275,6 @@ func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task
 	return nil
 }
 
-func (e *Engine[KEY]) RunSingleWorker(tasks ...*Task[KEY]) {
-	e.workerCount = 1
-	e.Run(tasks...)
-}
-
 func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 	atomic.AddUint64(&e.workingWorkerCount, 1)
 	worker.isExecuting = true

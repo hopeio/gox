@@ -61,7 +61,7 @@ var DefaultMarshal httpx.MarshalFunc = func(ctx context.Context, v any) (data []
 }
 
 var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v any) error {
-	if strings.HasPrefix(contentType, httpx.ContentTypeProtobuf) {
+	if strings.HasSuffix(contentType, "protobuf") {
 		return proto.Unmarshal(data, v.(proto.Message))
 	}
 	var wrapped httpx.CommonAnyResp
