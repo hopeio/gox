@@ -15,7 +15,6 @@ type Ticker interface {
 	Reset(time.Duration) bool
 	Stop() bool
 	Wait()
-	Channel() <-chan time.Time
 }
 
 type FixedTicker time.Ticker
@@ -69,10 +68,6 @@ func (t *RandTicker) Wait() {
 
 func (t *RandTicker) Stop() bool {
 	return t.timer.Stop()
-}
-
-func (t *RandTicker) Channel() <-chan time.Time {
-	return t.timer.C
 }
 
 // minInterval:最小等待时间

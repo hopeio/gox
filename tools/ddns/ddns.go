@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"flag"
+	"slices"
+	"time"
+
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/hopeio/gox/log"
 	neti "github.com/hopeio/gox/net"
-	"github.com/hopeio/gox/scheduler/retry"
-	"slices"
-	"time"
+	"github.com/hopeio/gox/scheduler"
 )
 
 // docker run --restart=always --name=ddns --net=host -d jybl/ddns --token=<token> --domain=<domain> --name=<name> --name=<name>
@@ -73,7 +74,7 @@ func main() {
 	for _, record := range needUpdateRecord {
 		if record.Content != lastIP {
 			record.Content = lastIP
-			retry.Run(func(int) bool {
+			scheduler.RetryRun(func(int) bool {
 				_, err = api.UpdateDNSRecord(ctx, &resourceContainer, record)
 				if err != nil {
 					log.Error(err)
@@ -103,7 +104,7 @@ func main() {
 				lastIP = ipv6s[0].String()
 				for _, record := range needUpdateRecord {
 					record.Content = lastIP
-					retry.Run(func(int) bool {
+					scheduler.RetryRun(func(int) bool {
 						_, err = api.UpdateDNSRecord(ctx, &resourceContainer, record)
 						if err != nil {
 							log.Error(err)

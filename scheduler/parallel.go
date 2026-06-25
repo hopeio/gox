@@ -4,23 +4,21 @@
  * @Created by jyb
  */
 
-package parallel
+package scheduler
 
 import (
 	"sync"
 
 	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/scheduler"
-	"github.com/hopeio/gox/types"
 )
 
 type Parallel struct {
-	taskCh chan scheduler.Retrier
+	taskCh chan func()
 	wg     sync.WaitGroup
 }
 
-func New(workNum uint, opts ...Option) *Parallel {
-	taskCh := make(chan scheduler.Retrier, workNum)
+func NewParallel(workNum uint, opts ...ParallelOption) *Parallel {
+	taskCh := make(chan func(), workNum)
 	p := &Parallel{taskCh: taskCh}
 	g := func() {
 		defer func() {
@@ -29,10 +27,7 @@ func New(workNum uint, opts ...Option) *Parallel {
 			}
 		}()
 		for task := range taskCh {
-			var times = uint(1)
-			for task.Do(times) {
-				times++
-			}
+			task()
 			p.wg.Done()
 		}
 	}
@@ -42,12 +37,7 @@ func New(workNum uint, opts ...Option) *Parallel {
 	return p
 }
 
-func (p *Parallel) AddFunc(task types.FuncRetry) {
-	p.wg.Add(1)
-	p.taskCh <- task
-}
-
-func (p *Parallel) AddTask(task scheduler.Retrier) {
+func (p *Parallel) AddFunc(task func()) {
 	p.wg.Add(1)
 	p.taskCh <- task
 }
@@ -61,18 +51,15 @@ func (p *Parallel) Stop() {
 	close(p.taskCh)
 }
 
-type Option func(p *Parallel)
+type ParallelOption func(p *Parallel)
 
-type TaskChain []func() error
+type Funcs []func()
 
-func (t *TaskChain) Do(times uint) bool {
+func (t *Funcs) Do()  {
 	taskChain := *t
 	for i := 0; i < len(taskChain); i++ {
-		err := taskChain[i]()
-		if err != nil {
-			*t = taskChain[i:]
-			return true
+		taskChain[i]()
 		}
-	}
-	return false
+	return
 }
+

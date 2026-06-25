@@ -4,11 +4,17 @@
  * @Created by jyb
  */
 
-package retry
+package scheduler
 
 import "go.uber.org/multierr"
 
-func RunTimes(times int, f func(int) error) error {
+
+type Retrier interface {
+	Do(times uint) (retry bool)
+}
+
+
+func RetryRunTimes(times int, f func(int) error) error {
 	var errs error
 	for i := 0; i < times; i++ {
 		err := f(i)
@@ -21,7 +27,7 @@ func RunTimes(times int, f func(int) error) error {
 	return errs
 }
 
-func Run(f func(int) bool) {
+func RetryRun(f func(int) bool) {
 	for i := 0; ; i++ {
 		if !f(i) {
 			break

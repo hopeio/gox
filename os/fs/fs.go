@@ -13,16 +13,16 @@ import (
 	"fmt"
 
 	"github.com/hopeio/gox/log"
-	"github.com/hopeio/gox/scheduler/light"
 
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
+	"sync"
 )
 
-const(
-	ModeDir = 0755
+const (
+	ModeDir  = 0755
 	ModeFile = 0644
 )
 
@@ -132,102 +132,113 @@ func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 		src = wd
 	}
 
-	var file = make(chan string, 1)
-	//属于回调而不是通知
-	ctx := lightengine.New(context.Background())
-	ctx.OnStop(func() { close(file) })
-	defer ctx.Cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	file := make(chan string, num+1)
+	var wg sync.WaitGroup
+
 	// 当前目录下先找
 	filepath1 := filepath.Join(src, dst)
 	if _, err := os.Stat(filepath1); !os.IsNotExist(err) {
 		file <- filepath1
 	}
 
-	ctx.AddTask(func() []lightengine.Task {
-		subTasks, err := subDirFilesParallel(src, dst, "", file, deep, 0)
-		if err != nil {
-			log.Error(err)
-		}
-		return subTasks
-	}, func() []lightengine.Task {
-		subTasks, err := supDirFilesParallel(src+PathSeparator, dst, file, deep, 0)
-		if err != nil {
-			log.Error(err)
-		}
-		return subTasks
-	})
+	// 并行搜索子目录和父目录
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		subDirFilesParallel(ctx, src, dst, "", file, deep, 0)
+	}()
+	go func() {
+		defer wg.Done()
+		supDirFilesParallel(ctx, src+PathSeparator, dst, file, deep, 0)
+	}()
+
+	// 所有搜索完成后关闭 channel
+	go func() {
+		wg.Wait()
+		close(file)
+	}()
 
 	var files []string
-	for filepath1 := range file {
-		if files = append(files, filepath1); len(files) == num {
-			//close(file) 这里无需做关闭操作，会关的
-			return files, nil
+	for fp := range file {
+		files = append(files, fp)
+		if len(files) == num {
+			cancel() // 停止剩余搜索
+			break
 		}
+	}
+	if len(files) == 0 {
+		return nil, errors.New("找不到文件")
 	}
 	return files, nil
 }
 
-func subDirFilesParallel(dir, path, exclude string, file chan string, deep, step int8) ([]lightengine.Task, error) {
-	if step == deep {
-		return nil, nil
+func subDirFilesParallel(ctx context.Context, dir, path, exclude string, file chan<- string, deep, step int8) {
+	if step >= deep || ctx.Err() != nil {
+		return
 	}
-	step += 1
 	fileInfos, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return
 	}
-	var tasks []lightengine.Task
+	var wg sync.WaitGroup
 	for i := range fileInfos {
-		if fileInfos[i].IsDir() {
-			if exclude != "" && fileInfos[i].Name() == exclude {
-				continue
-			}
-			subDir := filepath.Join(dir, fileInfos[i].Name())
-			filepath1 := filepath.Join(subDir, path)
-			if _, err = os.Stat(filepath1); !os.IsNotExist(err) {
-				file <- filepath1
-			}
-			tasks = append(tasks, func() []lightengine.Task {
-				subTasks, err := subDirFilesParallel(filepath.Join(dir, fileInfos[i].Name()), path, "", file, deep, step)
-				if err != nil {
-					log.Error(err)
-				}
-				return subTasks
-			})
+		if !fileInfos[i].IsDir() {
+			continue
 		}
+		if exclude != "" && fileInfos[i].Name() == exclude {
+			continue
+		}
+		subDir := filepath.Join(dir, fileInfos[i].Name())
+		fp := filepath.Join(subDir, path)
+		if _, err := os.Stat(fp); !os.IsNotExist(err) {
+			select {
+			case file <- fp:
+			case <-ctx.Done():
+				wg.Wait()
+				return
+			}
+		}
+		wg.Add(1)
+		go func(d string) {
+			defer wg.Done()
+			subDirFilesParallel(ctx, d, path, "", file, deep, step+1)
+		}(subDir)
 	}
-	return tasks, nil
+	wg.Wait()
 }
 
-func supDirFilesParallel(dir, path string, file chan string, deep, step int8) ([]lightengine.Task, error) {
-	if step == deep {
-		return nil, nil
+func supDirFilesParallel(ctx context.Context, dir, path string, file chan<- string, deep, step int8) {
+	if step >= deep || ctx.Err() != nil {
+		return
 	}
-	step += 1
 	dir, dirName := filepath.Split(dir[:len(dir)-1])
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return nil, err
+		return
 	}
-	filepath1 := filepath.Join(dir, path)
-	if _, err := os.Stat(filepath1); !os.IsNotExist(err) {
-		file <- filepath1
+	fp := filepath.Join(dir, path)
+	if _, err := os.Stat(fp); !os.IsNotExist(err) {
+		select {
+		case file <- fp:
+		case <-ctx.Done():
+			return
+		}
 	}
 
-	return []lightengine.Task{
-		func() []lightengine.Task {
-			subTasks, err := subDirFilesParallel(dir, path, dirName, file, deep, 0)
-			if err != nil {
-				log.Error(err)
-			}
-			return subTasks
-		}, func() []lightengine.Task {
-			subTasks, err := supDirFilesParallel(dir, path, file, deep, step)
-			if err != nil {
-				log.Error(err)
-			}
-			return subTasks
-		},
-	}, nil
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		subDirFilesParallel(ctx, dir, path, dirName, file, deep, 0)
+	}()
+	go func() {
+		defer wg.Done()
+		supDirFilesParallel(ctx, dir, path, file, deep, step+1)
+	}()
+	wg.Wait()
 }
 
 func Mkdir(src string) error {

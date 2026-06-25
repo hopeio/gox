@@ -8,31 +8,15 @@ package grpc
 
 import (
 	"crypto/tls"
-
 	"strings"
 
-	httpx "github.com/hopeio/gox/net/http"
-	"go.uber.org/multierr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
 )
 
-var InternalMD = &metadata.MD{httpx.HeaderInternal: []string{"true"}}
-
-type clientConns map[string]*grpc.ClientConn
-
-func (cs clientConns) Close() error {
-	var err error
-	for _, conn := range cs {
-		err = multierr.Append(err, conn.Close())
-	}
-	return err
-}
 
 func NewClient(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-
 	return grpc.NewClient(addr, append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))...)
 }
 
