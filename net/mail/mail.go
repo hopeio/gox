@@ -45,6 +45,7 @@ func (m *Mail) GenMsg() ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
+
 func (m *Mail) SendMail() error {
 	msg, err := m.GenMsg()
 	if err != nil {

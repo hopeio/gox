@@ -21,7 +21,7 @@ func bindMetadataContext(
 	return ctx
 }
 
-func UnaryCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.ProtoMessage[Resp], GprcHandler grpcx.GrpcHandler[Req, Resp, ReqPtr, RespPtr]](gprcHanlder GprcHandler) http.Handler {
+func UnaryCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.ProtoMessage[Resp]](gprcHanlder grpcx.GrpcHandler[Req, Resp, ReqPtr, RespPtr]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req Req
 
@@ -43,7 +43,7 @@ func UnaryCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.Prot
 	})
 }
 
-func ServerSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.ProtoMessage[Resp], S grpcx.ServerSideStream[Resp, RespPtr], GprcHandler grpcx.ServerSideStreamHandler[Req, Resp, ReqPtr, RespPtr, S]](gprcHanlder GprcHandler) http.Handler {
+func ServerSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.ProtoMessage[Resp], S grpcx.ServerSideStream[Resp, RespPtr]](gprcHanlder grpcx.ServerSideStreamHandler[Req, Resp, ReqPtr, RespPtr, S]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req Req
 		var err error
@@ -65,7 +65,7 @@ func ServerSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr
 	})
 }
 
-func ClientSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.ProtoMessage[Resp], S grpcx.ClientSideStream[Req, Resp, ReqPtr, RespPtr], GprcHandler grpcx.ClientSideStreamHandler[Req, Resp, ReqPtr, RespPtr, S]](gprcHanlder GprcHandler) http.Handler {
+func ClientSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.ProtoMessage[Resp], S grpcx.ClientSideStream[Req, Resp, ReqPtr, RespPtr] ](gprcHanlder grpcx.ClientSideStreamHandler[Req, Resp, ReqPtr, RespPtr, S]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		stream := NewServerStream[Req, Resp, ReqPtr, RespPtr](w, r)
 		stream.forClientRecv()

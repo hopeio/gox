@@ -51,7 +51,8 @@ func HandlerWrap[REQ, RESP any](service Service[*REQ, *RESP]) http.Handler {
 		ServeSuccess(w, r, res)
 	})
 }
-func HandlerWrapCommon[REQ, RESP any](method types.Service[*REQ, *RESP]) http.Handler {
+
+func HandlerWrapCommon[REQ, RESP any](service types.Service[*REQ, *RESP]) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		req := new(REQ)
@@ -60,7 +61,7 @@ func HandlerWrapCommon[REQ, RESP any](method types.Service[*REQ, *RESP]) http.Ha
 			ServeError(w, r, errors.InvalidArgument.Wrap(err))
 			return
 		}
-		res, err := method(WrapContext(ReqResp{r, w}), req)
+		res, err := service(WrapContext(ReqResp{r, w}), req)
 		if err != nil {
 			ErrRespFrom(err).ServeHTTP(w, r)
 			return

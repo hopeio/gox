@@ -13,6 +13,8 @@ import (
 )
 
 var _ grpc.ServerStream = (*ServerStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty])(nil)
+var _ grpcx.ClientSideStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty] = (*ServerStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty])(nil)
+var _ grpcx.ServerSideStream[emptypb.Empty, *emptypb.Empty] = (*ServerStream[emptypb.Empty, emptypb.Empty, *emptypb.Empty, *emptypb.Empty])(nil)
 
 // ServerStream 服务端 handler 持有的 gRPC stream（grpc.ServerStream 语义）。
 // 通过 noRecv / unaryResponse 区分 server streaming、client streaming、bidi。
