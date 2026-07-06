@@ -14,9 +14,9 @@ type streamContextBinder interface {
 }
 
 func bindMetadataContext(
-	r *http.Request, wHeader, rHeader http.Header, stream streamContextBinder,
+	r *http.Request, stream streamContextBinder,
 ) context.Context {
-	ctx := NewMetadataContext(r.Context(), wHeader, rHeader)
+	ctx := NewMetadataContext(r.Context(), r.Header)
 	stream.bindContext(ctx)
 	return ctx
 }
@@ -31,7 +31,7 @@ func UnaryCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.Prot
 		}
 
 		stream := NewServerTransportStream[Req, Resp, ReqPtr, RespPtr](w, r)
-		ctx := bindMetadataContext(r, w.Header(), r.Header, stream)
+		ctx := bindMetadataContext(r, stream)
 
 		resp, err := gprcHanlder(ctx, &req)
 		if err != nil {
@@ -55,7 +55,7 @@ func ServerSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr
 
 		stream := NewServerStream[Req, Resp, ReqPtr, RespPtr](w, r)
 		stream.forServerSendOnly()
-		r = r.WithContext(bindMetadataContext(r, w.Header(), r.Header, stream))
+		r = r.WithContext(bindMetadataContext(r, stream))
 
 		defer FinalizeStreamTrailers(w, stream.Status(), err, stream.Trailer())
 		if err = gprcHanlder(&req, any(stream).(S)); err != nil {
@@ -69,7 +69,7 @@ func ClientSideStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		stream := NewServerStream[Req, Resp, ReqPtr, RespPtr](w, r)
 		stream.forClientRecv()
-		r = r.WithContext(bindMetadataContext(r, w.Header(), r.Header, stream))
+		r = r.WithContext(bindMetadataContext(r, stream))
 
 		if err := gprcHanlder(any(stream).(S)); err != nil {
 			HandleError(w, r, err)
@@ -83,7 +83,7 @@ func BidiStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx
 		var err error
 
 		stream := NewServerStream[Req, Resp, ReqPtr, RespPtr](w, r)
-		r = r.WithContext(bindMetadataContext(r, w.Header(), r.Header, stream))
+		r = r.WithContext(bindMetadataContext(r, stream))
 		defer FinalizeStreamTrailers(w, stream.Status(), err, stream.Trailer())
 		if err = gprcHanlder(any(stream).(S)); err != nil {
 			HandleError(w, r, err)
@@ -92,8 +92,7 @@ func BidiStreamCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx
 	})
 }
 
-// NewMetadataContext 同时设置 incoming 和 outgoing metadata，
-// 确保 handler 无论通过 FromIncomingContext 还是 FromOutgoingContext 都能读取请求头。
-func NewMetadataContext(ctx context.Context, wHeader, rHeader http.Header) context.Context {
-	return metadata.NewOutgoingContext(metadata.NewIncomingContext(ctx, metadata.MD(rHeader)), metadata.MD(wHeader))
+// NewMetadataContext 设置 incoming
+func NewMetadataContext(ctx context.Context, header http.Header) context.Context {
+	return metadata.NewIncomingContext(ctx, metadata.MD(header))
 }
