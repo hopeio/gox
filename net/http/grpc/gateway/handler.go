@@ -39,7 +39,7 @@ func UnaryCall[Req, Resp any, ReqPtr grpcx.ProtoMessage[Req], RespPtr grpcx.Prot
 			return
 		}
 
-		HandleResponseMessage(w, r, resp, DefaultMarshal)
+		HandleResponseMessage(w, r, resp)
 	})
 }
 

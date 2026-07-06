@@ -101,7 +101,7 @@ func NewCommonProtoResp(code errorsx.ErrCode, msg string, data proto.Message) *C
 	return &CommonProtoResp{Code: code, Msg: msg, Data: data}
 }
 
-var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message proto.Message, codec httpx.MarshalFunc) error {
+var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message proto.Message) error {
 	var contentType string
 	var buf []byte
 	switch rb := message.(type) {
@@ -114,9 +114,9 @@ var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message
 	case httpx.ResponseBody:
 		buf, contentType = rb.ResponseBody()
 	case httpx.XXXResponseBody:
-		buf, contentType = codec(r.Context(), rb.XXX_ResponseBody())
+		buf, contentType = DefaultMarshal(r.Context(), rb.XXX_ResponseBody())
 	default:
-		buf, contentType = codec(r.Context(), message)
+		buf, contentType = DefaultMarshal(r.Context(), message)
 	}
 	w.Header().Set(httpx.HeaderContentType, contentType)
 	ow := w
