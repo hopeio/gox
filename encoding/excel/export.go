@@ -25,15 +25,9 @@ func (res *Export) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *Export) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	if wx, ok := w.(httpx.ResponseWriter); ok {
-		header := wx.HeaderX()
-		header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
-		header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
-	} else {
-		header := w.Header()
-		header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
-		header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
-	}
+	header := w.Header()
+	header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
+	header.Set(httpx.HeaderContentDisposition, fmt.Sprintf(httpx.AttachmentTmpl, res.Name))
 	n, err := res.File.WriteTo(w, res.Options)
 	res.File.Close()
 	return int(n), err
