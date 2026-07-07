@@ -168,14 +168,10 @@ func FinalizeStreamTrailers(w http.ResponseWriter, started bool, err error, trai
 }
 
 var HandleError = func(w http.ResponseWriter, r *http.Request, err error) {
-	s, ok := status.FromError(err)
-	if !ok {
-		grpclog.Warningf("Failed to convert error to status: %v", err)
-	}
+	s := ErrRespFromError(err)
 	delete(r.Header, httpx.HeaderTrailer)
-	errcodeHeader := strconv.Itoa(int(s.Code()))
-	message := s.Proto()
-	buf, contentType, _ := DefaultMarshal(r.Context(), message)
+	errcodeHeader := strconv.Itoa(int(s.Code))
+	buf, contentType, _ := DefaultMarshal(r.Context(), s)
 	header := w.Header()
 	header.Set(httpx.HeaderContentType, contentType)
 	header.Set(httpx.HeaderGrpcStatus, errcodeHeader)
@@ -185,9 +181,26 @@ var HandleError = func(w http.ResponseWriter, r *http.Request, err error) {
 		ow = uw.Unwrap()
 	}
 	if recorder, ok := ow.(httpx.RecordBodyer); ok {
-		recorder.RecordBody(buf, message)
+		recorder.RecordBody(buf, s)
 	}
 	if _, err := w.Write(buf); err != nil {
 		grpclog.Infof("Failed to write response: %v", err)
 	}
+}
+
+func ErrRespFromError(err error) *httpx.ErrResp {
+	if err == nil {
+		return nil
+	}
+	s, ok := status.FromError(err)
+	if ok {
+		return &httpx.ErrResp{
+			Code: errorsx.ErrCode(s.Code()),
+			Msg:  s.Message(),
+		}
+	}
+	if errresp, ok := err.(*httpx.ErrResp); ok {
+		return errresp
+	}
+	return (*httpx.ErrResp)(errorsx.ErrRespFrom(err))
 }

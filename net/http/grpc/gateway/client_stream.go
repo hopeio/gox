@@ -133,7 +133,7 @@ func (s *ClientStream[Req, Resp, ReqPtr, RespPtr]) RecvMsg(m any) error {
 		}
 		return err
 	}
-	return Unmarshaller(s.ctx, s.contentType, data, m)
+	return DefaultUnmarshal(s.ctx, s.contentType, data, m)
 }
 
 // CloseAndRecv 结束发送并读取最终响应（client streaming RPC）。

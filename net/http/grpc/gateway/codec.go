@@ -14,14 +14,47 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func init() {
-	httpx.DefaultMarshal = DefaultMarshal
-	httpx.DefaultUnmarshal = Unmarshaller
+var DefaultMarshal httpx.MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string, err error) {
+	switch msg := v.(type) {
+	case *wrapperspb.StringValue:
+		v = msg.Value
+	case *wrapperspb.BoolValue:
+		v = msg.Value
+	case *wrapperspb.Int32Value:
+		v = msg.Value
+	case *wrapperspb.Int64Value:
+		v = msg.Value
+	case *wrapperspb.UInt32Value:
+		v = msg.Value
+	case *wrapperspb.UInt64Value:
+		v = msg.Value
+	case *wrapperspb.FloatValue:
+		v = msg.Value
+	case *wrapperspb.DoubleValue:
+		v = msg.Value
+	case *wrapperspb.BytesValue:
+		v = msg.Value
+	case *httpx.CommonAnyResp, *httpx.ErrResp:
+		data, err := jsonx.Marshal(msg)
+		if err != nil {
+			return data, httpx.ContentTypeText, err
+		}
+		return data, httpx.ContentTypeJson, nil
+	case error:
+		data, err := jsonx.Marshal(httpx.ErrRespFrom(msg))
+		if err != nil {
+			return data, httpx.ContentTypeText, err
+		}
+		return data, httpx.ContentTypeJson, nil
+	}
+	data, err = jsonx.Marshal(&httpx.CommonAnyResp{Data: v})
+	if err != nil {
+		return data, httpx.ContentTypeText, err
+	}
+	return data, httpx.ContentTypeJson, nil
 }
 
-var DefaultMarshal httpx.MarshalFunc = JsonMarshal
-
-var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v any) error {
+var DefaultUnmarshal = func(ctx context.Context, contentType string, data []byte, v any) error {
 	if strings.HasSuffix(contentType, "protobuf") {
 		return proto.Unmarshal(data, v.(proto.Message))
 	}

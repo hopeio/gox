@@ -27,6 +27,16 @@ var (
 	}
 )
 
+
+func JsonMarshal(ctx context.Context, v any) ([]byte, string, error) {
+	data, err := jsonx.Marshal(v)
+	if err != nil {
+		return data, ContentTypeText, err
+	}
+	return data, ContentTypeJson, nil
+}
+
+
 type BindFunc func(r Source, v any) error
 type MarshalFunc func(ctx context.Context, v any) (data []byte, contentType string, err error)
 type UnmarshalFunc func(ctx context.Context, contentType string, data []byte, v any) error

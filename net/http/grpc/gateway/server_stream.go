@@ -69,7 +69,7 @@ func (s *ServerStream[Req, Resp, ReqPtr, RespPtr]) RecvMsg(m any) error {
 	if err != nil {
 		return err
 	}
-	return Unmarshaller(s.r.Context(), s.contentType, data, pm)
+	return DefaultUnmarshal(s.r.Context(), s.contentType, data, pm)
 }
 
 func (s *ServerStream[Req, Resp, ReqPtr, RespPtr]) SendAndClose(msg RespPtr) error {

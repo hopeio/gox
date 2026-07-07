@@ -77,7 +77,6 @@ func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (i
 			header.Set(HeaderErrorCode, strconv.Itoa(int(res.Code)))
 			header.Set(HeaderErrorMsg, res.Msg)
 		}
-
 		header.Set(HeaderContentType, contentType)
 	} else {
 		header := w.Header()
