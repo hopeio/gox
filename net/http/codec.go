@@ -12,8 +12,7 @@ var (
 		return jsonx.Unmarshal(data, v)
 	}
 
-	DefaultMarshal MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string) {
-		var err error
+	DefaultMarshal MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string, err error) {
 		switch msg := v.(type) {
 		case *CommonAnyResp, *ErrResp:
 			data, err = jsonx.Marshal(msg)
@@ -22,15 +21,14 @@ var (
 		}
 		data, err = jsonx.Marshal(&CommonAnyResp{Data: v})
 		if err != nil {
-			data = []byte(err.Error())
-			return data, ContentTypeText
+			return data, ContentTypeText, err
 		}
-		return data, ContentTypeJson
+		return data, ContentTypeJson, nil
 	}
 )
 
 type BindFunc func(r Source, v any) error
-type MarshalFunc func(ctx context.Context, v any) (data []byte, contentType string)
+type MarshalFunc func(ctx context.Context, v any) (data []byte, contentType string, err error)
 type UnmarshalFunc func(ctx context.Context, contentType string, data []byte, v any) error
 
 type Codec interface {

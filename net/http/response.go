@@ -67,7 +67,10 @@ func (res *CommonResp[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *CommonResp[T]) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	data, contentType := DefaultMarshal(ctx, res)
+	data, contentType, err := DefaultMarshal(ctx, res)
+	if err != nil {
+		return RespondError(ctx, w, err)
+	}
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		if res.Code != errorsx.Success && ctx.Value(ErrHeaderKey) != nil {
@@ -132,7 +135,10 @@ func ServeSuccess(w http.ResponseWriter, r *http.Request, res any) {
 }
 
 func RespondSuccess(ctx context.Context, w http.ResponseWriter, res any) (int, error) {
-	data, contentType := DefaultMarshal(ctx, res)
+	data, contentType, err := DefaultMarshal(ctx, res)
+	if err != nil {
+		return  RespondError(ctx, w, err)
+	}
 	if wx, ok := w.(ResponseWriter); ok {
 		wx.HeaderX().Set(HeaderContentType, contentType)
 	} else {
@@ -213,7 +219,7 @@ func (res *ErrResp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (res *ErrResp) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
-	data, contentType := DefaultMarshal(ctx, res)
+	data, contentType, _ := DefaultMarshal(ctx, res)
 	if wx, ok := w.(ResponseWriter); ok {
 		header := wx.HeaderX()
 		if res.Code != errorsx.Success && ctx.Value(ErrHeaderKey) != nil {

@@ -58,7 +58,10 @@ func (b *streamBase) bindContext(ctx context.Context) {
 }
 
 func (b *streamBase) sendFrame(msg proto.Message) error {
-	data, ct := DefaultMarshal(b.r.Context(), msg)
+	data, ct, err := DefaultMarshal(b.r.Context(), msg)
+	if err != nil {
+		return err
+	}
 	if !b.started {
 		b.started = true
 		BeginGRPCStream(b.w, b.trailers)

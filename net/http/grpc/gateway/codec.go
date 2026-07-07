@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	jsonx "github.com/hopeio/gox/encoding/json"
+	errorsx "github.com/hopeio/gox/errors"
 	httpx "github.com/hopeio/gox/net/http"
+	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -17,48 +19,7 @@ func init() {
 	httpx.DefaultUnmarshal = Unmarshaller
 }
 
-var DefaultMarshal httpx.MarshalFunc = func(ctx context.Context, v any) (data []byte, contentType string) {
-	switch msg := v.(type) {
-	case *wrapperspb.StringValue:
-		v = msg.Value
-	case *wrapperspb.BoolValue:
-		v = msg.Value
-	case *wrapperspb.Int32Value:
-		v = msg.Value
-	case *wrapperspb.Int64Value:
-		v = msg.Value
-	case *wrapperspb.UInt32Value:
-		v = msg.Value
-	case *wrapperspb.UInt64Value:
-		v = msg.Value
-	case *wrapperspb.FloatValue:
-		v = msg.Value
-	case *wrapperspb.DoubleValue:
-		v = msg.Value
-	case *wrapperspb.BytesValue:
-		v = msg.Value
-	case *httpx.CommonAnyResp, *httpx.ErrResp:
-		data, err := jsonx.Marshal(msg)
-		if err != nil {
-			data = []byte(err.Error())
-			return data, httpx.ContentTypeText
-		}
-		return data, httpx.ContentTypeJson
-	case error:
-		data, err := jsonx.Marshal(httpx.ErrRespFrom(msg))
-		if err != nil {
-			data = []byte(err.Error())
-			return data, httpx.ContentTypeText
-		}
-		return data, httpx.ContentTypeJson
-	}
-	data, err := jsonx.Marshal(&httpx.CommonAnyResp{Data: v})
-	if err != nil {
-		data = []byte(err.Error())
-		return data, httpx.ContentTypeText
-	}
-	return data, httpx.ContentTypeJson
-}
+var DefaultMarshal httpx.MarshalFunc = JsonMarshal
 
 var Unmarshaller = func(ctx context.Context, contentType string, data []byte, v any) error {
 	if strings.HasSuffix(contentType, "protobuf") {
@@ -142,4 +103,58 @@ func unmarshalInner(inner []byte, v any) error {
 		}
 	}
 	return jsonx.Unmarshal(inner, v)
+}
+
+func ProtobufMarshal(ctx context.Context, v any) ([]byte, string, error) {
+	if p, ok := v.(proto.Message); ok {
+		data, err := proto.Marshal(p)
+		if err != nil {
+			return data, httpx.ContentTypeText, err
+		}
+		return data, httpx.ContentTypeXProtobuf, nil
+	}
+	return JsonMarshal(ctx, v)
+}
+
+func JsonMarshal(ctx context.Context, v any) (data []byte, contentType string, err error) {
+	switch msg := v.(type) {
+	case *wrapperspb.StringValue:
+		v = msg.Value
+	case *wrapperspb.BoolValue:
+		v = msg.Value
+	case *wrapperspb.Int32Value:
+		v = msg.Value
+	case *wrapperspb.Int64Value:
+		v = msg.Value
+	case *wrapperspb.UInt32Value:
+		v = msg.Value
+	case *wrapperspb.UInt64Value:
+		v = msg.Value
+	case *wrapperspb.FloatValue:
+		v = msg.Value
+	case *wrapperspb.DoubleValue:
+		v = msg.Value
+	case *wrapperspb.BytesValue:
+		v = msg.Value
+	case *httpx.CommonAnyResp, *httpx.ErrResp:
+		data, err := jsonx.Marshal(msg)
+		if err != nil {
+			return data, httpx.ContentTypeText, err
+		}
+		return data, httpx.ContentTypeJson, nil
+	case *spb.Status:
+		data, _ = jsonx.Marshal(httpx.NewErrResp(errorsx.ErrCode(int(msg.Code)), msg.Message))
+		return data, httpx.ContentTypeJson, nil
+	case *status.Status:
+		data, _ = jsonx.Marshal(httpx.NewErrResp(errorsx.ErrCode(msg.Code()), msg.Message()))
+		return data, httpx.ContentTypeJson, nil
+	case error:
+		data, _ = jsonx.Marshal(httpx.ErrRespFrom(msg))
+		return data, httpx.ContentTypeJson, nil
+	}
+	data, err = jsonx.Marshal(&httpx.CommonAnyResp{Data: v})
+	if err != nil {
+		return data, httpx.ContentTypeText, err
+	}
+	return data, httpx.ContentTypeJson, nil
 }

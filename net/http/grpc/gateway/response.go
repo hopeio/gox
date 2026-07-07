@@ -104,6 +104,7 @@ func NewCommonProtoResp(code errorsx.ErrCode, msg string, data proto.Message) *C
 var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message proto.Message) error {
 	var contentType string
 	var buf []byte
+	var err error
 	switch rb := message.(type) {
 	case http.Handler:
 		rb.ServeHTTP(w, r)
@@ -114,9 +115,15 @@ var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message
 	case httpx.ResponseBody:
 		buf, contentType = rb.ResponseBody()
 	case httpx.XXXResponseBody:
-		buf, contentType = DefaultMarshal(r.Context(), rb.XXX_ResponseBody())
+		buf, contentType, err = DefaultMarshal(r.Context(), rb.XXX_ResponseBody())
+		if err != nil {
+			return err
+		}
 	default:
-		buf, contentType = DefaultMarshal(r.Context(), message)
+		buf, contentType, err = DefaultMarshal(r.Context(), message)
+		if err != nil {
+			return err
+		}
 	}
 	w.Header().Set(httpx.HeaderContentType, contentType)
 	ow := w
@@ -126,7 +133,7 @@ var HandleResponseMessage = func(w http.ResponseWriter, r *http.Request, message
 	if recorder, ok := ow.(httpx.RecordBodyer); ok {
 		recorder.RecordBody(buf, message)
 	}
-	_, err := w.Write(buf)
+	_, err = w.Write(buf)
 	return err
 }
 
@@ -167,11 +174,19 @@ var HandleError = func(w http.ResponseWriter, r *http.Request, err error) {
 	}
 	delete(r.Header, httpx.HeaderTrailer)
 	errcodeHeader := strconv.Itoa(int(s.Code()))
-	buf, contentType := DefaultMarshal(r.Context(), s)
+	message := s.Proto()
+	buf, contentType, _ := DefaultMarshal(r.Context(), message)
 	header := w.Header()
 	header.Set(httpx.HeaderContentType, contentType)
 	header.Set(httpx.HeaderGrpcStatus, errcodeHeader)
 	header.Set(httpx.HeaderErrorCode, errcodeHeader)
+	ow := w
+	if uw, ok := w.(httpx.Unwrapper); ok {
+		ow = uw.Unwrap()
+	}
+	if recorder, ok := ow.(httpx.RecordBodyer); ok {
+		recorder.RecordBody(buf, message)
+	}
 	if _, err := w.Write(buf); err != nil {
 		grpclog.Infof("Failed to write response: %v", err)
 	}

@@ -38,7 +38,10 @@ func readGRPCFrame(body io.Reader) ([]byte, error) {
 
 // WriteGRPCFrame 将单条消息编码为 gRPC length-prefixed 帧写入 w。
 func WriteGRPCFrame(w io.Writer, ctx context.Context, msg proto.Message) error {
-	data, _ := DefaultMarshal(ctx, msg)
+	data, _, err := DefaultMarshal(ctx, msg)
+	if err != nil {
+		return err
+	}
 	return writeGRPCFrameData(w, data)
 }
 
