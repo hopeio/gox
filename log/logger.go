@@ -50,7 +50,7 @@ func (l *Logger) WithContext(ctx context.Context) *Logger {
 		return l
 	}
 	spanContext := trace.SpanFromContext(ctx).SpanContext()
-	if !spanContext.HasTraceID() {
+	if !spanContext.IsValid() {
 		return l
 	}
 	return l.With(zap.String(FieldTraceId, spanContext.TraceID().String()), zap.String(FieldSpanId, spanContext.SpanID().String()))
