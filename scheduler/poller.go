@@ -12,7 +12,6 @@ import (
 	timex "github.com/hopeio/gox/time"
 )
 
-
 type Poller struct {
 	times uint
 	limit time.Duration
@@ -20,7 +19,7 @@ type Poller struct {
 }
 
 func NewPoller() *Poller {
-	return &Poller{}
+	return &Poller{ch: make(chan struct{})}
 }
 
 func (p *Poller) Times() uint {

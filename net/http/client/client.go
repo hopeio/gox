@@ -16,9 +16,6 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-// github.com/go-resty/resty 是个不错的选择,但是缺少一些我需要的功能，例如brotli解码，以及自定义处理body data，用于解决一些参数和返回body的AES加密或其他
-// 不是并发安全的
-
 var (
 	DefaultHttpClient = newHttpClient(ClientTypeApi)
 	DefaultLogLevel   = LogLevelError
@@ -42,6 +39,9 @@ func apiTransport() *http.Transport {
 			Timeout:   timeout,
 			KeepAlive: 30 * time.Second,
 		}).DialContext,
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
 		TLSHandshakeTimeout: timeout,
 	}
 }
@@ -57,7 +57,7 @@ func newHttpClient(typ ClientType) *http.Client {
 
 // Client ...
 type Client struct {
-	typ ClientType
+	typ     ClientType
 	baseUrl string
 	// httpClient settings
 	httpClient    *http.Client
@@ -241,7 +241,15 @@ func (d *Client) BasicAuth(authUser, authPass string) *Client {
 }
 
 func (d *Client) Clone() *Client {
-	return &(*d)
+	c := *d
+	if d.header != nil {
+		c.header = d.header.Clone()
+	}
+	if d.httpRequestOptions != nil {
+		c.httpRequestOptions = make([]HttpRequestOption, len(d.httpRequestOptions))
+		copy(c.httpRequestOptions, d.httpRequestOptions)
+	}
+	return &c
 }
 
 func (d *Client) Request(method, url string) *Request {

@@ -209,7 +209,6 @@ func (c *Cache) startJanitor(interval time.Duration) {
 	}()
 	runtime.SetFinalizer(c, func(*Cache) {
 		close(stop)
-		stop <- true
 	})
 }
 
@@ -285,8 +284,8 @@ func (c *Cache) GetWithExpiration(key any) (any, time.Duration, error) {
 			return nil, NoExpiration, err
 		}
 		expiration := NoExpiration
-		if v.expiration != nil {
-			expiration = v.expiration.Sub(time.Now())
+		if value.expiration != nil {
+			expiration = value.expiration.Sub(time.Now())
 		}
 		return value.value, expiration, nil
 	}

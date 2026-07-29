@@ -8,11 +8,12 @@ package client
 
 import (
 	"fmt"
-	urli "github.com/hopeio/gox/net/url"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
+
+	urli "github.com/hopeio/gox/net/url"
 )
 
 func SetTag(t string) {
@@ -27,9 +28,6 @@ func SetProxyEnv(url string) {
 func setTimeout(client *http.Client, timeout time.Duration) {
 	if client == nil {
 		client = DefaultHttpClient
-	}
-	if timeout < time.Second {
-		timeout = timeout * time.Second
 	}
 	client.Timeout = timeout
 }

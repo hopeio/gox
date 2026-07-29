@@ -8,10 +8,11 @@ package scheduler
 
 import (
 	"context"
-	"github.com/hopeio/gox/log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hopeio/gox/log"
 )
 
 type Kind uint32
@@ -65,7 +66,7 @@ func NewTask[KEY Key](task TaskFunc[KEY]) *Task[KEY] {
 	}
 }
 
-func (t *Task[KEY]) SeContext(ctx context.Context) *Task[KEY] {
+func (t *Task[KEY]) SetContext(ctx context.Context) *Task[KEY] {
 	t.ctx = ctx
 	return t
 }

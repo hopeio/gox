@@ -37,7 +37,7 @@ type AccessLog func(param *AccessLogParam, err error)
 
 func DefaultLogger(param *AccessLogParam, err error) {
 	reqField, respField, statusField := zap.Skip(), zap.Skip(), zap.Skip()
-	if len(param.ReqBody) > 0 {
+	if len(param.ReqBody) > 0 && param.Request != nil {
 		key := "body"
 		if strings.HasPrefix(param.Request.Header.Get(httpx.HeaderContentType), httpx.ContentTypeJson) {
 			reqField = zap.Reflect(key, json.RawMessage(param.ReqBody))
@@ -45,7 +45,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 			reqField = zap.String(key, stringsx.FromBytes(param.ReqBody))
 		}
 	}
-	if len(param.RespBody) > 0 {
+	if len(param.RespBody) > 0 && param.Response != nil {
 		key := "resp"
 		if len(param.RespBody) > 500 {
 			respField = zap.String(key, "<result is too long>")
@@ -55,9 +55,7 @@ func DefaultLogger(param *AccessLogParam, err error) {
 			} else {
 				respField = zap.String(key, stringsx.FromBytes(param.RespBody))
 			}
-
 		}
-
 	}
 	if param.Response != nil {
 		statusField = zap.Int("status", param.Response.StatusCode)

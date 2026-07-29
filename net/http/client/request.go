@@ -111,6 +111,15 @@ func (req *Request) DoStream(param any) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
+func (req *Request) DoResponse(param any) (*http.Response, error) {
+	var resp *http.Response
+	err := req.Do(param, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Do create a HTTP request
 // param: 请求参数 目前只支持编码为json 或 url-encoded
 func (req *Request) Do(param, response any) error {
@@ -133,8 +142,8 @@ func (req *Request) Do(param, response any) error {
 	}
 
 	var reqBody, respBody []byte
-	var reqTimes int
 	var err error
+	var decompressCloser io.Closer
 	reqTime := time.Now()
 	var request *http.Request
 	var resp *http.Response
@@ -210,26 +219,35 @@ func (req *Request) Do(param, response any) error {
 		opt(request)
 	}
 
-Retry:
-	if reqTimes > 0 {
-		closeResponse(resp)
-		if c.retryInterval != 0 {
-			time.Sleep(c.retryInterval)
+	maxAttempts := c.retryTimes + 1
+	var handlerReader io.ReadCloser
+	var handlerRetry bool
+	var reader io.Reader
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if attempt > 0 {
+			closeResponse(resp)
+			if decompressCloser != nil {
+				decompressCloser.Close()
+				decompressCloser = nil
+			}
+			select {
+			case <-req.ctx.Done():
+				return req.ctx.Err()
+			case <-time.After(c.retryInterval):
+			}
+			reqTime = time.Now()
+			if reqBody != nil {
+				request.Body = io.NopCloser(bytes.NewReader(reqBody))
+			}
+			if c.retryHandler != nil {
+				c.retryHandler(request)
+			}
 		}
-		reqTime = time.Now()
-		if reqBody != nil {
-			request.Body = io.NopCloser(bytes.NewReader(reqBody))
-		}
-		if c.retryHandler != nil {
-			c.retryHandler(request)
-		}
-	}
-	resp, err = c.httpClient.Do(request)
-	reqTimes++
-	if err != nil {
-		if c.retryTimes == 0 || reqTimes == c.retryTimes {
-			return err
-		} else {
+		handlerRetry = false
+		handlerReader = nil
+		reader = nil
+		resp, err = c.httpClient.Do(request)
+		if err != nil {
 			if c.logLevel > LogLevelSilent {
 				c.logger(&AccessLogParam{
 					Method:   req.Method,
@@ -241,108 +259,129 @@ Retry:
 					Response: resp,
 				}, errors.New(err.Error()+";will retry"))
 			}
-			goto Retry
+			continue
 		}
-	}
 
-	if resp.StatusCode < 200 || resp.StatusCode > 300 {
-		if resp.StatusCode == http.StatusNotFound {
-			err = ErrNotFound
-		} else {
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			if resp.StatusCode == http.StatusNotFound {
+				resp.Body.Close()
+				return ErrNotFound
+			}
 			respBody, err = io.ReadAll(resp.Body)
 			resp.Body.Close()
 			if err != nil {
 				return err
 			}
-			err = errors.New("status:" + resp.Status + " " + unicode.ToUtf8(respBody))
+			return errors.New("status:" + resp.Status + " " + unicode.ToUtf8(respBody))
 		}
-		return err
-	}
 
-	if httpresp, ok := response.(*http.Response); ok {
-		*httpresp = *resp
-		return err
-	}
+		if httpresp, ok := response.(*http.Response); ok {
+			*httpresp = *resp
+			return nil
+		}
 
-	var reader io.Reader
-	// net/http会自动处理gzip
-	// go1.22 发现没有处理(并不是,是请求时header标明Content-Encoding时不会处理)
-	encoding := resp.Header.Get(httpx.HeaderContentEncoding)
-	var compress bool
-	if encoding != "" {
-		switch strings.ToLower(encoding) {
-		case "gzip":
-			reader, err = gzip.NewReader(resp.Body)
-			if err != nil {
-				resp.Body.Close()
-				return err
+		// net/http会自动处理gzip
+		// go1.22 发现没有处理(并不是,是请求时header标明Content-Encoding时不会处理)
+		encoding := resp.Header.Get(httpx.HeaderContentEncoding)
+		var compress bool
+		if encoding != "" {
+			switch strings.ToLower(strings.TrimSpace(encoding)) {
+			case "gzip", "x-gzip":
+				var gr *gzip.Reader
+				gr, err = gzip.NewReader(resp.Body)
+				if err != nil {
+					resp.Body.Close()
+					return err
+				}
+				reader = gr
+				decompressCloser = gr
+				compress = true
+			case "br":
+				reader = brotli.NewReader(resp.Body)
+				compress = true
+			case "deflate", "x-deflate":
+				fr := flate.NewReader(resp.Body)
+				reader = fr
+				decompressCloser = fr
+				compress = true
+			case "zstd":
+				var zr *zstd.Decoder
+				zr, err = zstd.NewReader(resp.Body)
+				if err != nil {
+					resp.Body.Close()
+					return err
+				}
+				reader = zr
+				decompressCloser = zr.IOReadCloser()
+				compress = true
+			default:
+				reader = resp.Body
 			}
-			compress = true
-		case "br":
-			reader = brotli.NewReader(resp.Body)
-			compress = true
-		case "deflate":
-			reader = flate.NewReader(resp.Body)
-			compress = true
-		case "zstd":
-			reader, err = zstd.NewReader(resp.Body)
-			if err != nil {
-				resp.Body.Close()
-				return err
-			}
-			compress = true
-		default:
+		} else {
 			reader = resp.Body
 		}
-	} else {
-		reader = resp.Body
-	}
-	if compress {
-		resp.Header.Del(httpx.HeaderContentEncoding)
-		resp.Header.Del(httpx.HeaderContentLength)
-		resp.ContentLength = -1
-		resp.Uncompressed = true
-	}
-
-	if httpresp, ok := response.(**http.Response); ok {
-		if rc, ok := reader.(io.ReadCloser); ok {
-			resp.Body = rc
-		} else {
-			resp.Body = io.NopCloser(reader)
+		if compress {
+			resp.Header.Del(httpx.HeaderContentEncoding)
+			resp.Header.Del(httpx.HeaderContentLength)
+			resp.ContentLength = -1
+			resp.Uncompressed = true
 		}
-		*httpresp = resp
-		return nil
-	}
 
-	if httpresp, ok := response.(*io.Reader); ok {
-		*httpresp = reader
+		if httpresp, ok := response.(**http.Response); ok {
+			if rc, ok := reader.(io.ReadCloser); ok {
+				resp.Body = rc
+			} else {
+				resp.Body = io.NopCloser(reader)
+			}
+			*httpresp = resp
+			return nil
+		}
+
+		if httpresp, ok := response.(*io.Reader); ok {
+			*httpresp = reader
+			return nil
+		}
+
+		if c.responseHandler != nil {
+			handlerRetry, handlerReader, err = c.responseHandler(resp)
+			if handlerRetry {
+				closeResponse(resp)
+				if c.logLevel > LogLevelSilent {
+					c.logger(&AccessLogParam{
+						Method:   req.Method,
+						Url:      req.Url,
+						Duration: time.Since(reqTime),
+						ReqBody:  reqBody,
+						RespBody: respBody,
+						Request:  request,
+						Response: resp,
+					}, err)
+				}
+				continue
+			}
+			if err != nil {
+				closeResponse(resp)
+				return err
+			}
+		}
+		break
+	}
+	if err != nil || handlerRetry {
+		if err == nil {
+			err = errors.New("max retry exceeded")
+		}
 		return err
 	}
 
-	if c.responseHandler != nil {
-		var retry bool
-		retry, reader, err = c.responseHandler(resp)
-		if retry {
-			closeResponse(resp)
-			if c.logLevel > LogLevelSilent {
-				c.logger(&AccessLogParam{
-					Method:   req.Method,
-					Url:      req.Url,
-					Duration: time.Since(reqTime),
-					ReqBody:  reqBody,
-					RespBody: respBody,
-					Request:  request,
-					Response: resp,
-				}, err)
-			}
-			goto Retry
-		} else if err != nil {
-			closeResponse(resp)
-			return err
-		}
+	if handlerReader != nil {
+		reader = handlerReader
 	}
 
 	respBody, err = io.ReadAll(reader)
+	if decompressCloser != nil {
+		decompressCloser.Close()
+		decompressCloser = nil
+	}
 	closeResponse(resp)
 	if err != nil {
 		return err
@@ -356,14 +395,12 @@ Retry:
 	}
 
 	if len(respBody) > 0 && response != nil {
-		//contentType := resp.Header.Get(consts.HeaderContentType)
-
 		if raw, ok := response.(*RawBytes); ok {
 			*raw = respBody
 			return nil
 		}
-		if req.client.respBodyUnMarshal != nil {
-			err = req.client.respBodyUnMarshal(respBody, response)
+		if c.respBodyUnMarshal != nil {
+			err = c.respBodyUnMarshal(respBody, response)
 			if err != nil {
 				return fmt.Errorf("respBodyUnMarshal error: %w", err)
 			}

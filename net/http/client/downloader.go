@@ -15,7 +15,7 @@ import (
 var DefaultDownloadHttpClient = newDownloadHttpClient()
 
 func newDownloadHttpClient() *http.Client {
-	return &http.Client{}
+	return &http.Client{Transport: apiTransport()}
 }
 
 // TODO: Range Status(206) PartialContent 下载

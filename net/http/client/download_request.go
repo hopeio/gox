@@ -12,10 +12,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/hopeio/gox/log"
@@ -136,18 +136,22 @@ func (dReq *DownloadReq) GetResponse(options ...func(*http.Request)) (*http.Resp
 	}
 	for i := 0; i < times; i++ {
 		if i > 0 {
-			time.Sleep(d.retryInterval)
+			select {
+			case <-dReq.ctx.Done():
+				return nil, dReq.ctx.Err()
+			case <-time.After(d.retryInterval):
+			}
 		}
 		resp, err = d.httpClient.Do(req)
 		if err != nil {
 			log.Warn(err, "url:", req.URL.Path)
-			if strings.HasPrefix(err.Error(), "dial tcp: lookup") {
+			var dnsErr *net.DNSError
+			if errors.As(err, &dnsErr) {
 				return nil, err
 			}
 			continue
-		} else {
-			return resp, nil
 		}
+		return resp, nil
 	}
 	return nil, err
 }
@@ -158,47 +162,52 @@ func (dReq *DownloadReq) GetReader() (io.ReadCloser, error) {
 }
 
 func (dReq *DownloadReq) getReader() (*http.Response, io.ReadCloser, error) {
-Retry:
-	resp, err := dReq.GetResponse()
-	if err != nil {
-		return nil, nil, err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		resp.Body.Close()
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, nil, ErrNotFound
+	for {
+		resp, err := dReq.GetResponse()
+		if err != nil {
+			return nil, nil, err
 		}
-		if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
-			return nil, nil, ErrRangeNotSatisfiable
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			resp.Body.Close()
+			if resp.StatusCode == http.StatusNotFound {
+				return nil, nil, ErrNotFound
+			}
+			if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
+				return nil, nil, ErrRangeNotSatisfiable
+			}
+			return nil, nil, fmt.Errorf("请求错误,status code:%d,url:%s", resp.StatusCode, dReq.Url)
 		}
-		return nil, nil, fmt.Errorf("请求错误,status code:%d,url:%s", resp.StatusCode, dReq.Url)
-	}
 
-	d := dReq.downloader
-	reader := resp.Body
-	if d.responseHandler != nil {
-		var retry bool
-		retry, reader, err = d.responseHandler(resp)
-		if retry {
-			goto Retry
+		d := dReq.downloader
+		reader := resp.Body
+		if d.responseHandler != nil {
+			var retry bool
+			retry, reader, err = d.responseHandler(resp)
+			if retry {
+				resp.Body.Close()
+				continue
+			}
+			if err != nil {
+				resp.Body.Close()
+				return nil, nil, err
+			}
 		}
-		if err != nil {
-			return nil, nil, err
+		if d.respBodyHandler != nil {
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				resp.Body.Close()
+				return nil, nil, err
+			}
+			data, err = d.respBodyHandler(data)
+			if err != nil {
+				resp.Body.Close()
+				return nil, nil, err
+			}
+			resp.Body.Close()
+			reader = io.NopCloser(bytes.NewBuffer(data))
 		}
+		return resp, reader, nil
 	}
-	if d.respBodyHandler != nil {
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, nil, err
-		}
-		data, err = d.respBodyHandler(data)
-		if err != nil {
-			return nil, nil, err
-		}
-		resp.Body.Close()
-		reader = io.NopCloser(bytes.NewBuffer(data))
-	}
-	return resp, reader, nil
 }
 
 func (dReq *DownloadReq) Download(filepath string) error {
@@ -299,6 +308,9 @@ func (dReq *DownloadReq) continuationDownload(filepath string) error {
 
 	offset := fileinfo.Size()
 	var reader io.ReadCloser
+	if dReq.header == nil {
+		dReq.header = make(http.Header)
+	}
 	for range dReq.downloader.retryTimes {
 		dReq.header.Set(httpx.HeaderRange, httpx.FormatRange(offset, 0))
 		reader, err = dReq.GetReader()

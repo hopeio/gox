@@ -80,6 +80,7 @@ func NewRandTicker(minInterval, maxInterval time.Duration) Ticker {
 	}
 	if limitRange < 0 {
 		minInterval, maxInterval = maxInterval, minInterval
+		limitRange = -limitRange
 	}
 	return &RandTicker{
 		timer:      time.NewTimer(minInterval + time.Duration(rand.Intn(int(limitRange)))),

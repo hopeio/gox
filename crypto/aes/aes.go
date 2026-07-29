@@ -45,7 +45,7 @@ func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	return origData, nil
 }
 
-func Pkcs7Padding(cipherText []byte, blockSize int) []byte {
+func Pkcs7Padding(cipherText []byte, blockSize int) []byte  {
 	padding := blockSize - len(cipherText)%blockSize
 	padText := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(cipherText, padText...)

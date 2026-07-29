@@ -168,7 +168,7 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPost, r.Url, body)
+	req, err := http.NewRequestWithContext(r.ctx, http.MethodPost, r.Url, body)
 	if err != nil {
 		return err
 	}
@@ -253,11 +253,9 @@ func (r *UploadReq) UploadReaderChunked(reader io.ReaderAt, name string, total i
 	return nil
 }
 
-
 func (r *UploadReq) Upload(filepath string) error {
 	panic("not implemented")
 }
-
 
 func (r *UploadReq) ConcurrentUploadReaderChunked(reader io.ReaderAt, name string, total int64, concurrencyNum int) error {
 	panic("not implemented")

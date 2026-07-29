@@ -17,8 +17,9 @@ func AddFloat64(addr *float64, delta float64) (new float64) {
 	var old float64
 	for {
 		old = math.Float64frombits(atomic.LoadUint64((*uint64)(unsafe.Pointer(addr))))
+		new = old + delta
 		if atomic.CompareAndSwapUint64((*uint64)(unsafe.Pointer(addr)),
-			math.Float64bits(old), math.Float64bits(old+delta)) {
+			math.Float64bits(old), math.Float64bits(new)) {
 			break
 		}
 	}
@@ -29,8 +30,9 @@ func AddFloat32(addr *float32, delta float32) (new float32) {
 	var old float32
 	for {
 		old = math.Float32frombits(atomic.LoadUint32((*uint32)(unsafe.Pointer(addr))))
+		new = old + delta
 		if atomic.CompareAndSwapUint32((*uint32)(unsafe.Pointer(addr)),
-			math.Float32bits(old), math.Float32bits(old+delta)) {
+			math.Float32bits(old), math.Float32bits(new)) {
 			break
 		}
 	}

@@ -15,10 +15,19 @@ import (
 type ContentType uint8
 
 func (c ContentType) String() string {
-	if c < ContentTypeApplication {
-		return contentTypes[c] + ";charset=UTF-8"
+	switch c {
+	case ContentTypeUnset:
+		return ""
+	case ContentTypeBinary:
+		return contentTypes[c-1]
+	case ContentTypeImage, ContentTypeAudio, ContentTypeVideo:
+		return http.ContentTypeOctetStream
+	default:
+		if int(c-1) < len(contentTypes) {
+			return contentTypes[c-1] + ";charset=UTF-8"
+		}
+		return http.ContentTypeOctetStream
 	}
-	return http.ContentTypeOctetStream + ";charset=UTF-8"
 }
 
 func (c *ContentType) Decode(contentType string) {

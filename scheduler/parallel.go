@@ -21,13 +21,19 @@ func NewParallel(workNum uint, opts ...ParallelOption) *Parallel {
 	taskCh := make(chan func(), workNum)
 	p := &Parallel{taskCh: taskCh}
 	g := func() {
+		var executing bool
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Error(err)
 			}
+			if executing {
+				p.wg.Done()
+			}
 		}()
 		for task := range taskCh {
+			executing = true
 			task()
+			executing = false
 			p.wg.Done()
 		}
 	}
@@ -55,11 +61,9 @@ type ParallelOption func(p *Parallel)
 
 type Funcs []func()
 
-func (t *Funcs) Do()  {
+func (t *Funcs) Do() {
 	taskChain := *t
 	for i := 0; i < len(taskChain); i++ {
 		taskChain[i]()
-		}
-	return
+	}
 }
-

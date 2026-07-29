@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/dgraph-io/ristretto/v2"
 	"github.com/hopeio/gox/container/heap"
 	"github.com/hopeio/gox/log"
 	"github.com/hopeio/gox/os/fs"
@@ -22,7 +21,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// 目前受限于ristretto.Cache的泛型限制,考虑移除并引入lru或boolong filter
 type Key interface {
 	uint64 | string | byte | int | int32 | uint32 | int64
 }
@@ -39,20 +37,27 @@ type Engine[KEY Key] struct {
 	cancel           context.CancelFunc // 手动停止执行
 	wg               sync.WaitGroup     // 控制确保所有任务执行完
 	mu               sync.RWMutex
+	workersMu        sync.Mutex // 保护 workers 切片,与 mu 分离避免重入死锁
 	speedLimit       timex.Ticker
 	rateLimiter      *rate.Limiter
 	//TODO
 	monitorInterval      time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
 	workerFactoryRunning atomic.Bool
-	errHandlerRunning    bool
-	enableTelemetry      bool
+	errHandlerRunning    atomic.Bool
 	isRunning, isStopped bool
+	enableTelemetry      bool
 	EngineStatistics
-	done         *ristretto.Cache[KEY, struct{}]
+	seen         map[KEY]struct{} // 去重:记录已入堆的 key,由 e.mu 保护
 	kindHandlers []*KindHandler[KEY]
-	errHandler   func(task *Task[KEY])
-	onStop       []func(context.Context)
-	zeroKey      KEY // 泛型不够强大,又为了性能妥协的字段
+	// 有界 pending:限制"已加入未结束"的任务总数,防止 readyTaskHeap 无界膨胀
+	// 背压只作用在 ingest 协程/外部调用者上,绝不阻塞 worker
+	maxPending uint64
+	pendingSem chan struct{}
+	submitCh   chan *Task[KEY] // worker -> ingest 的子任务提交缓冲
+	wakeup     chan struct{}   // 通知 dispatcher 有新任务入堆
+	errHandler func(task *Task[KEY])
+	onStop     []func(context.Context)
+	zeroKey    KEY // 泛型不够强大,又为了性能妥协的字段
 }
 
 type KindHandler[KEY Key] struct {
@@ -63,19 +68,42 @@ type KindHandler[KEY Key] struct {
 	Handler TaskFunc[KEY]
 }
 
-func New[KEY Key](opts ...Option[KEY]) *Engine[KEY] {
-	c := NewConfig(opts...)
-	return c.NewEngine()
-}
+func NewEngine[KEY Key](workerCount uint64, opts ...Option[KEY]) *Engine[KEY] {
+	engine := &Engine[KEY]{
+		workerCount:      workerCount,
+		ctx:              context.Background(),
+		taskChanConsumer: make(chan *Task[KEY]),
+		errTaskChan:      make(chan *Task[KEY], 1024),
+		readyTaskHeap:    heap.Heap[*Task[KEY]]{},
+		monitorInterval:  5 * time.Second,
+		seen:             make(map[KEY]struct{}),
+		errHandler:       func(task *Task[KEY]) { task.ErrLog() },
+		wakeup:           make(chan struct{}, 1),
+	}
 
-func NewEngine[KEY Key](workerCount uint64) *Engine[KEY] {
-	return NewEngineWithContext[KEY](workerCount, context.Background())
-}
+	ctx, cancel := context.WithCancel(engine.ctx)
+	engine.ctx = ctx
+	engine.cancel = cancel
 
-func NewEngineWithContext[KEY Key](workerCount uint64, ctx context.Context) *Engine[KEY] {
-	conf := NewConfig[KEY]()
-	conf.WorkerCount = workerCount
-	return conf.NewEngineWithContext(ctx)
+	if engine.maxPending > 0 {
+		engine.pendingSem = make(chan struct{}, engine.maxPending)
+		// 初始填满额度:pendingSem 是"剩余可加入名额"的信号量,必须从满开始。
+		// 否则 addTasks 的首个任务就会因无人归还额度而永久阻塞。
+		for i := uint64(0); i < engine.maxPending; i++ {
+			engine.pendingSem <- struct{}{}
+		}
+		// 提交缓冲足以吸收突发,避免 worker 在递交子任务时频繁被背压
+		buf := int(engine.maxPending)
+		if buf > 4096 {
+			buf = 4096
+		}
+		if buf < 64 {
+			buf = 64
+		}
+		engine.submitCh = make(chan *Task[KEY], buf)
+		go engine.ingest()
+	}
+	return engine
 }
 
 func (e *Engine[KEY]) SkipKind(kinds ...Kind) *Engine[KEY] {
@@ -238,4 +266,16 @@ func (e *Engine[KEY]) TaskSource(taskSource func(addTask *Engine[KEY])) {
 		taskSource(e)
 		e.wg.Done()
 	}()
+}
+
+type Option[KEY Key] func(engine *Engine[KEY])
+
+// WithMaxPending 限制"已加入未结束"的任务总数,防止任务堆无界膨胀。
+// 背压只作用在 ingest 协程/外部调用者,不会阻塞 worker。建议 >= WorkerCount。
+func WithMaxPending[KEY Key](n uint64) Option[KEY] {
+	return func(c *Engine[KEY]) { c.maxPending = n }
+}
+
+func WithContext[KEY Key](ctx context.Context) Option[KEY] {
+	return func(c *Engine[KEY]) { c.ctx = ctx }
 }
