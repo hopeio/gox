@@ -20,7 +20,10 @@ func (l *Logger) WithContext(ctx context.Context) *Logger {
 	if !spanContext.IsValid() {
 		return l
 	}
-	return l.With(zap.String(FieldTraceId, spanContext.TraceID().String()), zap.String(FieldSpanId, spanContext.SpanID().String()))
+	return l.With(zap.String(FieldTraceId, spanContext.TraceID().String()), zap.String(FieldSpanId, spanContext.SpanID().String()), zapcore.Field{
+		Type: zapcore.SkipType,
+		Interface: ctx,
+	})
 }
 
 func Context(ctx context.Context) zapcore.Field {

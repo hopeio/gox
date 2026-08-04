@@ -291,9 +291,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 		cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), lc.Level))
 	}
 
-	core := zapcore.NewTee(cores...)
-
-	logger := zap.New(core, lc.hook()...)
+	logger := zap.New(zapcore.NewTee(cores...), lc.hook()...)
 	if lc.Name != "" {
 		logger = logger.Named(lc.Name)
 	}
