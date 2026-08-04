@@ -161,7 +161,7 @@ func TestEngineStopWithError(t *testing.T) {
 func TestEngineMaxPending(t *testing.T) {
 	const total = 2000
 	var executed atomic.Int64
-	engine := NewEngine[int](10, WithMaxPending[int](10))
+	engine := NewEngine(10, WithMaxPending[int](10))
 	engine.ErrHandlerUtilSuccess()
 	engine.AddTasks(&Task[int]{
 		Key: 0,

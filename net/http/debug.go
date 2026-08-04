@@ -13,15 +13,17 @@ import (
 	"runtime/debug"
 )
 
-func HandleDebug(prefix string) {
-	http.HandleFunc(prefix+"/debug/stack", HandleStack)
+// HandleDebug 将 pprof / expvar 调试端点注册到指定 mux，
+// 避免污染全局 http.DefaultServeMux
+func HandleDebug(mux *http.ServeMux, prefix string) {
+	mux.HandleFunc(prefix+"/debug/stack", HandleStack)
 	if prefix != "" && prefix != "GET " {
-		http.HandleFunc(prefix+"/debug/pprof/", pprof.Index)
-		http.HandleFunc(prefix+"/debug/pprof/cmdline", pprof.Cmdline)
-		http.HandleFunc(prefix+"/debug/pprof/profile", pprof.Profile)
-		http.HandleFunc(prefix+"/debug/pprof/symbol", pprof.Symbol)
-		http.HandleFunc(prefix+"/debug/pprof/trace", pprof.Trace)
-		http.Handle(prefix+"/debug/vars", expvar.Handler())
+		mux.HandleFunc(prefix+"/debug/pprof/", pprof.Index)
+		mux.HandleFunc(prefix+"/debug/pprof/cmdline", pprof.Cmdline)
+		mux.HandleFunc(prefix+"/debug/pprof/profile", pprof.Profile)
+		mux.HandleFunc(prefix+"/debug/pprof/symbol", pprof.Symbol)
+		mux.HandleFunc(prefix+"/debug/pprof/trace", pprof.Trace)
+		mux.Handle(prefix+"/debug/vars", expvar.Handler())
 	}
 }
 
