@@ -7,8 +7,11 @@ package strings
 import (
 	"encoding"
 	"encoding/base64"
+	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
+	"time"
 	"unsafe"
 
 	"golang.org/x/exp/constraints"
@@ -29,11 +32,64 @@ func ParseFor[T any](str string) (T, error) {
 		return t, nil
 	}
 
-	v, err := ParseFor[T](str)
-	if err != nil {
+	if err := setReflectValueFromString(reflect.ValueOf(&t).Elem(), str); err != nil {
 		return t, err
 	}
-	return v, nil
+	return t, nil
+}
+
+func setReflectValueFromString(v reflect.Value, str string) error {
+	if !v.IsValid() || !v.CanSet() {
+		return fmt.Errorf("cannot set value of kind %v", v.Kind())
+	}
+	switch v.Kind() {
+	case reflect.String:
+		v.SetString(str)
+		return nil
+	case reflect.Bool:
+		b, err := strconv.ParseBool(str)
+		if err != nil {
+			return err
+		}
+		v.SetBool(b)
+		return nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if v.Type() == reflect.TypeOf(time.Duration(0)) {
+			d, err := time.ParseDuration(str)
+			if err != nil {
+				return err
+			}
+			v.SetInt(int64(d))
+			return nil
+		}
+		i, err := strconv.ParseInt(str, 0, v.Type().Bits())
+		if err != nil {
+			return err
+		}
+		v.SetInt(i)
+		return nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		u, err := strconv.ParseUint(str, 0, v.Type().Bits())
+		if err != nil {
+			return err
+		}
+		v.SetUint(u)
+		return nil
+	case reflect.Float32, reflect.Float64:
+		f, err := strconv.ParseFloat(str, v.Type().Bits())
+		if err != nil {
+			return err
+		}
+		v.SetFloat(f)
+		return nil
+	case reflect.Pointer:
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		return setReflectValueFromString(v.Elem(), str)
+	default:
+		return fmt.Errorf("unsupported type %s", v.Type())
+	}
 }
 
 func ParsePtrFor[T any](str string) (*T, error) {

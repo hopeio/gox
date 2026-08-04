@@ -109,11 +109,15 @@ func Parse(tag string) (*Tags, error) {
 			return nil, ErrTagValueSyntax
 		}
 		res := strings.Split(value, ",")
+		var options []string
+		if len(res) > 1 {
+			options = res[1:]
+		}
 		tags = append(tags, &Tag{
 			Index:   len(tags),
 			Key:     key,
 			Value:   res[0],
-			Options: res[1:],
+			Options: options,
 		})
 	}
 
@@ -301,6 +305,9 @@ func (tag *Tag) DeleteOptions(options ...string) {
 
 // String reassembles the tag into a valid tag field representation
 func (t *Tag) String() string {
+	if len(t.Options) == 0 {
+		return fmt.Sprintf(`%s:%q`, t.Key, t.Value)
+	}
 	return fmt.Sprintf(`%s:%q`, t.Key, t.Value+","+strings.Join(t.Options, ","))
 }
 

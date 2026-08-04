@@ -77,31 +77,16 @@ func DecodeString(s string) ([]byte, error) {
 		return result, nil
 	}
 
-	// 将Base62字符串转换为大整数
+	// 将Base62字符串转换为大整数（alphabet: 0-9a-zA-Z）
 	bigNum := new(big.Int)
 	base := big.NewInt(62)
 
 	for i := 0; i < len(remaining); i++ {
 		char := remaining[i]
-		var index byte
-		switch {
-		case char >= '0' && char <= '9':
-			index = char - '0'
-			bigNum.Mul(bigNum, base)
-			bigNum.Add(bigNum, big.NewInt(int64(index)))
-		case char >= 'A' && char <= 'Z':
-			index = char - 'A' + 10
-			bigNum.Mul(bigNum, base)
-			bigNum.Add(bigNum, big.NewInt(int64(index)))
-		case char >= 'a' && char <= 'z':
-			index = char - 'a' + 10
-			bigNum.Mul(bigNum, base)
-			bigNum.Add(bigNum, big.NewInt(int64(index)))
-		default:
+		index := base62DecodeMap[char]
+		if index == 255 {
 			return nil, fmt.Errorf("invalid Base62 character: %c", char)
 		}
-
-		// bigNum = bigNum * 62 + index
 		bigNum.Mul(bigNum, base)
 		bigNum.Add(bigNum, big.NewInt(int64(index)))
 	}

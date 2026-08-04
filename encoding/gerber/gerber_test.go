@@ -7,12 +7,14 @@ import (
 
 func TestGerber(t *testing.T) {
 	path := `D:\Gerber_TopLayer.GTL`
-	p := LogProcessor{}
-
-	f, _ := os.Open(path)
-	defer f.Close()
-	err := NewParser(p).Parse(f)
+	f, err := os.Open(path)
 	if err != nil {
+		t.Skipf("skip: local gerber fixture missing: %v", err)
+	}
+	defer f.Close()
+
+	p := LogProcessor{}
+	if err := NewParser(p).Parse(f); err != nil {
 		t.Error(err)
 	}
 }

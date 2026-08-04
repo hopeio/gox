@@ -8,12 +8,13 @@ package decimal
 
 import (
 	"fmt"
-	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 	"log"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 func Test_Dec(t *testing.T) {
@@ -32,7 +33,8 @@ func Test_Float(t *testing.T) {
 }
 
 func Test_DB(t *testing.T) {
-	type DecTest struct {
+	t.Skip("requires live database connection")
+	type DbTest struct {
 		Id   uint64
 		Dec  decimal.Decimal `gorm:"type:decimal(10,2)"`
 		Time time.Time
@@ -45,10 +47,10 @@ func Test_DB(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	var dec = DecTest{Dec: d}
+	var dec = DbTest{Dec: d}
 	tx.Save(&dec)
 	log.Println(dec.Id)
-	var dec1 DecTest
+	var dec1 DbTest
 	tx.First(&dec1)
 	tx.Commit()
 	fmt.Println(dec1)

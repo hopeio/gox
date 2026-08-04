@@ -82,8 +82,8 @@ func BenchmarkFindFilesParallel(b *testing.B) {
 }
 
 func TestGo(t *testing.T) {
+	// 仅验证 goroutine 启动不 panic；勿 select{} 阻塞测试。
 	test()
-	select {}
 }
 
 func test() {

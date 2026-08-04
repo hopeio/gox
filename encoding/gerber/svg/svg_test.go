@@ -8,16 +8,23 @@ import (
 
 func TestSvg(t *testing.T) {
 	path := `D:\Gerber_TopLayer.GTL`
-	p := NewProcessor()
-
-	f, _ := os.Open(path)
-	defer f.Close()
-	err := gerber.NewParser(p).Parse(f)
+	f, err := os.Open(path)
 	if err != nil {
+		t.Skipf("skip: local gerber fixture missing: %v", err)
+	}
+	defer f.Close()
+
+	p := NewProcessor()
+	if err := gerber.NewParser(p).Parse(f); err != nil {
 		t.Error(err)
 	}
 	svgPath := `D:\Gerber_TopLayer.svg`
-	svg, _ := os.Create(svgPath)
+	svg, err := os.Create(svgPath)
+	if err != nil {
+		t.Skipf("skip: cannot create svg output: %v", err)
+	}
 	defer svg.Close()
-	p.Write(svg)
+	if err := p.Write(svg); err != nil {
+		t.Error(err)
+	}
 }

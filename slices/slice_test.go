@@ -72,8 +72,14 @@ func TestCast(t *testing.T) {
 	val8 := Convert[[]Interface, []Int8](val7)
 	t.Log(val8)
 
-	val9 := Convert[[]Interface, []Interface2](val7)
-	t.Log(val9)
+	func() {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("Convert Interface→Interface2: want panic")
+			}
+		}()
+		_ = Convert[[]Interface, []Interface2](val7)
+	}()
 
 	//v1 := Int8(2)
 	//v2 := Interface(Int8(2))

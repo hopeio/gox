@@ -64,8 +64,9 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo,omitempty"`,
 			exp: []*Tag{
 				{
-					Key:   "json",
-					Value: "foo,omitempty",
+					Key:     "json",
+					Value:   "foo",
+					Options: []string{"omitempty"},
 				},
 			},
 		},
@@ -74,10 +75,12 @@ func TestParse(t *testing.T) {
 			tag:  `json:"" hcl:""`,
 			exp: []*Tag{
 				{
-					Key: "json",
+					Index: 0,
+					Key:   "json",
 				},
 				{
-					Key: "hcl",
+					Index: 1,
+					Key:   "hcl",
 				},
 			},
 		},
@@ -86,10 +89,12 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo" hcl:"foo"`,
 			exp: []*Tag{
 				{
+					Index: 0,
 					Key:   "json",
 					Value: "foo",
 				},
 				{
+					Index: 1,
 					Key:   "hcl",
 					Value: "foo",
 				},
@@ -100,10 +105,12 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo" hcl:"foo"`,
 			exp: []*Tag{
 				{
+					Index: 0,
 					Key:   "json",
 					Value: "foo",
 				},
 				{
+					Index: 1,
 					Key:   "hcl",
 					Value: "foo",
 				},
@@ -114,10 +121,12 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo" hcl:"bar"`,
 			exp: []*Tag{
 				{
+					Index: 0,
 					Key:   "json",
 					Value: "foo",
 				},
 				{
+					Index: 1,
 					Key:   "hcl",
 					Value: "bar",
 				},
@@ -128,12 +137,16 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo,omitempty" structs:"bar,omitnested"`,
 			exp: []*Tag{
 				{
-					Key:   "json",
-					Value: "foo,omitempty",
+					Index:   0,
+					Key:     "json",
+					Value:   "foo",
+					Options: []string{"omitempty"},
 				},
 				{
-					Key:   "structs",
-					Value: "bar,omitnested",
+					Index:   1,
+					Key:     "structs",
+					Value:   "bar",
+					Options: []string{"omitnested"},
 				},
 			},
 		},
@@ -142,14 +155,18 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo" structs:"bar,omitnested" hcl:"-"`,
 			exp: []*Tag{
 				{
+					Index: 0,
 					Key:   "json",
 					Value: "foo",
 				},
 				{
-					Key:   "structs",
-					Value: "bar,omitnested",
+					Index:   1,
+					Key:     "structs",
+					Value:   "bar",
+					Options: []string{"omitnested"},
 				},
 				{
+					Index: 2,
 					Key:   "hcl",
 					Value: "-",
 				},
@@ -160,8 +177,9 @@ func TestParse(t *testing.T) {
 			tag:  `json:"foo,bar:\"baz\""`,
 			exp: []*Tag{
 				{
-					Key:   "json",
-					Value: "foo,bar:\"baz\"",
+					Key:     "json",
+					Value:   "foo",
+					Options: []string{`bar:"baz"`},
 				},
 			},
 		},

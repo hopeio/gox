@@ -20,6 +20,9 @@ import (
 
 func TestMerge(t *testing.T) {
 	dir := `D:\work\`
+	if _, err := os.Stat(dir); err != nil {
+		t.Skipf("skip: local image fixture dir missing: %v", err)
+	}
 	suff := "--1.jpg"
 	fovs := [][]int{{0, 1, 2}, {5, 4, 3}, {6, 7, 8}, {11, 10, 9}, {12, 13, 14}, {17, 16, 15}, {18, 19, 20}}
 	points := [][]int{{238125, 262125}, {245275, 276609}}
@@ -39,8 +42,15 @@ func TestMerge(t *testing.T) {
 	var gray1, gray2 []uint8
 	for i := 1; i < len(fovs); i++ {
 		idx1, idx2 := fovs[i-1][0], fovs[i][0]
-		data1, _ := os.Open(dir + strconv.Itoa(idx1) + suff)
-		data2, _ := os.Open(dir + strconv.Itoa(idx2) + suff)
+		data1, err := os.Open(dir + strconv.Itoa(idx1) + suff)
+		if err != nil {
+			t.Skipf("skip: local image fixture missing: %v", err)
+		}
+		data2, err := os.Open(dir + strconv.Itoa(idx2) + suff)
+		if err != nil {
+			data1.Close()
+			t.Skipf("skip: local image fixture missing: %v", err)
+		}
 		minOverlap := max(1, predictOverlap-100)
 		maXOverlap := min(predictOverlap+100, sHeight/2)
 		if i == 1 {
@@ -48,8 +58,18 @@ func TestMerge(t *testing.T) {
 			gray2 = make([]uint8, maXOverlap*sHeight)
 		}
 
-		img1, _ := jpeg.Decode(data1)
-		img2, _ := jpeg.Decode(data2)
+		img1, err := jpeg.Decode(data1)
+		if err != nil {
+			data1.Close()
+			data2.Close()
+			t.Fatalf("decode img1: %v", err)
+		}
+		img2, err := jpeg.Decode(data2)
+		if err != nil {
+			data1.Close()
+			data2.Close()
+			t.Fatalf("decode img2: %v", err)
+		}
 		verticalOverlaps[i-1] = CalculateOverlapReuseMemory(img1, img2, true, minOverlap, maXOverlap, gray1, gray2)
 
 		data1.Close()

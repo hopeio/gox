@@ -11,15 +11,13 @@ import (
 )
 
 func TestRange(t *testing.T) {
-	it, err := All("D:\\data")
+	dir := t.TempDir()
+	it, err := All(dir)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	for ent := range it {
 		t.Log(ent.Name())
-	}
-	if err != nil {
-		t.Error(err)
 	}
 }

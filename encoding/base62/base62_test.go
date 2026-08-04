@@ -143,15 +143,15 @@ func TestEncodeBase62Consistency(t *testing.T) {
 		for _, r := range encoded {
 			decodedBig.Mul(decodedBig, base) // decodedBig *= 62
 
-			// Find the index of this character in base62Alphabet
+			// Find the index of this character in base62Alphabet (0-9a-zA-Z)
 			var digit int64
 			switch {
 			case r >= '0' && r <= '9':
 				digit = int64(r - '0')
-			case r >= 'A' && r <= 'Z':
-				digit = int64(r - 'A' + 10)
 			case r >= 'a' && r <= 'z':
-				digit = int64(r - 'a' + 36)
+				digit = int64(r - 'a' + 10)
+			case r >= 'A' && r <= 'Z':
+				digit = int64(r - 'A' + 36)
 			default:
 				t.Fatalf("Invalid base62 character: %c", r)
 			}
