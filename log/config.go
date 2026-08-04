@@ -12,6 +12,9 @@ import (
 
 	netx "github.com/hopeio/gox/net"
 	"github.com/hopeio/gox/slices"
+	"go.opentelemetry.io/contrib/bridges/otelzap"
+	otellog "go.opentelemetry.io/otel/log"
+	otellogglobal "go.opentelemetry.io/otel/log/global"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -98,6 +101,12 @@ type ZipConfig = zap.Config
 type Config struct {
 	Name              string `json:"name,omitempty"` //系统名称namespace.service
 	Development       bool
+	// EnableOtel 开启后，日志会同时桥接到 OpenTelemetry 日志管线(通过 otelzap)。
+	// Provider 解析顺序：OtelLogProvider(显式注入) -> otel/log/global 全局 LoggerProvider。
+	// 两边都拿不到有效 provider 时自动降级为普通日志，不影响既有输出。
+	EnableOtel bool
+	// OtelLogProvider 可选，显式注入 OTel LoggerProvider；为空则回落到全局 provider。
+	OtelLogProvider otellog.LoggerProvider `json:"-"`
 	DisableCaller     bool
 	DisableStacktrace bool
 	Level             zapcore.Level       `json:"level,omitempty"`
@@ -269,7 +278,14 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 		}
 		cores = append(cores, zapcore.NewCore(encoder, sink, lc.Level))
 	}
-	//如果没有设置输出，默认控制台
+
+	if lc.EnableOtel {
+		if provider := lc.otelLogProvider(); provider != nil {
+			cores = append(cores, otelzap.NewCore(lc.Name, otelzap.WithLoggerProvider(provider)))
+		}
+	}
+
+		//如果没有设置输出，默认控制台
 	if len(cores) == 0 {
 		encoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
 		cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), lc.Level))
@@ -339,4 +355,14 @@ func (lc *Config) hook() []zap.Option {
 	}
 
 	return hooks
+}
+
+// otelLogProvider 解析 OTel LoggerProvider：
+// 优先使用显式注入的 OtelLogProvider，否则回落到 otel/log 全局 provider；
+// 两者皆无效时返回 nil（调用方据此降级为普通日志）。
+func (lc *Config) otelLogProvider() otellog.LoggerProvider {
+	if lc.OtelLogProvider != nil {
+		return lc.OtelLogProvider
+	}
+	return otellogglobal.GetLoggerProvider()
 }
