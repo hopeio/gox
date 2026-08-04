@@ -132,7 +132,7 @@ func Parse(tag string) (*Tags, error) {
 
 func MustParse(tag string) *Tags {
 	tags, err := Parse(tag)
-	if err == nil {
+	if err != nil {
 		panic(err)
 	}
 	return tags
