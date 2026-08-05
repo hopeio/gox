@@ -12,6 +12,10 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	stringsx "github.com/hopeio/gox/strings"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var sourceDir string
@@ -53,4 +57,24 @@ func sprintln(a ...any) string {
 func getMessage(fmtArgs []interface{}) string {
 	msg := fmt.Sprintln(fmtArgs...)
 	return msg[:len(msg)-1]
+}
+
+func RawJson(key string, data []byte) zapcore.Field {
+	return zap.Reflect(key, rawJson{Data: data})
+}
+
+type rawJson struct {
+	Data []byte
+}
+
+// MarshalJSON returns m as the JSON encoding of m.
+func (m rawJson) MarshalJSON() ([]byte, error) {
+	if m.Data == nil {
+		return []byte("null"), nil
+	}
+	return m.Data, nil
+}
+
+func (m rawJson) String() string {
+	return stringsx.FromBytes(m.Data)
 }

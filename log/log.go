@@ -15,7 +15,12 @@ import (
 )
 
 func init() {
-	SetDefaultLogger((&Config{Development: true, Level: zapcore.DebugLevel}).NewLogger())
+	SetDefaultLogger((&Config{
+		Config: zap.Config{
+			Development: true,
+			Level:       zap.NewAtomicLevelAt(zapcore.DebugLevel),
+		},
+	}).NewLogger())
 }
 
 type skipLogger struct {

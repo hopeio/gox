@@ -13,8 +13,8 @@ import (
 	netx "github.com/hopeio/gox/net"
 	"github.com/hopeio/gox/slices"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
+	"go.opentelemetry.io/otel/attribute"
 	otellog "go.opentelemetry.io/otel/log"
-	otellogglobal "go.opentelemetry.io/otel/log/global"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -28,22 +28,25 @@ const (
 	stderr = "stderr"
 )
 
+const (
+	EncodingJson    = "json"
+	EncodingConsole = "console"
+)
+
 func NewProductionConfig(appName string) *Config {
 	return &Config{
-		Name:              appName,
-		Level:             zapcore.InfoLevel,
-		EncodeLevelType:   "",
-		DisableCaller:     true,
-		DisableStacktrace: true,
-		Sampling: &zap.SamplingConfig{
-			Initial:    100,
-			Thereafter: 100,
+		Name: appName,
+		Config: zap.Config{
+			Level:             zap.NewAtomicLevelAt(zapcore.InfoLevel),
+			OutputPaths:       []string{stdout},
+			EncoderConfig:     NewProductionEncoderConfig(),
+			DisableCaller:     true,
+			DisableStacktrace: true,
+			Sampling: &zap.SamplingConfig{
+				Initial:    100,
+				Thereafter: 100,
+			},
 		},
-		OutputPaths: OutPutPaths{
-			Console: nil,
-			Json:    []string{stdout},
-		},
-		EncoderConfig: NewProductionEncoderConfig(),
 	}
 }
 
@@ -66,15 +69,14 @@ func NewProductionEncoderConfig() zapcore.EncoderConfig {
 
 func NewDevelopmentConfig(appName string) *Config {
 	return &Config{
-		Name:            appName,
-		Development:     true,
-		Level:           zapcore.DebugLevel,
-		EncodeLevelType: EncodeLevelTypeCapitalColor,
-		OutputPaths: OutPutPaths{
-			Console: []string{"stdout"},
-			Json:    nil,
+		Name: appName,
+		Config: zap.Config{
+			Development: true,
+			Level:       zap.NewAtomicLevelAt(zapcore.DebugLevel),
+			OutputPaths: []string{stdout},
 		},
-		EncoderConfig: NewDevelopmentEncoderConfig(),
+		EncoderConfig:   NewDevelopmentEncoderConfig(),
+		EncodeLevelType: EncodeLevelTypeCapitalColor,
 	}
 }
 
@@ -99,30 +101,40 @@ func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
 type ZipConfig = zap.Config
 
 type Config struct {
-	Name              string `json:"name,omitempty"` //系统名称namespace.service
-	Development       bool
+	Name        string `json:"name,omitempty"` //系统名称namespace.service
+	LevelNumber int    `json:"levelNumber,omitempty"`
 	// EnableOtel 开启后，日志会同时桥接到 OpenTelemetry 日志管线(通过 otelzap)。
-	// Provider 解析顺序：OtelLogProvider(显式注入) -> otel/log/global 全局 LoggerProvider。
-	// 两边都拿不到有效 provider 时自动降级为普通日志，不影响既有输出。
 	EnableOtel bool
-	// OtelLogProvider 可选，显式注入 OTel LoggerProvider；为空则回落到全局 provider。
-	OtelLogProvider otellog.LoggerProvider `json:"-"`
-	DisableCaller     bool
-	DisableStacktrace bool
-	Level             zapcore.Level       `json:"level,omitempty"`
-	Sampling          *zap.SamplingConfig `json:"sampling" yaml:"sampling"`
-	OutputPaths       OutPutPaths         `json:"outputPaths"`
-	ErrorOutputPaths  []string
-	// InitialFields is a collection of fields to add to the root logger.
-	InitialFields map[string]interface{} `json:"initialFields" yaml:"initialFields"`
+	Otel       OtelConfig `json:"otel,omitempty"`
+	zap.Config
 	zapcore.EncoderConfig
 	EncodeLevelType string `json:"encodeLevelType,omitempty" comment:"capital;capitalColor;color"`
 	TimeLayout      string
+	Encoder         zapcore.Encoder
+}
+
+type OtelConfig struct {
+	Version        string                 `json:"version,omitempty"`
+	SchemaURL      string                 `json:"schemaURL,omitempty"`
+	Attributes     []attribute.KeyValue   `json:"attributes,omitempty"`
+	LoggerProvider otellog.LoggerProvider `json:"loggerProvider,omitempty"`
 }
 
 func (lc *Config) Init() {
 	if lc.Name == "" {
-		lc.Name = "app"
+		lc.Name = FieldApp
+	}
+
+	if lc.Level == (zap.AtomicLevel{}) {
+		if lc.LevelNumber == 0 {
+			if lc.Development {
+				lc.Level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
+			} else {
+				lc.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
+			}
+		} else {
+			lc.Level = zap.NewAtomicLevelAt(zapcore.Level(lc.LevelNumber))
+		}
 	}
 
 	if !lc.Development {
@@ -136,9 +148,16 @@ func (lc *Config) Init() {
 			lc.EncoderConfig.FunctionKey = FieldFunc
 		}
 	}
+	if lc.Encoding == "" {
+		if lc.Development {
+			lc.Encoding = EncodingConsole
+		} else {
+			lc.Encoding = EncodingJson
+		}
+	}
 
-	if len(lc.OutputPaths.Console) == 0 && len(lc.OutputPaths.Json) == 0 {
-		lc.OutputPaths.Console = []string{stdout}
+	if len(lc.OutputPaths) == 0 && !lc.EnableOtel {
+		lc.OutputPaths = []string{stdout}
 	}
 
 	if lc.EncoderConfig.TimeKey == "" {
@@ -210,11 +229,6 @@ func (lc *Config) Init() {
 	}
 }
 
-type OutPutPaths struct {
-	Console []string `json:"console,omitempty"`
-	Json    []string `json:"json,omitempty"`
-}
-
 // 初始化日志对象
 func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 	logger := lc.initLogger(cores...)
@@ -234,26 +248,33 @@ func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	lc.Init()
 
-	var encoder zapcore.Encoder
-
-	if len(lc.OutputPaths.Console) > 0 {
-		encoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
+	if len(lc.OutputPaths) > 0 {
+		if lc.Encoder == nil {
+			switch lc.Encoding {
+			case EncodingJson:
+				lc.Encoder = zapcore.NewJSONEncoder(lc.EncoderConfig)
+			case EncodingConsole:
+				lc.Encoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
+			default:
+				log.Fatal("invalid encoder")
+			}
+		}
 		// 如果输出同时有stdout和stderr,那么warn级别及以下的用stdout,error级别及以上的用stderr
 		ustdout, ustderr := false, false
-		consolePaths := make([]string, 0, len(lc.OutputPaths.Console))
-		slices.ForEachIndex(lc.OutputPaths.Console, func(i int) {
-			switch lc.OutputPaths.Console[i] {
+		consolePaths := make([]string, 0, len(lc.OutputPaths))
+		slices.ForEachIndex(lc.OutputPaths, func(i int) {
+			switch lc.OutputPaths[i] {
 			case stdout:
 				ustdout = true
 			case stderr:
 				ustderr = true
 			default:
-				consolePaths = append(consolePaths, lc.OutputPaths.Console[i])
+				consolePaths = append(consolePaths, lc.OutputPaths[i])
 			}
 		})
 		if ustdout && ustderr {
-			cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Level)),
-				zapcore.NewCore(encoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Level)))
+			cores = append(cores, zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Config.Level.Level())),
+				zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Config.Level.Level())))
 		} else {
 			if ustdout {
 				consolePaths = append(consolePaths, stdout)
@@ -262,33 +283,22 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 				consolePaths = append(consolePaths, stderr)
 			}
 		}
-		sink, _, err := zap.Open(consolePaths...)
-		if err != nil {
-			log.Fatal(err)
+		if len(consolePaths) > 0 {
+			sink, _, err := zap.Open(consolePaths...)
+			if err != nil {
+				log.Fatal(err)
+			}
+			cores = append(cores, zapcore.NewCore(lc.Encoder, sink, lc.Config.Level.Level()))
 		}
-		cores = append(cores, zapcore.NewCore(encoder, sink, lc.Level))
-	}
-
-	if len(lc.OutputPaths.Json) > 0 {
-		lc.EncoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
-		encoder = zapcore.NewJSONEncoder(lc.EncoderConfig)
-		sink, _, err := zap.Open(lc.OutputPaths.Json...)
-		if err != nil {
-			log.Fatal(err)
-		}
-		cores = append(cores, zapcore.NewCore(encoder, sink, lc.Level))
 	}
 
 	if lc.EnableOtel {
-		if provider := lc.otelLogProvider(); provider != nil {
-			cores = append(cores, otelzap.NewCore(lc.Name, otelzap.WithLoggerProvider(provider)))
-		}
+		cores = append(cores, otelzap.NewCore(lc.Name, otelzap.WithLoggerProvider(lc.Otel.LoggerProvider), otelzap.WithVersion(lc.Otel.Version), otelzap.WithSchemaURL(lc.Otel.SchemaURL), otelzap.WithAttributes(lc.Otel.Attributes...)))
 	}
 
-		//如果没有设置输出，默认控制台
+	//如果没有设置输出，默认控制台
 	if len(cores) == 0 {
-		encoder = zapcore.NewConsoleEncoder(lc.EncoderConfig)
-		cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), lc.Level))
+		cores = append(cores, zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stdout), lc.Level))
 	}
 
 	logger := zap.New(zapcore.NewTee(cores...), lc.hook()...)
@@ -353,14 +363,4 @@ func (lc *Config) hook() []zap.Option {
 	}
 
 	return hooks
-}
-
-// otelLogProvider 解析 OTel LoggerProvider：
-// 优先使用显式注入的 OtelLogProvider，否则回落到 otel/log 全局 provider；
-// 两者皆无效时返回 nil（调用方据此降级为普通日志）。
-func (lc *Config) otelLogProvider() otellog.LoggerProvider {
-	if lc.OtelLogProvider != nil {
-		return lc.OtelLogProvider
-	}
-	return otellogglobal.GetLoggerProvider()
 }

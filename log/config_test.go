@@ -18,7 +18,7 @@ func TestNewProductionConfig(t *testing.T) {
 	if cfg.Name != "myapp" {
 		t.Fatalf("Name = %q, want myapp", cfg.Name)
 	}
-	if cfg.Level != zapcore.InfoLevel {
+	if cfg.Level.Level() != zapcore.InfoLevel {
 		t.Fatalf("Level = %v, want Info", cfg.Level)
 	}
 	if !cfg.DisableCaller || !cfg.DisableStacktrace {
@@ -27,8 +27,8 @@ func TestNewProductionConfig(t *testing.T) {
 	if cfg.Sampling == nil || cfg.Sampling.Initial != 100 || cfg.Sampling.Thereafter != 100 {
 		t.Fatalf("unexpected sampling: %#v", cfg.Sampling)
 	}
-	if len(cfg.OutputPaths.Json) != 1 || cfg.OutputPaths.Json[0] != stdout {
-		t.Fatalf("OutputPaths.Json = %#v", cfg.OutputPaths.Json)
+	if len(cfg.OutputPaths) != 1 || cfg.OutputPaths[0] != stdout {
+		t.Fatalf("OutputPaths = %#v", cfg.OutputPaths)
 	}
 	if cfg.EncoderConfig.TimeKey != FieldTime {
 		t.Fatalf("TimeKey = %q", cfg.EncoderConfig.TimeKey)
@@ -40,14 +40,14 @@ func TestNewDevelopmentConfig(t *testing.T) {
 	if !cfg.Development {
 		t.Fatal("Development should be true")
 	}
-	if cfg.Level != zapcore.DebugLevel {
+	if cfg.Level.Level() != zapcore.DebugLevel {
 		t.Fatalf("Level = %v, want Debug", cfg.Level)
 	}
 	if cfg.EncodeLevelType != EncodeLevelTypeCapitalColor {
 		t.Fatalf("EncodeLevelType = %q", cfg.EncodeLevelType)
 	}
-	if len(cfg.OutputPaths.Console) != 1 || cfg.OutputPaths.Console[0] != stdout {
-		t.Fatalf("OutputPaths.Console = %#v", cfg.OutputPaths.Console)
+	if len(cfg.OutputPaths) != 1 || cfg.OutputPaths[0] != stdout {
+		t.Fatalf("OutputPaths = %#v", cfg.OutputPaths)
 	}
 }
 
@@ -57,8 +57,8 @@ func TestConfigInitDefaults(t *testing.T) {
 	if cfg.Name != "app" {
 		t.Fatalf("Name = %q, want app", cfg.Name)
 	}
-	if len(cfg.OutputPaths.Console) != 1 || cfg.OutputPaths.Console[0] != stdout {
-		t.Fatalf("default console output = %#v", cfg.OutputPaths.Console)
+	if len(cfg.OutputPaths) != 1 || cfg.OutputPaths[0] != stdout {
+		t.Fatalf("default output = %#v", cfg.OutputPaths)
 	}
 	if cfg.EncoderConfig.TimeKey != FieldTime {
 		t.Fatalf("TimeKey = %q", cfg.EncoderConfig.TimeKey)
@@ -101,7 +101,10 @@ func TestConfigInitProductionFields(t *testing.T) {
 }
 
 func TestConfigInitDevelopmentSkipsProductionNameKey(t *testing.T) {
-	cfg := &Config{Development: true, Name: "dev"}
+	cfg := &Config{
+		Name: "dev",
+		Config: zap.Config{Development: true},
+	}
 	cfg.Init()
 	if cfg.EncoderConfig.NameKey != "" {
 		t.Fatalf("development should not auto-set NameKey, got %q", cfg.EncoderConfig.NameKey)
@@ -112,7 +115,12 @@ func TestConfigInitDevelopmentSkipsProductionNameKey(t *testing.T) {
 }
 
 func TestConfigInitDisableCallerAndStacktrace(t *testing.T) {
-	cfg := &Config{DisableCaller: true, DisableStacktrace: true}
+	cfg := &Config{
+		Config: zap.Config{
+			DisableCaller:     true,
+			DisableStacktrace: true,
+		},
+	}
 	cfg.Init()
 	if cfg.EncoderConfig.CallerKey != "" {
 		t.Fatalf("CallerKey should stay empty, got %q", cfg.EncoderConfig.CallerKey)
@@ -131,12 +139,12 @@ func TestConfigInitTimeLayout(t *testing.T) {
 }
 
 func TestConfigInitClearsZeroSampling(t *testing.T) {
-	cfg := &Config{Sampling: &zap.SamplingConfig{}}
+	cfg := &Config{Config: zap.Config{Sampling: &zap.SamplingConfig{}}}
 	cfg.Init()
 	if cfg.Sampling != nil {
 		t.Fatal("zero sampling config should be cleared")
 	}
-	cfg2 := &Config{Sampling: &zap.SamplingConfig{Initial: 10, Thereafter: 0}}
+	cfg2 := &Config{Config: zap.Config{Sampling: &zap.SamplingConfig{Initial: 10, Thereafter: 0}}}
 	cfg2.Init()
 	if cfg2.Sampling == nil {
 		t.Fatal("non-zero Initial should keep sampling")
@@ -149,8 +157,9 @@ func TestConfigInitLoggerDevelopmentStdout(t *testing.T) {
 	if logger == nil {
 		t.Fatal("initLogger returned nil")
 	}
-	logger.Sync()
+	_ = logger.Sync()
 }
+
 
 func TestConfigHookDevelopmentOptions(t *testing.T) {
 	cfg := NewDevelopmentConfig("test")
@@ -162,9 +171,11 @@ func TestConfigHookDevelopmentOptions(t *testing.T) {
 
 func TestConfigHookInitialFieldsSorted(t *testing.T) {
 	cfg := &Config{
-		InitialFields: map[string]interface{}{
-			"z": 1,
-			"a": 2,
+		Config: zap.Config{
+			InitialFields: map[string]interface{}{
+				"z": 1,
+				"a": 2,
+			},
 		},
 	}
 	opts := cfg.hook()
@@ -178,9 +189,9 @@ func TestStdOutStdErrLevel(t *testing.T) {
 	errBase := StdErrLevel(zapcore.InfoLevel)
 
 	cases := []struct {
-		lvl      zapcore.Level
-		stdout   bool
-		stderr   bool
+		lvl    zapcore.Level
+		stdout bool
+		stderr bool
 	}{
 		{zapcore.DebugLevel, false, false},
 		{zapcore.InfoLevel, true, false},
