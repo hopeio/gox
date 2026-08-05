@@ -18,7 +18,7 @@ func TestDerefInterfaceType(t *testing.T) {
 	t.Log(v.Kind())
 	v1 := v.Elem()
 	t.Log(v1.Kind())
-	// interface 类型本身不能 Elem；动态类型用 Value 取。
+	// interface type itself cannot Elem; get dynamic type via Value.
 	if v1.Kind() != reflect.Interface {
 		t.Fatalf("want interface, got %v", v1.Kind())
 	}

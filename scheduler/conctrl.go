@@ -384,7 +384,7 @@ func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration
 
 // AddFixedTasks updates or inserts a value.
 func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task[KEY]) error {
-	err := fmt.Errorf("不存在workId为%d的fixed worker,请调用NewFixedWorker添加", workerId)
+	err := fmt.Errorf("fixed worker with workId %d does not exist; call NewFixedWorker to add it", workerId)
 	worker := e.fixedWorker(workerId)
 	if worker == nil {
 		return err
@@ -495,13 +495,13 @@ func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 
 		if task.errTimes < 5 {
 			task.reExecTimes++
-			log.Warnf("%v执行失败:%v,将第%d次执行", task.Key, err, task.reExecTimes)
+			log.Warnf("%v failed: %v; will retry for the %d time(s)", task.Key, err, task.reExecTimes)
 			task.Priority++
 			e.mu.Lock()
 			e.readyTaskHeap.Push(task)
 			e.mu.Unlock()
 		} else {
-			log.Warn(task.Key, "多次执行失败:", err, "将执行错误处理")
+			log.Warn(task.Key, "failed repeatedly:", err, "; running error handler")
 			select {
 			case e.errTaskChan <- task:
 			case <-e.ctx.Done():

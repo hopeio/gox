@@ -186,7 +186,7 @@ func (dReq *DownloadReq) getReader() (*http.Response, io.ReadCloser, error) {
 			if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
 				return nil, nil, ErrRangeNotSatisfiable
 			}
-			return nil, nil, fmt.Errorf("请求错误,status code:%d,url:%s", resp.StatusCode, dReq.Url)
+			return nil, nil, fmt.Errorf("request error, status code:%d, url:%s", resp.StatusCode, dReq.Url)
 		}
 
 		d := dReq.downloader

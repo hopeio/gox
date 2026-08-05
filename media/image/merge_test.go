@@ -28,7 +28,7 @@ func TestMerge(t *testing.T) {
 	points := [][]int{{238125, 262125}, {245275, 276609}}
 	scale := float64(5120) / float64(32000)
 	sWidth, sHeight := 5120, 5120
-	// 拼图
+	// mosaic / stitch images
 
 	var horizontalOverlaps, verticalOverlaps []int
 	var imgs = make([][]image.Image, len(fovs))

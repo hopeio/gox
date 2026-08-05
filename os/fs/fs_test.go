@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-// 没跑基准测试
+// not a benchmark
 func TestFindFile(t *testing.T) {
 	log.SetFlags(15)
 	/*	path, err := Find("config/add-config.toml")
@@ -82,12 +82,12 @@ func BenchmarkFindFilesParallel(b *testing.B) {
 }
 
 func TestGo(t *testing.T) {
-	// 仅验证 goroutine 启动不 panic；勿 select{} 阻塞测试。
+	// only verify goroutine start does not panic; do not select{} and block the test.
 	test()
 }
 
 func test() {
-	defer print("完成")
+	defer print("done")
 	var array = [100]int{}
 	for i := 0; i < 99; i++ {
 		go func([100]int) {

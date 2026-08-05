@@ -123,7 +123,7 @@ func InverseMatrix(m [3][3]float64) ([3][3]float64, error) {
 		m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0])
 
 	if det == 0 {
-		return [3][3]float64{}, fmt.Errorf("矩阵不可逆")
+		return [3][3]float64{}, fmt.Errorf("matrix is not invertible")
 	}
 
 	inv := [3][3]float64{}

@@ -108,7 +108,7 @@ func (l *LinkedList[T]) InsertAfterNode(pre *Node[T], e T) error {
 		l.size++
 		return nil
 	}
-	return errors.New("链表中不存在该结点")
+	return errors.New("node does not exist in the list")
 }
 
 // InsertAfterData updates or inserts a value.
@@ -124,13 +124,13 @@ func (l *LinkedList[T]) InsertAfterData(preData T, e T) error {
 		}
 	}
 	//Data not found
-	return errors.New("链表中没有该数据，插入失败")
+	return errors.New("data not found in the list; insert failed")
 }
 
 // Insert updates or inserts a value.
 func (l *LinkedList[T]) Insert(position int, e T) error {
 	if position < 0 {
-		return errors.New("下标不能为负数")
+		return errors.New("index must not be negative")
 	} else if position == 0 {
 		//Insert at the head
 		l.InsertHead(e)
@@ -140,7 +140,7 @@ func (l *LinkedList[T]) Insert(position int, e T) error {
 		l.Append(e)
 		return nil
 	} else if position > l.size {
-		return errors.New("指定下标超出链表长度")
+		return errors.New("index is out of list length")
 	} else {
 		//Insert in the middle
 		var index int

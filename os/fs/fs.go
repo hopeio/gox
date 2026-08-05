@@ -73,7 +73,7 @@ func FindFiles(src, dst string, deep int8, num int) ([]string, error) {
 	subDirFiles(src, dst, "", &files, deep, 0, num)
 	supDirFiles(src+string(os.PathSeparator), dst, &files, deep, 0, num)
 	if len(files) == 0 {
-		return nil, errors.New("找不到文件")
+		return nil, errors.New("file not found")
 	}
 	return files, nil
 }
@@ -174,7 +174,7 @@ func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 		}
 	}
 	if len(files) == 0 {
-		return nil, errors.New("找不到文件")
+		return nil, errors.New("file not found")
 	}
 	return files, nil
 }

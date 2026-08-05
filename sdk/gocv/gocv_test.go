@@ -27,15 +27,15 @@ func TestAffineMatrix(t *testing.T) {
 		fmt.Println()
 	}
 	t.Log(AffineTransform(affineMat, []gocv.Point2f{{X: 128.08328, Y: 13.295279}}))
-	// 定义要变换的点 (例如 [100, 150])
+	// define the point to transform (e.g. [100, 150])
 	point := [3]float32{128.08328, 13.295279, 1}
 
-	// 应用仿射变换矩阵到点
+	// apply affine transform matrix to the point
 	transformedPoint := [2]float32{
 		affineMat.GetFloatAt(0, 0)*point[0] + affineMat.GetFloatAt(0, 1)*point[1] + affineMat.GetFloatAt(0, 2),
 		affineMat.GetFloatAt(1, 0)*point[0] + affineMat.GetFloatAt(1, 1)*point[1] + affineMat.GetFloatAt(1, 2),
 	}
 
-	// 打印变换后的点
+	// print the transformed point
 	fmt.Printf("Transformed point: [%f, %f]\n", transformedPoint[0], transformedPoint[1])
 }

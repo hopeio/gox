@@ -102,7 +102,7 @@ func SetCellDropListStyle(sw *excelize.StreamWriter, f *excelize.File, hiddenShe
 	validation.Formula1 = fmt.Sprintf("<formula1>%s</formula1>", definedName.Name)
 	validation.Sqref = fmt.Sprintf("%s:%s", effectCellStart, effectCellEnd)
 	validation.Type = "list"
-	validation.SetError(excelize.DataValidationErrorStyleStop, "错误的输入内容", "请输入此列下拉框列表中已有的值")
+	validation.SetError(excelize.DataValidationErrorStyleStop, "Invalid input", "Please choose a value from this column's dropdown list")
 	_ = f.AddDataValidation(sw.Sheet, validation)
 }
 

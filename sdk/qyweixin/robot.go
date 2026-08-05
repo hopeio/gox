@@ -35,7 +35,7 @@ func RobotSendMessage(key string, msg MessageType) error {
 // RobotUrl performs the operation.
 func RobotUrl(key string) (string, error) {
 	if key == "" {
-		return "", errors.New("key不能为为空")
+		return "", errors.New("key must not be empty")
 	}
 
 	return fmt.Sprintf("send?key=%s", key), nil

@@ -17,10 +17,10 @@ func TestFormatRelativeTime(t *testing.T) {
 		from stdtime.Time
 		want string
 	}{
-		{now.Add(-30 * stdtime.Second), "刚刚"},
-		{now.Add(-5 * stdtime.Minute), "5分钟前"},
-		{now.Add(-3 * stdtime.Hour), "3小时前"},
-		{now.Add(-48 * stdtime.Hour), "2天前"},
+		{now.Add(-30 * stdtime.Second), "just now"},
+		{now.Add(-5 * stdtime.Minute), "5 minutes ago"},
+		{now.Add(-3 * stdtime.Hour), "3 hours ago"},
+		{now.Add(-48 * stdtime.Hour), "2 days ago"},
 	}
 	for _, c := range cases {
 		got := FormatRelativeTime(c.from)
@@ -45,7 +45,7 @@ func TestParseTimeDateTimeDate(t *testing.T) {
 func TestFormatRelativeTimeLongSpan(t *testing.T) {
 	now := stdtime.Now()
 	got := FormatRelativeTime(now.Add(-400 * 24 * stdtime.Hour))
-	if !strings.Contains(got, "年前") && !strings.Contains(got, "个月前") {
+	if !strings.Contains(got, "years ago") && !strings.Contains(got, "months ago") {
 		t.Fatalf("long span got %q", got)
 	}
 }

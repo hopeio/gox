@@ -18,7 +18,7 @@ const flagTagName = "flag"
 type flagTagSettings struct {
 	Name    string `meta:"name"`
 	Short   string `meta:"short"`
-	Env     string `meta:"env" comment:"从环境变量读取"`
+	Env     string `meta:"env" comment:"read from environment variable"`
 	Default string `meta:"default"`
 	Usage   string `meta:"usage"`
 }

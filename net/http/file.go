@@ -72,7 +72,7 @@ func GetFileExt(file *multipart.FileHeader) (string, error) {
 		ext = file.Filename[index:]
 	}
 	if len(ext) == 1 {
-		return "", errors.New("无效的扩展名")
+		return "", errors.New("invalid extension")
 	}
 	return ext, nil
 }

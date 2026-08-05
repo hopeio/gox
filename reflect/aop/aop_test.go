@@ -25,7 +25,7 @@ func TestAop(t *testing.T) {
 	Invoke(before, &foo1, after)
 	foo1()
 
-	// aop() 依赖 gomonkey 且注释标明不可用，跳过以免栈溢出。
+	// aop() depends on gomonkey and is marked unavailable; skip to avoid stack overflow.
 	t.Skip("aop() via gomonkey is unsupported")
 	log.Println("----------------------------------------")
 	aop(before, foo2, after)

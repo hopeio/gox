@@ -12,8 +12,8 @@ import (
 )
 
 type testValidate struct {
-	Name string `validate:"required" comment:"名称"`
-	Age  int    `validate:"min=1" comment:"年龄"`
+	Name string `validate:"required" comment:"name"`
+	Age  int    `validate:"min=1" comment:"age"`
 }
 
 func TestValidateStruct(t *testing.T) {

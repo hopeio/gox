@@ -42,7 +42,7 @@ func RobotSendMessage(accessToken, secret string, msg MessageType) error {
 // RobotUrl performs the operation.
 func RobotUrl(accessToken, secret string) (string, error) {
 	if accessToken == "" {
-		return "", errors.New("token不能为为空")
+		return "", errors.New("token must not be empty")
 	}
 	if secret != "" {
 		// Sign with the secret key

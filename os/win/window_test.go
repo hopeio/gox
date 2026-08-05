@@ -42,7 +42,7 @@ func TestWindows(t *testing.T) {
 			}
 		}*/
 
-	/*	mainFormTitle := "任务管理器"
+	/*	mainFormTitle := "Task Manager"
 		mainFormClass := "TaskManagerWindow"
 		hwnd := w32.FindWindow(mainFormClass, mainFormTitle)
 		w32.ShowWindow(hwnd, w32.SW_NORMAL)

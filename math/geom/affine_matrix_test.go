@@ -39,7 +39,7 @@ func TestAffineMatrix(t *testing.T) {
 		t.Error(err)
 	}
 
-	// 对某个点应用变换
+	// apply transform to a point
 	p := Point{X: 48000, Y: 13000}
 	q := transformMatrix.Transform(p)
 	t.Log(q)

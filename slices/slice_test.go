@@ -54,7 +54,7 @@ func TestCast(t *testing.T) {
 	var x *Int
 	var y *int
 
-	// 获取 *Int 和 *int 的底层类型
+	// get underlying types of *Int and *int
 	fmt.Println("AssignableTo:", reflect.TypeOf(x).AssignableTo(reflect.TypeOf(y)))
 	fmt.Println("ConvertibleTo:", reflect.TypeOf(x).ConvertibleTo(reflect.TypeOf(y)))
 	val1 := []Int{1, 2, 3}

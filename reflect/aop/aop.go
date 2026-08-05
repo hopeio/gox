@@ -17,7 +17,7 @@ import (
 func Invoke(before func(), target any, after func()) {
 	v2 := reflect.ValueOf(target).Elem()
 	if v2.Kind() != reflect.Func {
-		panic("错误的类型")
+		panic("invalid type")
 	}
 
 	oldFuncVal := reflect.MakeFunc(v2.Type(), nil)
@@ -46,7 +46,7 @@ type Func struct {
 func aop(before func(), target any, after func()) {
 	v2 := reflect.ValueOf(target)
 	if v2.Kind() != reflect.Func {
-		panic("错误的类型")
+		panic("invalid type")
 	}
 
 	oldFuncVal := reflect.MakeFunc(v2.Type(), nil)

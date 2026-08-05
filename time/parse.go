@@ -23,19 +23,19 @@ func FormatRelativeTime(fromTime time.Time) string {
 
 	switch {
 	case duration.Minutes() < 1:
-		return "刚刚"
+		return "just now"
 	case duration.Hours() < 1:
-		return fmt.Sprintf("%d分钟前", int(duration.Minutes()))
+		return fmt.Sprintf("%d minutes ago", int(duration.Minutes()))
 	case days < 1:
-		return fmt.Sprintf("%d小时前", int(duration.Hours()))
+		return fmt.Sprintf("%d hours ago", int(duration.Hours()))
 	case days < 7:
-		return fmt.Sprintf("%d天前", days)
+		return fmt.Sprintf("%d days ago", days)
 	case weeks < 1:
-		return fmt.Sprintf("%d周前", weeks)
+		return fmt.Sprintf("%d weeks ago", weeks)
 	case months < 1:
-		return fmt.Sprintf("%d个月前", months)
+		return fmt.Sprintf("%d months ago", months)
 	default:
-		return fmt.Sprintf("%d年前", years)
+		return fmt.Sprintf("%d years ago", years)
 	}
 }
 

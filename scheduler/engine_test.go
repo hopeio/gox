@@ -103,7 +103,7 @@ func TestEngineLimit(t *testing.T) {
 	engine.Run()
 }
 
-// TestEngineStop 验证在任务执行中途调用 Stop(取消 ctx) 时,Run 能正常返回而不永久阻塞。
+// TestEngineStop verifies that calling Stop (cancel ctx) mid-execution lets Run return without hanging forever.
 func TestEngineStop(t *testing.T) {
 	engine := NewEngine[int](4)
 	engine.ErrHandlerUtilSuccess()
@@ -131,7 +131,7 @@ func TestEngineStop(t *testing.T) {
 	}
 }
 
-// TestEngineStopWithError 验证错误任务在 cancel 时也能正确归还 wg,不泄漏。
+// TestEngineStopWithError verifies error tasks still release wg on cancel without leaking.
 func TestEngineStopWithError(t *testing.T) {
 	engine := NewEngine[int](4)
 	engine.ErrHandlerUtilSuccess()
@@ -141,7 +141,7 @@ func TestEngineStopWithError(t *testing.T) {
 			Key: id,
 			Run: func(ctx context.Context) ([]*Task[int], error) {
 				time.Sleep(time.Millisecond * 30)
-				return nil, context.Canceled // 始终失败
+				return nil, context.Canceled // always fail
 			},
 		})
 	}
@@ -159,8 +159,9 @@ func TestEngineStopWithError(t *testing.T) {
 	}
 }
 
-// TestEngineMaxPending 验证子任务经 submitCh 非阻塞递交,且有界 pending 不会死锁/泄漏。
-// 单个根任务返回大量子任务,MaxPending 很小(10),必须能全部执行完且 Run 正常返回。
+// TestEngineMaxPending verifies child tasks are submitted non-blocking via submitCh,
+// and bounded pending does not deadlock/leak.
+// A single root returns many children with a small MaxPending (10); all must finish and Run must return.
 func TestEngineMaxPending(t *testing.T) {
 	const total = 2000
 	var executed atomic.Int64
@@ -198,11 +199,11 @@ func TestEngineMaxPending(t *testing.T) {
 	}
 }
 
-// TestEngineStress 大数据量压力测试:
-// - 10 个并发生产者各提交 500 个任务 (共 5000)
-// - 每个任务产生 2 个子任务 (共 10000 子任务)
-// - 10% 任务首次执行失败触发重试
-// - 验证最终执行计数正确
+// TestEngineStress large-volume stress test:
+// - 10 concurrent producers each submit 500 tasks (5000 total)
+// - each task spawns 2 children (10000 children total)
+// - 10% of tasks fail on first run to trigger retry
+// - verify final execution counts
 func TestEngineStress(t *testing.T) {
 	const producers = 10
 	const tasksPerProducer = 500
@@ -219,7 +220,7 @@ func TestEngineStress(t *testing.T) {
 		engine.TaskSource(func(e *Engine[int]) {
 			for i := 0; i < tasksPerProducer; i++ {
 				taskId := producerId*tasksPerProducer + i + 1
-				shouldFail := taskId%10 == 0 // 10% 失败率
+				shouldFail := taskId%10 == 0 // 10% failure rate
 				e.AddTasks(&Task[int]{
 					Key: taskId,
 					Run: func(ctx context.Context) ([]*Task[int], error) {
@@ -260,7 +261,7 @@ func TestEngineStress(t *testing.T) {
 
 	expectedRoot := int64(producers * tasksPerProducer)
 	expectedChild := expectedRoot * childrenPerTask
-	// emptyDetection 在 errTaskChan 重入堆的竞态窗口内可能丢失极少量任务(<0.1%)
+	// emptyDetection may drop a tiny fraction of tasks (<0.1%) in the race window when re-pushing errTaskChan onto the heap
 	if rootExecuted.Load() < expectedRoot-10 {
 		t.Errorf("root tasks: expected ~%d, got %d", expectedRoot, rootExecuted.Load())
 	}
@@ -271,15 +272,15 @@ func TestEngineStress(t *testing.T) {
 		rootExecuted.Load(), expectedRoot, childExecuted.Load(), expectedChild, retryCount.Load())
 }
 
-// task_fail_once 保证某个 taskId 只失败一次,第二次成功
+// task_fail_once ensures a given taskId fails only once; second call succeeds
 var failedOnce sync.Map
 
 func task_fail_once(id int) bool {
 	_, loaded := failedOnce.LoadOrStore(id, true)
-	return !loaded // 第一次存入返回 true(失败), 后续返回 false(成功)
+	return !loaded // first store returns true (fail); later calls return false (success)
 }
 
-// TestEngineKeyDedup 验证相同 Key 的任务会被大幅去重(执行时检查 done cache)
+// TestEngineKeyDedup verifies tasks with the same Key are heavily deduped (done cache checked at run time)
 func TestEngineKeyDedup(t *testing.T) {
 	var executed atomic.Int64
 	engine := NewEngine[int](8)
@@ -288,10 +289,10 @@ func TestEngineKeyDedup(t *testing.T) {
 	const dupCount = 100
 	for i := 0; i < dupCount; i++ {
 		engine.AddTasks(&Task[int]{
-			Key: 42, // 全部相同 key
+			Key: 42, // all same key
 			Run: func(ctx context.Context) ([]*Task[int], error) {
 				executed.Add(1)
-				time.Sleep(time.Millisecond * 50) // 给 cache 传播时间
+				time.Sleep(time.Millisecond * 50) // allow cache to propagate
 				return nil, nil
 			},
 		})
@@ -307,8 +308,8 @@ func TestEngineKeyDedup(t *testing.T) {
 	case <-time.After(30 * time.Second):
 		t.Fatal("dedup test timed out")
 	}
-	// 去重是 best-effort: 第一个执行完并 set cache 后,后续相同 key 会被 skip
-	// 允许少量并发窗口内的重复,但不应全部执行
+	// dedup is best-effort: after the first finishes and sets cache, later same keys are skipped
+	// allow a few duplicates in the concurrency window, but not all should run
 	if executed.Load() >= dupCount {
 		t.Fatalf("dedup ineffective: all %d tasks executed", dupCount)
 	}

@@ -59,7 +59,7 @@ func GetLVItem(hwnd w32.HWND, row, col int) string {
 	)
 
 	if hProcess == 0 {
-		fmt.Println("开启远程hProcess失败")
+		fmt.Println("failed to open remote hProcess")
 		return ""
 	}
 
@@ -67,7 +67,7 @@ func GetLVItem(hwnd w32.HWND, row, col int) string {
 
 	lpLvItem := VirtualAllocEx(hProcess, 0, unsafe.Sizeof(w32.LVITEM{}), MEM_COMMIT, PAGE_READWRITE)
 	if lpLvItem == 0 {
-		fmt.Println("申请远程内存空间失败")
+		fmt.Println("failed to allocate remote memory")
 		return ""
 	}
 
@@ -75,7 +75,7 @@ func GetLVItem(hwnd w32.HWND, row, col int) string {
 
 	lpStr := VirtualAllocEx(hProcess, 0, 512, MEM_COMMIT, PAGE_READWRITE)
 	if lpStr == 0 {
-		fmt.Println("申请远程内存空间失败")
+		fmt.Println("failed to allocate remote memory")
 		return ""
 	}
 
@@ -120,7 +120,7 @@ func GetList(hwnd w32.HWND, columns []int) [][]string {
 	)
 
 	if hProcess == 0 {
-		fmt.Println("开启远程hProcess失败")
+		fmt.Println("failed to open remote hProcess")
 		return nil
 	}
 
@@ -128,7 +128,7 @@ func GetList(hwnd w32.HWND, columns []int) [][]string {
 
 	lpLvItem := VirtualAllocEx(hProcess, 0, unsafe.Sizeof(w32.LVITEM{}), MEM_COMMIT, PAGE_READWRITE)
 	if lpLvItem == 0 {
-		fmt.Println("申请远程内存空间失败")
+		fmt.Println("failed to allocate remote memory")
 		return nil
 	}
 
@@ -136,7 +136,7 @@ func GetList(hwnd w32.HWND, columns []int) [][]string {
 
 	lpStr := VirtualAllocEx(hProcess, 0, 512, MEM_COMMIT, PAGE_READWRITE)
 	if lpStr == 0 {
-		fmt.Println("申请远程内存空间失败")
+		fmt.Println("failed to allocate remote memory")
 		return nil
 	}
 

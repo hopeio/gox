@@ -13,7 +13,7 @@ import (
 
 type Bar1 struct {
 	Field1 int    `type:"\\w"`
-	Field2 string `mock:"example:'1' type:'\\w' test:'\"'"` // 因为标准库的Tag.Get最后会Unquote，自定义的无需再去Unquote
+	Field2 string `mock:"example:'1' type:'\\w' test:'\"'"` // stdlib Tag.Get already Unquotes; custom tags need not Unquote again
 }
 
 func TestTag(t *testing.T) {

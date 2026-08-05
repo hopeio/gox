@@ -25,7 +25,7 @@ func newTestClient() *Client {
 	return New().DisableLog()
 }
 
-// newNoCompressClient 禁用 transport 自动解压，测试手动解压逻辑
+// newNoCompressClient disables transport auto-decompress to test manual decompress logic.
 func newNoCompressClient() *Client {
 	tr := apiTransport()
 	tr.DisableCompression = true
