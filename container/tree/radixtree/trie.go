@@ -29,7 +29,7 @@ func (ps Params) ByName(name string) string {
 	return ""
 }
 
-// longestCommonPrefix ...
+// longestCommonPrefix returns the length of the common prefix between two strings.
 func longestCommonPrefix(a, b string) int {
 	i := 0
 	n := min(len(a), len(b))
@@ -374,7 +374,7 @@ walk: // Outer loop for walking the tree
 							continue walk
 						}
 
-						// ... but we can't
+						// There is no deeper node to continue matching this segment.
 						tsr = n
 						return
 					}
@@ -604,7 +604,7 @@ walk: // Outer loop for walking the tree
 						continue
 					}
 
-					// ... but we can't
+					// There is no deeper node to continue matching this segment.
 					if fixTrailingSlash && len(path) == end+1 {
 						return ciPath
 					}
