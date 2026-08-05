@@ -17,6 +17,7 @@ type ARC struct {
 	b2   *arcList
 }
 
+// init ...
 func (c *ARC) init(bc *baseCache) {
 	c.baseCache = bc
 	c.items = make(map[any]*item)
@@ -26,6 +27,7 @@ func (c *ARC) init(bc *baseCache) {
 	c.b2 = newARCList()
 }
 
+// replace ...
 func (c *ARC) replace(key any) {
 	if !c.isCacheFull() {
 		return
@@ -50,6 +52,7 @@ func (c *ARC) replace(key any) {
 	}
 }
 
+// set ...
 func (c *ARC) set(key, value any, expiration *time.Time) (*item, error) {
 	it, ok := c.items[key]
 	if ok {
@@ -121,6 +124,7 @@ func (c *ARC) set(key, value any, expiration *time.Time) (*item, error) {
 	return it, nil
 }
 
+// get ...
 func (c *ARC) get(key any, onLoad bool) (*item, error) {
 	if elt := c.t1.Lookup(key); elt != nil {
 		c.t1.Remove(key, elt)
@@ -163,6 +167,7 @@ func (c *ARC) get(key any, onLoad bool) (*item, error) {
 	return nil, KeyNotFoundError
 }
 
+// has ...
 func (c *ARC) has(key any, now *time.Time) bool {
 	item, ok := c.items[key]
 	if !ok {
@@ -171,6 +176,7 @@ func (c *ARC) has(key any, now *time.Time) bool {
 	return !item.Expired(now)
 }
 
+// remove ...
 func (c *ARC) remove(key any) bool {
 	if elt := c.t1.Lookup(key); elt != nil {
 		c.t1.Remove(key, elt)
@@ -202,18 +208,21 @@ func (c *ARC) length() int {
 	return len(c.items)
 }
 
+// foreach ...
 func (c *ARC) foreach(f func(*item)) {
 	for _, v := range c.items {
 		f(v)
 	}
 }
 
+// setPart ...
 func (c *ARC) setPart(p int) {
 	if c.isCacheFull() {
 		c.part = p
 	}
 }
 
+// isCacheFull reports whether the condition holds.
 func (c *ARC) isCacheFull() bool {
 	return (c.t1.Len() + c.t2.Len()) == c.size
 }
@@ -223,6 +232,7 @@ type arcList struct {
 	keys map[any]*list.Element
 }
 
+// newARCList creates and returns a new instance.
 func newARCList() *arcList {
 	return &arcList{
 		l:    list.New(),
@@ -230,20 +240,24 @@ func newARCList() *arcList {
 	}
 }
 
+// Has ...
 func (al *arcList) Has(key any) bool {
 	_, ok := al.keys[key]
 	return ok
 }
 
+// Lookup ...
 func (al *arcList) Lookup(key any) *list.Element {
 	elt := al.keys[key]
 	return elt
 }
 
+// MoveToFront ...
 func (al *arcList) MoveToFront(elt *list.Element) {
 	al.l.MoveToFront(elt)
 }
 
+// PushFront ...
 func (al *arcList) PushFront(key any) {
 	if elt, ok := al.keys[key]; ok {
 		al.l.MoveToFront(elt)
@@ -253,11 +267,13 @@ func (al *arcList) PushFront(key any) {
 	al.keys[key] = elt
 }
 
+// Remove ...
 func (al *arcList) Remove(key any, elt *list.Element) {
 	delete(al.keys, key)
 	al.l.Remove(elt)
 }
 
+// RemoveTail ...
 func (al *arcList) RemoveTail() any {
 	elt := al.l.Back()
 	if elt == nil {
@@ -271,6 +287,7 @@ func (al *arcList) RemoveTail() any {
 	return key
 }
 
+// Len returns the number of elements.
 func (al *arcList) Len() int {
 	return al.l.Len()
 }

@@ -4,6 +4,7 @@ import (
 	"image"
 )
 
+// RectUnionPoint ...
 func RectUnionPoint(rect image.Rectangle, p image.Point) image.Rectangle {
 	if p.X < rect.Min.X {
 		rect.Min.X = p.X
@@ -20,6 +21,7 @@ func RectUnionPoint(rect image.Rectangle, p image.Point) image.Rectangle {
 	return rect
 }
 
+// RectClipInBounds ...
 func RectClipInBounds(rect *image.Rectangle, imgWidth, imgHeight int) {
 	if rect.Min.X < 0 {
 		rect.Min.X = 0

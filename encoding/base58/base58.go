@@ -10,6 +10,7 @@ const base58Alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWX
 var decodeBase58Map [256]byte
 var ErrInvalidBase58 = errors.New("invalid base58")
 
+// init ...
 func init() {
 	for i := 0; i < len(base58Alphabet); i++ {
 		decodeBase58Map[i] = 0xFF
@@ -20,7 +21,7 @@ func init() {
 	}
 }
 
-// EncodeToString 将字节数组编码为Base58字符串
+// EncodeToString ...
 func EncodeToString(data []byte) string {
 	if len(data) == 0 {
 		return ""
@@ -57,7 +58,7 @@ func EncodeToString(data []byte) string {
 	return string(result)
 }
 
-// DecodeString 将 Base58 编码的字符串解码为字节数组
+// DecodeString ...
 func DecodeString(s string) ([]byte, error) {
 	if s == "" {
 		return []byte{}, nil

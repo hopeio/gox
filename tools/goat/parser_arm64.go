@@ -50,6 +50,7 @@ type Line struct {
 	Binary   string
 }
 
+// String returns the string representation.
 func (line *Line) String() string {
 	var builder strings.Builder
 	for _, label := range line.Labels {
@@ -64,6 +65,7 @@ func (line *Line) String() string {
 	return builder.String()
 }
 
+// parseAssembly ...
 func parseAssembly(path string) (map[string][]Line, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -119,6 +121,7 @@ func parseAssembly(path string) (map[string][]Line, error) {
 	return functions, nil
 }
 
+// parseObjectDump ...
 func parseObjectDump(dump string, functions map[string][]Line) error {
 	var (
 		functionName string
@@ -156,6 +159,7 @@ func parseObjectDump(dump string, functions map[string][]Line) error {
 	return nil
 }
 
+// generateGoAssembly ...
 func generateGoAssembly(path string, functions []Function) error {
 	// generate code
 	var builder strings.Builder

@@ -15,18 +15,22 @@ type Result[T any] struct {
 	err   error
 }
 
+// Ok ...
 func Ok[T any](a T) Result[T] {
 	return Result[T]{value: a}
 }
 
+// Err ...
 func Err[T any](a error) Result[T] {
 	return Result[T]{err: a}
 }
 
+// Val ...
 func (a Result[T]) Val() (value T, err error) {
 	return a.value, a.err
 }
 
+// OrPanic ...
 func (a Result[T]) OrPanic() T {
 	if a.err != nil {
 		panic("error of result")
@@ -34,6 +38,7 @@ func (a Result[T]) OrPanic() T {
 	return a.value
 }
 
+// Or ...
 func (a Result[T]) Or(value T) T {
 	if a.err != nil {
 		return value
@@ -41,6 +46,7 @@ func (a Result[T]) Or(value T) T {
 	return a.value
 }
 
+// OrDefault ...
 func (a Result[T]) OrDefault() (v T) {
 	if a.err != nil {
 		return
@@ -48,10 +54,12 @@ func (a Result[T]) OrDefault() (v T) {
 	return a.value
 }
 
+// IsOk reports whether the condition holds.
 func (a Result[T]) IsOk() bool {
 	return a.err == nil
 }
 
+// IsOkAnd reports whether the condition holds.
 func (a Result[T]) IsOkAnd(f func(T) bool) bool {
 	if a.err != nil {
 		return false
@@ -59,10 +67,12 @@ func (a Result[T]) IsOkAnd(f func(T) bool) bool {
 	return f(a.value)
 }
 
+// IsErr reports whether the condition holds.
 func (a Result[T]) IsErr() bool {
 	return a.err != nil
 }
 
+// IsErrAnd reports whether the condition holds.
 func (a Result[T]) IsErrAnd(f func(error) bool) bool {
 	if a.err == nil {
 		return false
@@ -70,18 +80,21 @@ func (a Result[T]) IsErrAnd(f func(error) bool) bool {
 	return f(a.err)
 }
 
+// IfOk ...
 func (a Result[T]) IfOk(action func(value T)) {
 	if a.err == nil {
 		action(a.value)
 	}
 }
 
+// IfErr ...
 func (a Result[T]) IfErr(action func(err error)) {
 	if a.err != nil {
 		action(a.err)
 	}
 }
 
+// MarshalJSON ...
 func (a *Result[T]) MarshalJSON() ([]byte, error) {
 	if a.err == nil {
 		return jsonx.Marshal(a.value)
@@ -89,6 +102,7 @@ func (a *Result[T]) MarshalJSON() ([]byte, error) {
 	return []byte("null"), a.err
 }
 
+// UnmarshalJSON ...
 func (a *Result[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		return nil
@@ -96,6 +110,7 @@ func (a *Result[T]) UnmarshalJSON(data []byte) error {
 	return jsonx.Unmarshal(data, &a.value)
 }
 
+// ResultVal ...
 func ResultVal[T any](v T, err error) T {
 	return v
 }

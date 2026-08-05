@@ -32,10 +32,12 @@ const (
 	OperationDisplay       operation = "?25h"
 )
 
+// Move ...
 func Move(n int, direction direction) string {
 	return strconv.Itoa(n) + string(direction)
 }
 
+// SetPosition ...
 func SetPosition(x, y int) string {
 	return strconv.Itoa(x) + ";" + strconv.Itoa(y) + "H"
 }

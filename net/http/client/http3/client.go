@@ -12,6 +12,7 @@ import (
 	"github.com/quic-go/quic-go/http3"
 )
 
+// NewClient creates and returns a new instance.
 func NewClient() *http.Client {
 	return &http.Client{
 		Transport: &http3.Transport{},

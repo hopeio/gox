@@ -21,10 +21,12 @@ import (
 // 1-01-01~9999-12-31
 type Date int32
 
+// DateFromTime ...
 func DateFromTime(t time.Time) Date {
 	return Date(t.Unix() / SecondsOfDay)
 }
 
+// Time ...
 func (d Date) Time() time.Time {
 	return time.Unix(int64(d)*SecondsOfDay, 0)
 }
@@ -42,6 +44,7 @@ func (d Date) Value() (driver.Value, error) {
 	return []byte(time.Unix(int64(d)*SecondsOfDay, 0).Format(time.DateOnly)), nil
 }
 
+// MarshalJSON ...
 func (d Date) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, 12)
 	b = append(b, '"')
@@ -50,6 +53,7 @@ func (d Date) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
+// UnmarshalJSON ...
 func (d *Date) UnmarshalJSON(data []byte) error {
 	str := stringsx.FromBytes(data)
 	if len(data) == 0 || str == "null" {
@@ -68,10 +72,12 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalText ...
 func (d Date) MarshalText() ([]byte, error) {
 	return stringsx.ToBytes(d.Time().Format(time.DateOnly)), nil
 }
 
+// UnmarshalText ...
 func (d *Date) UnmarshalText(data []byte) error {
 	if len(data) == 0 {
 		return nil
@@ -85,10 +91,12 @@ func (d *Date) UnmarshalText(data []byte) error {
 	return nil
 }
 
+// GormDataType ...
 func (d Date) GormDataType() string {
 	return "time"
 }
 
+// MarshalBinary ...
 func (d Date) MarshalBinary() ([]byte, error) {
 	return binary.FromInteger(d), nil
 }
@@ -99,18 +107,22 @@ func (d *Date) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
+// GobEncode ...
 func (d Date) GobEncode() ([]byte, error) {
 	return d.MarshalBinary()
 }
 
+// GobDecode ...
 func (d *Date) GobDecode(data []byte) error {
 	return d.UnmarshalBinary(data)
 }
 
+// MarshalGQL ...
 func (d Date) MarshalGQL(w io.Writer) {
 	w.Write([]byte(d.Time().Format(time.DateOnly)))
 }
 
+// UnmarshalGQL ...
 func (d *Date) UnmarshalGQL(v interface{}) error {
 	if i, ok := v.(string); ok {
 		t, err := time.Parse(time.DateOnly, i)
@@ -123,6 +135,7 @@ func (d *Date) UnmarshalGQL(v interface{}) error {
 	return errors.New("enum need integer type")
 }
 
+// String returns the string representation.
 func (d Date) String() string {
 	return d.Time().Format(time.DateOnly)
 }
@@ -130,10 +143,12 @@ func (d Date) String() string {
 // 01-01-01 00:00:00~9999-12-31 23:59:59
 type DateTime int64
 
+// DateTimeFromTime ...
 func DateTimeFromTime(t time.Time) DateTime {
 	return DateTime(t.Unix())
 }
 
+// Time ...
 func (d DateTime) Time() time.Time {
 	return time.Unix(int64(d), 0)
 }
@@ -151,6 +166,7 @@ func (d DateTime) Value() (driver.Value, error) {
 	return time.Unix(int64(d), 0), nil
 }
 
+// MarshalJSON ...
 func (d DateTime) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(time.DateTime)+2)
 	b = append(b, '"')
@@ -159,6 +175,7 @@ func (d DateTime) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
+// UnmarshalJSON ...
 func (d *DateTime) UnmarshalJSON(data []byte) error {
 	str := stringsx.FromBytes(data)
 	if len(data) == 0 || str == "null" {
@@ -187,10 +204,12 @@ func (d *DateTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalText ...
 func (d DateTime) MarshalText() ([]byte, error) {
 	return stringsx.ToBytes(d.Time().Format(time.DateTime)), nil
 }
 
+// UnmarshalText ...
 func (d *DateTime) UnmarshalText(data []byte) error {
 	if len(data) == 0 {
 		return nil
@@ -204,10 +223,12 @@ func (d *DateTime) UnmarshalText(data []byte) error {
 	return nil
 }
 
+// GormDataType ...
 func (ts DateTime) GormDataType() string {
 	return "time"
 }
 
+// Date ...
 func (ts DateTime) Date() Date {
 	return Date(int64(ts) / SecondsOfDay)
 }

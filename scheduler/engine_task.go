@@ -36,10 +36,12 @@ type TaskStatistics struct {
 	errTimes    int
 }
 
+// ReExecTimes ...
 func (t *TaskStatistics) ReExecTimes() int {
 	return t.reExecTimes
 }
 
+// ErrTimes ...
 func (t *TaskStatistics) ErrTimes() int {
 	return t.errTimes
 }
@@ -60,45 +62,54 @@ type Task[KEY Key] struct {
 	timeout    time.Duration
 }
 
+// NewTask creates and returns a new instance.
 func NewTask[KEY Key](task TaskFunc[KEY]) *Task[KEY] {
 	return &Task[KEY]{
 		Run: task,
 	}
 }
 
+// SetContext ...
 func (t *Task[KEY]) SetContext(ctx context.Context) *Task[KEY] {
 	t.ctx = ctx
 	return t
 }
 
+// SetPriority ...
 func (t *Task[KEY]) SetPriority(priority int) *Task[KEY] {
 	t.Priority = priority
 	return t
 }
 
+// SetKind ...
 func (t *Task[KEY]) SetKind(k Kind) *Task[KEY] {
 	t.Kind = k
 	return t
 }
 
+// SetKey ...
 func (t *Task[KEY]) SetKey(key KEY) *Task[KEY] {
 	t.Key = key
 	return t
 }
 
+// SetDescribe ...
 func (t *Task[KEY]) SetDescribe(describe string) *Task[KEY] {
 	t.Describe = describe
 	return t
 }
 
+// Id ...
 func (t *Task[KEY]) Id() uint64 {
 	return t.id
 }
 
+// Compare ...
 func (t *Task[KEY]) Compare(t2 *Task[KEY]) int {
 	return t.Priority - t2.Priority
 }
 
+// Errs ...
 func (t *Task[KEY]) Errs() []error {
 	var errs []error
 	if t.err != nil {
@@ -110,6 +121,7 @@ func (t *Task[KEY]) Errs() []error {
 	return errs
 }
 
+// ErrLog ...
 func (t *Task[KEY]) ErrLog() {
 	builder := strings.Builder{}
 	if t.err != nil {
@@ -141,6 +153,7 @@ type TasExec[KEY Key] interface {
 
 type Tasks[KEY Key] []*Task[KEY]
 
+// Less ...
 func (tasks Tasks[KEY]) Less(i, j int) bool {
 	return tasks[i].Priority > tasks[j].Priority
 }
@@ -151,16 +164,22 @@ type ErrHandle func(context.Context, error)
 
 type TaskFunc[KEY Key] func(ctx context.Context) ([]*Task[KEY], error)
 
+// Run ...
 func (t TaskFunc[KEY]) Run(ctx context.Context) ([]*Task[KEY], error) {
 	return t(ctx)
 }
 
+// Do ...
 func (t TaskFunc[KEY]) Do(ctx context.Context) ([]*Task[KEY], error) {
 	return t(ctx)
 }
+
+// Exec ...
 func (t TaskFunc[KEY]) Exec(ctx context.Context) ([]*Task[KEY], error) {
 	return t(ctx)
 }
+
+// emptyTaskFunc ...
 func emptyTaskFunc[KEY Key](ctx context.Context) ([]*Task[KEY], error) {
 	return nil, nil
 }

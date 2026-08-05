@@ -54,6 +54,7 @@ func DerefValue(v reflect.Value) reflect.Value {
 	}
 }
 
+// InitPtr ...
 func InitPtr(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
 		if !v.IsValid() || v.IsNil() {
@@ -120,14 +121,17 @@ func rangeValue(v reflect.Value, callbacks [reflect.UnsafePointer]func(reflect.V
 	callbacks[v.Kind()](v)
 }
 
+// IsInteger reports whether the condition holds.
 func IsInteger(kind reflect.Kind) bool {
 	return kind >= reflect.Int && kind <= reflect.Uintptr
 }
 
+// IsFloat reports whether the condition holds.
 func IsFloat(kind reflect.Kind) bool {
 	return kind == reflect.Float32 || kind == reflect.Float64
 }
 
+// IsNumber reports whether the condition holds.
 func IsNumber(kind reflect.Kind) bool {
 	return IsInteger(kind) || IsFloat(kind)
 }

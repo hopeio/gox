@@ -48,6 +48,7 @@ func isValidStructPointer(v reflect.Value) bool {
 	return v.Type().Kind() == reflect.Ptr && v.Elem().IsValid() && v.Elem().Type().Kind() == reflect.Struct
 }
 
+// isZero reports whether the condition holds.
 func isZero(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Func:
@@ -78,6 +79,7 @@ func isZero(v reflect.Value) bool {
 	return v.Interface() == z.Interface()
 }
 
+// encode ...
 func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -142,6 +144,7 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 	return errs
 }
 
+// typeEncoder ...
 func typeEncoder(t reflect.Type, reg map[reflect.Type]encoderFunc) encoderFunc {
 	if f, ok := reg[t]; ok {
 		return f
@@ -173,30 +176,37 @@ func typeEncoder(t reflect.Type, reg map[reflect.Type]encoderFunc) encoderFunc {
 	}
 }
 
+// encodeBool ...
 func encodeBool(v reflect.Value) string {
 	return strconv.FormatBool(v.Bool())
 }
 
+// encodeInt ...
 func encodeInt(v reflect.Value) string {
 	return strconv.FormatInt(int64(v.Int()), 10)
 }
 
+// encodeUint ...
 func encodeUint(v reflect.Value) string {
 	return strconv.FormatUint(uint64(v.Uint()), 10)
 }
 
+// encodeFloat ...
 func encodeFloat(v reflect.Value, bits int) string {
 	return strconv.FormatFloat(v.Float(), 'f', 6, bits)
 }
 
+// encodeFloat32 ...
 func encodeFloat32(v reflect.Value) string {
 	return encodeFloat(v, 32)
 }
 
+// encodeFloat64 ...
 func encodeFloat64(v reflect.Value) string {
 	return encodeFloat(v, 64)
 }
 
+// encodeString ...
 func encodeString(v reflect.Value) string {
 	return v.String()
 }

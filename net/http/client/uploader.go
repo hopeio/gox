@@ -14,6 +14,7 @@ var DefaultUploader = NewUploader()
 
 type Uploader = Client
 
+// NewUploader creates and returns a new instance.
 func NewUploader() *Uploader {
 	return &Uploader{
 		typ:           ClientTypeUpload,
@@ -25,6 +26,7 @@ func NewUploader() *Uploader {
 	}
 }
 
+// UploadReq ...
 func (d *Uploader) UploadReq(url string) *UploadReq {
 	return NewUploadReq(url).Uploader(d)
 }

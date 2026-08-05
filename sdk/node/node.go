@@ -21,6 +21,7 @@ var (
 	cmdMutex   sync.Mutex
 )
 
+// runNodeScript ...
 func runNodeScript(script string) {
 	cmdMutex.Lock()
 	defer cmdMutex.Unlock()
@@ -45,6 +46,7 @@ func runNodeScript(script string) {
 	currentCmd = cmd
 }
 
+// WatchRun ...
 func WatchRun(scriptFile string) {
 
 	watcher, err := fsnotify.NewWatcher()

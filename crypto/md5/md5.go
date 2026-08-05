@@ -12,20 +12,24 @@ import (
 	"io"
 )
 
+// EncodeString ...
 func EncodeString(value string) string {
 	md5 := md5.Sum([]byte(value))
 	return hex.EncodeToString(md5[:])
 }
 
+// Encode ...
 func Encode(value string) []byte {
 	md5 := md5.Sum([]byte(value))
 	return md5[:]
 }
 
+// ToString returns the string representation.
 func ToString(md5 []byte) string {
 	return hex.EncodeToString(md5)
 }
 
+// EncodeReader ...
 func EncodeReader(r io.Reader) ([]byte, error) {
 	hash := md5.New()
 	_, err := io.Copy(hash, r)
@@ -36,6 +40,7 @@ func EncodeReader(r io.Reader) ([]byte, error) {
 	return hash.Sum(nil), nil
 }
 
+// EncodeReaderString ...
 func EncodeReaderString(r io.Reader) (string, error) {
 	hash := md5.New()
 	_, err := io.Copy(hash, r)

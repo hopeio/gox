@@ -20,6 +20,7 @@ type WriterToWrapper struct {
 	close func() error
 }
 
+// Close closes and releases resources.
 func (w *WriterToWrapper) Close() error {
 	if w.close == nil {
 		return nil
@@ -27,6 +28,7 @@ func (w *WriterToWrapper) Close() error {
 	return w.close()
 }
 
+// WrapWriterTo ...
 func WrapWriterTo(w io.WriterTo, close func() error) *WriterToWrapper {
 	return &WriterToWrapper{
 		WriterTo: w,
@@ -36,10 +38,12 @@ func WrapWriterTo(w io.WriterTo, close func() error) *WriterToWrapper {
 
 type LimitedWriter []byte
 
+// NewLimitedWriter creates and returns a new instance.
 func NewLimitedWriter(max int64) LimitedWriter {
 	return make([]byte, 0, max)
 }
 
+// Write ...
 func (lw *LimitedWriter) Write(p []byte) (int, error) {
 	b := *lw
 	l, c := len(b), cap(b)

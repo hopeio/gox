@@ -130,6 +130,7 @@ func Parse(tag string) (*Tags, error) {
 	}, nil
 }
 
+// MustParse ...
 func MustParse(tag string) *Tags {
 	tags, err := Parse(tag)
 	if err != nil {
@@ -152,6 +153,7 @@ func (t *Tags) Get(key string) (*Tag, bool) {
 	return nil, false
 }
 
+// TryGet ...
 func (t *Tags) TryGet(key string) *Tag {
 	for _, tag := range t.tags {
 		if tag.Key == key {
@@ -162,6 +164,7 @@ func (t *Tags) TryGet(key string) *Tag {
 	return &Tag{}
 }
 
+// MustGet ...
 func (t *Tags) MustGet(key string) *Tag {
 	for _, tag := range t.tags {
 		if tag.Key == key {
@@ -197,6 +200,7 @@ func (t *Tags) Set(key, value string, options ...string) {
 	}
 }
 
+// Iter ...
 func (t *Tags) Iter() iter.Seq[*Tag] {
 	return func(yield func(*Tag) bool) {
 		for _, tag := range t.tags {
@@ -317,14 +321,17 @@ func (t *Tag) GoString() string {
 	return fmt.Sprintf(template, t.Index, t.Key, t.Value, t.Options)
 }
 
+// Len returns the number of elements.
 func (t *Tags) Len() int {
 	return len(t.tags)
 }
 
+// Less ...
 func (t *Tags) Less(i int, j int) bool {
 	return t.tags[i].Key < t.tags[j].Key
 }
 
+// Swap ...
 func (t *Tags) Swap(i int, j int) {
 	t.tags[i], t.tags[j] = t.tags[j], t.tags[i]
 }

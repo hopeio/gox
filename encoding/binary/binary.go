@@ -12,11 +12,13 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+// Int64 ...
 func Int64(b []byte) int64 {
 	return int64(b[7]) | int64(b[6])<<8 | int64(b[5])<<16 | int64(b[4])<<24 |
 		int64(b[3])<<32 | int64(b[2])<<40 | int64(b[1])<<48 | int64(b[0])<<56
 }
 
+// FromInt64 ...
 func FromInt64(i int64) []byte {
 	return []byte{
 		byte(i >> 56),
@@ -30,10 +32,12 @@ func FromInt64(i int64) []byte {
 	}
 }
 
+// Integer ...
 func Integer[T constraints.Integer](b []byte) T {
 	return *(*T)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b))))
 }
 
+// FromInteger ...
 func FromInteger[T constraints.Integer](v T) []byte {
 	byteNum := unsafe.Sizeof(v)
 	b := make([]byte, byteNum)
@@ -41,18 +45,19 @@ func FromInteger[T constraints.Integer](v T) []byte {
 	return b
 }
 
+// Int ...
 func Int(b []byte) int {
 	return *(*int)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b))))
 }
 
+// FromInt ...
 func FromInt(i int) []byte {
 	b := make([]byte, 8)
 	*(*int)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b)))) = i
 	return b
 }
 
-// 比标准库慢很多,10倍左右，string和bytes互转只是节省复制内存，unsafe操作有很多检测
-// binary.LittleEndian.Uint64(b)
+// Uint ...
 func Uint(b []byte) uint64 {
 	return *(*uint64)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b))))
 }

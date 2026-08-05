@@ -64,7 +64,6 @@ type LessKV[K, V any] func(K, V, K, V) bool
 // ConsumerKV 消费一个KV
 type ConsumerKV[K, V any] func(K, V)
 
-
 type Service[REQ, RESP any] func(context.Context, REQ) (RESP, error)
 
 type Func func()
@@ -72,10 +71,10 @@ type FuncReturnErr func() error
 type FuncReturnDataOrErr[T any] func() (T, error)
 type FuncRetry func(times uint) (retry bool)
 
+// Do ...
 func (f FuncRetry) Do(times uint) (retry bool) {
 	return f(times)
 }
 
 type Task func(context.Context)
 type TaskReturnErr func(context.Context) error
-

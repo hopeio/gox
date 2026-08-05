@@ -11,13 +11,14 @@ import (
 	"time"
 )
 
+// UnixNano ...
 func UnixNano(nsec int64) time.Time {
 	return time.Unix(0, nsec)
 }
 
 var ZeroTime = time.Time{}
 
-// StrToIntMonth 字符串月份转整数月份
+// StrToIntMonth ...
 func StrToIntMonth(month string) int {
 	var data = map[string]int{
 		January:   1,
@@ -36,7 +37,7 @@ func StrToIntMonth(month string) int {
 	return data[month]
 }
 
-// GetTodayYMD 得到以sep为分隔符的年、月、日字符串(今天)
+// GetYMD ...
 func GetYMD(time time.Time, sep string) string {
 	year, month, day := time.Date()
 
@@ -56,7 +57,7 @@ func GetYMD(time time.Time, sep string) string {
 	return strconv.Itoa(year) + sep + monthStr + sep + dateStr
 }
 
-// GetYM 得到以sep为分隔符的年、月字符串(今天所属于的月份)
+// GetYM ...
 func GetYM(time time.Time, sep string) string {
 	year, month, _ := time.Date()
 
@@ -69,24 +70,24 @@ func GetYM(time time.Time, sep string) string {
 	return strconv.Itoa(year) + sep + monthStr
 }
 
-// GetYesterdayYMD 得到以sep为分隔符的年、月、日字符串(昨天)
+// GetYesterdayYMD ...
 func GetYesterdayYMD(sep string) string {
 	return GetYM(time.Now().AddDate(0, 0, -1), sep)
 }
 
-// GetTomorrowYMD 得到以sep为分隔符的年、月、日字符串(明天)
+// GetTomorrowYMD ...
 func GetTomorrowYMD(sep string) string {
 	return GetYM(time.Now().AddDate(0, 0, 1), sep)
 }
 
-// TodayZeroTime 返回今天零点的time
+// TodayZeroTime ...
 func TodayZeroTime() time.Time {
 	year, month, day := time.Now().Date()
 	// now.Year(), now.Month(), now.Day() 是以本地时区为参照的年、月、日
 	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }
 
-// YesterdayZeroTime 返回昨天零点的time
+// YesterdayZeroTime ...
 func YesterdayZeroTime() time.Time {
 	return TodayZeroTime().AddDate(0, 0, -1)
 }

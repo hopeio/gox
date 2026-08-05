@@ -63,6 +63,7 @@ func NewTask(filePath, tsFolder string, url string) (*Downloader, error) {
 	return d, nil
 }
 
+// SegLen ...
 func (d *Downloader) SegLen() int {
 	return d.segLen
 }
@@ -121,6 +122,7 @@ func (d *Downloader) Download() error {
 	return nil
 }
 
+// Downloadts ...
 func (d *Downloader) Downloadts(segIndex int) error {
 	tsFilename := tsFilename(segIndex)
 
@@ -148,6 +150,7 @@ func (d *Downloader) Downloadts(segIndex int) error {
 	return nil
 }
 
+// Merge ...
 func (d *Downloader) Merge() error {
 	// In fact, the number of downloaded segments should be equal to number of m3u8 segments
 	missingCount := 0
@@ -196,10 +199,12 @@ func (d *Downloader) Merge() error {
 	return nil
 }
 
+// tsFilename ...
 func tsFilename(ts int) string {
 	return strconv.Itoa(ts) + tsExt
 }
 
+// FfmpegConcatFile ...
 func (d *Downloader) FfmpegConcatFile() (string, error) {
 	var data bytes.Buffer
 	for i := range d.segLen {
@@ -221,10 +226,12 @@ func (d *Downloader) FfmpegConcatFile() (string, error) {
 	return ffmpegFilePath, nil
 }
 
+// Finished ...
 func (d *Downloader) Finished() bool {
 	return d.finish == int32(d.segLen)
 }
 
+// RemoveTmp ...
 func (d *Downloader) RemoveTmp() error {
 	return os.RemoveAll(d.tsDir)
 }

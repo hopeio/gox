@@ -13,8 +13,7 @@ import (
 	"runtime/debug"
 )
 
-// HandleDebug 将 pprof / expvar 调试端点注册到指定 mux，
-// 避免污染全局 http.DefaultServeMux
+// HandleDebug ...
 func HandleDebug(mux *http.ServeMux, prefix string) {
 	mux.HandleFunc(prefix+"/debug/stack", HandleStack)
 	if prefix != "" && prefix != "GET " {
@@ -27,6 +26,7 @@ func HandleDebug(mux *http.ServeMux, prefix string) {
 	}
 }
 
+// HandleStack ...
 func HandleStack(w http.ResponseWriter, r *http.Request) {
 	w.Write(debug.Stack())
 }

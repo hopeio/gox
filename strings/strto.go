@@ -17,6 +17,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+// ParseFor ...
 func ParseFor[T any](str string) (T, error) {
 	var t T
 	a, ap := any(t), any(&t)
@@ -38,6 +39,7 @@ func ParseFor[T any](str string) (T, error) {
 	return t, nil
 }
 
+// setReflectValueFromString ...
 func setReflectValueFromString(v reflect.Value, str string) error {
 	if !v.IsValid() || !v.CanSet() {
 		return fmt.Errorf("cannot set value of kind %v", v.Kind())
@@ -92,10 +94,12 @@ func setReflectValueFromString(v reflect.Value, str string) error {
 	}
 }
 
+// ParsePtrFor ...
 func ParsePtrFor[T any](str string) (*T, error) {
 	return toPtr(ParseFor[T](str))
 }
 
+// Signed ...
 func Signed[T constraints.Signed](value string) (T, error) {
 	i, err := strconv.ParseInt(value, 10, int(unsafe.Sizeof(T(0))*8))
 	if err != nil {
@@ -104,6 +108,7 @@ func Signed[T constraints.Signed](value string) (T, error) {
 	return T(i), nil
 }
 
+// SignedP ...
 func SignedP[T constraints.Signed](value string) (*T, error) {
 	return toPtr(Signed[T](value))
 }
@@ -123,6 +128,7 @@ func SignedSlice[T constraints.Signed](val, sep string) ([]T, error) {
 	return values, nil
 }
 
+// UnSigned ...
 func UnSigned[T constraints.Unsigned](value string) (T, error) {
 	i, err := strconv.ParseUint(value, 10, int(unsafe.Sizeof(T(0))*8))
 	if err != nil {
@@ -131,6 +137,7 @@ func UnSigned[T constraints.Unsigned](value string) (T, error) {
 	return T(i), nil
 }
 
+// UnSignedP ...
 func UnSignedP[T constraints.Unsigned](value string) (*T, error) {
 	return toPtr(UnSigned[T](value))
 }
@@ -150,6 +157,7 @@ func UnsignedSlice[T constraints.Unsigned](val, sep string) ([]T, error) {
 	return values, nil
 }
 
+// Float ...
 func Float[T constraints.Float](value string) (T, error) {
 	f, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -158,6 +166,7 @@ func Float[T constraints.Float](value string) (T, error) {
 	return T(f), nil
 }
 
+// FloatP ...
 func FloatP[T constraints.Float](value string) (*T, error) {
 	return toPtr(Float[T](value))
 }
@@ -177,6 +186,7 @@ func FloatSlice[T constraints.Float](val, sep string) ([]T, error) {
 	return values, nil
 }
 
+// String returns the string representation.
 func String(val string) (string, error) {
 	return val, nil
 }
@@ -187,10 +197,12 @@ func StringSlice(val, sep string) ([]string, error) {
 	return strings.Split(val, sep), nil
 }
 
+// Bool ...
 func Bool(value string) (bool, error) {
 	return strconv.ParseBool(value)
 }
 
+// BoolP ...
 func BoolP(value string) (*bool, error) {
 	return toPtr(Bool(value))
 }
@@ -244,6 +256,7 @@ func Float64(val string) (float64, error) {
 	return strconv.ParseFloat(val, 64)
 }
 
+// Float64P ...
 func Float64P(val string) (*float64, error) {
 	return toPtr(Float64(val))
 }
@@ -272,6 +285,7 @@ func Float32(val string) (float32, error) {
 	return float32(f), nil
 }
 
+// Float32P ...
 func Float32P(val string) (*float32, error) {
 	return toPtr(Float32(val))
 }
@@ -291,6 +305,7 @@ func Float32Slice(val, sep string) ([]float32, error) {
 	return values, nil
 }
 
+// Int ...
 func Int(val string) (int, error) {
 	i, err := strconv.ParseInt(val, 0, 0)
 	if err != nil {
@@ -299,6 +314,7 @@ func Int(val string) (int, error) {
 	return int(i), nil
 }
 
+// IntP ...
 func IntP(val string) (*int, error) {
 	return toPtr(Int(val))
 }
@@ -318,6 +334,7 @@ func IntSlice(val, sep string) ([]int, error) {
 	return values, nil
 }
 
+// Int8 ...
 func Int8(val string) (int8, error) {
 	i, err := strconv.ParseInt(val, 0, 8)
 	if err != nil {
@@ -326,6 +343,7 @@ func Int8(val string) (int8, error) {
 	return int8(i), nil
 }
 
+// Int8P ...
 func Int8P(val string) (*int8, error) {
 	return toPtr(Int8(val))
 }
@@ -345,6 +363,7 @@ func Int8Slice(val, sep string) ([]int8, error) {
 	return values, nil
 }
 
+// Int16 ...
 func Int16(val string) (int16, error) {
 	i, err := strconv.ParseInt(val, 0, 16)
 	if err != nil {
@@ -353,6 +372,7 @@ func Int16(val string) (int16, error) {
 	return int16(i), nil
 }
 
+// Int16P ...
 func Int16P(val string) (*int16, error) {
 	return toPtr(Int16(val))
 }
@@ -381,6 +401,7 @@ func Int32(val string) (int32, error) {
 	return int32(i), nil
 }
 
+// Int32P ...
 func Int32P(val string) (*int32, error) {
 	return toPtr(Int32(val))
 }
@@ -405,6 +426,7 @@ func Int64(val string) (int64, error) {
 	return strconv.ParseInt(val, 0, 64)
 }
 
+// Int64P ...
 func Int64P(val string) (*int64, error) {
 	return toPtr(Int64(val))
 }
@@ -424,6 +446,7 @@ func Int64Slice(val, sep string) ([]int64, error) {
 	return values, nil
 }
 
+// Uint ...
 func Uint(val string) (uint, error) {
 	i, err := strconv.ParseUint(val, 0, 0)
 	if err != nil {
@@ -432,6 +455,7 @@ func Uint(val string) (uint, error) {
 	return uint(i), nil
 }
 
+// UintP ...
 func UintP(val string) (*uint, error) {
 	return toPtr(Uint(val))
 }
@@ -451,6 +475,7 @@ func UintSlice(val, sep string) ([]uint, error) {
 	return values, nil
 }
 
+// Uint8 ...
 func Uint8(val string) (uint8, error) {
 	i, err := strconv.ParseUint(val, 0, 8)
 	if err != nil {
@@ -459,6 +484,7 @@ func Uint8(val string) (uint8, error) {
 	return uint8(i), nil
 }
 
+// Uint8P ...
 func Uint8P(val string) (*uint8, error) {
 	return toPtr(Uint8(val))
 }
@@ -478,6 +504,7 @@ func Uint8Slice(val, sep string) ([]uint8, error) {
 	return values, nil
 }
 
+// Uint16 ...
 func Uint16(val string) (uint16, error) {
 	i, err := strconv.ParseUint(val, 0, 16)
 	if err != nil {
@@ -486,6 +513,7 @@ func Uint16(val string) (uint16, error) {
 	return uint16(i), nil
 }
 
+// Uint16P ...
 func Uint16P(val string) (*uint16, error) {
 	return toPtr(Uint16(val))
 }
@@ -514,6 +542,7 @@ func Uint32(val string) (uint32, error) {
 	return uint32(i), nil
 }
 
+// Uint32P ...
 func Uint32P(val string) (*uint32, error) {
 	return toPtr(Uint32(val))
 }
@@ -538,6 +567,7 @@ func Uint64(val string) (uint64, error) {
 	return strconv.ParseUint(val, 0, 64)
 }
 
+// Uint64P ...
 func Uint64P(val string) (*uint64, error) {
 	return toPtr(Uint64(val))
 }
@@ -557,6 +587,7 @@ func Uint64Slice(val, sep string) ([]uint64, error) {
 	return values, nil
 }
 
+// toPtr ...
 func toPtr[T any](v T, err error) (*T, error) {
 	if err != nil {
 		return nil, err

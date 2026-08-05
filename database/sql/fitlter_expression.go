@@ -37,6 +37,7 @@ const (
 	NotLike
 )
 
+// ParseConditionOperation ...
 func ParseConditionOperation(op string) ConditionOperation {
 	op = strings.ToUpper(op)
 	switch op {
@@ -68,6 +69,7 @@ func ParseConditionOperation(op string) ConditionOperation {
 	return OperationPlace
 }
 
+// SQL ...
 func (m ConditionOperation) SQL() string {
 	switch m {
 	case Equal:
@@ -101,6 +103,7 @@ func (m ConditionOperation) SQL() string {
 	}
 }
 
+// String returns the string representation.
 func (m ConditionOperation) String() string {
 	switch m {
 	case Equal:
@@ -140,6 +143,7 @@ type FilterExpr struct {
 	Value     any                `json:"value,omitempty"`
 }
 
+// Build ...
 func (filter *FilterExpr) Build() string {
 	filter.Field = strings.TrimSpace(filter.Field)
 
@@ -174,6 +178,7 @@ func (filter *FilterExpr) Build() string {
 
 type FilterExprs []FilterExpr
 
+// Build ...
 func (f FilterExprs) Build() string {
 	var conditions []string
 	for _, filter := range f {
@@ -190,6 +195,7 @@ func (f FilterExprs) Build() string {
 	return strings.Join(conditions, " AND ")
 }
 
+// ConvertParams ...
 func ConvertParams(v any, escaper string) string {
 	switch v := v.(type) {
 	case bool:
@@ -251,6 +257,7 @@ func ConvertParams(v any, escaper string) string {
 
 var convertableTypes = []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(false), reflect.TypeOf([]byte{})}
 
+// isPrintable reports whether the condition holds.
 func isPrintable(s []byte) bool {
 	for _, r := range s {
 		if !unicode.IsPrint(rune(r)) {
@@ -260,6 +267,7 @@ func isPrintable(s []byte) bool {
 	return true
 }
 
+// BuildSQL creates and returns a new instance.
 func (f FilterExprs) BuildSQL() (string, []any) {
 	var builder strings.Builder
 	var vars []any
@@ -282,6 +290,7 @@ func (f FilterExprs) BuildSQL() (string, []any) {
 	return "", nil
 }
 
+// AnyToAnys ...
 func AnyToAnys(a any) []any {
 	if a == nil {
 		return nil

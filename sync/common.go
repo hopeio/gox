@@ -17,9 +17,12 @@ type Node[T any] struct {
 	Value T
 }
 
+// LoadNode ...
 func LoadNode[T any](p *unsafe.Pointer) *Node[T] {
 	return (*Node[T])(atomic.LoadPointer(p))
 }
+
+// CasNode ...
 func CasNode[T any](p *unsafe.Pointer, old, new *Node[T]) bool {
 	return atomic.CompareAndSwapPointer(p, unsafe.Pointer(old), unsafe.Pointer(new))
 }
@@ -29,9 +32,12 @@ type DirectItem struct {
 	Value any
 }
 
+// LoadItem ...
 func LoadItem(p *unsafe.Pointer) *DirectItem {
 	return (*DirectItem)(atomic.LoadPointer(p))
 }
+
+// CasItem ...
 func CasItem(p *unsafe.Pointer, old, new *DirectItem) bool {
 	return atomic.CompareAndSwapPointer(p, unsafe.Pointer(old), unsafe.Pointer(new))
 }

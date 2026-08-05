@@ -20,6 +20,7 @@ import (
 
 var sourceDir string
 
+// init ...
 func init() {
 	_, file, _, _ := runtime.Caller(0)
 	// compatible solution to get gorm source directory with various operating systems
@@ -39,10 +40,12 @@ func FileWithLineNum() string {
 	return ""
 }
 
+// trimLineBreak ...
 func trimLineBreak(path string) string {
 	return path[:len(path)-1]
 }
 
+// TrimLineBreak ...
 func TrimLineBreak(path string) string {
 	if b := path[len(path)-1]; b == '\n' {
 		return path[:len(path)-1]
@@ -50,15 +53,18 @@ func TrimLineBreak(path string) string {
 	return path
 }
 
+// sprintln ...
 func sprintln(a ...any) string {
 	return trimLineBreak(fmt.Sprintln(a...))
 }
 
+// getMessage ...
 func getMessage(fmtArgs []interface{}) string {
 	msg := fmt.Sprintln(fmtArgs...)
 	return msg[:len(msg)-1]
 }
 
+// RawJson ...
 func RawJson(key string, data []byte) zapcore.Field {
 	return zap.Reflect(key, rawJson{Data: data})
 }
@@ -75,6 +81,7 @@ func (m rawJson) MarshalJSON() ([]byte, error) {
 	return m.Data, nil
 }
 
+// String returns the string representation.
 func (m rawJson) String() string {
 	return stringsx.FromBytes(m.Data)
 }

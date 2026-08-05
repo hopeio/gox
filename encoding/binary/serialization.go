@@ -18,11 +18,13 @@ import (
  *反序列化必须成对出现，而且go的GC偏移回收的话，有可能也GG
  */
 
+// getSize ...
 func getSize(t any) int {
 	size := reflect.TypeOf(t).Elem().Size()
 	return (int)(size)
 }
 
+// FromAny ...
 func FromAny(s any) []byte {
 	sizeOfStruct := getSize(s)
 	var x reflect.SliceHeader

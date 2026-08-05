@@ -11,6 +11,7 @@ import (
 	"reflect"
 )
 
+// SetValue ...
 func SetValue(fieldValue reflect.Value, value any) error {
 	if !fieldValue.IsValid() {
 		return fmt.Errorf("field value invalid")
@@ -33,6 +34,7 @@ func SetValue(fieldValue reflect.Value, value any) error {
 	return nil
 }
 
+// CanCast reports whether the condition holds.
 func CanCast(t1, t2 reflect.Type, strict bool) bool {
 	t1kind, t2kind := t1.Kind(), t2.Kind()
 	if strict {
@@ -76,6 +78,7 @@ func CanCast(t1, t2 reflect.Type, strict bool) bool {
 	return true
 }
 
+// InitValue ...
 func InitValue(v reflect.Value) {
 	v = InitPtr(v)
 	switch v.Kind() {

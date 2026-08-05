@@ -29,6 +29,7 @@ const (
 	EXT_JPG = ".jpg"
 )
 
+// NewQrCode creates and returns a new instance.
 func NewQrCode(url string, width, height int, level qr.ErrorCorrectionLevel, mode qr.Encoding) *QrCode {
 	return &QrCode{
 		URL:    url,
@@ -52,16 +53,19 @@ func GetQrCodeFullUrl(name string) string {
 	return initialize.Config.Server.PrefixUrl + "/" + GetQrCodePath() + name
 }*/
 
+// GetQrCodeFileName ...
 func GetQrCodeFileName(value string) string {
 	m := md5.New()
 	m.Write([]byte(value))
 	return hex.EncodeToString(m.Sum(nil))
 }
 
+// GetQrCodeExt ...
 func (q *QrCode) GetQrCodeExt() string {
 	return q.Ext
 }
 
+// CheckEncode reports whether the condition holds.
 func (q *QrCode) CheckEncode(path string) bool {
 	src := path + GetQrCodeFileName(q.URL) + q.GetQrCodeExt()
 	_, err := os.Stat(src)
@@ -69,6 +73,7 @@ func (q *QrCode) CheckEncode(path string) bool {
 	return !os.IsNotExist(err)
 }
 
+// Encode ...
 func (q *QrCode) Encode(path string) (string, string, error) {
 	name := GetQrCodeFileName(q.URL) + q.GetQrCodeExt()
 	src := path + name

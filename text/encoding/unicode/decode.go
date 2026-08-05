@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// Decode ...
 func Decode(source string) string {
 	var res = []string{""}
 	sUnicode := strings.Split(source, "\\u")

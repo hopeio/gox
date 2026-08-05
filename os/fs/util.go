@@ -19,16 +19,19 @@ import (
 	"github.com/hopeio/gox/slices"
 )
 
+// Exist ...
 func Exist(filepath string) bool {
 	_, err := os.Stat(filepath)
 	return err == nil
 }
 
+// NotExist ...
 func NotExist(filepath string) bool {
 	_, err := os.Stat(filepath)
 	return os.IsNotExist(err)
 }
 
+// Md5 ...
 func Md5(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -48,6 +51,7 @@ func Md5(path string) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
+// Md5Equal ...
 func Md5Equal(path1, path2 string) (bool, error) {
 	md51, err := Md5(path1)
 	if err != nil {
@@ -60,6 +64,7 @@ func Md5Equal(path1, path2 string) (bool, error) {
 	return md51 == md52, nil
 }
 
+// GetMd5Name ...
 func GetMd5Name(name string) string {
 	ext := stdpath.Ext(name)
 	fileName := strings.TrimSuffix(name, ext)
@@ -72,7 +77,7 @@ type duplicateFile struct {
 	md5  string
 }
 
-// 去除目录中重复的文件,默认保留参数靠前目录中的文件
+// DirsDeDuplicate ...
 func DirsDeDuplicate(dirs ...string) error {
 	return DirsDuplicateHandle(func(path1, path2 string) error {
 		log.Debugf("exists: %s,remove:%s", path1, path2)
@@ -80,6 +85,7 @@ func DirsDeDuplicate(dirs ...string) error {
 	}, dirs...)
 }
 
+// DirsDuplicateHandle ...
 func DirsDuplicateHandle(callback func(path1, path2 string) error, dirs ...string) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	for _, tmpDir := range dirs {
@@ -116,8 +122,7 @@ func DirsDuplicateHandle(callback func(path1, path2 string) error, dirs ...strin
 	return nil
 }
 
-// DirsRangeDuplicateHandle
-// rangeCallback 返回值为错误和是否继续
+// DirsRangeDuplicateHandle ...
 func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) (error, bool), duplicateCallback func(path1, path2 string) error, dirs ...string) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	for _, tmpDir := range dirs {
@@ -157,6 +162,8 @@ func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) 
 	}
 	return nil
 }
+
+// TwoDirDuplicateHandle ...
 func TwoDirDuplicateHandle(dir1, dir2 string, callback func(path1, path2 string) error) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	err := WalkFile(dir1, func(dir string, entry os.DirEntry) error {
@@ -193,7 +200,7 @@ func TwoDirDuplicateHandle(dir1, dir2 string, callback func(path1, path2 string)
 	})
 }
 
-// 去除两个目录中重复的文件,默认保留第一个目录中的文件
+// TwoDirDeDuplicate ...
 func TwoDirDeDuplicate(dir1, dir2 string) error {
 	return TwoDirDuplicateHandle(dir1, dir2, func(path1, path2 string) error {
 		log.Debug("remove:", path2)
@@ -201,7 +208,7 @@ func TwoDirDeDuplicate(dir1, dir2 string) error {
 	})
 }
 
-// 两个目录同步,第一个参数为主目录,参考目录,第二个参数目录与第一个保持一致
+// Sync ...
 func Sync(slaveDir, mainDir string) error {
 	mainDirEntries, err := os.ReadDir(mainDir)
 	if err == nil {

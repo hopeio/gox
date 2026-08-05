@@ -16,10 +16,12 @@ import (
 
 var CommonTemp = template.New("all")
 
+// init ...
 func init() {
 	CommonTemp.Funcs(template.FuncMap{"join": strings.Join})
 }
 
+// Parse ...
 func Parse(tpl string) *template.Template {
 	t, err := CommonTemp.Parse(tpl)
 	if err != nil {
@@ -28,6 +30,7 @@ func Parse(tpl string) *template.Template {
 	return t
 }
 
+// Execute ...
 func Execute(wr io.Writer, name string, data interface{}) error {
 	return CommonTemp.ExecuteTemplate(wr, name, data)
 }

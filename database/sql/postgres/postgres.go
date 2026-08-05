@@ -8,6 +8,7 @@ package postgres
 
 import "strings"
 
+// IsDuplicate reports whether the condition holds.
 func IsDuplicate(err error) bool {
 	if err == nil {
 		return false

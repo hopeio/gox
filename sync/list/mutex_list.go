@@ -18,10 +18,12 @@ type MutexList[T any] struct {
 	zero T
 }
 
+// NewMutexList creates and returns a new instance.
 func NewMutexList[T any]() *MutexList[T] {
 	return &MutexList[T]{}
 }
 
+// Push ...
 func (l *MutexList[T]) Push(v T) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -37,6 +39,7 @@ func (l *MutexList[T]) Push(v T) {
 	l.size++
 }
 
+// Pop ...
 func (l *MutexList[T]) Pop() (v T, ok bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -53,6 +56,7 @@ func (l *MutexList[T]) Pop() (v T, ok bool) {
 	return p.Value, true
 }
 
+// Len returns the number of elements.
 func (l *MutexList[T]) Len() uint64 {
 	return atomic.LoadUint64(&l.size)
 }

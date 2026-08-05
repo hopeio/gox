@@ -14,7 +14,7 @@ import (
 	"math"
 )
 
-// 有一定重合的固定大小的图片拼图
+// MergeUniformBoundsImagesByOverlap ...
 func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) image.Image, imgWidth, imgHeight int,
 	horizontalOverlaps, verticalOverlaps []int) image.Image {
 	var resultWidth, resultHeight int
@@ -56,6 +56,7 @@ func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) image
 	return result
 }
 
+// MergeUniformBoundsImagesByOverlapReuseMemory ...
 func MergeUniformBoundsImagesByOverlapReuseMemory(imgIdxs [][]int, getImage func(int) image.Image, imgWidth, imgHeight int,
 	horizontalOverlaps, verticalOverlaps []int, result *image.RGBA) {
 	if result == nil {
@@ -108,14 +109,17 @@ type MergeImage struct {
 	Rect                       image.Rectangle
 }
 
+// ColorModel ...
 func (m *MergeImage) ColorModel() color.Model {
 	return m.Pixes[0][0].ColorModel()
 }
 
+// Bounds ...
 func (m *MergeImage) Bounds() image.Rectangle {
 	return m.Rect
 }
 
+// ImgOffset ...
 func (m *MergeImage) ImgOffset(row, col int) image.Image {
 	if m.effectiveRow[m.cacheRow] == row {
 		m.cacheRow += 1
@@ -138,6 +142,7 @@ func (m *MergeImage) ImgOffset(row, col int) image.Image {
 	return m.Pixes[m.cacheCol][m.cacheRow]
 }
 
+// findImgIdx ...
 func findImgIdx(idx []int, start, end, x int) int {
 	for i := start; i < end; i++ {
 		if idx[i] > x && (i-1 < 0 || idx[i-1] <= x) {
@@ -147,6 +152,7 @@ func findImgIdx(idx []int, start, end, x int) int {
 	return len(idx) - 1
 }
 
+// At ...
 func (m *MergeImage) At(x, y int) color.Color {
 	if !(image.Point{X: x, Y: y}.In(m.Rect)) {
 		return colori.RGB{}
@@ -161,6 +167,7 @@ func (m *MergeImage) At(x, y int) color.Color {
 	return pix.At(x, y)
 }
 
+// NewMergeImage creates and returns a new instance.
 func NewMergeImage(imgs [][]image.Image, width, height int, horizontalOverlaps, verticalOverlaps []int) *MergeImage {
 	effectiveRow := make([]int, len(imgs[0]))
 	effectiveCol := make([]int, len(imgs))
@@ -188,7 +195,7 @@ func NewMergeImage(imgs [][]image.Image, width, height int, horizontalOverlaps, 
 	}
 }
 
-// CalculateContrast 计算图片对比度
+// CalculateContrast ...
 func CalculateContrast(img image.Image) float64 {
 	var sum int
 	// 遍历图片的每个像素

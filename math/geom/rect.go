@@ -20,6 +20,7 @@ type Rectangle struct {
 	Angle  float64
 }
 
+// NewRect creates and returns a new instance.
 func NewRect(center Point, width, height float64, angleDeg float64) *Rectangle {
 	return &Rectangle{
 		Center: center,
@@ -29,6 +30,7 @@ func NewRect(center Point, width, height float64, angleDeg float64) *Rectangle {
 	}
 }
 
+// RectNoRotate ...
 func RectNoRotate(x0, y0, x1, y1 float64) *Rectangle {
 	if x0 > x1 {
 		x0, x1 = x1, x0
@@ -43,6 +45,7 @@ func RectNoRotate(x0, y0, x1, y1 float64) *Rectangle {
 	}
 }
 
+// RectNoRotate2 ...
 func RectNoRotate2(ltp, rdp Point) *Rectangle {
 	return &Rectangle{
 		Center: Point{(ltp.X + rdp.X) / 2, (ltp.Y + rdp.Y) / 2},
@@ -51,10 +54,12 @@ func RectNoRotate2(ltp, rdp Point) *Rectangle {
 	}
 }
 
+// RectFromImageRect ...
 func RectFromImageRect(r image.Rectangle) *Rectangle {
 	return RectNoRotate(float64(r.Min.X), float64(r.Min.Y), float64(r.Max.X), float64(r.Max.Y))
 }
 
+// RectFromCorners ...
 func RectFromCorners(points [4]Point) *Rectangle {
 	var center Point
 	for _, p := range points {
@@ -76,6 +81,7 @@ func RectFromCorners(points [4]Point) *Rectangle {
 	}
 }
 
+// Bounds ...
 func (rect *Rectangle) Bounds() *Bounds {
 	if rect.Angle == 0 {
 		return NewBounds(rect.Center.X-rect.Width/2, rect.Center.Y-rect.Height/2, rect.Center.X+rect.Width/2, rect.Center.Y+rect.Height/2)
@@ -86,6 +92,7 @@ func (rect *Rectangle) Bounds() *Bounds {
 	return NewBounds(minx, miny, maxx, maxy)
 }
 
+// Corners ...
 func (rect *Rectangle) Corners() [4]Point {
 	if rect.Angle == 0 {
 		return [4]Point{{rect.Center.X - rect.Width/2, rect.Center.Y - rect.Height/2},
@@ -110,7 +117,7 @@ func (rect *Rectangle) Corners() [4]Point {
 	return [4]Point{{ax, ay}, {bx, by}, {cx, cy}, {dx, dy}}
 }
 
-// 图片就是第四象限,角度90+θ
+// ContainsPoint reports whether the condition holds.
 func (rect *Rectangle) ContainsPoint(p Point) bool {
 
 	// 射线法判断点是否在矩形内
@@ -149,6 +156,7 @@ type RectangleInt[T constraints.Integer] struct {
 	Angle  float64
 }
 
+// ToFloat64 ...
 func (rect *RectangleInt[T]) ToFloat64(factor float64) *Rectangle {
 	if factor == 0 {
 		factor = 1
@@ -161,10 +169,12 @@ func (rect *RectangleInt[T]) ToFloat64(factor float64) *Rectangle {
 	}
 }
 
+// NewRectInt creates and returns a new instance.
 func NewRectInt[T constraints.Integer](center PointInt[T], width, height T, angle float64) *RectangleInt[T] {
 	return &RectangleInt[T]{center, width, height, angle}
 }
 
+// RectIntFromFloat64 ...
 func RectIntFromFloat64[T constraints.Integer](e *Rectangle, factor float64) *RectangleInt[T] {
 	if factor == 0 {
 		factor = 1
@@ -185,10 +195,12 @@ type Bounds struct {
 	Max Point
 }
 
+// ToRect ...
 func (b *Bounds) ToRect() *Rectangle {
 	return RectNoRotate((b.Min.X+b.Max.X)/2, (b.Min.Y+b.Max.Y)/2, b.Max.X-b.Min.X, b.Max.Y-b.Min.Y)
 }
 
+// NewBounds creates and returns a new instance.
 func NewBounds(x0, y0, x1, y1 float64) *Bounds {
 	if x0 > x1 {
 		x0, x1 = x1, x0
@@ -202,6 +214,7 @@ func NewBounds(x0, y0, x1, y1 float64) *Bounds {
 	}
 }
 
+// BoundsFromImageRect ...
 func BoundsFromImageRect(r image.Rectangle) *Bounds {
 	return NewBounds(float64(r.Min.X), float64(r.Min.Y), float64(r.Max.X), float64(r.Max.Y))
 }

@@ -16,14 +16,17 @@ type List[T any] struct {
 	zero       T
 }
 
+// New ...
 func New[T any]() *List[T] {
 	return &List[T]{}
 }
 
+// Len returns the number of elements.
 func (l *List[T]) Len() uint {
 	return l.size
 }
 
+// Head ...
 func (l *List[T]) Head() *node.Node[T] {
 	if l.size == 0 {
 		return nil
@@ -31,6 +34,7 @@ func (l *List[T]) Head() *node.Node[T] {
 	return l.head
 }
 
+// Tail ...
 func (l *List[T]) Tail() *node.Node[T] {
 	if l.size == 0 {
 		return nil
@@ -38,6 +42,7 @@ func (l *List[T]) Tail() *node.Node[T] {
 	return l.tail
 }
 
+// First ...
 func (l *List[T]) First() (T, bool) {
 	if l.size == 0 {
 		return l.zero, false
@@ -45,6 +50,7 @@ func (l *List[T]) First() (T, bool) {
 	return l.head.Value, true
 }
 
+// Last ...
 func (l *List[T]) Last() (T, bool) {
 	if l.size == 0 {
 		return l.zero, false
@@ -52,6 +58,7 @@ func (l *List[T]) Last() (T, bool) {
 	return l.tail.Value, true
 }
 
+// Pop ...
 func (l *List[T]) Pop() (T, bool) {
 	if l.size == 0 {
 		return l.zero, false
@@ -66,6 +73,7 @@ func (l *List[T]) Pop() (T, bool) {
 	return p.Value, true
 }
 
+// PushFront ...
 func (l *List[T]) PushFront(v T) {
 	node := &node.Node[T]{Next: l.head, Value: v}
 	if l.size == 0 {
@@ -78,6 +86,7 @@ func (l *List[T]) PushFront(v T) {
 	l.size++
 }
 
+// Push ...
 func (l *List[T]) Push(v T) {
 	node := &node.Node[T]{Next: nil, Value: v}
 	if l.size == 0 {
@@ -91,6 +100,7 @@ func (l *List[T]) Push(v T) {
 	l.size++
 }
 
+// PushAt ...
 func (l *List[T]) PushAt(idx int, v T) {
 	if idx < 0 || idx > int(l.size) {
 		panic("index out of range")

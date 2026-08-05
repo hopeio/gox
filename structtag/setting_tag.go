@@ -66,6 +66,7 @@ func ParseSettingTagToMap(tag, sep, assignSep string) map[string]string {
 	return settings
 }
 
+// ParseSettingTagToStruct ...
 func ParseSettingTagToStruct[T any](tag, sep, assignSep string) (*T, error) {
 	if tag == "-" {
 		return nil, nil
@@ -94,6 +95,7 @@ var tag tag
 ParseSettingTagIntoStruct("tagName",";",":",&tag)
 */
 
+// ParseSettingTagIntoStruct ...
 func ParseSettingTagIntoStruct(tag, sep, assignSep string, settings any) error {
 	if tag == "-" {
 		return ErrTagIgnore

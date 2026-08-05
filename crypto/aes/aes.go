@@ -12,6 +12,7 @@ import (
 	"crypto/cipher"
 )
 
+// CBCEncrypt ...
 func CBCEncrypt(origData, key, iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
 		iv = key
@@ -28,6 +29,7 @@ func CBCEncrypt(origData, key, iv []byte) ([]byte, error) {
 	return crypted, nil
 }
 
+// CBCDecrypt ...
 func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
 		iv = key
@@ -45,12 +47,14 @@ func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	return origData, nil
 }
 
-func Pkcs7Padding(cipherText []byte, blockSize int) []byte  {
+// Pkcs7Padding ...
+func Pkcs7Padding(cipherText []byte, blockSize int) []byte {
 	padding := blockSize - len(cipherText)%blockSize
 	padText := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(cipherText, padText...)
 }
 
+// UnPadding ...
 func UnPadding(origData []byte) []byte {
 	length := len(origData)
 	if length == 0 {
@@ -65,10 +69,12 @@ func UnPadding(origData []byte) []byte {
 	return origData[:length-unPadding]
 }
 
+// Pkcs5Padding ...
 func Pkcs5Padding(cipherText []byte, blockSize int) []byte {
 	return Pkcs7Padding(cipherText, 8)
 }
 
+// ECBEncrypt ...
 func ECBEncrypt(data, key []byte) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
@@ -82,6 +88,7 @@ func ECBEncrypt(data, key []byte) ([]byte, error) {
 	return crypted, nil
 }
 
+// ECBDecrypt ...
 func ECBDecrypt(crypted, key []byte) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
@@ -99,6 +106,7 @@ type ecb struct {
 	blockSize int
 }
 
+// newECB creates and returns a new instance.
 func newECB(b cipher.Block) *ecb {
 	return &ecb{
 		b:         b,
@@ -113,7 +121,11 @@ type ecbEncrypter ecb
 func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbEncrypter)(newECB(b))
 }
+
+// BlockSize ...
 func (x *ecbEncrypter) BlockSize() int { return x.blockSize }
+
+// CryptBlocks ...
 func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		panic("crypto/cipher: input not full blocks")
@@ -135,7 +147,11 @@ type ecbDecrypter ecb
 func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbDecrypter)(newECB(b))
 }
+
+// BlockSize ...
 func (x *ecbDecrypter) BlockSize() int { return x.blockSize }
+
+// CryptBlocks ...
 func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
 	/*	if len(src)%x.blockSize != 0 {
 			panic("crypto/cipher: input not full blocks")

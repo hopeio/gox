@@ -10,13 +10,17 @@ import (
 	"math"
 )
 
+// AngleRadian ...
 func AngleRadian(angleDegrees float64) float64 {
 	return angleDegrees * math.Pi / 180.0
 }
+
+// AngleDegrees ...
 func AngleDegrees(angleRadian float64) float64 {
 	return angleRadian / math.Pi * 180.0
 }
 
+// NormalizeAngleRadian ...
 func NormalizeAngleRadian(theta float64) float64 {
 	if theta == 0 {
 		return 0
@@ -35,6 +39,7 @@ func NormalizeAngleRadian(theta float64) float64 {
 	return theta
 }
 
+// NormalizeAngleDegrees ...
 func NormalizeAngleDegrees(theta float64) float64 {
 	if theta == 0 {
 		return 0

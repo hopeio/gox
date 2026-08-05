@@ -8,10 +8,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// NewOtelLogger creates and returns a new instance.
 func NewOtelLogger(name string, opts ...otelzap.Option) *Logger {
 	return &Logger{zap.New(otelzap.NewCore(name, opts...), zap.AddCallerSkip(1))}
 }
 
+// WithContext ...
 func (l *Logger) WithContext(ctx context.Context) *Logger {
 	if ctx == nil {
 		return l
@@ -21,11 +23,12 @@ func (l *Logger) WithContext(ctx context.Context) *Logger {
 		return l
 	}
 	return l.With(zap.String(FieldTraceId, spanContext.TraceID().String()), zap.String(FieldSpanId, spanContext.SpanID().String()), zapcore.Field{
-		Type: zapcore.SkipType,
+		Type:      zapcore.SkipType,
 		Interface: ctx,
 	})
 }
 
+// Context ...
 func Context(ctx context.Context) zapcore.Field {
 	return zapcore.Field{
 		Type: zapcore.InlineMarshalerType,
@@ -39,6 +42,7 @@ type contextObjectMarshaler struct {
 	context.Context
 }
 
+// MarshalLogObject ...
 func (m contextObjectMarshaler) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	spanContext := trace.SpanContextFromContext(m.Context)
 	if spanContext.IsValid() {

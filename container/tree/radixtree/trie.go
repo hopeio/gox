@@ -29,6 +29,7 @@ func (ps Params) ByName(name string) string {
 	return ""
 }
 
+// longestCommonPrefix ...
 func longestCommonPrefix(a, b string) int {
 	i := 0
 	n := min(len(a), len(b))
@@ -210,6 +211,7 @@ walk:
 	}
 }
 
+// insertChild ...
 func (n *Node[T]) insertChild(path, fullPath string, data T) {
 	for {
 		// Find prefix until first wildcard
@@ -305,7 +307,7 @@ func (n *Node[T]) insertChild(path, fullPath string, data T) {
 	n.ok = true
 }
 
-// 排序
+// sortIndices ...
 func (n *Node[T]) sortIndices() {
 	sort.Slice(n.indices, func(i, j int) bool {
 		return n.indices[i] < n.indices[j]

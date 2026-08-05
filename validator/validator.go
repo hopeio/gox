@@ -24,6 +24,7 @@ var (
 	uni             *ut.UniversalTranslator
 )
 
+// init ...
 func init() {
 	uni = ut.New(en.New(), zh.New())
 
@@ -45,6 +46,7 @@ func init() {
 	})
 }
 
+// TransError ...
 func TransError(err error, locale string) string {
 	if err == nil {
 		return ""
@@ -62,6 +64,7 @@ func TransError(err error, locale string) string {
 	return strings.Join(msg, ",")
 }
 
+// translateFunc ...
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {

@@ -154,17 +154,17 @@ func bufApp(buf *[]byte, s string, w int, c byte) {
 	b[w] = c
 }
 
-// 获取url中非参数部分
+// Base ...
 func Base(url string) string {
 	return stringsx.CutPart(stringsx.CutPart(url, "#"), "?")
 }
 
-// 获取url中的文件名
+// URIBase ...
 func URIBase(url string) string {
 	return stringsx.ReverseCutPart(Base(url), "/")
 }
 
-// RelativeURLToAbsoluteURL 相对URL转绝对URL
+// RelativeURLToAbsoluteURL ...
 func RelativeURLToAbsoluteURL(curURL string, baseURL string) (string, error) {
 	curURLData, err := url.Parse(curURL)
 	if err != nil {

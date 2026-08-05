@@ -16,10 +16,12 @@ type Time interface {
 	GetNanos() int32
 }
 
+// IsValid reports whether the condition holds.
 func IsValid(x Time) bool {
 	return x != nil && Check(x) == 0
 }
 
+// CheckValid reports whether the condition holds.
 func CheckValid(x Time) error {
 	switch Check(x) {
 	case InvalidNil:
@@ -43,6 +45,7 @@ const (
 	InvalidNanos
 )
 
+// Check ...
 func Check(x Time) uint {
 	if x == nil {
 		return InvalidNil

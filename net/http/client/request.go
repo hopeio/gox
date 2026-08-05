@@ -41,6 +41,7 @@ type Request struct {
 	client      *Client
 }
 
+// NewRequest creates and returns a new instance.
 func NewRequest(method, url string, opts ...RequestOption) *Request {
 	r := &Request{
 		ctx:    context.Background(),
@@ -54,11 +55,13 @@ func NewRequest(method, url string, opts ...RequestOption) *Request {
 	return r
 }
 
+// Client ...
 func (req *Request) Client(c *Client) *Request {
 	req.client = c
 	return req
 }
 
+// Header ...
 func (req *Request) Header(header http.Header) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
@@ -67,6 +70,7 @@ func (req *Request) Header(header http.Header) *Request {
 	return req
 }
 
+// HeaderX ...
 func (req *Request) HeaderX(header httpx.Header) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
@@ -75,6 +79,7 @@ func (req *Request) HeaderX(header httpx.Header) *Request {
 	return req
 }
 
+// AddHeader ...
 func (req *Request) AddHeader(k, v string) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
@@ -83,16 +88,19 @@ func (req *Request) AddHeader(k, v string) *Request {
 	return req
 }
 
+// ContentType ...
 func (req *Request) ContentType(contentType ContentType) *Request {
 	req.contentType = contentType
 	return req
 }
 
+// Context ...
 func (req *Request) Context(ctx context.Context) *Request {
 	req.ctx = ctx
 	return req
 }
 
+// DoRaw ...
 func (req *Request) DoRaw(param any) (RawBytes, error) {
 	var raw RawBytes
 	err := req.Do(param, &raw)
@@ -102,6 +110,7 @@ func (req *Request) DoRaw(param any) (RawBytes, error) {
 	return raw, nil
 }
 
+// DoStream ...
 func (req *Request) DoStream(param any) (io.ReadCloser, error) {
 	var resp *http.Response
 	err := req.Do(param, &resp)
@@ -111,6 +120,7 @@ func (req *Request) DoStream(param any) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
+// DoResponse ...
 func (req *Request) DoResponse(param any) (*http.Response, error) {
 	var resp *http.Response
 	err := req.Do(param, &resp)
@@ -120,8 +130,7 @@ func (req *Request) DoResponse(param any) (*http.Response, error) {
 	return resp, nil
 }
 
-// Do create a HTTP request
-// param: 请求参数 目前只支持编码为json 或 url-encoded
+// Do ...
 func (req *Request) Do(param, response any) error {
 	if req.Method == "" {
 		return errors.New("not set method")

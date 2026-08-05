@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// CreateTime creates and returns a new instance.
 func CreateTime(path string) time.Time {
 	fileInfo, _ := os.Stat(path)
 	wFileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
@@ -19,12 +20,14 @@ func CreateTime(path string) time.Time {
 	return time.Unix(0, tNanSeconds)
 }
 
+// CreateTimeByInfo creates and returns a new instance.
 func CreateTimeByInfo(fileInfo os.FileInfo) time.Time {
 	wFileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
 	tNanSeconds := wFileSys.CreationTime.Nanoseconds() /// 返回的是纳秒
 	return time.Unix(0, tNanSeconds)
 }
 
+// CreateTimeByEntry creates and returns a new instance.
 func CreateTimeByEntry(entry os.DirEntry) time.Time {
 	fileInfo, _ := entry.Info()
 	wFileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
@@ -32,6 +35,7 @@ func CreateTimeByEntry(entry os.DirEntry) time.Time {
 	return time.Unix(0, tNanSeconds)
 }
 
+// LastWriteTimeByEntry ...
 func LastWriteTimeByEntry(entry os.DirEntry) time.Time {
 	fileInfo, _ := entry.Info()
 	wFileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)

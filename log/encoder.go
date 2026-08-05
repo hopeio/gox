@@ -18,6 +18,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// DefaultReflectedEncoder ...
 func DefaultReflectedEncoder(w io.Writer) zapcore.ReflectedEncoder {
 	enc := jsonx.NewEncoder(w)
 	// For consistency with our custom JSON encoder.
@@ -43,6 +44,7 @@ type CustomEncoderConfig struct {
 	TransferKey func(key string) string
 }
 
+// NewCustomEncoder creates and returns a new instance.
 func NewCustomEncoder(cfg *CustomEncoderConfig) *CustomEncoder {
 	if cfg.SkipLineEnding {
 		cfg.LineEnding = ""
@@ -60,60 +62,72 @@ func NewCustomEncoder(cfg *CustomEncoderConfig) *CustomEncoder {
 	}
 }
 
+// AddArray ...
 func (enc *CustomEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
 	enc.addKey(key)
 	return enc.AppendArray(arr)
 }
 
+// AddObject ...
 func (enc *CustomEncoder) AddObject(key string, obj zapcore.ObjectMarshaler) error {
 	enc.addKey(key)
 	return enc.AppendObject(obj)
 }
 
+// AddBinary ...
 func (enc *CustomEncoder) AddBinary(key string, val []byte) {
 	enc.AddString(key, base64.StdEncoding.EncodeToString(val))
 }
 
+// AddByteString ...
 func (enc *CustomEncoder) AddByteString(key string, val []byte) {
 	enc.addKey(key)
 	enc.AppendByteString(val)
 }
 
+// AddBool ...
 func (enc *CustomEncoder) AddBool(key string, val bool) {
 	enc.addKey(key)
 	enc.AppendBool(val)
 }
 
+// AddComplex128 ...
 func (enc *CustomEncoder) AddComplex128(key string, val complex128) {
 	enc.addKey(key)
 	enc.AppendComplex128(val)
 }
 
+// AddComplex64 ...
 func (enc *CustomEncoder) AddComplex64(key string, val complex64) {
 	enc.addKey(key)
 	enc.AppendComplex64(val)
 }
 
+// AddDuration ...
 func (enc *CustomEncoder) AddDuration(key string, val time.Duration) {
 	enc.addKey(key)
 	enc.AppendDuration(val)
 }
 
+// AddFloat64 ...
 func (enc *CustomEncoder) AddFloat64(key string, val float64) {
 	enc.addKey(key)
 	enc.AppendFloat64(val)
 }
 
+// AddFloat32 ...
 func (enc *CustomEncoder) AddFloat32(key string, val float32) {
 	enc.addKey(key)
 	enc.AppendFloat32(val)
 }
 
+// AddInt64 ...
 func (enc *CustomEncoder) AddInt64(key string, val int64) {
 	enc.addKey(key)
 	enc.AppendInt64(val)
 }
 
+// resetReflectBuf ...
 func (enc *CustomEncoder) resetReflectBuf() {
 	if enc.reflectBuf == nil {
 		enc.reflectBuf = buffer.NewPool().Get()
@@ -139,6 +153,7 @@ func (enc *CustomEncoder) encodeReflected(obj interface{}) ([]byte, error) {
 	return enc.reflectBuf.Bytes(), nil
 }
 
+// AddReflected ...
 func (enc *CustomEncoder) AddReflected(key string, obj interface{}) error {
 	valueBytes, err := enc.encodeReflected(obj)
 	if err != nil {
@@ -150,30 +165,35 @@ func (enc *CustomEncoder) AddReflected(key string, obj interface{}) error {
 	return err
 }
 
+// OpenNamespace creates and returns a new instance.
 func (enc *CustomEncoder) OpenNamespace(key string) {
 	enc.addKey(key)
 	enc.buf.AppendByte('{')
 	enc.openNamespaces++
 }
 
+// AddString ...
 func (enc *CustomEncoder) AddString(key, val string) {
 	enc.addKey(key)
 	enc.AppendString(val)
 	enc.buf.AppendString("\n\n")
 }
 
+// AddTime ...
 func (enc *CustomEncoder) AddTime(key string, val time.Time) {
 	enc.addKey(key)
 	enc.AppendTime(val)
 	enc.buf.AppendString("\n\n")
 }
 
+// AddUint64 ...
 func (enc *CustomEncoder) AddUint64(key string, val uint64) {
 	enc.addKey(key)
 	enc.AppendUint64(val)
 	enc.buf.AppendString("\n\n")
 }
 
+// AppendArray ...
 func (enc *CustomEncoder) AppendArray(arr zapcore.ArrayMarshaler) error {
 	enc.buf.AppendByte('[')
 	err := arr.MarshalLogArray(enc)
@@ -182,6 +202,7 @@ func (enc *CustomEncoder) AppendArray(arr zapcore.ArrayMarshaler) error {
 	return err
 }
 
+// AppendObject ...
 func (enc *CustomEncoder) AppendObject(obj zapcore.ObjectMarshaler) error {
 	// Close ONLY new openNamespaces that are created during
 	// AppendObject().
@@ -196,10 +217,12 @@ func (enc *CustomEncoder) AppendObject(obj zapcore.ObjectMarshaler) error {
 	return err
 }
 
+// AppendBool ...
 func (enc *CustomEncoder) AppendBool(val bool) {
 	enc.buf.AppendBool(val)
 }
 
+// AppendByteString ...
 func (enc *CustomEncoder) AppendByteString(val []byte) {
 	enc.safeAddByteString(val)
 }
@@ -222,6 +245,7 @@ func (enc *CustomEncoder) appendComplex(val complex128, precision int) {
 	enc.buf.AppendByte('i')
 }
 
+// AppendDuration ...
 func (enc *CustomEncoder) AppendDuration(val time.Duration) {
 	cur := enc.buf.Len()
 	if e := enc.EncodeDuration; e != nil {
@@ -234,10 +258,12 @@ func (enc *CustomEncoder) AppendDuration(val time.Duration) {
 	}
 }
 
+// AppendInt64 ...
 func (enc *CustomEncoder) AppendInt64(val int64) {
 	enc.buf.AppendInt(val)
 }
 
+// AppendReflected ...
 func (enc *CustomEncoder) AppendReflected(val interface{}) error {
 	valueBytes, err := enc.encodeReflected(val)
 	if err != nil {
@@ -247,14 +273,17 @@ func (enc *CustomEncoder) AppendReflected(val interface{}) error {
 	return err
 }
 
+// AppendString ...
 func (enc *CustomEncoder) AppendString(val string) {
 	enc.safeAddString(val)
 }
 
+// AppendTimeLayout ...
 func (enc *CustomEncoder) AppendTimeLayout(time time.Time, layout string) {
 	enc.buf.AppendTime(time, layout)
 }
 
+// AppendTime ...
 func (enc *CustomEncoder) AppendTime(val time.Time) {
 	cur := enc.buf.Len()
 	if e := enc.EncodeTime; e != nil {
@@ -267,39 +296,85 @@ func (enc *CustomEncoder) AppendTime(val time.Time) {
 	}
 }
 
+// AppendUint64 ...
 func (enc *CustomEncoder) AppendUint64(val uint64) {
 	enc.buf.AppendUint(val)
 }
 
-func (enc *CustomEncoder) AddInt(k string, v int)         { enc.AddInt64(k, int64(v)) }
-func (enc *CustomEncoder) AddInt32(k string, v int32)     { enc.AddInt64(k, int64(v)) }
-func (enc *CustomEncoder) AddInt16(k string, v int16)     { enc.AddInt64(k, int64(v)) }
-func (enc *CustomEncoder) AddInt8(k string, v int8)       { enc.AddInt64(k, int64(v)) }
-func (enc *CustomEncoder) AddUint(k string, v uint)       { enc.AddUint64(k, uint64(v)) }
-func (enc *CustomEncoder) AddUint32(k string, v uint32)   { enc.AddUint64(k, uint64(v)) }
-func (enc *CustomEncoder) AddUint16(k string, v uint16)   { enc.AddUint64(k, uint64(v)) }
-func (enc *CustomEncoder) AddUint8(k string, v uint8)     { enc.AddUint64(k, uint64(v)) }
-func (enc *CustomEncoder) AddUintptr(k string, v uintptr) { enc.AddUint64(k, uint64(v)) }
-func (enc *CustomEncoder) AppendComplex64(v complex64)    { enc.appendComplex(complex128(v), 32) }
-func (enc *CustomEncoder) AppendComplex128(v complex128)  { enc.appendComplex(complex128(v), 64) }
-func (enc *CustomEncoder) AppendFloat64(v float64)        { enc.appendFloat(v, 64) }
-func (enc *CustomEncoder) AppendFloat32(v float32)        { enc.appendFloat(float64(v), 32) }
-func (enc *CustomEncoder) AppendInt(v int)                { enc.AppendInt64(int64(v)) }
-func (enc *CustomEncoder) AppendInt32(v int32)            { enc.AppendInt64(int64(v)) }
-func (enc *CustomEncoder) AppendInt16(v int16)            { enc.AppendInt64(int64(v)) }
-func (enc *CustomEncoder) AppendInt8(v int8)              { enc.AppendInt64(int64(v)) }
-func (enc *CustomEncoder) AppendUint(v uint)              { enc.AppendUint64(uint64(v)) }
-func (enc *CustomEncoder) AppendUint32(v uint32)          { enc.AppendUint64(uint64(v)) }
-func (enc *CustomEncoder) AppendUint16(v uint16)          { enc.AppendUint64(uint64(v)) }
-func (enc *CustomEncoder) AppendUint8(v uint8)            { enc.AppendUint64(uint64(v)) }
-func (enc *CustomEncoder) AppendUintptr(v uintptr)        { enc.AppendUint64(uint64(v)) }
+// AddInt ...
+func (enc *CustomEncoder) AddInt(k string, v int) { enc.AddInt64(k, int64(v)) }
 
+// AddInt32 ...
+func (enc *CustomEncoder) AddInt32(k string, v int32) { enc.AddInt64(k, int64(v)) }
+
+// AddInt16 ...
+func (enc *CustomEncoder) AddInt16(k string, v int16) { enc.AddInt64(k, int64(v)) }
+
+// AddInt8 ...
+func (enc *CustomEncoder) AddInt8(k string, v int8) { enc.AddInt64(k, int64(v)) }
+
+// AddUint ...
+func (enc *CustomEncoder) AddUint(k string, v uint) { enc.AddUint64(k, uint64(v)) }
+
+// AddUint32 ...
+func (enc *CustomEncoder) AddUint32(k string, v uint32) { enc.AddUint64(k, uint64(v)) }
+
+// AddUint16 ...
+func (enc *CustomEncoder) AddUint16(k string, v uint16) { enc.AddUint64(k, uint64(v)) }
+
+// AddUint8 ...
+func (enc *CustomEncoder) AddUint8(k string, v uint8) { enc.AddUint64(k, uint64(v)) }
+
+// AddUintptr ...
+func (enc *CustomEncoder) AddUintptr(k string, v uintptr) { enc.AddUint64(k, uint64(v)) }
+
+// AppendComplex64 ...
+func (enc *CustomEncoder) AppendComplex64(v complex64) { enc.appendComplex(complex128(v), 32) }
+
+// AppendComplex128 ...
+func (enc *CustomEncoder) AppendComplex128(v complex128) { enc.appendComplex(complex128(v), 64) }
+
+// AppendFloat64 ...
+func (enc *CustomEncoder) AppendFloat64(v float64) { enc.appendFloat(v, 64) }
+
+// AppendFloat32 ...
+func (enc *CustomEncoder) AppendFloat32(v float32) { enc.appendFloat(float64(v), 32) }
+
+// AppendInt ...
+func (enc *CustomEncoder) AppendInt(v int) { enc.AppendInt64(int64(v)) }
+
+// AppendInt32 ...
+func (enc *CustomEncoder) AppendInt32(v int32) { enc.AppendInt64(int64(v)) }
+
+// AppendInt16 ...
+func (enc *CustomEncoder) AppendInt16(v int16) { enc.AppendInt64(int64(v)) }
+
+// AppendInt8 ...
+func (enc *CustomEncoder) AppendInt8(v int8) { enc.AppendInt64(int64(v)) }
+
+// AppendUint ...
+func (enc *CustomEncoder) AppendUint(v uint) { enc.AppendUint64(uint64(v)) }
+
+// AppendUint32 ...
+func (enc *CustomEncoder) AppendUint32(v uint32) { enc.AppendUint64(uint64(v)) }
+
+// AppendUint16 ...
+func (enc *CustomEncoder) AppendUint16(v uint16) { enc.AppendUint64(uint64(v)) }
+
+// AppendUint8 ...
+func (enc *CustomEncoder) AppendUint8(v uint8) { enc.AppendUint64(uint64(v)) }
+
+// AppendUintptr ...
+func (enc *CustomEncoder) AppendUintptr(v uintptr) { enc.AppendUint64(uint64(v)) }
+
+// Clone ...
 func (enc *CustomEncoder) Clone() zapcore.Encoder {
 	clone := enc.clone()
 	clone.buf.Write(enc.buf.Bytes())
 	return clone
 }
 
+// clone ...
 func (enc *CustomEncoder) clone() *CustomEncoder {
 	buf := buffer.NewPool().Get()
 	buf.Write(enc.buf.Bytes())
@@ -312,6 +387,7 @@ func (enc *CustomEncoder) clone() *CustomEncoder {
 	}
 }
 
+// EncodeEntry ...
 func (enc *CustomEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
 	final := enc
 
@@ -386,10 +462,12 @@ func (enc *CustomEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field)
 	return ret, nil
 }
 
+// truncate ...
 func (enc *CustomEncoder) truncate() {
 	enc.buf.Reset()
 }
 
+// closeOpenNamespaces closes and releases resources.
 func (enc *CustomEncoder) closeOpenNamespaces() {
 	for range enc.openNamespaces {
 		enc.buf.AppendByte('}')
@@ -397,6 +475,7 @@ func (enc *CustomEncoder) closeOpenNamespaces() {
 	enc.openNamespaces = 0
 }
 
+// addKey ...
 func (enc *CustomEncoder) addKey(key string) {
 	if enc.TransferKey != nil {
 		enc.buf.AppendString(enc.TransferKey(key))
@@ -405,6 +484,7 @@ func (enc *CustomEncoder) addKey(key string) {
 	}
 }
 
+// appendFloat ...
 func (enc *CustomEncoder) appendFloat(val float64, bitSize int) {
 	switch {
 	case math.IsNaN(val):
@@ -487,6 +567,7 @@ func (enc *CustomEncoder) tryAddRuneSelf(b byte) bool {
 	return true
 }
 
+// tryAddRuneError ...
 func (enc *CustomEncoder) tryAddRuneError(r rune, size int) bool {
 	if r == utf8.RuneError && size == 1 {
 		enc.buf.AppendString(`\ufffd`)

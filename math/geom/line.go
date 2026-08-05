@@ -13,14 +13,17 @@ type LineSegment struct {
 	End   Point
 }
 
+// NewLineSegment creates and returns a new instance.
 func NewLineSegment(start, end Point) *LineSegment {
 	return &LineSegment{start, end}
 }
 
+// Vector ...
 func (l *LineSegment) Vector() Vector {
 	return Vector{l.End.X - l.Start.X, l.End.Y - l.Start.Y}
 }
 
+// ToSlopeInterceptFormLine ...
 func (l *LineSegment) ToSlopeInterceptFormLine() *SlopeInterceptFormLine {
 	var line SlopeInterceptFormLine
 	if l.Start.X == l.End.X {
@@ -38,6 +41,7 @@ func (l *LineSegment) ToSlopeInterceptFormLine() *SlopeInterceptFormLine {
 	return &line
 }
 
+// ContainsPoint reports whether the condition holds.
 func (l *LineSegment) ContainsPoint(p Point) bool {
 	// Ensure the point is within the bounding box of the line segment
 	if math.Min(l.Start.X, l.End.X) <= p.X && p.X <= math.Max(l.Start.X, l.End.X) &&
@@ -53,6 +57,7 @@ func (l *LineSegment) ContainsPoint(p Point) bool {
 	return false
 }
 
+// IntersectionLineSegment ...
 func (l *LineSegment) IntersectionLineSegment(l2 *LineSegment) (Point, bool) {
 	// 计算向量
 	dx1, dy1 := l.End.X-l.Start.X, l.End.Y-l.Start.Y
@@ -82,6 +87,7 @@ func (l *LineSegment) IntersectionLineSegment(l2 *LineSegment) (Point, bool) {
 	return Point{}, false
 }
 
+// IntersectionRay ...
 func (l *LineSegment) IntersectionRay(r *Ray) (Point, bool) {
 	// 提取线段和射线参数
 	x1, y1 := l.Start.X, l.Start.Y
@@ -115,6 +121,7 @@ func (l *LineSegment) IntersectionRay(r *Ray) (Point, bool) {
 	return Point{}, false
 }
 
+// IntersectionStraightLine ...
 func (l *LineSegment) IntersectionStraightLine(sl *StraightLine) (Point, bool) {
 	// 提取线段和直线的参数
 	x1, y1 := l.Start.X, l.Start.Y
@@ -152,6 +159,7 @@ type LineSegmentInt[T constraints.Integer] struct {
 	End   PointInt[T]
 }
 
+// ToFloat64 ...
 func (l *LineSegmentInt[T]) ToFloat64(factor float64) *LineSegment {
 	return &LineSegment{
 		Start: Point{float64(l.Start.X) / factor, float64(l.Start.Y) / factor},
@@ -159,6 +167,7 @@ func (l *LineSegmentInt[T]) ToFloat64(factor float64) *LineSegment {
 	}
 }
 
+// LineIntFromFloat64 ...
 func LineIntFromFloat64[T constraints.Integer](e *LineSegment, factor float64) *LineSegmentInt[T] {
 	return &LineSegmentInt[T]{
 		Start: PointInt[T]{T(math.Round(e.Start.X * factor)), T(math.Round(e.Start.Y * factor))},
@@ -172,10 +181,12 @@ type SlopeInterceptFormLine struct {
 	Intercept float64
 }
 
+// IsVertical reports whether the condition holds.
 func (l *SlopeInterceptFormLine) IsVertical() bool {
 	return math.IsInf(l.Slope, 0)
 }
 
+// ToGeneralFormLine ...
 func (l *SlopeInterceptFormLine) ToGeneralFormLine() *GeneralFormLine {
 	if l.IsVertical() {
 		// For vertical lines: x = k, convert to Ax + By + C = 0 where A = 1, B = 0, C = -k
@@ -186,6 +197,7 @@ func (l *SlopeInterceptFormLine) ToGeneralFormLine() *GeneralFormLine {
 	return &GeneralFormLine{A: l.Slope, B: -1, C: l.Intercept}
 }
 
+// ToStraightLine ...
 func (l *SlopeInterceptFormLine) ToStraightLine() *StraightLine {
 	return &StraightLine{
 		Point: Point{l.Intercept, 0},
@@ -193,6 +205,7 @@ func (l *SlopeInterceptFormLine) ToStraightLine() *StraightLine {
 	}
 }
 
+// NewSlopeInterceptLine creates and returns a new instance.
 func NewSlopeInterceptLine(m, b float64) *SlopeInterceptFormLine {
 	return &SlopeInterceptFormLine{m, b}
 }
@@ -204,6 +217,7 @@ type GeneralFormLine struct {
 	C float64
 }
 
+// ToSlopeInterceptLine ...
 func (l *GeneralFormLine) ToSlopeInterceptLine() *SlopeInterceptFormLine {
 	if l.B == 0 {
 		return &SlopeInterceptFormLine{math.Inf(1), -l.C}
@@ -214,6 +228,7 @@ func (l *GeneralFormLine) ToSlopeInterceptLine() *SlopeInterceptFormLine {
 	}
 }
 
+// ToStraightLine ...
 func (l *GeneralFormLine) ToStraightLine() *StraightLine {
 	return &StraightLine{
 		Point: Point{l.C / l.B, 0},
@@ -221,6 +236,7 @@ func (l *GeneralFormLine) ToStraightLine() *StraightLine {
 	}
 }
 
+// NewGeneralFormLine creates and returns a new instance.
 func NewGeneralFormLine(a, b, c float64) *GeneralFormLine {
 	return &GeneralFormLine{a, b, c}
 }
@@ -230,19 +246,23 @@ type StraightLine struct {
 	Angle float64
 }
 
+// NewStraightLine creates and returns a new instance.
 func NewStraightLine(p Point, angle float64) *StraightLine {
 	return &StraightLine{p, angle}
 }
 
+// ToGeneralFormLine ...
 func (l *StraightLine) ToGeneralFormLine() *GeneralFormLine {
 	angleInRadians := l.Angle / 180 * math.Pi
 	return &GeneralFormLine{math.Cos(angleInRadians), math.Sin(angleInRadians), -l.X*math.Cos(angleInRadians) - l.Y*math.Sin(angleInRadians)}
 }
 
+// ToSlopeInterceptLine ...
 func (l *StraightLine) ToSlopeInterceptLine() *SlopeInterceptFormLine {
 	return l.ToGeneralFormLine().ToSlopeInterceptLine()
 }
 
+// ContainsPoint reports whether the condition holds.
 func (l *StraightLine) ContainsPoint(p Point) bool {
 	// Convert angle from degrees to radians
 	angleInRadians := l.Angle * math.Pi / 180
@@ -261,6 +281,7 @@ func (l *StraightLine) ContainsPoint(p Point) bool {
 	return math.Abs(p.Y-(m*p.X+b)) < tolerance
 }
 
+// IntersectStraightLine ...
 func (l *StraightLine) IntersectStraightLine(l2 *StraightLine) bool {
 	theta1, theta2 := l.Angle/180*math.Pi, l2.Angle/180*math.Pi
 	// 计算直线方向向量
@@ -276,6 +297,7 @@ func (l *StraightLine) IntersectStraightLine(l2 *StraightLine) bool {
 	return true
 }
 
+// IntersectionStraightLine ...
 func (l *StraightLine) IntersectionStraightLine(l2 *StraightLine) (Point, bool) {
 	// 提取直线参数
 	x1, y1, theta1 := l.Point.X, l.Point.Y, l.Angle/180*math.Pi
@@ -305,14 +327,17 @@ type Ray struct {
 	Angle float64
 }
 
+// NewRay creates and returns a new instance.
 func NewRay(p Point, angle float64) *Ray {
 	return &Ray{p, angle}
 }
 
+// IntersectRay ...
 func (l *Ray) IntersectRay(l2 *Ray) bool {
 	panic("todo")
 }
 
+// IntersectionRay ...
 func (r *Ray) IntersectionRay(r2 *Ray) (Point, bool) {
 	// 提取射线参数
 	x1, y1, theta1 := r.Point.X, r.Point.Y, r.Angle/180*math.Pi
@@ -343,7 +368,7 @@ func (r *Ray) IntersectionRay(r2 *Ray) (Point, bool) {
 	return Point{}, false
 }
 
-// 判断点是否在射线的正向范围内
+// IsOnForwardRange reports whether the condition holds.
 func (r *Ray) IsOnForwardRange(p Point) bool {
 	dx, dy := p.X-r.Point.X, p.Y-r.Point.Y
 	angle := r.Angle / 180 * math.Pi
@@ -353,6 +378,7 @@ func (r *Ray) IsOnForwardRange(p Point) bool {
 	return dotProduct > 0 // 点与射线的方向一致
 }
 
+// IntersectionStraightLine ...
 func (r *Ray) IntersectionStraightLine(l *StraightLine) (Point, bool) {
 	// 提取射线和直线参数
 	x1, y1, theta := r.Point.X, r.Point.Y, r.Angle/180*math.Pi

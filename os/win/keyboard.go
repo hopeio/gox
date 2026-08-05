@@ -1,10 +1,11 @@
+//go:build windows
+
 /*
  * Copyright 2024 hopeio. All rights reserved.
  * Licensed under the MIT License that can be found in the LICENSE file.
  * @Created by jyb
  */
 
- //go:build windows
 package win
 
 import (
@@ -12,6 +13,7 @@ import (
 	"time"
 )
 
+// TapKey ...
 func TapKey(keys ...uint16) {
 	var onInput []w32.INPUT
 

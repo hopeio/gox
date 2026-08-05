@@ -38,6 +38,7 @@ type Field struct {
 	Value  any
 }
 
+// DecodeMessage ...
 func DecodeMessage(b []byte) ([]Field, error) {
 	var fields []Field
 	for len(b) > 0 {
@@ -102,6 +103,7 @@ func DecodeMessage(b []byte) ([]Field, error) {
 	return fields, nil
 }
 
+// classifyLengthDelimited ...
 func classifyLengthDelimited(num protowire.Number, v []byte) Field {
 
 	if msg, err := DecodeMessage(v); err == nil && len(msg) > 0 {
@@ -130,6 +132,7 @@ func classifyLengthDelimited(num protowire.Number, v []byte) Field {
 	return Field{Number: num, Wire: protowire.BytesType, Kind: KindBytes, Value: v}
 }
 
+// consumePackedVarint ...
 func consumePackedVarint(b []byte) ([]uint64, bool) {
 	var out []uint64
 	for len(b) > 0 {
@@ -143,6 +146,7 @@ func consumePackedVarint(b []byte) ([]uint64, bool) {
 	return out, true
 }
 
+// consumePackedFixed32 ...
 func consumePackedFixed32(b []byte) []uint32 {
 	var out []uint32
 	for len(b) > 0 {
@@ -156,6 +160,7 @@ func consumePackedFixed32(b []byte) []uint32 {
 	return out
 }
 
+// consumePackedFixed64 ...
 func consumePackedFixed64(b []byte) []uint64 {
 	var out []uint64
 	for len(b) > 0 {
@@ -169,6 +174,7 @@ func consumePackedFixed64(b []byte) []uint64 {
 	return out
 }
 
+// wireName ...
 func wireName(t protowire.Type) string {
 	switch t {
 	case protowire.VarintType:
@@ -188,6 +194,7 @@ func wireName(t protowire.Type) string {
 	}
 }
 
+// kindName ...
 func kindName(k Kind) string {
 	switch k {
 	case KindVarint:
@@ -215,6 +222,7 @@ func kindName(k Kind) string {
 	}
 }
 
+// FieldsToMap ...
 func FieldsToMap(fields []Field) map[protowire.Number]any {
 	m := make(map[protowire.Number]any)
 	for _, f := range fields {

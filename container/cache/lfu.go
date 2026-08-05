@@ -12,6 +12,7 @@ type LFU struct {
 	freqList *list.List // list for freqEntry
 }
 
+// init ...
 func (c *LFU) init(bc *baseCache) {
 	c.baseCache = bc
 	c.freqList = list.New()
@@ -22,6 +23,7 @@ func (c *LFU) init(bc *baseCache) {
 	})
 }
 
+// set ...
 func (c *LFU) set(key, value any, expiration *time.Time) (*item, error) {
 	// Check for existing item
 	it, ok := c.items[key]
@@ -56,6 +58,7 @@ func (c *LFU) set(key, value any, expiration *time.Time) (*item, error) {
 	return &it.item, nil
 }
 
+// get ...
 func (c *LFU) get(key any, onLoad bool) (*item, error) {
 	item, ok := c.items[key]
 	if ok {
@@ -75,6 +78,7 @@ func (c *LFU) get(key any, onLoad bool) (*item, error) {
 	return nil, KeyNotFoundError
 }
 
+// increment ...
 func (c *LFU) increment(item *lfuItem) {
 	currentFreqElement := item.freqElement
 	currentFreqEntry := currentFreqElement.Value.(*freqEntry)
@@ -111,6 +115,7 @@ func (c *LFU) evict(count int) {
 	}
 }
 
+// has ...
 func (c *LFU) has(key any, now *time.Time) bool {
 	item, ok := c.items[key]
 	if !ok {
@@ -119,6 +124,7 @@ func (c *LFU) has(key any, now *time.Time) bool {
 	return !item.Expired(now)
 }
 
+// remove ...
 func (c *LFU) remove(key any) bool {
 	if item, ok := c.items[key]; ok {
 		c.removeItem(item)
@@ -136,10 +142,12 @@ func (c *LFU) removeItem(item *lfuItem) {
 	}
 }
 
+// length ...
 func (c *LFU) length() int {
 	return len(c.items)
 }
 
+// foreach ...
 func (c *LFU) foreach(f func(*item)) {
 	for _, item := range c.items {
 		f(&item.item)

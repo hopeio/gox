@@ -17,6 +17,7 @@ type ValidatorAll interface {
 	Validate(all bool) error
 }
 
+// ValidateStruct ...
 func ValidateStruct(o any) error {
 	switch validator := o.(type) {
 	case ValidatorAll:
@@ -32,6 +33,7 @@ type fieldError struct {
 	nestedErr  error
 }
 
+// Error returns the error message string.
 func (f *fieldError) Error() string {
 	return "invalid field " + strings.Join(f.fieldStack, ".") + ": " + f.nestedErr.Error()
 }

@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// FormatRelativeTime ...
 func FormatRelativeTime(fromTime time.Time) string {
 	now := time.Now()
 	duration := now.Sub(fromTime)
@@ -38,14 +39,17 @@ func FormatRelativeTime(fromTime time.Time) string {
 	}
 }
 
+// ParseTime ...
 func ParseTime(t string) (time.Time, error) {
 	return time.Parse(time.TimeOnly, t)
 }
 
+// ParseDateTime ...
 func ParseDateTime(t string) (time.Time, error) {
 	return time.Parse(time.DateTime, t)
 }
 
+// ParseDate ...
 func ParseDate(t string) (time.Time, error) {
 	return time.Parse(time.DateOnly, t)
 }

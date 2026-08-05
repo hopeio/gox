@@ -34,6 +34,7 @@ type ByUId struct {
 	FileName  string    `json:"fileName"`
 }
 
+// PreHandle ...
 func (d *ByUId) PreHandle() {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
@@ -47,6 +48,7 @@ func (d *ByUId) PreHandle() {
 	d.TimeStr = stringsx.RemoveRunes(d.TimeStr, '-', ' ', ':')
 }
 
+// Path ...
 func (d *ByUId) Path() string {
 	d.PreHandle()
 	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, PathSeparator)
@@ -63,6 +65,7 @@ type ById struct {
 	FileName string `json:"fileName"`
 }
 
+// Path ...
 func (d *ById) Path() string {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
@@ -74,6 +77,7 @@ func (d *ById) Path() string {
 // path
 type ByPath string
 
+// Path ...
 func (d ByPath) Path() string {
 	return string(d)
 }
@@ -85,6 +89,7 @@ type ByUIdTitle struct {
 	//PrePath   string    `json:"prePath" comment:""`
 }
 
+// Path ...
 func (d *ByUIdTitle) Path() string {
 	d.PreHandle()
 	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr + "_" + d.Title + "_" + d.IdStr, strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, "/")

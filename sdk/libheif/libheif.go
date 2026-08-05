@@ -19,6 +19,7 @@ const ImgToHeifCmd = `heif-enc -q 50 %s -o %s.heif`
 const ImgToHeifCmd1 = `heif-enc -p x265:crf=20.5 -p x265:colorprim=smpte170m -p x265:rdoq-level=1 -p x265:aq-strength=1.2 -p x265:deblock=-2:-2 %s -o %s.heif
 `
 
+// ImgToHeif ...
 func ImgToHeif(filePath, dst string) error {
 	if strings.HasSuffix(dst, ".heif") {
 		dst = dst[:len(dst)-5]

@@ -12,6 +12,7 @@ type EqualFunc[T any] func(T, T) bool
 
 type CompareFunc[T any] func(T, T) int
 
+// LessFunc ...
 func (c CompareFunc[T]) LessFunc() LessFunc[T] {
 	return func(a, b T) bool {
 		return c(a, b) < 0

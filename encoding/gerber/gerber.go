@@ -39,6 +39,7 @@ type Processor interface {
 	SetViewBox(*ViewBox)
 }
 
+// parseApertureID ...
 func parseApertureID(word string) (string, error) {
 	if len(word) < 3 {
 		return "", fmt.Errorf("%d", len(word))
@@ -69,6 +70,7 @@ type circlePrimitive struct {
 
 type circlePrimitiveTemplate []primitiveValue
 
+// Primitive ...
 func (o circlePrimitiveTemplate) Primitive() circlePrimitive {
 	return circlePrimitive{
 		Exposure: o[0].value == 1,
@@ -90,6 +92,7 @@ type rectPrimitive struct {
 
 type rectPrimitiveTemplate []primitiveValue
 
+// Primitive ...
 func (o rectPrimitiveTemplate) Primitive() rectPrimitive {
 	return rectPrimitive{
 		Exposure: o[0].value == 1,
@@ -114,6 +117,7 @@ type ovalPrimitive struct {
 }
 type ovalPrimitiveTemplate []primitiveValue
 
+// Primitive ...
 func (o ovalPrimitiveTemplate) Primitive() obroundPrimitive {
 	dx, dy := o[4].value-o[2].value, o[5].value-o[3].value
 	rotation := math.Atan2(dy, dx) * (180.0 / math.Pi)
@@ -145,6 +149,7 @@ type vectorLinePrimitive struct {
 
 type vectorLinePrimitiveTemplate []primitiveValue
 
+// Primitive ...
 func (o vectorLinePrimitiveTemplate) Primitive() vectorLinePrimitive {
 
 	return vectorLinePrimitive{
@@ -168,6 +173,7 @@ type outlinePrimitive struct {
 
 type outlinePrimitiveTemplate []primitiveValue
 
+// Primitive ...
 func (o outlinePrimitiveTemplate) Primitive() outlinePrimitive {
 	var points [][2]float64
 	for i := 0; i < int(o[1].value)+1; i++ {
@@ -193,6 +199,7 @@ type lowerLeftLinePrimitive struct {
 
 type lowerLeftLinePrimitiveTemplate []primitiveValue
 
+// Primitive ...
 func (o lowerLeftLinePrimitiveTemplate) Primitive() lowerLeftLinePrimitive {
 	if len(o) != 6 {
 		panic("lowerLeftLinePrimitiveTemplate.Primitive()")
@@ -217,6 +224,7 @@ type primitiveValue struct {
 	varIndex int
 }
 
+// SetParams ...
 func (p primitive) SetParams(params []float64) {
 	for i := 0; i < len(p.value); i++ {
 		if p.value[i].varIndex > -1 {
@@ -225,6 +233,7 @@ func (p primitive) SetParams(params []float64) {
 	}
 }
 
+// Parse ...
 func (p primitive) Parse() any {
 	switch p.code {
 	case primitiveCodeCircle:
@@ -257,10 +266,12 @@ type LinePrimitiveNotClosedError struct {
 	LastStr  [2]string
 }
 
+// Error returns the error message string.
 func (err LinePrimitiveNotClosedError) Error() string {
 	return fmt.Sprintf("line primitive not closed %d %#v %#v", err.Line, err.First, err.Last)
 }
 
+// parsePrimitive ...
 func parsePrimitive(lineIdx int, word string) (primitive, error) {
 	var p primitive
 	splitted := strings.Split(word, primitiveDelimiter)
@@ -348,6 +359,7 @@ type regionParser struct {
 	gotCommand bool
 }
 
+// newRegionParser creates and returns a new instance.
 func newRegionParser(cp *commandProcessor, lineIdx int) *regionParser {
 	p := &regionParser{}
 	p.cp = cp
@@ -355,6 +367,7 @@ func newRegionParser(cp *commandProcessor, lineIdx int) *regionParser {
 	return p
 }
 
+// process ...
 func (p *regionParser) process(lineIdx int, word string) error {
 	switch {
 	case strings.HasPrefix(word, commandG01):
@@ -386,6 +399,7 @@ func (p *regionParser) process(lineIdx int, word string) error {
 	}
 }
 
+// processModalD01 ...
 func (p *regionParser) processModalD01(lineIdx int, word string) error {
 	if !p.cp.modalD01 {
 		return fmt.Errorf("not in modal D01 mode")
@@ -393,6 +407,7 @@ func (p *regionParser) processModalD01(lineIdx int, word string) error {
 	return p.processD01(lineIdx, word)
 }
 
+// processD01 ...
 func (p *regionParser) processD01(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -418,6 +433,7 @@ func (p *regionParser) processD01(lineIdx int, word string) error {
 	return nil
 }
 
+// processD02 ...
 func (p *regionParser) processD02(lineIdx int, word string) error {
 	if p.gotCommand {
 		p.cp.pc.Contour(&p.contour)
@@ -527,6 +543,7 @@ type commandProcessor struct {
 	modalD01 bool
 }
 
+// newCommandProcessor creates and returns a new instance.
 func newCommandProcessor(pc Processor) *commandProcessor {
 	p := &commandProcessor{}
 	p.pc = pc
@@ -550,6 +567,7 @@ func newCommandProcessor(pc Processor) *commandProcessor {
 	return p
 }
 
+// processWord ...
 func (p *commandProcessor) processWord(lineIdx int, word string) error {
 	switch {
 	case p.rp != nil:
@@ -624,11 +642,13 @@ func (p *commandProcessor) processWord(lineIdx int, word string) error {
 	}
 }
 
+// setXY ...
 func (p *commandProcessor) setXY(x, y float64) {
 	p.x = x / p.decimal
 	p.y = y / p.decimal
 }
 
+// bounds ...
 func (p *commandProcessor) bounds(bounds *geom.Bounds) {
 	if p.Min.X > bounds.Min.X {
 		p.Min.X = bounds.Min.X
@@ -644,6 +664,7 @@ func (p *commandProcessor) bounds(bounds *geom.Bounds) {
 	}
 }
 
+// processModalD01 ...
 func (p *commandProcessor) processModalD01(lineIdx int, word string) error {
 	if !p.modalD01 {
 		return fmt.Errorf("not in modal D01 mode")
@@ -651,6 +672,7 @@ func (p *commandProcessor) processModalD01(lineIdx int, word string) error {
 	return p.processD01(lineIdx, word)
 }
 
+// processD01 ...
 func (p *commandProcessor) processD01(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -692,6 +714,7 @@ func (p *commandProcessor) processD01(lineIdx int, word string) error {
 	return nil
 }
 
+// processD02 ...
 func (p *commandProcessor) processD02(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -703,6 +726,7 @@ func (p *commandProcessor) processD02(lineIdx int, word string) error {
 	return nil
 }
 
+// processD03 ...
 func (p *commandProcessor) processD03(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -718,6 +742,7 @@ func (p *commandProcessor) processD03(lineIdx int, word string) error {
 	return nil
 }
 
+// flash ...
 func (p *commandProcessor) flash(lineIdx int) error {
 	params := p.ap.Params
 	switch p.ap.Template.Name {
@@ -739,6 +764,7 @@ func (p *commandProcessor) flash(lineIdx int) error {
 	return nil
 }
 
+// flashUserDefinedTmpl ...
 func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 	if !p.polarity {
 		return fmt.Errorf("%v", p.polarity)
@@ -808,6 +834,7 @@ func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 	return nil
 }
 
+// contourFromOutline ...
 func (p *commandProcessor) contourFromOutline(lineIdx int, outline outlinePrimitive) (Contour, error) {
 	contour := Contour{Line: lineIdx, Polarity: p.polarity}
 	if len(outline.Points) < 3 {
@@ -828,6 +855,7 @@ type coord struct {
 	I float64
 }
 
+// parseCoord ...
 func parseCoord(word string) ([]coord, error) {
 	if word == "" {
 		return nil, nil
@@ -864,6 +892,7 @@ func parseCoord(word string) ([]coord, error) {
 	return coords, nil
 }
 
+// findXY ...
 func (p *commandProcessor) findXY(coords []coord) (float64, float64) {
 	x := p.x
 	for _, c := range coords {
@@ -884,6 +913,7 @@ func (p *commandProcessor) findXY(coords []coord) (float64, float64) {
 	return x, y
 }
 
+// findIJ ...
 func (p *commandProcessor) findIJ(coords []coord) (float64, float64, error) {
 	var i float64
 	var got bool
@@ -914,6 +944,7 @@ func (p *commandProcessor) findIJ(coords []coord) (float64, float64, error) {
 	return i, j, nil
 }
 
+// parseAD ...
 func (p *commandProcessor) parseAD(lineIdx int, word string) error {
 	aperture := aperture{Line: lineIdx}
 	var err error
@@ -984,6 +1015,7 @@ func (p *commandProcessor) parseAD(lineIdx int, word string) error {
 	return nil
 }
 
+// processFS ...
 func (p *commandProcessor) processFS(lineIdx int, word string) error {
 	if len(word) < 7 {
 		return fmt.Errorf("%d", len(word))
@@ -996,6 +1028,7 @@ func (p *commandProcessor) processFS(lineIdx int, word string) error {
 	return nil
 }
 
+// processMO ...
 func (p *commandProcessor) processMO(lineIdx int, word string) error {
 	if len(word) != 4 {
 		return fmt.Errorf("%d", len(word))
@@ -1013,6 +1046,7 @@ func (p *commandProcessor) processMO(lineIdx int, word string) error {
 	}
 }
 
+// processSR ...
 func (p *commandProcessor) processSR(lineIdx int, word string) error {
 	if word != "SRX1Y1I0J0" {
 		return fmt.Errorf("unsupported SR")
@@ -1020,6 +1054,7 @@ func (p *commandProcessor) processSR(lineIdx int, word string) error {
 	return nil
 }
 
+// processLP ...
 func (p *commandProcessor) processLP(lineIdx int, word string) error {
 	if len(word) != 3 {
 		return fmt.Errorf("%d", len(word))
@@ -1035,6 +1070,7 @@ func (p *commandProcessor) processLP(lineIdx int, word string) error {
 	return nil
 }
 
+// processDnn ...
 func (p *commandProcessor) processDnn(lineIdx int, word string) error {
 	var ok bool
 	p.ap, ok = p.apertures[word]
@@ -1049,6 +1085,7 @@ func (p *commandProcessor) processDnn(lineIdx int, word string) error {
 	return nil
 }
 
+// processExtended ...
 func (p *commandProcessor) processExtended(lineIdx int, words []string) error {
 	if len(words) == 0 {
 		return fmt.Errorf("no words")
@@ -1095,6 +1132,7 @@ func NewParser(pc Processor) *Parser {
 	return p
 }
 
+// parse ...
 func (p *Parser) parse(lineIdx int, line string) error {
 	if p.cmdStart != wordCommand {
 		if !strings.HasSuffix(line, extendedCommandDelimiter) {
@@ -1173,6 +1211,7 @@ func (parser *Parser) Parse(r io.Reader) error {
 	return nil
 }
 
+// parsePrimitiveValue ...
 func parsePrimitiveValue(s string) (primitiveValue, error) {
 	if strings.HasPrefix(s, variableKey) {
 		if len(s) == 2 {

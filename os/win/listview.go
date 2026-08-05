@@ -1,10 +1,11 @@
+//go:build windows
+
 /*
  * Copyright 2024 hopeio. All rights reserved.
  * Licensed under the MIT License that can be found in the LICENSE file.
  * @Created by jyb
  */
 
- //go:build windows
 package win
 
 import (
@@ -14,6 +15,7 @@ import (
 	"unsafe"
 )
 
+// ListViews ...
 func ListViews(hwnd w32.HWND) []w32.HWND {
 	var listViewHwnds []w32.HWND
 	fnOfEnumListView := func(childHwnd w32.HWND) bool {
@@ -30,11 +32,13 @@ func ListViews(hwnd w32.HWND) []w32.HWND {
 	return listViewHwnds
 }
 
+// GetLVItemRowCount ...
 func GetLVItemRowCount(hwnd w32.HWND) int {
 	rowCount := w32.SendMessage(hwnd, w32.LVM_GETITEMCOUNT, 0, 0)
 	return int(rowCount)
 }
 
+// GetLVItem ...
 func GetLVItem(hwnd w32.HWND, row, col int) string {
 
 	/*	rowCount := w32.SendMessage(hwnd, w32.LVM_GETITEMCOUNT, 0, 0)
@@ -99,6 +103,7 @@ func GetLVItem(hwnd w32.HWND, row, col int) string {
 	return ""
 }
 
+// GetList ...
 func GetList(hwnd w32.HWND, columns []int) [][]string {
 
 	rowCount := w32.SendMessage(hwnd, w32.LVM_GETITEMCOUNT, 0, 0)

@@ -19,7 +19,7 @@ type BoxHeader struct {
 	Size64     uint64
 }
 
-// GetMP4Duration 获取视频时长，以秒计
+// GetMP4Duration ...
 func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 	reader, err := os.Open(filepath)
 	if err != nil {
@@ -63,14 +63,14 @@ func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 	return
 }
 
-// getHeaderBoxInfo 获取头信息
+// getHeaderBoxInfo ...
 func getHeaderBoxInfo(data []byte) (boxHeader BoxHeader) {
 	buf := bytes.NewBuffer(data)
 	binary.Read(buf, binary.BigEndian, &boxHeader)
 	return
 }
 
-// getFourccType 获取信息头类型
+// getFourccType ...
 func getFourccType(boxHeader BoxHeader) (fourccType string) {
 	fourccType = string(boxHeader.FourccType[:])
 	return

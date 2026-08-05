@@ -24,6 +24,7 @@ type RingQueue[T any] struct {
 	zero     T
 }
 
+// New ...
 func New[T any](capacity uint32) *RingQueue[T] {
 	q := new(RingQueue[T])
 	q.capacity = minQuantity(capacity)
@@ -42,6 +43,7 @@ func New[T any](capacity uint32) *RingQueue[T] {
 	return q
 }
 
+// String returns the string representation.
 func (q *RingQueue[T]) String() string {
 	getPos := atomic.LoadUint32(&q.getPos)
 	putPos := atomic.LoadUint32(&q.putPos)
@@ -49,10 +51,12 @@ func (q *RingQueue[T]) String() string {
 		q.capacity, q.capMod, putPos, getPos)
 }
 
+// Capaciity ...
 func (q *RingQueue[T]) Capaciity() uint32 {
 	return q.capacity
 }
 
+// Quantity ...
 func (q *RingQueue[T]) Quantity() uint32 {
 	var putPos, getPos uint32
 	var quantity uint32
@@ -249,7 +253,7 @@ func (q *RingQueue[T]) Gets(values []T) (gets, quantity uint32) {
 	return getCnt, posCnt - getCnt
 }
 
-// round 到最近的2的倍数
+// minQuantity ...
 func minQuantity(v uint32) uint32 {
 	v--
 	v |= v >> 1
@@ -261,6 +265,7 @@ func minQuantity(v uint32) uint32 {
 	return v
 }
 
+// Delay ...
 func Delay(z int) {
 	for x := z; x > 0; x-- {
 	}

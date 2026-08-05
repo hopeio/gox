@@ -15,8 +15,7 @@ import (
 	"github.com/hopeio/gox/types"
 )
 
-// Filter keep elements which satisfy the Predicate.
-// 保留满足断言的元素
+// Filter ...
 func Filter[T any](seq iter.Seq[T], test types.Predicate[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -27,8 +26,7 @@ func Filter[T any](seq iter.Seq[T], test types.Predicate[T]) iter.Seq[T] {
 	}
 }
 
-// Map transform the element use Fuction.
-// 使用输入函数对每个元素进行转换
+// Map ...
 func Map[T, R any](seq iter.Seq[T], f types.UnaryFunction[T, R]) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for v := range seq {
@@ -39,9 +37,7 @@ func Map[T, R any](seq iter.Seq[T], f types.UnaryFunction[T, R]) iter.Seq[R] {
 	}
 }
 
-// FlatMap transform each element in Seq[T] to a new Seq[R].
-// 将原本序列中的每个元素都转换为一个新的序列，
-// 并将所有转换后的序列依次连接起来生成一个新的序列
+// FlatMap ...
 func FlatMap[T, R any](seq iter.Seq[T], flatten types.UnaryFunction[T, iter.Seq[R]]) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for v := range seq {
@@ -54,8 +50,7 @@ func FlatMap[T, R any](seq iter.Seq[T], flatten types.UnaryFunction[T, iter.Seq[
 	}
 }
 
-// Peek visit every element in the Seq and leave them on the Seq.
-// 访问序列中的每个元素而不消费它
+// Peek ...
 func Peek[T any](seq iter.Seq[T], accept types.Consumer[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -67,8 +62,7 @@ func Peek[T any](seq iter.Seq[T], accept types.Consumer[T]) iter.Seq[T] {
 	}
 }
 
-// Distinct remove duplicate elements.
-// 对序列中的元素去重
+// Distinct ...
 func Distinct[T any, C comparable](seq iter.Seq[T], f types.UnaryFunction[T, C]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		var set = make(map[C]struct{})
@@ -85,8 +79,7 @@ func Distinct[T any, C comparable](seq iter.Seq[T], f types.UnaryFunction[T, C])
 	}
 }
 
-// Sorted sort elements in the Seq by Comparator.
-// 对序列中的元素排序
+// Sorted ...
 func Sorted[T any](it iter.Seq[T], cmp types.Comparator[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		vals := slices.SortedFunc(it, cmp)
@@ -98,8 +91,7 @@ func Sorted[T any](it iter.Seq[T], cmp types.Comparator[T]) iter.Seq[T] {
 	}
 }
 
-// IsSorted
-// 对序列中的元素是否排序
+// IsSorted reports whether the condition holds.
 func IsSorted[T any](seq iter.Seq[T], cmp types.Comparator[T]) bool {
 	var last T
 	check := func(curr T) bool {
@@ -124,8 +116,7 @@ func IsSorted[T any](seq iter.Seq[T], cmp types.Comparator[T]) bool {
 	return true
 }
 
-// Limit limits the number of elements in Seq.
-// 限制元素个数
+// Limit ...
 func Limit[T any](seq iter.Seq[T], limit int) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -140,8 +131,7 @@ func Limit[T any](seq iter.Seq[T], limit int) iter.Seq[T] {
 	}
 }
 
-// Skip drop some elements of the Seq.
-// 跳过指定个数的元素
+// Skip ...
 func Skip[T any](seq iter.Seq[T], skip int) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -155,6 +145,7 @@ func Skip[T any](seq iter.Seq[T], skip int) iter.Seq[T] {
 	}
 }
 
+// UntilComparable ...
 func UntilComparable[T comparable](seq iter.Seq[T], e T) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -168,6 +159,7 @@ func UntilComparable[T comparable](seq iter.Seq[T], e T) iter.Seq[T] {
 	}
 }
 
+// Until ...
 func Until[T any](seq iter.Seq[T], match types.Predicate[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -181,14 +173,14 @@ func Until[T any](seq iter.Seq[T], match types.Predicate[T]) iter.Seq[T] {
 	}
 }
 
-// ForEach consume every elements in the Seq.
-// 消费序列中的每个元素
+// ForEach ...
 func ForEach[T any](seq iter.Seq[T], accept types.Consumer[T]) {
 	for v := range seq {
 		accept(v)
 	}
 }
 
+// Every ...
 func Every[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if !test(v) {
@@ -198,6 +190,7 @@ func Every[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return true
 }
 
+// Some ...
 func Some[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if test(v) {
@@ -207,8 +200,7 @@ func Some[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return false
 }
 
-// AllMatch test if every element are all match the Predicate.
-// 是否每个元素都满足条件 == Every
+// AllMatch ...
 func AllMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if !test(v) {
@@ -218,8 +210,7 @@ func AllMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return true
 }
 
-// AnyMatch test if any element matches the Predicate.
-// 是否有任意元素满足条件 == Some
+// AnyMatch ...
 func AnyMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if test(v) {
@@ -229,9 +220,7 @@ func AnyMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return false
 }
 
-// Reduce accumulate each element using the binary operation.
-// 使用给定的累加函数, 累加序列中的每个元素.
-// 序列中可能没有元素因此返回的是 Optional
+// Reduce ...
 func Reduce[T any](seq iter.Seq[T], acc types.BinaryOperator[T]) (T, bool) {
 	var result T
 	var has bool
@@ -249,9 +238,7 @@ func Reduce[T any](seq iter.Seq[T], acc types.BinaryOperator[T]) (T, bool) {
 	return result, has
 }
 
-// Fold accumulate each element using the BinaryFunction
-// starting from the initial value.
-// 从初始值开始, 通过 acc 函数累加每个元素
+// Fold ...
 func Fold[T, R any](seq iter.Seq[T], initVal R, acc types.BinaryFunction[R, T, R]) (result R) {
 	result = initVal
 	for v := range seq {
@@ -260,8 +247,7 @@ func Fold[T, R any](seq iter.Seq[T], initVal R, acc types.BinaryFunction[R, T, R
 	return result
 }
 
-// First find the first element in the Seq.
-// 返回序列中的第一个元素(如有).
+// First ...
 func First[T any](seq iter.Seq[T]) (T, bool) {
 	for v := range seq {
 		return v, true
@@ -269,8 +255,7 @@ func First[T any](seq iter.Seq[T]) (T, bool) {
 	return *new(T), false
 }
 
-// Count return the count of elements in the Seq.
-// 返回序列中的元素个数
+// Count returns the number of elements.
 func Count[T any](seq iter.Seq[T]) (count int) {
 	for _ = range seq {
 		count++
@@ -278,6 +263,7 @@ func Count[T any](seq iter.Seq[T]) (count int) {
 	return
 }
 
+// Enumerate ...
 func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
 	return func(yield func(types.Pair[int, T]) bool) {
 		var count int
@@ -290,6 +276,7 @@ func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
 	}
 }
 
+// Chain ...
 func Chain[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, seq := range seqs {
@@ -302,6 +289,7 @@ func Chain[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
 	}
 }
 
+// Operator ...
 func Operator[T any](seq iter.Seq[T], add types.BinaryOperator[T]) T {
 	var result T
 	var idx int
@@ -342,6 +330,7 @@ func Contains[T comparable](it iter.Seq[T], target T) bool {
 	return false
 }
 
+// OperatorBy ...
 func OperatorBy[T any](it iter.Seq[T], f types.BinaryOperator[T]) T {
 	result, _ := Reduce(it, func(a, b T) T {
 		return f(a, b)
@@ -395,6 +384,7 @@ func ToMap[K comparable, V any](it iter.Seq[types.Pair[K, V]]) map[K]V {
 	return r
 }
 
+// ToSlice ...
 func ToSlice[V any](it iter.Seq[V]) []V {
 	var r []V
 	for p := range it {
@@ -412,6 +402,7 @@ func Collect[T any, S any, R any](it iter.Seq[T], collector container.Collector[
 	return collector.Finish(s)
 }
 
+// Merge ...
 func Merge[T any](iters ...iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, it := range iters {
@@ -424,6 +415,7 @@ func Merge[T any](iters ...iter.Seq[T]) iter.Seq[T] {
 	}
 }
 
+// JoinBy ...
 func JoinBy[T any](it iter.Seq[T], toString func(T) string, sep string) string {
 	var b strings.Builder
 	for v := range it {

@@ -16,6 +16,7 @@ type Heap[T any] struct {
 	zero T
 }
 
+// New ...
 func New[T any](l int, cmp cmp.CompareFunc[T]) *Heap[T] {
 	return &Heap[T]{
 		arr: make([]T, 0, l),
@@ -23,6 +24,7 @@ func New[T any](l int, cmp cmp.CompareFunc[T]) *Heap[T] {
 	}
 }
 
+// NewFromArray creates and returns a new instance.
 func NewFromArray[T any](arr []T, cmp cmp.CompareFunc[T]) *Heap[T] {
 	heap := &Heap[T]{
 		arr: arr,
@@ -34,6 +36,7 @@ func NewFromArray[T any](arr []T, cmp cmp.CompareFunc[T]) *Heap[T] {
 	return heap
 }
 
+// Init ...
 func (h *Heap[T]) Init() {
 	// heapify
 	n := len(h.arr)
@@ -42,13 +45,13 @@ func (h *Heap[T]) Init() {
 	}
 }
 
-// 当达到堆预设大小时会增加堆的大小
+// Push ...
 func (h *Heap[T]) Push(x T) {
 	h.arr = append(h.arr, x)
 	h.up(len(h.arr) - 1)
 }
 
-// 不会改变预设堆的大小
+// Put ...
 func (h *Heap[T]) Put(val T) {
 	if len(h.arr) < cap(h.arr) {
 		h.arr = append(h.arr, val)
@@ -64,6 +67,7 @@ func (h *Heap[T]) Put(val T) {
 	h.down(0, len(h.arr))
 }
 
+// Pop ...
 func (h *Heap[T]) Pop() (T, bool) {
 	if len(h.arr) == 0 {
 		return h.zero, false
@@ -76,6 +80,7 @@ func (h *Heap[T]) Pop() (T, bool) {
 	return item, true
 }
 
+// Remove ...
 func (h *Heap[T]) Remove(i int) (T, bool) {
 	if len(h.arr) == 0 {
 		return h.zero, false
@@ -92,18 +97,22 @@ func (h *Heap[T]) Remove(i int) (T, bool) {
 	return item, true
 }
 
+// down ...
 func (h *Heap[T]) down(i0, n int) bool {
 	return Down(h.arr, i0, n, h.cmp)
 }
 
+// up ...
 func (h *Heap[T]) up(j int) {
 	Up(h.arr, j, h.cmp)
 }
 
+// fix ...
 func (h *Heap[T]) fix(i int) {
 	Fix(h.arr, i, h.cmp)
 }
 
+// First ...
 func (h *Heap[T]) First() (T, bool) {
 	if len(h.arr) == 0 {
 		return *new(T), false
@@ -111,6 +120,7 @@ func (h *Heap[T]) First() (T, bool) {
 	return h.arr[0], true
 }
 
+// Last ...
 func (h Heap[T]) Last() (T, bool) {
 	if len(h.arr) == 0 {
 		return *new(T), false

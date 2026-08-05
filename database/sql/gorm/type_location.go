@@ -18,10 +18,12 @@ type Location struct {
 	X, Y float64
 }
 
+// GormDataType ...
 func (loc Location) GormDataType() string {
 	return "geometry"
 }
 
+// GormValue ...
 func (loc Location) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	return clause.Expr{
 		SQL:  "ST_PointFromText(?)",
@@ -29,7 +31,7 @@ func (loc Location) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	}
 }
 
-// Scan 方法实现了 sql.Scanner 接口
+// Scan ...
 func (loc *Location) Scan(v interface{}) error {
 	// Scan a value into struct from database driver
 	return nil

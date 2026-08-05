@@ -13,7 +13,7 @@ import (
 	"math"
 )
 
-// 计算两张图的重合像素,第一张的图的后半部分和第二张的前半部分
+// CalculateOverlap ...
 func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap int) int {
 	bounds1, bounds2 := img1.Bounds(), img2.Bounds()
 	dx1, dy1 := bounds1.Dx(), bounds1.Dy()
@@ -86,6 +86,7 @@ func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap i
 	return overlap
 }
 
+// CalculateOverlapReuseMemory ...
 func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, maxOverlap int, gary1, gary2 []uint8) int {
 	bounds1, bounds2 := img1.Bounds(), img2.Bounds()
 	dx1, dy1 := bounds1.Dx(), bounds1.Dy()
@@ -162,6 +163,7 @@ func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, m
 	return overlap
 }
 
+// RectRotateByCenter ...
 func RectRotateByCenter(x, y, l, w int, angle float64) []image.Point {
 	rad := angle / 180 * math.Pi
 	lSinYAxis := int(float64(l) / 2 * math.Sin(rad))
@@ -176,6 +178,7 @@ func RectRotateByCenter(x, y, l, w int, angle float64) []image.Point {
 	}
 }
 
+// ToGary ...
 func ToGary(img image.Image) *image.Gray {
 	bounds := img.Bounds()
 	gary := image.NewGray(bounds)
@@ -189,6 +192,7 @@ func ToGary(img image.Image) *image.Gray {
 	return gary
 }
 
+// ToGaryReuseMemory ...
 func ToGaryReuseMemory(img image.Image, gary *image.Gray) {
 	bounds := img.Bounds()
 	for x := bounds.Min.X; x < bounds.Max.X; x++ {

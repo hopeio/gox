@@ -34,6 +34,7 @@ func (l *Logger) With(fields ...zap.Field) *Logger {
 	return &Logger{l.Logger.With(fields...)}
 }
 
+// WithLazy ...
 func (l *Logger) WithLazy(fields ...zap.Field) *Logger {
 	if len(fields) == 0 {
 		return l
@@ -66,13 +67,14 @@ func (l *Logger) AddCallerSkip(skip int) *Logger {
 	return &Logger{l.Logger.WithOptions(zap.AddCallerSkip(skip))}
 }
 
+// Printf ...
 func (l *Logger) Printf(template string, args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Write()
 	}
 }
 
-// 兼容gormv1
+// Print ...
 func (l *Logger) Print(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Message = sprintln(args...)
@@ -259,6 +261,7 @@ func (l *Logger) Fatalf(template string, args ...any) {
 	}
 }
 
+// Println ...
 func (l *Logger) Println(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)
@@ -268,12 +271,14 @@ func (l *Logger) Println(args ...any) {
 
 type StdOutLevel zapcore.Level
 
+// Enabled ...
 func (l StdOutLevel) Enabled(lvl zapcore.Level) bool {
 	return lvl >= zapcore.Level(l) && lvl < zapcore.ErrorLevel
 }
 
 type StdErrLevel zapcore.Level
 
+// Enabled ...
 func (l StdErrLevel) Enabled(lvl zapcore.Level) bool {
 	return lvl >= zapcore.Level(l) && lvl >= zapcore.ErrorLevel
 }

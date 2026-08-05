@@ -27,6 +27,7 @@ func Unquote(s []byte) (t string, ok bool) {
 	return
 }
 
+// unquoteBytes ...
 func unquoteBytes(s []byte) (t []byte, ok bool) {
 	if len(s) < 2 || s[0] != '"' || s[len(s)-1] != '"' {
 		return
@@ -141,6 +142,7 @@ func unquoteBytes(s []byte) (t []byte, ok bool) {
 	return b[0:w], true
 }
 
+// DecodeInt ...
 func DecodeInt(b []byte) (int, []byte, error) {
 	idx := bytes.IndexByte(b, ',')
 	if idx == -1 {
@@ -156,6 +158,7 @@ func DecodeInt(b []byte) (int, []byte, error) {
 	return i, b[idx+1:], nil
 }
 
+// DecodeFloat ...
 func DecodeFloat(b []byte) (float64, []byte, error) {
 	idx := bytes.IndexByte(b, ',')
 	if idx == -1 {
@@ -171,6 +174,7 @@ func DecodeFloat(b []byte) (float64, []byte, error) {
 	return f, b[idx+1:], nil
 }
 
+// DecodeString ...
 func DecodeString(b []byte) (string, []byte, error) {
 	idx := bytes.Index(b, []byte(`",`))
 	if idx == -1 {
@@ -187,6 +191,7 @@ func DecodeString(b []byte) (string, []byte, error) {
 	return s, b[idx+2:], nil
 }
 
+// DecodeBool ...
 func DecodeBool(b []byte) (bool, []byte, error) {
 	idx := bytes.IndexByte(b, ',')
 	if idx == -1 {

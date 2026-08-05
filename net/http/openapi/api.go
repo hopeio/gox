@@ -86,6 +86,7 @@ type Parameter struct {
 	ApplyCustomSchema func(s *openapi3.Parameter)
 }
 
+// Type ...
 func Type(fieldType reflect.Type) string {
 	var typ string
 	switch fieldType.Kind() {
@@ -169,6 +170,7 @@ func (api *API) Merge(r Route) {
 	mergeMap(toUpdate.Models.Responses, r.Models.Responses)
 }
 
+// mergeMap ...
 func mergeMap[TKey comparable, TValue any](into, from map[TKey]TValue) {
 	for kf, vf := range from {
 		_, ok := into[kf]
@@ -288,6 +290,7 @@ func (rm *Route) HasQueryParameter(name string, q Parameter) *Route {
 	return rm
 }
 
+// HasRequest reports whether the condition holds.
 func (rm *Route) HasRequest(request Model) *Route {
 	var hasJson bool
 	for j := 0; j < request.Type.NumField(); j++ {
@@ -372,6 +375,7 @@ func ModelOf[T any]() Model {
 	return m
 }
 
+// modelFromType ...
 func modelFromType(t reflect.Type) Model {
 	m := Model{
 		Type: t,
@@ -395,6 +399,7 @@ type Model struct {
 	s    func(s *openapi3.Schema)
 }
 
+// ApplyCustomSchema ...
 func (m Model) ApplyCustomSchema(s *openapi3.Schema) {
 	if m.s == nil {
 		return

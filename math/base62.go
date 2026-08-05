@@ -180,26 +180,32 @@ func formatBits(dst []byte, u uint64, base int, neg, append_ bool) (d []byte, s 
 	return
 }
 
+// isPowerOfTwo reports whether the condition holds.
 func isPowerOfTwo(x int) bool {
 	return x&(x-1) == 0
 }
 
+// cloneString ...
 func cloneString(x string) string { return string([]byte(x)) }
 
+// syntaxError ...
 func syntaxError(fn, str string) *strconv.NumError {
 	return &strconv.NumError{Func: fn, Num: cloneString(str), Err: strconv.ErrSyntax}
 }
 
+// rangeError ...
 func rangeError(fn, str string) *strconv.NumError {
 	return &strconv.NumError{Func: fn, Num: cloneString(str), Err: strconv.ErrRange}
 }
 
+// bitSizeError ...
 func bitSizeError(fn, str string, bitSize int) *strconv.NumError {
 	return &strconv.NumError{Func: fn, Num: cloneString(str), Err: errors.New("invalid bit size " + strconv.Itoa(bitSize))}
 }
 
 const maxUint64 = 1<<64 - 1
 
+// ParseUint ...
 func ParseUint(s string, base int, bitSize int) (uint64, error) {
 	if base < 37 {
 		return strconv.ParseUint(s, base, bitSize)

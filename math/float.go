@@ -11,17 +11,19 @@ import (
 	"strconv"
 )
 
+// DecimalPlaces ...
 func DecimalPlaces(value float64, prec int) float64 {
 	multiplier := math.Pow(10, float64(prec))
 	return float64(int(value*multiplier)) / multiplier
 }
 
-// 四舍五入
+// DecimalPlacesRound ...
 func DecimalPlacesRound(value float64, rank int) float64 {
 	multiplier := math.Pow(10, float64(rank))
 	return math.Round(value*multiplier) / multiplier
 }
 
+// FormatFloat ...
 func FormatFloat(num float64) string {
 	return strconv.FormatFloat(num, 'f', -1, 64)
 }

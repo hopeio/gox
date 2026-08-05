@@ -8,6 +8,7 @@ package postgres
 
 import "time"
 
+// Now ...
 func Now() string {
 	return time.Now().Format(time.RFC3339Nano)
 }

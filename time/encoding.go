@@ -39,18 +39,22 @@ var (
 	}
 )
 
+// MarshalJSON ...
 func MarshalJSON(t time.Time) ([]byte, error) {
 	return DefaultEncoding.marshalJSON(t)
 }
 
+// UnmarshalJSON ...
 func UnmarshalJSON(t *time.Time, data []byte) error {
 	return DefaultEncoding.unmarshalJSON(t, data)
 }
 
+// MarshalText ...
 func MarshalText(t time.Time) ([]byte, error) {
 	return DefaultEncoding.marshalText(t)
 }
 
+// UnmarshalText ...
 func UnmarshalText(t *time.Time, data []byte) error {
 	return DefaultEncoding.unmarshalText(t, data)
 }
@@ -60,12 +64,14 @@ type Encoding struct {
 	Layout string
 }
 
+// NewLayOutEncoding creates and returns a new instance.
 func NewLayOutEncoding(layout string) *Encoding {
 	return &Encoding{
 		Layout: layout,
 	}
 }
 
+// marshalText ...
 func (u *Encoding) marshalText(t time.Time) ([]byte, error) {
 	switch u.encodeType {
 	case encodeTypeLayout:
@@ -85,6 +91,7 @@ func (u *Encoding) marshalText(t time.Time) ([]byte, error) {
 	return t.MarshalText()
 }
 
+// unmarshalText ...
 func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 	tstr := string(data)
 	if tstr == "" {
@@ -123,6 +130,7 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 	return t.UnmarshalText(data)
 }
 
+// marshalJSON ...
 func (u *Encoding) marshalJSON(t time.Time) ([]byte, error) {
 	if u.encodeType == encodeTypeLayout {
 		if u.Layout == "" || u.Layout == time.RFC3339Nano {
@@ -145,6 +153,7 @@ func (u *Encoding) marshalJSON(t time.Time) ([]byte, error) {
 	return t.MarshalJSON()
 }
 
+// unmarshalJSON ...
 func (u *Encoding) unmarshalJSON(t *time.Time, data []byte) error {
 	tstr := string(data)
 	if tstr == "null" {

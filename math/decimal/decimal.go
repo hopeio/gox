@@ -17,6 +17,7 @@ type DecimalModel struct {
 	exponent    int32
 }
 
+// String returns the string representation.
 func (d *DecimalModel) String() string {
 	if len(d.coefficient) == 0 {
 		return "0"
@@ -45,6 +46,7 @@ func (d *DecimalModel) String() string {
 	return string(buf)
 }
 
+// appendZeros ...
 func appendZeros(buf []byte, n int32) []byte {
 	for ; n > 0; n-- {
 		buf = append(buf, '0')
@@ -52,11 +54,13 @@ func appendZeros(buf []byte, n int32) []byte {
 	return buf
 }
 
+// Decompose ...
 func (d *DecimalModel) Decompose(buf []byte) (form byte, negative bool, coefficient []byte, exponent int32) {
 	// TODO:
 	return d.form, d.negative, d.coefficient, d.exponent
 }
 
+// Compose ...
 func (d *DecimalModel) Compose(form byte, negative bool, coefficient []byte, exponent int32) error {
 	switch form {
 	default:

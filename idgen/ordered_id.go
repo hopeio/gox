@@ -12,13 +12,14 @@ import (
 
 var defaultOrderedIDGenerator = NewOrderedIDGenerator(0)
 
+// NewOrderedIDGenerator creates and returns a new instance.
 func NewOrderedIDGenerator(initial uint64) func() uint64 {
 	return func() uint64 {
 		return atomic.AddUint64(&initial, 1)
 	}
 }
 
-// 单机顺序id
+// NewOrderedID creates and returns a new instance.
 func NewOrderedID() uint64 {
 	return defaultOrderedIDGenerator()
 }

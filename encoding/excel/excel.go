@@ -13,6 +13,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+// NewFile creates and returns a new instance.
 func NewFile(sheet string, header []string) (*excelize.File, error) {
 	endColumn := ColumnLetter[len(header)-1]
 	f := excelize.NewFile()
@@ -35,6 +36,7 @@ func NewFile(sheet string, header []string) (*excelize.File, error) {
 	return f, nil
 }
 
+// NewSheet creates and returns a new instance.
 func NewSheet(f *excelize.File, sheet string, header []string) error {
 	endColumn := ColumnLetter[len(header)-1]
 	//单元格样式
@@ -51,17 +53,7 @@ func NewSheet(f *excelize.File, sheet string, header []string) error {
 	return nil
 }
 
-// SetNoteRow
-//
-//	为excel stream设置提醒行
-//
-// 参数
-//
-//	sw, excel StreamWriter
-//	rowNum, 要作为提醒文本行的excel行号，行号是从1开始，第一行行号为1
-//	maxCol, 提醒文本最多占用多少格
-//	rowHeight, 行高
-//	note, 提醒文案
+// SetNoteRow ...
 func SetNoteRow(sw *excelize.StreamWriter, f *excelize.File, rowNum, maxCol int, rowHeight float64, note string) error {
 	styleId, _ := f.NewStyle(noteCellStyle)
 	rowNumStr := strconv.Itoa(rowNum)
@@ -72,16 +64,7 @@ func SetNoteRow(sw *excelize.StreamWriter, f *excelize.File, rowNum, maxCol int,
 	return nil
 }
 
-// SetHeaderRow
-//
-//	为excel stream设置表头
-//
-// 参数
-//
-//	sw, excel StreamWriter
-//	rowNum, 要作为表头的excel行号，行号是从1开始的，第一行行号为1
-//	colWidth, 列宽, 为0时表示采用默认不设置
-//	headers, 表头文案列表
+// SetHeaderRow ...
 func SetHeaderRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, colWith float64, headers []string) {
 	styleId, _ := f.NewStyle(headerCellStyle)
 	cell := make([]interface{}, 0, len(headers))
@@ -95,15 +78,7 @@ func SetHeaderRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, colWi
 	_ = sw.SetRow(ColumnLetter[0]+rowNumStr, cell)
 }
 
-// SetBodyRow
-//
-//	为excel stream设置行
-//
-// 参数
-//
-//	sw, excel StreamWriter
-//	rowNum, 要设置的excel行号，行号是从1开始的，第一行行号为1
-//	cellVal, 单元格内容
+// SetBodyRow ...
 func SetBodyRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVal []any) {
 	styleId, _ := f.NewStyle(bodyCellStyle)
 	cell := make([]interface{}, 0, len(cellVal))
@@ -114,15 +89,7 @@ func SetBodyRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVal
 	_ = sw.SetRow(ColumnLetter[0]+rowNumStr, cell)
 }
 
-// SetCellDropListStyle 设置单元格下拉框选项样式，根据提供的下拉列表枚举值，作为单元格内容待候选值
-//
-//		当下拉框列表太大时，无法直接采用AddDataValidation的形式添加
-//		这里通过将下拉枚举列表提前写入到隐藏的Sheet中，然后引用此隐藏Sheet再加载的方式实现
-//	 @param sw excel streamWriter
-//	 @param f excel file
-//	 @param hiddenSheetName 存在此f中的隐藏Sheet
-//	 @param dropListSize 下拉列表容量大小
-//	 @param effectCellStart effectCellEnd 下拉框选项样式作用的单元格范围 起始位置 结束位置 例如 K2 K31
+// SetCellDropListStyle ...
 func SetCellDropListStyle(sw *excelize.StreamWriter, f *excelize.File, hiddenSheetName string, dropListSize int, effectCellStart, effectCellEnd string) {
 	definedName := &excelize.DefinedName{
 		Name:     hiddenSheetName,
@@ -139,16 +106,7 @@ func SetCellDropListStyle(sw *excelize.StreamWriter, f *excelize.File, hiddenShe
 	_ = f.AddDataValidation(sw.Sheet, validation)
 }
 
-// SetBodyRow2
-//
-//	为excel stream设置行
-//
-// 参数
-//
-//	sw, excel StreamWriter
-//	rowNum, 要设置的excel行号，行号是从1开始的，第一行行号为1
-//	cellVal, 单元格内容
-//	errStyleLoc, 红色错误样式的单元格位置
+// SetBodyRow2 ...
 func SetBodyRow2(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVal []string, errStyleLoc map[int]byte) {
 	styleId, _ := f.NewStyle(bodyCellStyle)
 	errStyleId, _ := f.NewStyle(errorBodyCellStyle)
@@ -164,13 +122,7 @@ func SetBodyRow2(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVa
 	_ = sw.SetRow(ColumnLetter[0]+rowNumStr, cell)
 }
 
-// 合并单元格
-// 参数
-//
-//	sw, excel StreamWriter
-//	startRowNum, 要合并开始的excel行号
-//	endRowNum, 要合并结束的excel行号
-//	cells, 要合并单元格的列("A","B","C")
+// MergeCell ...
 func MergeCell(sw *excelize.StreamWriter, startRowNum, endRowNum int, cells []string) {
 	for _, cell := range cells {
 		startRowNumStr := fmt.Sprintf("%s%d", cell, startRowNum)

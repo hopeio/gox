@@ -12,10 +12,12 @@ type Point struct {
 	Y float64
 }
 
+// Pt ...
 func Pt(x, y float64) Point {
 	return Point{X: x, Y: y}
 }
 
+// RandomPoint ...
 func RandomPoint(min, max Point) Point {
 	return Point{
 		X: math.Floor(min.X + math.Floor(rand.Float64()*(max.X-min.X))),
@@ -23,10 +25,12 @@ func RandomPoint(min, max Point) Point {
 	}
 }
 
+// Vector ...
 func (p Point) Vector(point Point) Vector {
 	return Vector{point.X - p.X, point.Y - p.Y}
 }
 
+// Rotate ...
 func (p Point) Rotate(center Point, angleDeg float64) Point {
 	angleRad := angleDeg * math.Pi / 180.0
 	// Calculate cosine and sine of the angle
@@ -39,7 +43,7 @@ func (p Point) Rotate(center Point, angleDeg float64) Point {
 	return Point{newX, newY}
 }
 
-// PointsLength 计算两点之间的向量长度
+// Length ...
 func (p Point) Length(p2 Point) float64 {
 	dx := p2.X - p.X
 	dy := p2.Y - p.Y
@@ -58,6 +62,7 @@ type PointInt[T constraints.Integer] struct {
 	Y T
 }
 
+// ToFloat64 ...
 func (l *PointInt[T]) ToFloat64(factor float64) *Point {
 	return &Point{
 		X: float64(l.X) / factor,
@@ -71,6 +76,7 @@ type Point3DInt[T constraints.Integer] struct {
 	Z T
 }
 
+// ToFloat64 ...
 func (l *Point3DInt[T]) ToFloat64(factor float64) *Point3D {
 	return &Point3D{
 		X: float64(l.X) / factor,
@@ -79,6 +85,7 @@ func (l *Point3DInt[T]) ToFloat64(factor float64) *Point3D {
 	}
 }
 
+// Mirror ...
 func (p Point) Mirror(line *GeneralFormLine) Point {
 	denominator := line.A*line.A + line.B*line.B
 	if denominator == 0 {

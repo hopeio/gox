@@ -50,6 +50,7 @@ type Line struct {
 	Binary   []string
 }
 
+// String returns the string representation.
 func (line *Line) String() string {
 	var builder strings.Builder
 	if len(line.Label) > 0 {
@@ -92,6 +93,7 @@ func (line *Line) String() string {
 	return builder.String()
 }
 
+// parseAssembly ...
 func parseAssembly(path string) (map[string][]Line, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -145,6 +147,7 @@ func parseAssembly(path string) (map[string][]Line, error) {
 	return functions, nil
 }
 
+// sanitizeAsm ...
 func sanitizeAsm(asm string) string {
 	asm = strings.TrimSpace(asm)
 	asm = strings.Split(asm, "//")[0]
@@ -153,6 +156,7 @@ func sanitizeAsm(asm string) string {
 	return asm
 }
 
+// parseObjectDump ...
 func parseObjectDump(dump string, functions map[string][]Line) error {
 	var (
 		functionName string
@@ -203,6 +207,7 @@ func parseObjectDump(dump string, functions map[string][]Line) error {
 	return nil
 }
 
+// generateGoAssembly ...
 func generateGoAssembly(path string, functions []Function) error {
 	// generate code
 	var builder strings.Builder

@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	stringsx "github.com/hopeio/gox/strings"
-	reflectx "github.com/hopeio/gox/reflect"
 	"github.com/hopeio/gox/kvstruct"
+	reflectx "github.com/hopeio/gox/reflect"
+	stringsx "github.com/hopeio/gox/strings"
 	"github.com/hopeio/gox/structtag"
 	"github.com/spf13/pflag"
 )
@@ -25,18 +25,22 @@ type flagTagSettings struct {
 
 type anyValue reflect.Value
 
+// String returns the string representation.
 func (a anyValue) String() string {
 	return stringsx.FormatReflectValue(reflect.Value(a))
 }
 
+// Type ...
 func (a anyValue) Type() string {
 	return reflect.Value(a).Kind().String()
 }
 
+// Set ...
 func (a anyValue) Set(v string) error {
 	return kvstruct.ParseStringSetReflectValue(reflect.Value(a), v, nil)
 }
 
+// Bind ...
 func Bind(args []string, v any) error {
 	commandLine := pflag.NewFlagSet(args[0], pflag.ContinueOnError)
 	commandLine.ParseErrorsAllowlist.UnknownFlags = true
@@ -47,6 +51,7 @@ func Bind(args []string, v any) error {
 	return commandLine.Parse(args[1:])
 }
 
+// AddFlag ...
 func AddFlag(commandLine *pflag.FlagSet, v any) error {
 	fcValue := reflectx.DerefValue(reflect.ValueOf(v))
 	if !fcValue.IsValid() {
@@ -55,6 +60,7 @@ func AddFlag(commandLine *pflag.FlagSet, v any) error {
 	return AddFlagByReflectValue(commandLine, fcValue)
 }
 
+// AddFlagByReflectValue ...
 func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) error {
 	fcTyp := fcValue.Type()
 	for i := range fcTyp.NumField() {

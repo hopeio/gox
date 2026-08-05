@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 //go:build windows
+
 package win
 
 import (
@@ -58,6 +59,7 @@ var (
 	procQueryDosDeviceW = modkernel32.NewProc("QueryDosDeviceW")
 )
 
+// GetModuleHandle ...
 func GetModuleHandle(modulename string) w32.HINSTANCE {
 	var mn uintptr
 	if modulename == "" {
@@ -69,6 +71,7 @@ func GetModuleHandle(modulename string) w32.HINSTANCE {
 	return w32.HINSTANCE(ret)
 }
 
+// MulDiv ...
 func MulDiv(number, numerator, denominator int) int {
 	ret, _, _ := procMulDiv.Call(
 		uintptr(number),
@@ -78,42 +81,49 @@ func MulDiv(number, numerator, denominator int) int {
 	return int(ret)
 }
 
+// GetConsoleWindow ...
 func GetConsoleWindow() w32.HWND {
 	ret, _, _ := procGetConsoleWindow.Call()
 
 	return w32.HWND(ret)
 }
 
+// GetCurrentThread ...
 func GetCurrentThread() w32.HANDLE {
 	ret, _, _ := procGetCurrentThread.Call()
 
 	return w32.HANDLE(ret)
 }
 
+// GetLogicalDrives ...
 func GetLogicalDrives() uint32 {
 	ret, _, _ := procGetLogicalDrives.Call()
 
 	return uint32(ret)
 }
 
+// GetUserDefaultLCID ...
 func GetUserDefaultLCID() uint32 {
 	ret, _, _ := procGetUserDefaultLCID.Call()
 
 	return uint32(ret)
 }
 
+// Lstrlen ...
 func Lstrlen(lpString *uint16) int {
 	ret, _, _ := procLstrlen.Call(uintptr(unsafe.Pointer(lpString)))
 
 	return int(ret)
 }
 
+// Lstrcpy ...
 func Lstrcpy(buf []uint16, lpString *uint16) {
 	procLstrcpy.Call(
 		uintptr(unsafe.Pointer(&buf[0])),
 		uintptr(unsafe.Pointer(lpString)))
 }
 
+// GlobalAlloc ...
 func GlobalAlloc(uFlags uint, dwBytes uint32) w32.HGLOBAL {
 	ret, _, _ := procGlobalAlloc.Call(
 		uintptr(uFlags),
@@ -126,6 +136,7 @@ func GlobalAlloc(uFlags uint, dwBytes uint32) w32.HGLOBAL {
 	return w32.HGLOBAL(ret)
 }
 
+// GlobalFree ...
 func GlobalFree(hMem w32.HGLOBAL) {
 	ret, _, _ := procGlobalFree.Call(uintptr(hMem))
 
@@ -134,6 +145,7 @@ func GlobalFree(hMem w32.HGLOBAL) {
 	}
 }
 
+// GlobalLock ...
 func GlobalLock(hMem w32.HGLOBAL) unsafe.Pointer {
 	ret, _, _ := procGlobalLock.Call(uintptr(hMem))
 
@@ -144,12 +156,14 @@ func GlobalLock(hMem w32.HGLOBAL) unsafe.Pointer {
 	return unsafe.Pointer(ret)
 }
 
+// GlobalUnlock ...
 func GlobalUnlock(hMem w32.HGLOBAL) bool {
 	ret, _, _ := procGlobalUnlock.Call(uintptr(hMem))
 
 	return ret != 0
 }
 
+// MoveMemory ...
 func MoveMemory(destination, source unsafe.Pointer, length uint32) {
 	procMoveMemory.Call(
 		uintptr(unsafe.Pointer(destination)),
@@ -157,6 +171,7 @@ func MoveMemory(destination, source unsafe.Pointer, length uint32) {
 		uintptr(length))
 }
 
+// FindResource ...
 func FindResource(hModule w32.HMODULE, lpName, lpType *uint16) (w32.HRSRC, error) {
 	ret, _, _ := procFindResource.Call(
 		uintptr(hModule),
@@ -170,6 +185,7 @@ func FindResource(hModule w32.HMODULE, lpName, lpType *uint16) (w32.HRSRC, error
 	return w32.HRSRC(ret), nil
 }
 
+// SizeofResource ...
 func SizeofResource(hModule w32.HMODULE, hResInfo w32.HRSRC) uint32 {
 	ret, _, _ := procSizeofResource.Call(
 		uintptr(hModule),
@@ -182,6 +198,7 @@ func SizeofResource(hModule w32.HMODULE, hResInfo w32.HRSRC) uint32 {
 	return uint32(ret)
 }
 
+// LockResource ...
 func LockResource(hResData w32.HGLOBAL) unsafe.Pointer {
 	ret, _, _ := procLockResource.Call(uintptr(hResData))
 
@@ -192,6 +209,7 @@ func LockResource(hResData w32.HGLOBAL) unsafe.Pointer {
 	return unsafe.Pointer(ret)
 }
 
+// LoadResource ...
 func LoadResource(hModule w32.HMODULE, hResInfo w32.HRSRC) w32.HGLOBAL {
 	ret, _, _ := procLoadResource.Call(
 		uintptr(hModule),
@@ -204,6 +222,7 @@ func LoadResource(hModule w32.HMODULE, hResInfo w32.HRSRC) w32.HGLOBAL {
 	return w32.HGLOBAL(ret)
 }
 
+// GetLastError ...
 func GetLastError() uint32 {
 	ret, _, _ := procGetLastError.Call()
 	return uint32(ret)
@@ -229,6 +248,7 @@ func GetLastError() uint32 {
 // 	return ret != 0
 // }
 
+// CreateToolhelp32Snapshot creates and returns a new instance.
 func CreateToolhelp32Snapshot(flags, processId uint32) w32.HANDLE {
 	ret, _, _ := procCreateToolhelp32Snapshot.Call(
 		uintptr(flags),
@@ -241,6 +261,7 @@ func CreateToolhelp32Snapshot(flags, processId uint32) w32.HANDLE {
 	return w32.HANDLE(ret)
 }
 
+// Module32First ...
 func Module32First(snapshot w32.HANDLE, me *w32.MODULEENTRY32) bool {
 	ret, _, _ := procModule32First.Call(
 		uintptr(snapshot),
@@ -249,6 +270,7 @@ func Module32First(snapshot w32.HANDLE, me *w32.MODULEENTRY32) bool {
 	return ret != 0
 }
 
+// Module32Next ...
 func Module32Next(snapshot w32.HANDLE, me *w32.MODULEENTRY32) bool {
 	ret, _, _ := procModule32Next.Call(
 		uintptr(snapshot),
@@ -257,6 +279,7 @@ func Module32Next(snapshot w32.HANDLE, me *w32.MODULEENTRY32) bool {
 	return ret != 0
 }
 
+// GetSystemTimes ...
 func GetSystemTimes(lpIdleTime, lpKernelTime, lpUserTime *w32.FILETIME) bool {
 	ret, _, _ := procGetSystemTimes.Call(
 		uintptr(unsafe.Pointer(lpIdleTime)),
@@ -266,6 +289,7 @@ func GetSystemTimes(lpIdleTime, lpKernelTime, lpUserTime *w32.FILETIME) bool {
 	return ret != 0
 }
 
+// GetProcessTimes ...
 func GetProcessTimes(hProcess w32.HANDLE, lpCreationTime, lpExitTime, lpKernelTime, lpUserTime *w32.FILETIME) bool {
 	ret, _, _ := procGetProcessTimes.Call(
 		uintptr(hProcess),
@@ -277,6 +301,7 @@ func GetProcessTimes(hProcess w32.HANDLE, lpCreationTime, lpExitTime, lpKernelTi
 	return ret != 0
 }
 
+// GetConsoleScreenBufferInfo ...
 func GetConsoleScreenBufferInfo(hConsoleOutput w32.HANDLE) *w32.CONSOLE_SCREEN_BUFFER_INFO {
 	var csbi w32.CONSOLE_SCREEN_BUFFER_INFO
 	ret, _, _ := procGetConsoleScreenBufferInfo.Call(
@@ -288,6 +313,7 @@ func GetConsoleScreenBufferInfo(hConsoleOutput w32.HANDLE) *w32.CONSOLE_SCREEN_B
 	return &csbi
 }
 
+// SetConsoleTextAttribute ...
 func SetConsoleTextAttribute(hConsoleOutput w32.HANDLE, wAttributes uint16) bool {
 	ret, _, _ := procSetConsoleTextAttribute.Call(
 		uintptr(hConsoleOutput),
@@ -295,6 +321,7 @@ func SetConsoleTextAttribute(hConsoleOutput w32.HANDLE, wAttributes uint16) bool
 	return ret != 0
 }
 
+// GetDiskFreeSpaceEx ...
 func GetDiskFreeSpaceEx(dirName string) (r bool,
 	freeBytesAvailable, totalNumberOfBytes, totalNumberOfFreeBytes uint64) {
 	ret, _, _ := procGetDiskFreeSpaceEx.Call(
@@ -306,6 +333,7 @@ func GetDiskFreeSpaceEx(dirName string) (r bool,
 		freeBytesAvailable, totalNumberOfBytes, totalNumberOfFreeBytes
 }
 
+// GetSystemTime ...
 func GetSystemTime() *w32.SYSTEMTIME {
 	var time w32.SYSTEMTIME
 	procGetSystemTime.Call(
@@ -313,12 +341,14 @@ func GetSystemTime() *w32.SYSTEMTIME {
 	return &time
 }
 
+// SetSystemTime ...
 func SetSystemTime(time *w32.SYSTEMTIME) bool {
 	ret, _, _ := procSetSystemTime.Call(
 		uintptr(unsafe.Pointer(time)))
 	return ret != 0
 }
 
+// VirtualAllocEx ...
 func VirtualAllocEx(hProcess w32.HANDLE, lpAddress, dwSize uintptr, flAllocationType, flProtect uint32) uintptr {
 	ret, _, _ := procVirtualAllocEx.Call(
 		uintptr(hProcess),
@@ -331,6 +361,7 @@ func VirtualAllocEx(hProcess w32.HANDLE, lpAddress, dwSize uintptr, flAllocation
 	return ret
 }
 
+// VirtualFreeEx ...
 func VirtualFreeEx(hProcess w32.HANDLE, lpAddress, dwSize uintptr, dwFreeType uint32) bool {
 	ret, _, _ := procVirtualFreeEx.Call(
 		uintptr(hProcess),
@@ -342,6 +373,7 @@ func VirtualFreeEx(hProcess w32.HANDLE, lpAddress, dwSize uintptr, dwFreeType ui
 	return ret != 0
 }
 
+// WriteProcessMemory ...
 func WriteProcessMemory(hProcess w32.HANDLE, lpBaseAddress, lpBuffer, nSize uintptr) (int, bool) {
 	var nBytesWritten int
 	ret, _, _ := procWriteProcessMemory.Call(
@@ -355,6 +387,7 @@ func WriteProcessMemory(hProcess w32.HANDLE, lpBaseAddress, lpBuffer, nSize uint
 	return nBytesWritten, ret != 0
 }
 
+// ReadProcessMemory ...
 func ReadProcessMemory(hProcess w32.HANDLE, lpBaseAddress, nSize uintptr) (lpBuffer []uint16, lpNumberOfBytesRead int, ok bool) {
 
 	var nBytesRead int
@@ -370,6 +403,7 @@ func ReadProcessMemory(hProcess w32.HANDLE, lpBaseAddress, nSize uintptr) (lpBuf
 	return buf, nBytesRead, ret != 0
 }
 
+// QueryPerformanceCounter ...
 func QueryPerformanceCounter() uint64 {
 	result := uint64(0)
 	procQueryPerformanceCounter.Call(
@@ -379,6 +413,7 @@ func QueryPerformanceCounter() uint64 {
 	return result
 }
 
+// QueryPerformanceFrequency ...
 func QueryPerformanceFrequency() uint64 {
 	result := uint64(0)
 	procQueryPerformanceFrequency.Call(
@@ -388,6 +423,7 @@ func QueryPerformanceFrequency() uint64 {
 	return result
 }
 
+// Process32Next ...
 func Process32Next(pHandle w32.HANDLE, proc uintptr) bool {
 	rt, _, _ := process32Next.Call(uintptr(pHandle), proc)
 	return rt == 1

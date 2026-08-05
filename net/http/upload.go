@@ -15,6 +15,7 @@ import (
 	"github.com/hopeio/gox/os/fs"
 )
 
+// Upload ...
 func Upload(dir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

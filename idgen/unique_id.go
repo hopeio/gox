@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// UniqueID ...
 func UniqueID() ID {
 	id := make(ID, 16)
 	io.ReadFull(crand.Reader, id[:])

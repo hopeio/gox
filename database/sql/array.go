@@ -26,6 +26,7 @@ import (
 // adpter postgres
 type IntArray[T constraints.Integer] []T
 
+// Scan ...
 func (d *IntArray[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -48,6 +49,7 @@ func (d *IntArray[T]) Scan(value any) error {
 	return nil
 }
 
+// Value ...
 func (d IntArray[T]) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -66,6 +68,7 @@ func (d IntArray[T]) Value() (driver.Value, error) {
 
 type FloatArray[T constraints.Float] []T
 
+// Scan ...
 func (d *FloatArray[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -88,6 +91,7 @@ func (d *FloatArray[T]) Scan(value any) error {
 	return nil
 }
 
+// Value ...
 func (d FloatArray[T]) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -106,6 +110,7 @@ func (d FloatArray[T]) Value() (driver.Value, error) {
 
 type StringArray []string
 
+// Scan ...
 func (d *StringArray) Scan(value any) error {
 	if value == nil {
 		return nil
@@ -130,6 +135,7 @@ func (d *StringArray) Scan(value any) error {
 	return nil
 }
 
+// Value ...
 func (d StringArray) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -154,6 +160,7 @@ func (d StringArray) Value() (driver.Value, error) {
 // only support number
 type Array[T any] []T
 
+// Scan ...
 func (d *Array[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -196,6 +203,7 @@ func (d *Array[T]) Scan(value any) error {
 	return nil
 }
 
+// Value ...
 func (d Array[T]) Value() (driver.Value, error) {
 	if len(d) == 0 {
 		return nil, nil
@@ -239,6 +247,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 
 type TimeArray []time.Time
 
+// Scan ...
 func (d *TimeArray) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -261,6 +270,7 @@ func (d *TimeArray) Scan(value any) error {
 	return nil
 }
 
+// Value ...
 func (d TimeArray) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -284,7 +294,7 @@ func (d TimeArray) Value() (driver.Value, error) {
 // {[],[]} {"{}","{}"} {"{}",[]}
 type jsonArray []map[string]any
 
-// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
+// Scan ...
 func (j *jsonArray) Scan(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
@@ -323,7 +333,7 @@ func (j *jsonArray) Scan(value interface{}) error {
 	return nil
 }
 
-// 实现 driver.Valuer 接口，Values 返回 json value
+// Value ...
 func (j jsonArray) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
@@ -348,6 +358,7 @@ func (j jsonArray) Value() (driver.Value, error) {
 	return buf.String(), nil
 }
 
+// GormDataType ...
 func (*jsonArray) GormDataType() string {
 	return "jsonb[]"
 }

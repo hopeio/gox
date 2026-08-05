@@ -21,6 +21,7 @@ type rbnode[K, V any] struct {
 	v      V
 }
 
+// color ...
 func (n *rbnode[K, V]) color() color {
 	if n == nil {
 		return black
@@ -28,10 +29,12 @@ func (n *rbnode[K, V]) color() color {
 	return n.c
 }
 
+// grandparent ...
 func (n *rbnode[K, V]) grandparent() *rbnode[K, V] {
 	return n.parent.parent
 }
 
+// uncle ...
 func (n *rbnode[K, V]) uncle() *rbnode[K, V] {
 	if n.parent == n.grandparent().left {
 		return n.grandparent().right
@@ -39,6 +42,7 @@ func (n *rbnode[K, V]) uncle() *rbnode[K, V] {
 	return n.grandparent().left
 }
 
+// sibling ...
 func (n *rbnode[K, V]) sibling() *rbnode[K, V] {
 	if n == n.parent.left {
 		return n.parent.right
@@ -46,6 +50,7 @@ func (n *rbnode[K, V]) sibling() *rbnode[K, V] {
 	return n.parent.left
 }
 
+// maximumNode ...
 func (n *rbnode[K, V]) maximumNode() *rbnode[K, V] {
 	for n.right != nil {
 		n = n.right
@@ -109,6 +114,7 @@ func (t *RBTree[K, V]) Put(key K, value V) {
 	t.len++
 }
 
+// insertCase1 ...
 func (t *RBTree[K, V]) insertCase1(n *rbnode[K, V]) {
 	if n.parent == nil {
 		n.c = black
@@ -116,12 +122,16 @@ func (t *RBTree[K, V]) insertCase1(n *rbnode[K, V]) {
 	}
 	t.insertCase2(n)
 }
+
+// insertCase2 ...
 func (t *RBTree[K, V]) insertCase2(n *rbnode[K, V]) {
 	if n.parent.color() == black {
 		return
 	}
 	t.insertCase3(n)
 }
+
+// insertCase3 ...
 func (t *RBTree[K, V]) insertCase3(n *rbnode[K, V]) {
 	if n.uncle().color() == red {
 		n.parent.c = black
@@ -133,6 +143,8 @@ func (t *RBTree[K, V]) insertCase3(n *rbnode[K, V]) {
 	t.insertCase4(n)
 
 }
+
+// insertCase4 ...
 func (t *RBTree[K, V]) insertCase4(n *rbnode[K, V]) {
 	if n == n.parent.right && n.parent == n.grandparent().left {
 		t.rotateLeft(n.parent)
@@ -143,6 +155,8 @@ func (t *RBTree[K, V]) insertCase4(n *rbnode[K, V]) {
 	}
 	t.insertCase5(n)
 }
+
+// insertCase5 ...
 func (t *RBTree[K, V]) insertCase5(n *rbnode[K, V]) {
 	n.parent.c = black
 	n.grandparent().c = red
@@ -154,6 +168,7 @@ func (t *RBTree[K, V]) insertCase5(n *rbnode[K, V]) {
 	}
 }
 
+// replace ...
 func (t *RBTree[K, V]) replace(old, new *rbnode[K, V]) {
 	if old.parent == nil {
 		t.root = new
@@ -169,6 +184,7 @@ func (t *RBTree[K, V]) replace(old, new *rbnode[K, V]) {
 	}
 }
 
+// rotateLeft ...
 func (t *RBTree[K, V]) rotateLeft(n *rbnode[K, V]) {
 	right := n.right
 	t.replace(n, right)
@@ -179,6 +195,8 @@ func (t *RBTree[K, V]) rotateLeft(n *rbnode[K, V]) {
 	right.left = n
 	n.parent = right
 }
+
+// rotateRight ...
 func (t *RBTree[K, V]) rotateRight(n *rbnode[K, V]) {
 	left := n.left
 	t.replace(n, left)
@@ -199,6 +217,7 @@ func (t *RBTree[K, V]) Get(key K) (V, bool) {
 	return n.v, true
 }
 
+// find ...
 func (t *RBTree[K, V]) find(key K) *rbnode[K, V] {
 	n := t.root
 	for n != nil {
@@ -249,6 +268,7 @@ func (t *RBTree[K, V]) Del(key K) {
 	t.len--
 }
 
+// delCase1 ...
 func (t *RBTree[K, V]) delCase1(n *rbnode[K, V]) {
 	if n.parent == nil {
 		return
@@ -256,6 +276,8 @@ func (t *RBTree[K, V]) delCase1(n *rbnode[K, V]) {
 
 	t.delCase2(n)
 }
+
+// delCase2 ...
 func (t *RBTree[K, V]) delCase2(n *rbnode[K, V]) {
 	sibling := n.sibling()
 	if sibling.color() == red {
@@ -269,6 +291,8 @@ func (t *RBTree[K, V]) delCase2(n *rbnode[K, V]) {
 	}
 	t.delCase3(n)
 }
+
+// delCase3 ...
 func (t *RBTree[K, V]) delCase3(n *rbnode[K, V]) {
 	sibling := n.sibling()
 	if n.parent.color() == black &&
@@ -281,6 +305,8 @@ func (t *RBTree[K, V]) delCase3(n *rbnode[K, V]) {
 	}
 	t.delCase4(n)
 }
+
+// delCase4 ...
 func (t *RBTree[K, V]) delCase4(n *rbnode[K, V]) {
 	sibling := n.sibling()
 	if n.parent.color() == red &&
@@ -293,6 +319,8 @@ func (t *RBTree[K, V]) delCase4(n *rbnode[K, V]) {
 	}
 	t.delCase5(n)
 }
+
+// delCase5 ...
 func (t *RBTree[K, V]) delCase5(n *rbnode[K, V]) {
 	sibling := n.sibling()
 	if n == n.parent.left &&
@@ -312,6 +340,8 @@ func (t *RBTree[K, V]) delCase5(n *rbnode[K, V]) {
 	}
 	t.delCase6(n)
 }
+
+// delCase6 ...
 func (t *RBTree[K, V]) delCase6(n *rbnode[K, V]) {
 	sibling := n.sibling()
 	sibling.c = n.parent.color()
@@ -325,6 +355,7 @@ func (t *RBTree[K, V]) delCase6(n *rbnode[K, V]) {
 	t.rotateRight(n.parent)
 }
 
+// String returns the string representation.
 func (t *RBTree[K, V]) String() string {
 	str := "RBTree\n"
 	if t.Len() != 0 {
@@ -333,10 +364,12 @@ func (t *RBTree[K, V]) String() string {
 	return str
 }
 
+// String returns the string representation.
 func (n *rbnode[K, V]) String() string {
 	return fmt.Sprintf("%v", n.k)
 }
 
+// output ...
 func (n *rbnode[K, V]) output(prefix string, isTail bool, str *string) {
 	if n.right != nil {
 		newPrefix := prefix

@@ -12,12 +12,14 @@ import (
 
 type String string
 
+// Key ...
 func (s String) Key() string {
 	return string(s)
 }
 
 type Int int
 
+// Key ...
 func (s Int) Key() int {
 	return int(s)
 }
@@ -29,6 +31,7 @@ type ID[T constraintsi.ID] struct {
 	Id T `json:"id"`
 }
 
+// Key ...
 func (s ID[KEY]) Key() KEY {
 	return s.Id
 }

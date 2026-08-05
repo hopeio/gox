@@ -18,14 +18,17 @@ import (
 
 var _ slog.Handler = &Logger{}
 
+// NewSLogger creates and returns a new instance.
 func (l *Logger) NewSLogger() *slog.Logger {
 	return slog.New(l)
 }
 
+// Enabled ...
 func (l *Logger) Enabled(ctx context.Context, level slog.Level) bool {
 	return l.Logger.Core().Enabled(zapcore.Level(level / 4))
 }
 
+// Handle ...
 func (l *Logger) Handle(ctx context.Context, record slog.Record) error {
 	core := l.Logger.Core()
 	ent := zapcore.Entry{
@@ -49,12 +52,14 @@ func (l *Logger) Handle(ctx context.Context, record slog.Record) error {
 	return nil
 }
 
+// WithAttrs ...
 func (l *Logger) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return l.With(slices.Map(attrs, func(attr slog.Attr) zap.Field {
 		return zap.String(attr.Key, attr.Value.String())
 	})...)
 }
 
+// WithGroup ...
 func (l *Logger) WithGroup(name string) slog.Handler {
 	return l.Named(name)
 }

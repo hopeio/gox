@@ -138,12 +138,17 @@ const (
 	AttachmentTmpl    = `attachment; filename="%s"`
 )
 
+// FormatFormDataField ...
 func FormatFormDataField(name string) string {
 	return fmt.Sprintf(FormDataFieldTmpl, name)
 }
+
+// FormatFormDataFile ...
 func FormatFormDataFile(name, filename string) string {
 	return fmt.Sprintf(FormDataFileTmpl, name, filename)
 }
+
+// FormatAttachment ...
 func FormatAttachment(filename string) string {
 	return fmt.Sprintf(AttachmentTmpl, filename)
 }

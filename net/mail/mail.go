@@ -33,10 +33,12 @@ Content-Type: {{if .ContentType}}{{.ContentType}}{{- else}}text/html; charset=UT
 {{.Content}}{{end}}
 `
 
+// init ...
 func init() {
 	template.Parse(msg)
 }
 
+// GenMsg ...
 func (m *Mail) GenMsg() ([]byte, error) {
 	var buf = new(bytes.Buffer)
 	err := template.Execute(buf, "mail", m)
@@ -46,6 +48,7 @@ func (m *Mail) GenMsg() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// SendMail ...
 func (m *Mail) SendMail() error {
 	msg, err := m.GenMsg()
 	if err != nil {
@@ -54,6 +57,7 @@ func (m *Mail) SendMail() error {
 	return smtp.SendMail(m.Addr, m.Auth, m.From, m.To, msg)
 }
 
+// SendMailTLS ...
 func (m *Mail) SendMailTLS() error {
 	client, err := createSMTPClient(m.Addr)
 	if err != nil {
@@ -95,6 +99,7 @@ func (m *Mail) SendMailTLS() error {
 	return client.Quit()
 }
 
+// createSMTPClient creates and returns a new instance.
 func createSMTPClient(addr string) (*smtp.Client, error) {
 	conn, err := tls.Dial("tcp", addr, nil)
 	if err != nil {

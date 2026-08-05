@@ -18,18 +18,22 @@ type Poller struct {
 	ch    chan struct{}
 }
 
+// NewPoller creates and returns a new instance.
 func NewPoller() *Poller {
 	return &Poller{ch: make(chan struct{})}
 }
 
+// Times ...
 func (p *Poller) Times() uint {
 	return p.times
 }
 
+// LimitDuration ...
 func (p *Poller) LimitDuration(d time.Duration) {
 	p.limit = d
 }
 
+// Run ...
 func (p *Poller) Run(interval time.Duration, do func()) {
 	timer := time.NewTicker(interval)
 	p.times++
@@ -46,6 +50,7 @@ func (p *Poller) Run(interval time.Duration, do func()) {
 	}
 }
 
+// RandRun ...
 func (p *Poller) RandRun(minInterval, maxInterval time.Duration, do func()) {
 	timer := timex.NewRandTicker(minInterval, maxInterval)
 	p.times++
@@ -63,6 +68,7 @@ func (p *Poller) RandRun(minInterval, maxInterval time.Duration, do func()) {
 	}
 }
 
+// Stop closes and releases resources.
 func (p *Poller) Stop() {
 	close(p.ch)
 }

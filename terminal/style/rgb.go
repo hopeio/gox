@@ -30,22 +30,27 @@ type colorRGB struct {
 	r, g, b uint16
 }
 
+// Format ...
 func (c colorRGB) Format(s string) string {
 	return fmt.Sprintf(rbgsWithResetFormat, c.r, c.g, c.b, s)
 }
 
+// NewRGBColor creates and returns a new instance.
 func NewRGBColor(r, g, b byte) colorRGB {
 	return colorRGB{r: uint16(r), g: uint16(g), b: uint16(b)}
 }
 
+// RGB ...
 func RGB(s string, r, g, b byte) string {
 	return fmt.Sprintf(rbgsWithResetFormat, r, g, b, s)
 }
 
+// BgRGB ...
 func BgRGB(s string, r, g, b byte) string {
 	return fmt.Sprintf(rbgsBgWithResetFormat, r, g, b, s)
 }
 
+// Gradient ...
 func Gradient(text string, begin, end colorRGB) string {
 	var colorText []string
 	for i, r := range text {
@@ -59,12 +64,14 @@ func Gradient(text string, begin, end colorRGB) string {
 	return strings.Join(colorText, "")
 }
 
+// GradientRandom ...
 func GradientRandom(text string) string {
 	var begin = colorRGB{r: uint16(rand.N(byte(255))), g: uint16(rand.N(byte(255))), b: uint16(rand.N(byte(255)))}
 	var end = colorRGB{r: uint16(rand.N(byte(255))), g: uint16(rand.N(byte(255))), b: uint16(rand.N(byte(255)))}
 	return Gradient(text, begin, end)
 }
 
+// GradientMultiLine ...
 func GradientMultiLine(text string, begin, end colorRGB) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
@@ -74,6 +81,7 @@ func GradientMultiLine(text string, begin, end colorRGB) string {
 	return strings.Join(colorText, "\n")
 }
 
+// GradientMultiLineRandom ...
 func GradientMultiLineRandom(text string) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
@@ -96,6 +104,7 @@ var (
 	RainbowPurpleRGB = NewRGBColor(128, 0, 128)
 )
 
+// Rainbow ...
 func Rainbow(text string) string {
 	var colorText []string
 	var n int
@@ -111,6 +120,7 @@ func Rainbow(text string) string {
 	return strings.Join(colorText, "")
 }
 
+// RainbowMultiLine ...
 func RainbowMultiLine(text string) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
@@ -132,6 +142,7 @@ func rainbowGradient(text string) {
 
 }
 
+// rgbToAnsi256 ...
 func rgbToAnsi256(r, g, b byte) byte {
 	// We use the extended greyscale palette here, with the exception of
 	// black and white. normal palette only has 4 greyscale shades.

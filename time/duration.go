@@ -25,6 +25,7 @@ func (d *Duration) UnmarshalText(text []byte) error {
 	return err
 }
 
+// MarshalText ...
 func (d Duration) MarshalText() ([]byte, error) {
 	return []byte(time.Duration(d).String()), nil
 }
@@ -42,7 +43,7 @@ func (d Duration) Shrink(c context.Context) (Duration, context.Context, context.
 	return d, ctx, cancel
 }
 
-// 标准化Duration
+// NormalizeDuration ...
 func NormalizeDuration(td time.Duration, stdTd time.Duration) time.Duration {
 	if td == 0 {
 		return td
@@ -54,6 +55,7 @@ func NormalizeDuration(td time.Duration, stdTd time.Duration) time.Duration {
 	return td
 }
 
+// MarshalJSON ...
 func (t Duration) MarshalJSON() ([]byte, error) {
 	return strings.ToBytes(time.Duration(t).String()), nil
 }

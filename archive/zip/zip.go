@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 )
 
+// CompressDir ...
 func CompressDir(sourceDir, targetZip string, containRootDir bool) error {
 	// 创建ZIP文件
 	zipFile, err := os.Create(targetZip)

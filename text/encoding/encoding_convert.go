@@ -18,11 +18,12 @@ import (
 	"golang.org/x/text/transform"
 )
 
+// DetermineEncoding ...
 func DetermineEncoding(content []byte, contentType string) (e encoding.Encoding, name string, certain bool) {
 	return charset.DetermineEncoding(content, contentType)
 }
 
-// GBK 转 UTF-8
+// GBKToUTF8 ...
 func GBKToUTF8(s string) (string, error) {
 	reader := transform.NewReader(strings.NewReader(s), simplifiedchinese.GBK.NewDecoder())
 	b, err := io.ReadAll(reader)
@@ -32,6 +33,7 @@ func GBKToUTF8(s string) (string, error) {
 	return stringsx.FromBytes(b), nil
 }
 
+// GBKBytesToUTF8 ...
 func GBKBytesToUTF8(s []byte) ([]byte, error) {
 	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewDecoder())
 	return io.ReadAll(reader)
@@ -39,6 +41,7 @@ func GBKBytesToUTF8(s []byte) ([]byte, error) {
 
 // UTF-8 转 GBK
 
+// UTF8ToGBK ...
 func UTF8ToGBK(s string) (string, error) {
 	reader := transform.NewReader(strings.NewReader(s), simplifiedchinese.GBK.NewEncoder())
 	b, err := io.ReadAll(reader)
@@ -48,6 +51,7 @@ func UTF8ToGBK(s string) (string, error) {
 	return stringsx.FromBytes(b), nil
 }
 
+// UTF8BytesToGBK ...
 func UTF8BytesToGBK(s []byte) ([]byte, error) {
 	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewEncoder())
 	return io.ReadAll(reader)

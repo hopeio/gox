@@ -6,6 +6,7 @@ import (
 	"github.com/hopeio/gox/types"
 )
 
+// OrderIterBy ...
 func OrderIterBy[S ~[]T, T any](s S, cmp types.Comparator[T]) iter.Seq[T] {
 	c := Copy(s)
 	return func(yield func(T) bool) {

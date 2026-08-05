@@ -40,7 +40,7 @@ const (
 	AC
 )
 
-// 只拓展到两位列ZZ
+// Sting ...
 func (c ColumnNumber) Sting() string {
 	if c < 26 {
 		return string(rune(c + 'A'))

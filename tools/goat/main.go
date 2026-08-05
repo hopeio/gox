@@ -46,6 +46,7 @@ type TranslateUnit struct {
 	Offset     int
 }
 
+// NewTranslateUnit creates and returns a new instance.
 func NewTranslateUnit(source string, outputDir string, options ...string) TranslateUnit {
 	sourceExt := filepath.Ext(source)
 	noExtSourcePath := source[:len(source)-len(sourceExt)]
@@ -101,6 +102,7 @@ func (t *TranslateUnit) parseSource() ([]Function, error) {
 	return functions, nil
 }
 
+// generateGoStubs ...
 func (t *TranslateUnit) generateGoStubs(functions []Function) error {
 	// generate code
 	var builder strings.Builder
@@ -129,6 +131,7 @@ func (t *TranslateUnit) generateGoStubs(functions []Function) error {
 	return err
 }
 
+// compile ...
 func (t *TranslateUnit) compile(args ...string) error {
 	args = append(args, "-mno-red-zone", "-mstackrealign", "-mllvm", "-inline-threshold=1000",
 		"-fno-asynchronous-unwind-tables", "-fno-exceptions", "-fno-rtti")
@@ -140,6 +143,7 @@ func (t *TranslateUnit) compile(args ...string) error {
 	return err
 }
 
+// Translate ...
 func (t *TranslateUnit) Translate() error {
 	functions := []Function{{
 		Name:       "avx2_ssd_int16",
@@ -323,6 +327,7 @@ var command = &cobra.Command{
 	},
 }
 
+// init ...
 func init() {
 	command.PersistentFlags().StringP("output", "o", "", "output directory of generated files")
 	command.PersistentFlags().StringSliceP("machine-option", "m", nil, "machine option for clang")
@@ -331,6 +336,7 @@ func init() {
 	command.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "if set, increase verbosity level")
 }
 
+// main ...
 func main() {
 	if err := command.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)

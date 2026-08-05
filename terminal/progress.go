@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// DrawProgressBar ...
 func DrawProgressBar(prefix string, proportion float32, width int, suffix ...string) {
 	pos := int(proportion * float32(width))
 	fmt.Printf("[%s] %s%*s %6.2f%% %s\r",

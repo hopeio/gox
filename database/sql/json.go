@@ -18,7 +18,7 @@ import (
 
 type RawJson []byte
 
-// 实现 sql.Scanner 接口，Scan 将 value 扫描至 RawJson
+// Scan ...
 func (j *RawJson) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
@@ -33,7 +33,7 @@ func (j *RawJson) Scan(value interface{}) error {
 
 }
 
-// 实现 driver.Valuer 接口，Values 返回 json value
+// Value ...
 func (j RawJson) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
@@ -41,6 +41,7 @@ func (j RawJson) Value() (driver.Value, error) {
 	return j, nil
 }
 
+// GormDataType ...
 func (*RawJson) GormDataType() string {
 	return "jsonb"
 }
@@ -50,7 +51,7 @@ type NullJson[T any] struct {
 	Valid bool
 }
 
-// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
+// Scan ...
 func (j *NullJson[T]) Scan(value interface{}) error {
 	j.Valid = true
 	switch bytes := value.(type) {
@@ -63,7 +64,7 @@ func (j *NullJson[T]) Scan(value interface{}) error {
 	}
 }
 
-// 实现 driver.Valuer 接口，Values 返回 json value
+// Value ...
 func (j *NullJson[T]) Value() (driver.Value, error) {
 	if !j.Valid {
 		return nil, nil
@@ -71,6 +72,7 @@ func (j *NullJson[T]) Value() (driver.Value, error) {
 	return jsonx.Marshal(&j.V)
 }
 
+// GormDataType ...
 func (*NullJson[T]) GormDataType() string {
 	return "jsonb"
 }
@@ -79,7 +81,7 @@ type Json[T any] struct {
 	V T
 }
 
-// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
+// Scan ...
 func (j *Json[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
@@ -91,14 +93,14 @@ func (j *Json[T]) Scan(value interface{}) error {
 	}
 }
 
-// 实现 driver.Valuer 接口，Values 返回 json value
+// Value ...
 func (j *Json[T]) Value() (driver.Value, error) {
 	return jsonx.Marshal(&j.V)
 }
 
 type MapJson[T any] map[string]T
 
-// 实现 sql.Scanner 接口，Scan 将 value 扫描至 Json
+// Scan ...
 func (j *MapJson[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
@@ -110,7 +112,7 @@ func (j *MapJson[T]) Scan(value interface{}) error {
 	}
 }
 
-// 实现 driver.Valuer 接口，Values 返回 json value
+// Value ...
 func (j MapJson[T]) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil

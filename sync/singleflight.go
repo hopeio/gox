@@ -31,6 +31,7 @@ func (p *panicError) Error() string {
 	return fmt.Sprintf("%v\n\n%s", p.value, p.stack)
 }
 
+// Unwrap ...
 func (p *panicError) Unwrap() error {
 	err, ok := p.value.(error)
 	if !ok {
@@ -40,6 +41,7 @@ func (p *panicError) Unwrap() error {
 	return err
 }
 
+// newPanicError creates and returns a new instance.
 func newPanicError(v any) error {
 	stack := debug.Stack()
 

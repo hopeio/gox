@@ -64,6 +64,7 @@ func (s *SkipList[K, V]) Set(k K, v V) {
 	s.len++
 }
 
+// path ...
 func (s *SkipList[K, V]) path(x *skiplistitem[K, V], update []*skiplistitem[K, V], k K) (candidate *skiplistitem[K, V]) {
 	depth := len(x.forward) - 1
 	for i := depth; i >= 0; i-- {
@@ -77,6 +78,7 @@ func (s *SkipList[K, V]) path(x *skiplistitem[K, V], update []*skiplistitem[K, V
 	return x.next()
 }
 
+// randomLevel ...
 func (s *SkipList[K, V]) randomLevel() (n int) {
 	for n = 0; n < s.effectiveMaxLevel() && rand.Float64() < 0.25; n++ {
 	}
@@ -135,10 +137,12 @@ func (s *SkipList[K, V]) Del(k K) (v V, ok bool) {
 	return
 }
 
+// level ...
 func (s *SkipList[K, V]) level() int {
 	return len(s.header.forward) - 1
 }
 
+// effectiveMaxLevel ...
 func (s *SkipList[K, V]) effectiveMaxLevel() int {
 	if s.level() < s.MaxLevel {
 		return s.MaxLevel
@@ -152,6 +156,7 @@ type skiplistitem[K any, V any] struct {
 	v       V
 }
 
+// next ...
 func (s *skiplistitem[K, V]) next() *skiplistitem[K, V] {
 	if len(s.forward) == 0 {
 		return nil

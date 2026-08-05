@@ -4,6 +4,7 @@ import "math"
 
 type Coord struct{}
 
+// GetOuterPoints ...
 func (c Coord) GetOuterPoints(points []Point) [4]Point {
 	if len(points) < 4 {
 		panic("points at least 4 points")

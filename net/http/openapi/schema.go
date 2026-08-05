@@ -11,6 +11,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+// newSpec creates and returns a new instance.
 func newSpec(name string) *openapi3.T {
 	return &openapi3.T{
 		OpenAPI: "3.0.0",
@@ -28,6 +29,7 @@ func newSpec(name string) *openapi3.T {
 	}
 }
 
+// getSortedKeys ...
 func getSortedKeys[V any](m map[string]V) (op []string) {
 	for k := range m {
 		op = append(op, k)
@@ -38,12 +40,14 @@ func getSortedKeys[V any](m map[string]V) (op []string) {
 	return op
 }
 
+// newPrimitiveSchema creates and returns a new instance.
 func newPrimitiveSchema(paramType string) *openapi3.Schema {
 	return &openapi3.Schema{
 		Type: &openapi3.Types{paramType},
 	}
 }
 
+// createOpenAPI creates and returns a new instance.
 func (api *API) createOpenAPI() (spec *openapi3.T, err error) {
 	spec = newSpec(api.Name)
 	// Add all the routes.
@@ -153,6 +157,7 @@ func (api *API) createOpenAPI() (spec *openapi3.T, err error) {
 	return spec, err
 }
 
+// getModelName ...
 func (api *API) getModelName(t reflect.Type) string {
 	pkgPath, typeName := t.PkgPath(), t.Name()
 	if t.Kind() == reflect.Pointer {
@@ -169,6 +174,7 @@ func (api *API) getModelName(t reflect.Type) string {
 	return schemaName
 }
 
+// getSchemaReferenceOrValue ...
 func getSchemaReferenceOrValue(name string, schema *openapi3.Schema) *openapi3.SchemaRef {
 	if shouldBeReferenced(schema) {
 		return openapi3.NewSchemaRef(fmt.Sprintf("#/components/schemas/%s", name), nil)
@@ -226,10 +232,12 @@ func WithEnumConstants[T ~string | constraints.Integer]() ModelOpts {
 	}
 }
 
+// isFieldRequired reports whether the condition holds.
 func isFieldRequired(isPointer, hasOmitEmpty bool) bool {
 	return !(isPointer || hasOmitEmpty)
 }
 
+// isMarkedAsDeprecated reports whether the condition holds.
 func isMarkedAsDeprecated(comment string) bool {
 	// A field is only marked as deprecated if a paragraph (line) begins with Deprecated.
 	// https://github.com/golang/go/wiki/Deprecated
@@ -372,6 +380,7 @@ func (api *API) RegisterModel(model Model, opts ...ModelOpts) (name string, sche
 	return
 }
 
+// getCommentsForPackage ...
 func (api *API) getCommentsForPackage(pkg string) (pkgComments map[string]string, err error) {
 	if pkgComments, loaded := api.comments[pkg]; loaded {
 		return pkgComments, nil
@@ -384,6 +393,7 @@ func (api *API) getCommentsForPackage(pkg string) (pkgComments map[string]string
 	return
 }
 
+// getTypeComment ...
 func (api *API) getTypeComment(pkg string, name string) (comment string, deprecated bool, err error) {
 	pkgComments, err := api.getCommentsForPackage(pkg)
 	if err != nil {
@@ -394,6 +404,7 @@ func (api *API) getTypeComment(pkg string, name string) (comment string, depreca
 	return
 }
 
+// getTypeFieldComment ...
 func (api *API) getTypeFieldComment(pkg string, name string, field string) (comment string, deprecated bool, err error) {
 	pkgComments, err := api.getCommentsForPackage(pkg)
 	if err != nil {
@@ -404,6 +415,7 @@ func (api *API) getTypeFieldComment(pkg string, name string, field string) (comm
 	return
 }
 
+// shouldBeReferenced reports whether the condition holds.
 func shouldBeReferenced(schema *openapi3.Schema) bool {
 	if schema.Type.Is(openapi3.TypeObject) && schema.AdditionalProperties.Schema == nil {
 		return true
@@ -419,6 +431,7 @@ var normalizer = strings.NewReplacer("/", "_",
 	"[", "_",
 	"]", "_")
 
+// normalizeTypeName ...
 func (api *API) normalizeTypeName(pkgPath, name string) string {
 	var omitPackage bool
 	for _, pkg := range api.StripPkgPaths {

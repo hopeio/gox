@@ -19,6 +19,7 @@ type ConditionTag struct {
 	EmptyValid bool   `meta:"emptyvalid"`
 }
 
+// GetConditionTagTag ...
 func GetConditionTagTag(tag reflect.StructTag) (*ConditionTag, error) {
 	return structtag.ParseSettingTagToStruct[ConditionTag](tag.Get(CondiTagName), ";", ":")
 }

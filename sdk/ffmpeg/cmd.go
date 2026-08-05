@@ -22,6 +22,7 @@ type Config struct {
 
 var ExecPath = "ffmpeg"
 
+// Run ...
 func Run(cmd string) error {
 	cmd = ExecPath + " " + cmd
 	log.Debug("exec:", cmd)

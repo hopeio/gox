@@ -15,9 +15,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// 没有泛型，范例，实际需根据不同类型各写一遍,用CmpKey，基本类型又用不了，go需要能给基本类型实现方法不能给外部类型实现方法
-// 1.20以后字段均是comparable的结构体也是comparable的
-// 判断是否有重合元素
+// HasCoincide reports whether the condition holds.
 func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
@@ -50,6 +48,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	return false
 }
 
+// HasCoincideByKey reports whether the condition holds.
 func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
@@ -82,6 +81,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	return false
 }
 
+// RemoveDuplicates ...
 func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 	if len(s) == 0 {
 		return s
@@ -93,7 +93,7 @@ func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 	return maps.Keys(m)
 }
 
-// 默认保留先遍历到的
+// RemoveDuplicatesByKey ...
 func RemoveDuplicatesByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 	if len(s) == 0 {
 		return s
@@ -109,6 +109,7 @@ func RemoveDuplicatesByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 	return maps.Values(m)
 }
 
+// RemoveDuplicatesByKeyRetainBehind ...
 func RemoveDuplicatesByKeyRetainBehind[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 	if len(s) == 0 {
 		return s
@@ -120,7 +121,7 @@ func RemoveDuplicatesByKeyRetainBehind[S ~[]E, E cmp.EqualKey[T], T comparable](
 	return maps.Values(m)
 }
 
-// 取交集
+// Intersection ...
 func Intersection[S ~[]T, T comparable](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
@@ -134,6 +135,7 @@ func Intersection[S ~[]T, T comparable](a S, b S) S {
 	return intersection(a, b)
 }
 
+// smallArrayIntersection ...
 func smallArrayIntersection[S ~[]T, T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
@@ -144,10 +146,12 @@ func smallArrayIntersection[S ~[]T, T comparable](a S, b S) S {
 	return ret
 }
 
+// intersection ...
 func intersection[S ~[]T, T comparable](a S, b S) S {
 	return maps.Keys(IntersectionMap(a, b))
 }
 
+// IntersectionMap ...
 func IntersectionMap[S ~[]T, T comparable](a S, b S) map[T]struct{} {
 	if len(a) == 0 || len(b) == 0 {
 		return make(map[T]struct{})
@@ -169,7 +173,7 @@ func IntersectionMap[S ~[]T, T comparable](a S, b S) map[T]struct{} {
 	return intersectionMap
 }
 
-// 默认保留前一个的,靠前的元素
+// IntersectionByKey ...
 func IntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
@@ -199,6 +203,7 @@ func IntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return maps.Values(intersectionMap)
 }
 
+// smallArrayIntersectionByKey ...
 func smallArrayIntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
@@ -211,7 +216,7 @@ func smallArrayIntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b
 	return ret
 }
 
-// 有序数组取交集
+// OrderedArrayIntersection ...
 func OrderedArrayIntersection[S ~[]T, T constraints.Ordered](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
@@ -242,7 +247,7 @@ func OrderedArrayIntersection[S ~[]T, T constraints.Ordered](a S, b S) S {
 	return ret
 }
 
-// 取并集
+// Union ...
 func Union[S ~[]T, T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return b
@@ -260,7 +265,7 @@ func Union[S ~[]T, T comparable](a S, b S) S {
 	return maps.Keys(set)
 }
 
-// 默认保留第一个的,靠前的
+// UnionByKey ...
 func UnionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return b
@@ -286,7 +291,7 @@ func UnionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return maps.Values(m)
 }
 
-// 取差集,返回为A-B
+// DifferenceSet ...
 func DifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return S{}
@@ -300,6 +305,7 @@ func DifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	return differenceSet(a, b)
 }
 
+// smallArrayDifferenceSet ...
 func smallArrayDifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
@@ -310,6 +316,7 @@ func smallArrayDifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	return diff
 }
 
+// differenceSet ...
 func differenceSet[S ~[]T, T comparable](a S, b S) S {
 	var diff S
 	if len(b)/len(a) >= 2 {
@@ -341,7 +348,7 @@ func differenceSet[S ~[]T, T comparable](a S, b S) S {
 	return diff
 }
 
-// 指定key取差集,返回为A-B
+// DifferenceSetByKey ...
 func DifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return S{}
@@ -355,6 +362,7 @@ func DifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return differenceSetByKey(a, b)
 }
 
+// smallArrayDifferenceSetByKey ...
 func smallArrayDifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
@@ -367,6 +375,7 @@ func smallArrayDifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, 
 	return diff
 }
 
+// differenceSetByKey ...
 func differenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var diff S
 	if len(b)/len(a) >= 2 {
@@ -399,7 +408,7 @@ func differenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return diff
 }
 
-// 两个数组各自相对的差集,返回为A-B,B-A
+// Difference ...
 func Difference[S ~[]T, T comparable](a, b S) (S, S) {
 	if len(a) == 0 {
 		return S{}, b
@@ -445,7 +454,7 @@ func Difference[S ~[]T, T comparable](a, b S) (S, S) {
 	return diff1, diff2
 }
 
-// 取差集，通过循环比较key
+// DifferenceByKey ...
 func DifferenceByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a, b S) (S, S) {
 	if len(a) == 0 {
 		return S{}, b
@@ -490,7 +499,7 @@ func DifferenceByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a, b S) (S, S) {
 	return diff1, diff2
 }
 
-// 交集和差集，返回A∪B A∩B,A-B,B-A
+// UnionAndIntersectionAndDifference ...
 func UnionAndIntersectionAndDifference[S ~[]T, T comparable](a, b S) (S, S, S, S) {
 	if len(a) == 0 {
 		return b, b, S{}, b

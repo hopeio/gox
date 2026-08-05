@@ -26,6 +26,7 @@ func AddFloat64(addr *float64, delta float64) (new float64) {
 	return
 }
 
+// AddFloat32 ...
 func AddFloat32(addr *float32, delta float32) (new float32) {
 	var old float32
 	for {
@@ -39,10 +40,12 @@ func AddFloat32(addr *float32, delta float32) (new float32) {
 	return
 }
 
+// SubUint32 ...
 func SubUint32(addr *uint32, delta uint32) (new uint32) {
 	return atomic.AddUint32(addr, ^uint32(delta-1))
 }
 
+// SubUint64 ...
 func SubUint64(addr *uint64, delta uint64) (new uint64) {
 	return atomic.AddUint64(addr, ^uint64(delta-1))
 }

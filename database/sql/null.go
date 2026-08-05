@@ -9,14 +9,17 @@ import (
 
 type Null[T any] sql.Null[T]
 
+// Scan ...
 func (n *Null[T]) Scan(value any) error {
 	return (*sql.Null[T])(n).Scan(value)
 }
 
+// Value ...
 func (n Null[T]) Value() (driver.Value, error) {
 	return (sql.Null[T])(n).Value()
 }
 
+// MarshalJSON ...
 func (n Null[T]) MarshalJSON() ([]byte, error) {
 	if !n.Valid {
 		return []byte("null"), nil
@@ -24,6 +27,7 @@ func (n Null[T]) MarshalJSON() ([]byte, error) {
 	return jsonx.Marshal(n.V)
 }
 
+// UnmarshalJSON ...
 func (n *Null[T]) UnmarshalJSON(data []byte) error {
 	if data == nil || string(data) == "null" {
 		n.Valid = false

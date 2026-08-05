@@ -21,6 +21,7 @@ type GoIter[T any] interface {
 	Stop()
 }
 
+// SeqIter ...
 func SeqIter[T any](seq iter.Seq[T]) Iterator[T] {
 	next, stop := iter.Pull(seq)
 	return seqIter[T]{next, stop}
@@ -31,14 +32,17 @@ type seqIter[T any] struct {
 	stop func()
 }
 
+// Next ...
 func (a seqIter[T]) Next() (T, bool) {
 	return a.next()
 }
 
+// Stop closes and releases resources.
 func (a seqIter[T]) Stop() {
 	a.stop()
 }
 
+// IterSeq ...
 func IterSeq[T any](iter Iterator[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for {

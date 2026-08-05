@@ -1,10 +1,11 @@
+//go:build windows
+
 /*
  * Copyright 2024 hopeio. All rights reserved.
  * Licensed under the MIT License that can be found in the LICENSE file.
  * @Created by jyb
  */
 
- //go:build windows
 package win
 
 import (
@@ -17,18 +18,19 @@ import (
 	"unsafe"
 )
 
+// StringToCharPtr ...
 func StringToCharPtr(str string) *uint8 {
 	chars := append([]byte(str), 0)
 	return &chars[0]
 }
 
-// 回调函数，用于EnumWindows中的回调函数，第一个参数是hWnd，第二个是自定义穿的参数
+// AddElementFunc ...
 func AddElementFunc(hWnd win.HWND, hWndList *[]win.HWND) uintptr {
 	*hWndList = append(*hWndList, hWnd)
 	return 1
 }
 
-// 获取桌面下的所有窗口句柄，包括没有Windows标题的或者是窗口的。
+// DesktopWindowHWND ...
 func DesktopWindowHWND() []win.HWND {
 	var hWndList []win.HWND
 	hL := &hWndList
@@ -39,6 +41,7 @@ func DesktopWindowHWND() []win.HWND {
 	return hWndList
 }
 
+// FindWindow ...
 func FindWindow(title, processName string) win.HWND {
 	hwnd, _, _ := findWindow.Call(0, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))))
 	if hwnd == 0 {
@@ -64,6 +67,7 @@ func FindWindow(title, processName string) win.HWND {
 	return win.HWND(hwnd)
 }
 
+// findProcess ...
 func findProcess(name string) uint32 {
 
 	processIDs, ok := w32.EnumProcesses(make([]uint32, 256))
@@ -82,6 +86,7 @@ func findProcess(name string) uint32 {
 	return 0
 }
 
+// GetProcName ...
 func GetProcName(pid uint32) string {
 	if pid == 0 {
 		return "System Idle Process"

@@ -42,7 +42,7 @@ type Func struct {
 	codePtr uintptr
 }
 
-// TODO: 不可用,太深了,放弃
+// aop ...
 func aop(before func(), target any, after func()) {
 	v2 := reflect.ValueOf(target)
 	if v2.Kind() != reflect.Func {

@@ -16,30 +16,35 @@ type Option func(req *Client)
 
 type HttpRequestOption func(req *http.Request)
 
+// ToOption ...
 func (o HttpRequestOption) ToOption() Option {
 	return func(c *Client) {
 		c.HttpRequestOptions(o)
 	}
 }
 
+// AddHeader ...
 func AddHeader(k, v string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Add(k, v)
 	}
 }
 
+// SetRefer ...
 func SetRefer(refer string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(httpx.HeaderReferer, refer)
 	}
 }
 
+// SetAccept ...
 func SetAccept(refer string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(httpx.HeaderAccept, refer)
 	}
 }
 
+// SetCookie ...
 func SetCookie(cookie string) HttpRequestOption {
 	return func(req *http.Request) {
 		req.Header.Set(httpx.HeaderCookie, cookie)

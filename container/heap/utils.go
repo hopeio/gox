@@ -10,6 +10,7 @@ import (
 	"github.com/hopeio/gox/cmp"
 )
 
+// Init ...
 func Init[T cmp.Comparable[T]](heap []T) {
 	// heapify
 	n := len(heap)
@@ -18,6 +19,7 @@ func Init[T cmp.Comparable[T]](heap []T) {
 	}
 }
 
+// Down ...
 func Down[T cmp.Comparable[T]](heap []T, i0, n int) bool {
 	i := i0
 	for {
@@ -38,6 +40,7 @@ func Down[T cmp.Comparable[T]](heap []T, i0, n int) bool {
 	return i > i0
 }
 
+// Up ...
 func Up[T cmp.Comparable[T]](heap []T, j int) {
 
 	for {
@@ -50,13 +53,14 @@ func Up[T cmp.Comparable[T]](heap []T, j int) {
 	}
 }
 
+// Fix ...
 func Fix[T cmp.Comparable[T]](heap []T, i int) {
 	if !Down(heap, i, len(heap)) {
 		Up(heap, i)
 	}
 }
 
-// 与Down一致，不同的写法
+// AdjustDown ...
 func AdjustDown[T cmp.Comparable[T]](heap []T, i int) {
 	child := leftChild(i)
 	for child < len(heap) {
@@ -72,7 +76,7 @@ func AdjustDown[T cmp.Comparable[T]](heap []T, i int) {
 	}
 }
 
-// 与Up一致，不同的写法
+// AdjustUp ...
 func AdjustUp[T cmp.Comparable[T]](heap []T, i int) {
 	p := parent(i)
 	for p >= 0 && heap[i].Compare(heap[p]) > 0 {
@@ -82,9 +86,12 @@ func AdjustUp[T cmp.Comparable[T]](heap []T, i int) {
 	}
 }
 
+// parent ...
 func parent(i int) int {
 	return (i - 1) / 2
 }
+
+// leftChild ...
 func leftChild(i int) int {
 	return i*2 + 1
 }

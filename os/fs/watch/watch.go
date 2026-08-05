@@ -29,24 +29,28 @@ type Watch struct {
 
 type Option func(*Watch)
 
+// WithWatcher ...
 func WithWatcher(watcher *fsnotify.Watcher) Option {
 	return func(watch *Watch) {
 		watch.Watcher = watcher
 	}
 }
 
+// WithInterval ...
 func WithInterval(interval time.Duration) Option {
 	return func(watch *Watch) {
 		watch.interval = interval
 	}
 }
 
+// WithErrHandler ...
 func WithErrHandler(errHandler func(error)) Option {
 	return func(watch *Watch) {
 		watch.errHandler = errHandler
 	}
 }
 
+// New ...
 func New(opts ...Option) (*Watch, error) {
 	watch := &Watch{
 		handlers: make(Handlers),
@@ -68,6 +72,7 @@ func New(opts ...Option) (*Watch, error) {
 	return watch, nil
 }
 
+// Add ...
 func (w *Watch) Add(path string, callback func(fsnotify.Event)) error {
 	path = filepath.Clean(path)
 	handler, ok := w.handlers[path]
@@ -83,6 +88,7 @@ func (w *Watch) Add(path string, callback func(fsnotify.Event)) error {
 	return nil
 }
 
+// run ...
 func (w *Watch) run() {
 	for {
 		select {
@@ -109,6 +115,7 @@ func (w *Watch) run() {
 	}
 }
 
+// Close closes and releases resources.
 func (w *Watch) Close() error {
 	close(w.Events)
 	close(w.Errors)

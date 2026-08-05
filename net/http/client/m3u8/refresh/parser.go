@@ -55,6 +55,7 @@ type Result struct {
 	Keys map[int]string
 }
 
+// FromURL ...
 func FromURL(link string) (*Result, error) {
 	u, err := url.Parse(link)
 	if err != nil {
@@ -105,6 +106,7 @@ func FromURL(link string) (*Result, error) {
 	return result, nil
 }
 
+// Download ...
 func (r *Result) Download(segIndex int) ([]byte, error) {
 	sf := r.M3u8.Segments[segIndex]
 

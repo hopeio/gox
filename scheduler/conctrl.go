@@ -18,6 +18,7 @@ import (
 	syncx "github.com/hopeio/gox/sync"
 )
 
+// Run ...
 func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 	// 在持锁前递交初始任务:addTasks 内部会获取 pending 额度并在短临界区内 push,
 	// 若持锁调用会触发非重入锁自死锁。
@@ -136,6 +137,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 	log.NoCallerLogger().Infof("[END] task:D:%d/T:%d/S:%d/H:%d/F:%d/E:%d", e.taskDoneCount, e.taskTotalCount, e.taskSkipCount, e.taskErrHandleCount, e.taskFailedCount, e.taskErrorTimes)
 }
 
+// newWorker creates and returns a new instance.
 func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	atomic.AddUint64(&e.currentWorkerCount, 1)
 	//id := c.currentWorkerCount
@@ -178,6 +180,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	e.workersMu.Unlock()
 }
 
+// addWorker ...
 func (e *Engine[KEY]) addWorker() {
 	if atomic.LoadUint64(&e.currentWorkerCount) == 0 {
 		e.newWorker(nil)
@@ -211,6 +214,7 @@ func (e *Engine[KEY]) addWorker() {
 
 }
 
+// addTasks ...
 func (e *Engine[KEY]) addTasks(ctx context.Context, priority int, tasks ...*Task[KEY]) {
 	// 外部/初始任务入口:先在不持锁的情况下获取 pending 额度(背压点),额度满则阻塞调用者。
 	// 仅对有效任务获取额度,与 taskDone 的归还严格 1:1。
@@ -237,9 +241,7 @@ func (e *Engine[KEY]) addTasks(ctx context.Context, priority int, tasks ...*Task
 	e.wg.Add(n)
 }
 
-// pushTasks 仅把任务 push 进堆并初始化,不触碰 pendingSem / wg。
-// 返回实际加入的有效任务数,供调用者配对 wg.Add。
-// 调用者负责在调用前已占用 pending 额度(外部经 addTasks,worker 经 execTask)。
+// pushTasks ...
 func (e *Engine[KEY]) pushTasks(ctx context.Context, priority int, tasks ...*Task[KEY]) int {
 	n := 0
 	e.mu.Lock()
@@ -277,7 +279,7 @@ func (e *Engine[KEY]) pushTasks(ctx context.Context, priority int, tasks ...*Tas
 	return n
 }
 
-// taskDone 在任务终态时归还 pending 额度并递减 wg,与额度获取严格 1:1 配对。
+// taskDone ...
 func (e *Engine[KEY]) taskDone() {
 	if e.maxPending > 0 && e.pendingSem != nil {
 		e.pendingSem <- struct{}{}
@@ -285,9 +287,7 @@ func (e *Engine[KEY]) taskDone() {
 	e.wg.Done()
 }
 
-// ingest 专门负责把子任务送入堆。它只 push 堆、不获取 pendingSem(额度已由 worker 在
-// produce 时占用),因此本协程永远能及时消费 submitCh,绝不阻塞 worker。
-// 取消时排空 submitCh 中残留任务后退出,worker 侧已有 ctx.Done 分支不会永久阻塞。
+// ingest ...
 func (e *Engine[KEY]) ingest() {
 	for {
 		select {
@@ -308,19 +308,23 @@ func (e *Engine[KEY]) ingest() {
 	}
 }
 
+// AddOptionTasks ...
 func (e *Engine[KEY]) AddOptionTasks(ctx context.Context, priority int, tasks ...*Task[KEY]) {
 	e.addTasks(ctx, priority, tasks...)
 }
 
+// AddTasks ...
 func (e *Engine[KEY]) AddTasks(tasks ...*Task[KEY]) {
 	e.addTasks(nil, 0, tasks...)
 }
 
+// AddWorker ...
 func (e *Engine[KEY]) AddWorker(num int) {
 	atomic.AddUint64(&e.workerCount, uint64(num))
 	e.addWorker()
 }
 
+// NewFixedWorker creates and returns a new instance.
 func (e *Engine[KEY]) NewFixedWorker(interval time.Duration) int {
 	taskChan := make(chan *Task[KEY])
 	worker := &Worker[KEY]{id: uint(e.currentWorkerCount), typ: fixedType, taskCh: taskChan}
@@ -332,6 +336,7 @@ func (e *Engine[KEY]) NewFixedWorker(interval time.Duration) int {
 	return idx
 }
 
+// fixedWorker ...
 func (e *Engine[KEY]) fixedWorker(workerId int) *Worker[KEY] {
 	e.workersMu.Lock()
 	defer e.workersMu.Unlock()
@@ -341,6 +346,7 @@ func (e *Engine[KEY]) fixedWorker(workerId int) *Worker[KEY] {
 	return e.workers[workerId]
 }
 
+// newFixedWorker creates and returns a new instance.
 func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration) {
 	go func() {
 		var task *Task[KEY]
@@ -376,6 +382,7 @@ func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration
 	}()
 }
 
+// AddFixedTasks ...
 func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task[KEY]) error {
 	err := fmt.Errorf("不存在workId为%d的fixed worker,请调用NewFixedWorker添加", workerId)
 	worker := e.fixedWorker(workerId)
@@ -404,6 +411,7 @@ func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task
 	return nil
 }
 
+// ExecTask ...
 func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 	if task == nil {
 		return
@@ -420,6 +428,7 @@ func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 	}
 }
 
+// execTask ...
 func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 
 	if e.speedLimit != nil {
@@ -529,6 +538,7 @@ func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 	return true
 }
 
+// Stop closes and releases resources.
 func (e *Engine[KEY]) Stop() {
 	e.cancel()
 	if e.speedLimit != nil {
@@ -551,6 +561,7 @@ func (e *Engine[KEY]) Stop() {
 	e.isStopped = true
 }
 
+// StopAfter closes and releases resources.
 func (e *Engine[KEY]) StopAfter(interval time.Duration) *Engine[KEY] {
 	time.AfterFunc(interval, e.Stop)
 	return e

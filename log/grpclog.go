@@ -19,7 +19,7 @@ func (l *Logger) V(level int) bool {
 	return l.Logger.Core().Enabled(zapcore.Level(level))
 }
 
-// // 等同于xxxln,为了实现某些接口 如grpclog
+// Infoln ...
 func (l *Logger) Infoln(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)
@@ -27,6 +27,7 @@ func (l *Logger) Infoln(args ...any) {
 	}
 }
 
+// Warning ...
 func (l *Logger) Warning(args ...any) {
 	if ce := l.Check(zap.WarnLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)
@@ -34,6 +35,7 @@ func (l *Logger) Warning(args ...any) {
 	}
 }
 
+// Warningln ...
 func (l *Logger) Warningln(args ...any) {
 	if ce := l.Check(zap.WarnLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)
@@ -49,6 +51,7 @@ func (l *Logger) Warningf(template string, args ...any) {
 	}
 }
 
+// Errorln ...
 func (l *Logger) Errorln(args ...any) {
 	if ce := l.Check(zap.ErrorLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)
@@ -56,6 +59,7 @@ func (l *Logger) Errorln(args ...any) {
 	}
 }
 
+// Fatalln ...
 func (l *Logger) Fatalln(args ...any) {
 	if ce := l.Check(zap.FatalLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)

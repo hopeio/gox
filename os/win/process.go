@@ -1,10 +1,11 @@
+//go:build windows
+
 /*
  * Copyright 2024 hopeio. All rights reserved.
  * Licensed under the MIT License that can be found in the LICENSE file.
  * @Created by jyb
  */
 
- //go:build windows
 package win
 
 import (
@@ -92,24 +93,25 @@ var (
 	}
 )
 
+// Name ...
 func (p *PROCESSENTRY32) Name() string {
 	// string(process.szExeFile[0:]
 	name, _, _ := transform.String(GBKDecoder, string(p.szExeFile[0:])) //string(p.szExeFile[0:])
 	name = name[:strings.LastIndex(name, ".exe")+4]
 	return name
 }
+
+// ModuleID ...
 func (p *PROCESSENTRY32) ModuleID() string {
 	return strconv.Itoa(int(p.th32ModuleID))
 }
+
+// PID ...
 func (p *PROCESSENTRY32) PID() uint32 {
 	return p.th32ProcessID
 }
 
-// GetProcessByName 根据pid获取windows系统的某一个进程
-//
-//	参数:
-//	name    string  进程名称, 建议加上.exe结尾
-//	return  Process
+// GetProcessByName ...
 func GetProcessByName(name string) (PROCESSENTRY32, error) {
 	var targetProcess PROCESSENTRY32
 	targetProcess = PROCESSENTRY32{
@@ -140,6 +142,7 @@ func GetProcessByName(name string) (PROCESSENTRY32, error) {
 	return targetProcess, fmt.Errorf("error:Can not find any proess.")
 }
 
+// StartProcessByPassUAC ...
 func StartProcessByPassUAC(applicationCmd string) error {
 	winlogonEntry, err := GetProcessByName("winlogon.exe")
 	if err != nil {

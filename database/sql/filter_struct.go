@@ -53,18 +53,22 @@ type Id struct {
 
 type RangeMode int8
 
+// HasBegin reports whether the condition holds.
 func (r RangeMode) HasBegin() bool {
 	return r&RangeModeHasBegin != 0
 }
 
+// HasEnd reports whether the condition holds.
 func (r RangeMode) HasEnd() bool {
 	return r&RangeModeHasEnd != 0
 }
 
+// ContainsBegin reports whether the condition holds.
 func (r RangeMode) ContainsBegin() bool {
 	return r&RangeModeContainsBegin != 0
 }
 
+// ContainsEnd reports whether the condition holds.
 func (r RangeMode) ContainsEnd() bool {
 	return r&RangeModeContainsEnd != 0
 }

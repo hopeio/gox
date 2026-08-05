@@ -10,6 +10,7 @@ import (
 	constraintsi "github.com/hopeio/gox/types/constraints"
 )
 
+// StandardDeviation ...
 func StandardDeviation[S ~[]T, T constraintsi.Number](data S, isSample bool) float64 {
 	n := float64(len(data))
 	var sum float64
@@ -28,6 +29,7 @@ func StandardDeviation[S ~[]T, T constraintsi.Number](data S, isSample bool) flo
 	return varianceSum / n
 }
 
+// Variance ...
 func Variance[S ~[]T, T constraintsi.Number](data S, isSample bool) float64 {
 	n := float64(len(data))
 	if n == 0 {
@@ -54,6 +56,7 @@ func Variance[S ~[]T, T constraintsi.Number](data S, isSample bool) float64 {
 	return varianceSum / n
 }
 
+// Max ...
 func Max[T constraintsi.Ordered](data ...T) T {
 	max := data[0]
 	n := len(data)
@@ -65,6 +68,7 @@ func Max[T constraintsi.Ordered](data ...T) T {
 	return max
 }
 
+// Min ...
 func Min[T constraintsi.Ordered](data ...T) T {
 	min := data[0]
 	n := len(data)
@@ -76,6 +80,7 @@ func Min[T constraintsi.Ordered](data ...T) T {
 	return min
 }
 
+// MinAndMax ...
 func MinAndMax[T constraintsi.Ordered](data ...T) (T, T) {
 	min, max := data[0], data[0]
 	n := len(data)

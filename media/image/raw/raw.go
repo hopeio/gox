@@ -21,18 +21,22 @@ type BGR struct {
 	Rect image.Rectangle
 }
 
+// ColorModel ...
 func (raw *BGR) ColorModel() color.Model {
 	return colori.RGBModel
 }
 
+// Bounds ...
 func (raw *BGR) Bounds() image.Rectangle {
 	return raw.Rect
 }
 
+// PixOffset ...
 func (raw *BGR) PixOffset(x, y int) int {
 	return (y-raw.Rect.Min.Y)*raw.Stride + (x-raw.Rect.Min.X)*3
 }
 
+// At ...
 func (raw *BGR) At(x, y int) color.Color {
 	if !(image.Point{X: x, Y: y}.In(raw.Rect)) {
 		return colori.RGB{}
@@ -42,6 +46,7 @@ func (raw *BGR) At(x, y int) color.Color {
 	return colori.RGB{R: r, G: g, B: b}
 }
 
+// Set ...
 func (raw *BGR) Set(x, y int, c color.Color) {
 	if !(image.Point{X: x, Y: y}.In(raw.Rect)) {
 		return
@@ -51,6 +56,7 @@ func (raw *BGR) Set(x, y int, c color.Color) {
 	raw.Pix[i], raw.Pix[i+1], raw.Pix[i+2] = uint8(b), uint8(g), uint8(r)
 }
 
+// NewBGR creates and returns a new instance.
 func NewBGR(rawValues []byte, width, height int) (*BGR, error) {
 	if len(rawValues) != width*height*3 {
 		return nil, fmt.Errorf("invalid image raw data")

@@ -15,10 +15,12 @@ import (
 	"regexp"
 )
 
+// IPStrToUint32 ...
 func IPStrToUint32(ipStr string) uint32 {
 	return IPv4ToUint32(net.ParseIP(ipStr))
 }
 
+// IPv4ToUint32 ...
 func IPv4ToUint32(ip net.IP) uint32 {
 	if ip.To4() == nil {
 		return 0
@@ -28,6 +30,7 @@ func IPv4ToUint32(ip net.IP) uint32 {
 	return uint32(ipBytes[0])<<24 | uint32(ipBytes[1])<<16 | uint32(ipBytes[2])<<8 | uint32(ipBytes[3])
 }
 
+// Uint32ToIPv4 ...
 func Uint32ToIPv4(ipInt uint32) net.IP {
 	if ipInt == 0 {
 		return nil
@@ -40,11 +43,13 @@ func Uint32ToIPv4(ipInt uint32) net.IP {
 	return ip
 }
 
+// ExternalIPStr ...
 func ExternalIPStr() string {
 	ip, _ := ExternalIP()
 	return ip.String()
 }
 
+// ExternalIP ...
 func ExternalIP() (net.IP, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -72,6 +77,7 @@ func ExternalIP() (net.IP, error) {
 	return nil, errors.New("network error")
 }
 
+// AddrToIP ...
 func AddrToIP(addr net.Addr) net.IP {
 	var ip net.IP
 	switch v := addr.(type) {
@@ -91,6 +97,7 @@ func AddrToIP(addr net.Addr) net.IP {
 	return ip
 }
 
+// CommonIPV4 ...
 func CommonIPV4() (string, error) {
 	res, err := http.Get("http://txt.go.sohu.com/ip/soip")
 	if err != nil {
@@ -105,7 +112,7 @@ func CommonIPV4() (string, error) {
 	return string(reg.Find(body)), nil
 }
 
-// 获取当前公网 IPv6 地址
+// CommonIPv6 ...
 func CommonIPv6() (string, error) {
 	resp, err := http.Get("https://api64.ipify.org")
 	if err != nil {
@@ -121,7 +128,7 @@ func CommonIPv6() (string, error) {
 	return ip, nil
 }
 
-// 获取本机ip地址
+// LocalIPv4s ...
 func LocalIPv4s() ([]net.IP, error) {
 	var ipv4Addrs []net.IP
 	addrs, err := net.InterfaceAddrs()
@@ -138,6 +145,7 @@ func LocalIPv4s() ([]net.IP, error) {
 	return ipv4Addrs, nil
 }
 
+// IPv4s ...
 func IPv4s() ([]net.IP, error) {
 	var ipv4Addrs []net.IP
 	address, err := net.InterfaceAddrs()
@@ -154,6 +162,7 @@ func IPv4s() ([]net.IP, error) {
 	return ipv4Addrs, nil
 }
 
+// LocalIPv6s ...
 func LocalIPv6s() ([]net.IP, error) {
 	var ipv6Addrs []net.IP
 
@@ -176,6 +185,7 @@ func LocalIPv6s() ([]net.IP, error) {
 	return ipv6Addrs, nil
 }
 
+// IPv6s ...
 func IPv6s() ([]net.IP, error) {
 	var ipv6s []net.IP
 
@@ -198,6 +208,7 @@ func IPv6s() ([]net.IP, error) {
 	return ipv6s, nil
 }
 
+// PrivateIPv4 ...
 func PrivateIPv4() (net.IP, error) {
 	as, err := net.InterfaceAddrs()
 	if err != nil {

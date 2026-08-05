@@ -14,6 +14,7 @@ import (
 	"github.com/rs/cors"
 )
 
+// Director ...
 func Director() *httputil.ReverseProxy {
 	proxy := &httputil.ReverseProxy{
 		Director: func(r *http.Request) {
@@ -42,6 +43,7 @@ func Director() *httputil.ReverseProxy {
 	return proxy
 }
 
+// DirectorServer ...
 func DirectorServer(addr string) error {
 	server := cors.AllowAll()
 	return http.ListenAndServe(addr, server.Handler(Director()))

@@ -16,12 +16,14 @@ import (
 
 var timeType = reflect.TypeOf(time.Time{})
 
+// New ...
 func New[T any]() T {
 	var v T
 	Mock(&v)
 	return v
 }
 
+// Mock ...
 func Mock(v any) {
 	value := reflect.ValueOf(v)
 	typMap := make(map[reflect.Type]uint8)
@@ -34,6 +36,7 @@ const length = 1
 // 一个类型最大重复次数
 const times = 3
 
+// mock ...
 func mock(value reflect.Value, field *reflect.StructField, typMap map[reflect.Type]uint8) {
 	typ := value.Type()
 	var tag string

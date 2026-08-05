@@ -16,6 +16,7 @@ import (
 	"github.com/hopeio/gox/log"
 )
 
+// Rewrite ...
 func Rewrite(ctx context.Context, url string, localPath string) chromedp.Action {
 	data, err := os.ReadFile(localPath)
 	log.Errorf("failed read file: %v", err)

@@ -20,6 +20,7 @@ var HanPunctuation = []rune{
 	'\u3002', '\uff1b', '\uff0c', '\uff1a', '\u201c', '\u201d', '\uff08', '\uff09', '\u3001', '\uff1f', '\u300a', '\u300b',
 }
 
+// HasHan reports whether the condition holds.
 func HasHan(s string) bool {
 	for _, r := range s {
 		if unicode.Is(unicode.Han, r) || slices.Contains(HanPunctuation, r) {
@@ -52,6 +53,7 @@ func Getu4(s []byte) rune {
 	return r
 }
 
+// ToUtf8 ...
 func ToUtf8(s []byte) string {
 	if len(s) < 6 {
 		return stringsx.FromBytes(s)
@@ -87,6 +89,7 @@ func ToUtf8(s []byte) string {
 	return stringsx.FromBytes(b[:bbegin])
 }
 
+// ToLowerFirst ...
 func ToLowerFirst(s string) string {
 	if len(s) > 0 {
 		return string(unicode.ToLower(rune(s[0]))) + s[1:]

@@ -33,6 +33,7 @@ const (
 	EncodingConsole = "console"
 )
 
+// NewProductionConfig creates and returns a new instance.
 func NewProductionConfig(appName string) *Config {
 	return &Config{
 		Name: appName,
@@ -50,6 +51,7 @@ func NewProductionConfig(appName string) *Config {
 	}
 }
 
+// NewProductionEncoderConfig creates and returns a new instance.
 func NewProductionEncoderConfig() zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
 		TimeKey:        FieldTime,
@@ -67,6 +69,7 @@ func NewProductionEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
+// NewDevelopmentConfig creates and returns a new instance.
 func NewDevelopmentConfig(appName string) *Config {
 	return &Config{
 		Name: appName,
@@ -80,6 +83,7 @@ func NewDevelopmentConfig(appName string) *Config {
 	}
 }
 
+// NewDevelopmentEncoderConfig creates and returns a new instance.
 func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
 		// Keys can be anything except the empty string.
@@ -119,6 +123,7 @@ type OtelConfig struct {
 	LoggerProvider otellog.LoggerProvider `json:"loggerProvider,omitempty"`
 }
 
+// Init ...
 func (lc *Config) Init() {
 	if lc.Name == "" {
 		lc.Name = FieldApp
@@ -228,7 +233,7 @@ func (lc *Config) Init() {
 	}
 }
 
-// 初始化日志对象
+// NewLogger creates and returns a new instance.
 func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 	logger := lc.initLogger(cores...)
 	// 不是测试环境要加主机名和ip
@@ -243,7 +248,7 @@ func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 	return &Logger{logger}
 }
 
-// 构建日志对象基本信息
+// initLogger ...
 func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	lc.Init()
 
@@ -307,6 +312,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	return logger
 }
 
+// hook ...
 func (lc *Config) hook() []zap.Option {
 	var hooks []zap.Option
 

@@ -13,6 +13,7 @@ import (
 
 type Range[T any] sqlx.Range[T]
 
+// Condition ...
 func (req *Range[T]) Condition() clause.Expression {
 	if req == nil || req.Field == "" {
 		return nil

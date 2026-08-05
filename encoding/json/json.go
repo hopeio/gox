@@ -20,6 +20,7 @@ var (
 	NewEncoder = json.NewEncoder
 )
 
+// MarshalToString ...
 func MarshalToString(v any) (string, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -28,6 +29,7 @@ func MarshalToString(v any) (string, error) {
 	return strings.FromBytes(data), nil
 }
 
+// UnmarshalFromString ...
 func UnmarshalFromString(str string, v any) error {
 	return json.Unmarshal(strings.ToBytes(str), v)
 }

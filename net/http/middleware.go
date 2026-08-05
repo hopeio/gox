@@ -12,6 +12,7 @@ import (
 
 type Middleware func(http.Handler) http.Handler
 
+// UseMiddleware ...
 func UseMiddleware(handler http.Handler, middlewares ...Middleware) http.Handler {
 	for _, mw := range middlewares {
 		newHandler := mw(handler)
@@ -33,6 +34,7 @@ type MiddlewareContext struct {
 	index          int
 }
 
+// NewMiddlewareContext creates and returns a new instance.
 func NewMiddlewareContext(handler http.Handler, handlers ...MiddlewareContextHandler) *MiddlewareContext {
 	return &MiddlewareContext{
 		handler:  handler,
@@ -40,10 +42,12 @@ func NewMiddlewareContext(handler http.Handler, handlers ...MiddlewareContextHan
 	}
 }
 
+// Use ...
 func (m *MiddlewareContext) Use(mw MiddlewareContextHandler) {
 	m.handlers = append(m.handlers, mw)
 }
 
+// Next ...
 func (m *MiddlewareContext) Next() {
 	if m.index >= len(m.handlers) {
 		return
@@ -57,6 +61,7 @@ func (m *MiddlewareContext) Next() {
 	m.handlers[m.index](m)
 }
 
+// ServeHTTP ...
 func (m *MiddlewareContext) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.Request = r
 	m.ResponseWriter = w

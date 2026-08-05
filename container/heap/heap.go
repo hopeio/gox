@@ -12,10 +12,12 @@ import (
 
 type Heap[T cmp.Comparable[T]] []T
 
+// New ...
 func New[T cmp.Comparable[T]](l int) Heap[T] {
 	return make([]T, 0, l)
 }
 
+// NewFromArray creates and returns a new instance.
 func NewFromArray[T cmp.Comparable[T]](arr []T) Heap[T] {
 	heap := Heap[T](arr)
 	for i := 1; i < len(arr); i++ {
@@ -24,10 +26,12 @@ func NewFromArray[T cmp.Comparable[T]](arr []T) Heap[T] {
 	return heap
 }
 
+// Init ...
 func (heap Heap[T]) Init() {
 	Init(heap)
 }
 
+// Push ...
 func (heap *Heap[T]) Push(x T) {
 	h := *heap
 	h = append(h, x)
@@ -35,6 +39,7 @@ func (heap *Heap[T]) Push(x T) {
 	*heap = h
 }
 
+// Pop ...
 func (heap *Heap[T]) Pop() (T, bool) {
 	h := *heap
 	if len(h) == 0 {
@@ -48,6 +53,7 @@ func (heap *Heap[T]) Pop() (T, bool) {
 	return item, true
 }
 
+// First ...
 func (heap Heap[T]) First() (T, bool) {
 	if len(heap) == 0 {
 		return *new(T), false
@@ -55,6 +61,7 @@ func (heap Heap[T]) First() (T, bool) {
 	return heap[0], true
 }
 
+// Last ...
 func (heap Heap[T]) Last() (T, bool) {
 	if len(heap) == 0 {
 		return *new(T), false
@@ -62,6 +69,7 @@ func (heap Heap[T]) Last() (T, bool) {
 	return heap[len(heap)-1], true
 }
 
+// Remove ...
 func (heap *Heap[T]) Remove(i int) (T, bool) {
 	h := *heap
 	if len(h) == 0 {

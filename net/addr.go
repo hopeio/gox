@@ -8,6 +8,7 @@ package net
 
 type StrAddr string
 
+// Network ...
 func (a StrAddr) Network() string {
 	if a != "" {
 		// Per the documentation on net/http.Request.RemoteAddr, if this is
@@ -24,4 +25,5 @@ func (a StrAddr) Network() string {
 	return ""
 }
 
+// String returns the string representation.
 func (a StrAddr) String() string { return string(a) }

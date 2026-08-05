@@ -12,12 +12,14 @@ type LRU struct {
 	evictList *list.List
 }
 
+// init ...
 func (c *LRU) init(bc *baseCache) {
 	c.baseCache = bc
 	c.evictList = list.New()
 	c.items = make(map[any]*list.Element, c.size+1)
 }
 
+// set ...
 func (c *LRU) set(key, value any, expiration *time.Time) (*item, error) {
 	// Check for existing item
 	var it *item
@@ -46,6 +48,7 @@ func (c *LRU) set(key, value any, expiration *time.Time) (*item, error) {
 	return it, nil
 }
 
+// get ...
 func (c *LRU) get(key any, onLoad bool) (*item, error) {
 	ite, ok := c.items[key]
 	if ok {
@@ -78,6 +81,7 @@ func (c *LRU) evict(count int) {
 	}
 }
 
+// has ...
 func (c *LRU) has(key any, now *time.Time) bool {
 	it, ok := c.items[key]
 	if !ok {
@@ -86,6 +90,7 @@ func (c *LRU) has(key any, now *time.Time) bool {
 	return !it.Value.(*item).Expired(now)
 }
 
+// remove ...
 func (c *LRU) remove(key any) bool {
 	if ent, ok := c.items[key]; ok {
 		c.removeElement(ent)
@@ -94,6 +99,7 @@ func (c *LRU) remove(key any) bool {
 	return false
 }
 
+// removeElement ...
 func (c *LRU) removeElement(e *list.Element) {
 	c.evictList.Remove(e)
 	entry := e.Value.(*item)
@@ -104,10 +110,12 @@ func (c *LRU) removeElement(e *list.Element) {
 	}
 }
 
+// length ...
 func (c *LRU) length() int {
 	return len(c.items)
 }
 
+// foreach ...
 func (c *LRU) foreach(f func(*item)) {
 	for _, e := range c.items {
 		f(e.Value.(*item))

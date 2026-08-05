@@ -9,6 +9,7 @@ import (
 
 var defaultRandomIDGenerator randomIDGenerator
 
+// init ...
 func init() {
 	var rngSeed int64
 	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)
@@ -20,10 +21,12 @@ type randomIDGenerator struct {
 	randSource *rand.Rand
 }
 
+// NewRandomIDGenerator creates and returns a new instance.
 func NewRandomIDGenerator(randSource *rand.Rand) *randomIDGenerator {
 	return &randomIDGenerator{randSource: randSource}
 }
 
+// NewRandomID creates and returns a new instance.
 func NewRandomID() ID {
 	defaultRandomIDGenerator.Lock()
 	defer defaultRandomIDGenerator.Unlock()

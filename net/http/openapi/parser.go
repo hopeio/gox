@@ -9,6 +9,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+// Get ...
 func Get(packageName string) (m map[string]string, err error) {
 	config := &packages.Config{
 		Mode:  packages.NeedTypes | packages.NeedTypesInfo | packages.NeedSyntax,
@@ -30,6 +31,7 @@ func Get(packageName string) (m map[string]string, err error) {
 	return
 }
 
+// processFile ...
 func processFile(packageName string, pkg *packages.Package, file *ast.File, m map[string]string) {
 	var lastComment string
 	var typ string
@@ -86,6 +88,7 @@ func processFile(packageName string, pkg *packages.Package, file *ast.File, m ma
 	})
 }
 
+// getFieldName ...
 func getFieldName(field *ast.Field) string {
 	var names []string
 	for _, name := range field.Names {

@@ -8,12 +8,11 @@ package scheduler
 
 import "go.uber.org/multierr"
 
-
 type Retrier interface {
 	Do(times uint) (retry bool)
 }
 
-
+// RetryRunTimes ...
 func RetryRunTimes(times int, f func(int) error) error {
 	var errs error
 	for i := 0; i < times; i++ {
@@ -27,6 +26,7 @@ func RetryRunTimes(times int, f func(int) error) error {
 	return errs
 }
 
+// RetryRun ...
 func RetryRun(f func(int) bool) {
 	for i := 0; ; i++ {
 		if !f(i) {

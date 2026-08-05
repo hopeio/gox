@@ -14,6 +14,7 @@ import (
 // Using map for better lookup performance
 type ExcludedExtensions map[string]bool
 
+// NewExcludedExtensions creates and returns a new instance.
 func NewExcludedExtensions(extensions []string) ExcludedExtensions {
 	res := make(ExcludedExtensions)
 	for _, e := range extensions {
@@ -22,6 +23,7 @@ func NewExcludedExtensions(extensions []string) ExcludedExtensions {
 	return res
 }
 
+// Contains ...
 func (e ExcludedExtensions) Contains(target string) bool {
 	_, ok := e[target]
 	return ok
@@ -29,10 +31,12 @@ func (e ExcludedExtensions) Contains(target string) bool {
 
 type ExcludedPaths []string
 
+// NewExcludedPaths creates and returns a new instance.
 func NewExcludedPaths(paths []string) ExcludedPaths {
 	return paths
 }
 
+// Contains ...
 func (e ExcludedPaths) Contains(requestURI string) bool {
 	for _, path := range e {
 		if strings.HasPrefix(requestURI, path) {
@@ -44,6 +48,7 @@ func (e ExcludedPaths) Contains(requestURI string) bool {
 
 type ExcludedPathsRegex []*regexp.Regexp
 
+// NewExcludedPathsRegex creates and returns a new instance.
 func NewExcludedPathsRegex(regexes []string) ExcludedPathsRegex {
 	result := make([]*regexp.Regexp, len(regexes), len(regexes))
 	for i, reg := range regexes {
@@ -52,6 +57,7 @@ func NewExcludedPathsRegex(regexes []string) ExcludedPathsRegex {
 	return result
 }
 
+// Contains ...
 func (e ExcludedPathsRegex) Contains(requestURI string) bool {
 	for _, reg := range e {
 		if reg.MatchString(requestURI) {

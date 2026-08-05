@@ -5,29 +5,32 @@ import (
 	"strings"
 
 	"github.com/hopeio/gox/database/sql"
-	"github.com/hopeio/gox/structtag"
 	stringsx "github.com/hopeio/gox/strings"
+	"github.com/hopeio/gox/structtag"
 	"gorm.io/gorm/clause"
 )
-
 
 var paginationEmbeddedType = reflect.TypeFor[PaginationEmbedded]()
 var paginationEmbeddedPtrType = reflect.TypeFor[*PaginationEmbedded]()
 var paginationType = reflect.TypeFor[Pagination]()
 var paginationPtrType = reflect.TypeFor[*Pagination]()
 
+// AndConditionBy ...
 func AndConditionBy(param any) clause.Expression {
 	return andConditionBy(reflect.ValueOf(param))
 }
 
+// OrConditionBy ...
 func OrConditionBy(param any) clause.Expression {
 	return orConditionBy(reflect.ValueOf(param))
 }
 
+// NotConditionBy ...
 func NotConditionBy(param any) clause.Expression {
 	return notConditionBy(reflect.ValueOf(param))
 }
 
+// andConditionBy ...
 func andConditionBy(param reflect.Value) clause.Expression {
 	conditions := conditionsBy(param)
 	if len(conditions) > 0 {
@@ -36,6 +39,7 @@ func andConditionBy(param reflect.Value) clause.Expression {
 	return nil
 }
 
+// orConditionBy ...
 func orConditionBy(param reflect.Value) clause.Expression {
 	conditions := conditionsBy(param)
 
@@ -45,6 +49,7 @@ func orConditionBy(param reflect.Value) clause.Expression {
 	return nil
 }
 
+// notConditionBy ...
 func notConditionBy(param reflect.Value) clause.Expression {
 	conditions := conditionsBy(param)
 	if len(conditions) > 0 {
@@ -53,10 +58,12 @@ func notConditionBy(param reflect.Value) clause.Expression {
 	return nil
 }
 
+// ConditionsBy ...
 func ConditionsBy(param any) []clause.Expression {
 	return conditionsBy(reflect.ValueOf(param))
 }
 
+// conditionsByImpl ...
 func conditionsByImpl(param reflect.Value) (clause.Expression, bool) {
 	t := param.Type()
 	if t.Implements(conditionExprType) {
@@ -73,6 +80,8 @@ func conditionsByImpl(param reflect.Value) (clause.Expression, bool) {
 	}
 	return nil, false
 }
+
+// conditionsBy ...
 func conditionsBy(param reflect.Value) []clause.Expression {
 	condition, impl := conditionsByImpl(param)
 	if impl {

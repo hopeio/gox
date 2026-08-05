@@ -14,6 +14,7 @@ import (
 
 type ContentType uint8
 
+// String returns the string representation.
 func (c ContentType) String() string {
 	switch c {
 	case ContentTypeUnset:
@@ -30,6 +31,7 @@ func (c ContentType) String() string {
 	}
 }
 
+// Decode ...
 func (c *ContentType) Decode(contentType string) {
 	if strings.HasPrefix(contentType, http.ContentTypeJson) {
 		*c = ContentTypeJson

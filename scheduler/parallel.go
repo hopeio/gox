@@ -17,6 +17,7 @@ type Parallel struct {
 	wg     sync.WaitGroup
 }
 
+// NewParallel creates and returns a new instance.
 func NewParallel(workNum uint, opts ...ParallelOption) *Parallel {
 	taskCh := make(chan func(), workNum)
 	p := &Parallel{taskCh: taskCh}
@@ -43,15 +44,18 @@ func NewParallel(workNum uint, opts ...ParallelOption) *Parallel {
 	return p
 }
 
+// AddFunc ...
 func (p *Parallel) AddFunc(task func()) {
 	p.wg.Add(1)
 	p.taskCh <- task
 }
 
+// Wait ...
 func (p *Parallel) Wait() {
 	p.wg.Wait()
 }
 
+// Stop closes and releases resources.
 func (p *Parallel) Stop() {
 	p.wg.Wait()
 	close(p.taskCh)
@@ -61,6 +65,7 @@ type ParallelOption func(p *Parallel)
 
 type Funcs []func()
 
+// Do ...
 func (t *Funcs) Do() {
 	taskChain := *t
 	for i := 0; i < len(taskChain); i++ {

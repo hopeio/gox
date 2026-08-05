@@ -9,12 +9,13 @@ package tls
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"github.com/hopeio/gox/log"
 	"os"
-	"errors"
 )
 
+// NewServerTLSConfig creates and returns a new instance.
 func NewServerTLSConfig(certFile, keyFile string, clients ...string) (*tls.Config, error) {
 	if certFile == "" || keyFile == "" {
 		return nil, errors.New("certFile or keyFile is empty")
@@ -46,6 +47,7 @@ func NewServerTLSConfig(certFile, keyFile string, clients ...string) (*tls.Confi
 	}, nil
 }
 
+// NewClientTLSConfig creates and returns a new instance.
 func NewClientTLSConfig(certFile, serverName string) (*tls.Config, error) {
 	b, err := os.ReadFile(certFile)
 	if err != nil {

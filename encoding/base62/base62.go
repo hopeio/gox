@@ -7,6 +7,7 @@ import (
 
 const base62Alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+// EncodeToString ...
 func EncodeToString(data []byte) string {
 	if len(data) == 0 {
 		return ""
@@ -44,6 +45,7 @@ func EncodeToString(data []byte) string {
 
 var base62DecodeMap [256]byte
 
+// init ...
 func init() {
 	for i := range base62DecodeMap {
 		base62DecodeMap[i] = 255
@@ -53,7 +55,7 @@ func init() {
 	}
 }
 
-// DecodeString 将Base62编码的字符串解码为字节数组
+// DecodeString ...
 func DecodeString(s string) ([]byte, error) {
 	if s == "" {
 		return []byte{}, nil

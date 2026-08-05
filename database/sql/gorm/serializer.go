@@ -21,6 +21,7 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+// init ...
 func init() {
 	schema.RegisterSerializer("json", JSONSerializer{})
 	schema.RegisterSerializer("string_array", StringArraySerializer{})
@@ -28,12 +29,11 @@ func init() {
 	schema.RegisterSerializer("date", DateSerializer{})
 }
 
-
 // JSONSerializer json序列化器
 type JSONSerializer struct {
 }
 
-// 实现 Scan 方法
+// Scan ...
 func (JSONSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value, dbValue interface{}) (err error) {
 	fieldValue := reflect.New(field.FieldType)
 
@@ -55,7 +55,7 @@ func (JSONSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect
 	return
 }
 
-// 实现 Value 方法
+// Value ...
 func (JSONSerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue interface{}) (interface{}, error) {
 	return jsonx.Marshal(fieldValue)
 }
@@ -64,7 +64,7 @@ func (JSONSerializer) Value(ctx context.Context, field *schema.Field, dst reflec
 type StringArraySerializer struct {
 }
 
-// 实现 Scan 方法
+// Scan ...
 func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value,
 	dbValue any) (err error) {
 	if dbValue != nil {
@@ -79,7 +79,7 @@ func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst 
 	return
 }
 
-// 实现 Value 方法
+// Value ...
 func (StringArraySerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue any) (any, error) {
 	arr := (*sqlx.StringArray)(unsafe.Pointer((*reflectx.Eface)(unsafe.Pointer(&fieldValue)).Value))
 	return (*arr).Value()
@@ -87,7 +87,6 @@ func (StringArraySerializer) Value(ctx context.Context, field *schema.Field, dst
 
 type UnixMilliTimeSerializer struct {
 }
-
 
 // Scan implements serializer interface
 func (UnixMilliTimeSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value, dbValue interface{}) (err error) {
@@ -131,7 +130,6 @@ func (UnixMilliTimeSerializer) Value(ctx context.Context, field *schema.Field, d
 	return
 }
 
-
 type DateSerializer struct {
 }
 
@@ -149,19 +147,19 @@ func (DateSerializer) Value(ctx context.Context, field *schema.Field, dst reflec
 	rv := reflect.ValueOf(fieldValue)
 	switch fieldValue.(type) {
 	case int, int32, int64:
-		result = time.Unix(rv.Int() * int64(time.Hour) * 24, 0).Format("2006-01-02")
+		result = time.Unix(rv.Int()*int64(time.Hour)*24, 0).Format("2006-01-02")
 	case uint, uint32, uint64:
-		result = time.Unix(int64(rv.Uint()) * int64(time.Hour) * 24, 0).Format("2006-01-02")
+		result = time.Unix(int64(rv.Uint())*int64(time.Hour)*24, 0).Format("2006-01-02")
 	case *int, *int32, *int64:
 		if rv.IsZero() {
 			return nil, nil
 		}
-		result = time.Unix(rv.Elem().Int() * int64(time.Hour) * 24, 0).Format("2006-01-02")
+		result = time.Unix(rv.Elem().Int()*int64(time.Hour)*24, 0).Format("2006-01-02")
 	case *uint, *uint32, *uint64:
 		if rv.IsZero() {
 			return nil, nil
 		}
-		result = time.Unix(int64(rv.Elem().Uint()) * int64(time.Hour) * 24, 0).Format("2006-01-02")
+		result = time.Unix(int64(rv.Elem().Uint())*int64(time.Hour)*24, 0).Format("2006-01-02")
 	default:
 		err = fmt.Errorf("invalid field type %#v for DateSerializer, only int, uint supported", fieldValue)
 	}

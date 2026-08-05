@@ -389,6 +389,7 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 	return nil
 }
 
+// isTextUnmarshaler reports whether the condition holds.
 func isTextUnmarshaler(v reflect.Value) unmarshaler {
 	// Create a new unmarshaler instance
 	m := unmarshaler{}
@@ -458,6 +459,7 @@ type ConversionError struct {
 	Err   error        // low-level error (when it exists)
 }
 
+// Error returns the error message string.
 func (e ConversionError) Error() string {
 	var output string
 
@@ -480,6 +482,7 @@ type UnknownKeyError struct {
 	Key string // key from the source map.
 }
 
+// Error returns the error message string.
 func (e UnknownKeyError) Error() string {
 	return fmt.Sprintf("schema: invalid path %q", e.Key)
 }
@@ -489,6 +492,7 @@ type EmptyFieldError struct {
 	Key string // required key in the source map.
 }
 
+// Error returns the error message string.
 func (e EmptyFieldError) Error() string {
 	return fmt.Sprintf("%v is empty", e.Key)
 }

@@ -61,14 +61,14 @@ type Ziplist struct {
 	head uint32
 }
 
-// 新建一个ziplist
+// New ...
 func New() *Ziplist {
 	z := &Ziplist{}
 	z.bytes = make([]byte, 0, 1024)
 	return z
 }
 
-// 在ziplist中添加一个元素
+// push ...
 func (z *Ziplist) push(value []byte) error {
 	var prelen uint32
 	if z.tail != 0 && z.length > 0 {
@@ -101,7 +101,7 @@ func (z *Ziplist) push(value []byte) error {
 	return nil
 }
 
-// 在ziplist中添加一个int类型的元素
+// pushInt ...
 func (z *Ziplist) pushInt(value int64) error {
 
 	var prelen uint32

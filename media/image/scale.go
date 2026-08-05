@@ -18,14 +18,17 @@ type AveragePoolImage struct {
 	reductionFactor   int
 }
 
+// ColorModel ...
 func (img *AveragePoolImage) ColorModel() color.Model {
 	return img.img.ColorModel()
 }
 
+// Bounds ...
 func (img *AveragePoolImage) Bounds() image.Rectangle {
 	return img.Rect
 }
 
+// At ...
 func (img *AveragePoolImage) At(x, y int) color.Color {
 	var r, b, g, a uint32
 	reductionFactor := uint32(img.reductionFactor)
@@ -47,6 +50,7 @@ func (img *AveragePoolImage) At(x, y int) color.Color {
 	return color.RGBA64{uint16(r / reductionFactor), uint16(g / reductionFactor), uint16(b / reductionFactor), uint16(a / reductionFactor)}
 }
 
+// NewAveragePoolImage creates and returns a new instance.
 func NewAveragePoolImage(img image.Image, reductionFactor int) *AveragePoolImage {
 	bounds := img.Bounds()
 	bounds.Max.X = bounds.Max.X / reductionFactor

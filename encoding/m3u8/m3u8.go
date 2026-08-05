@@ -65,6 +65,7 @@ type Key struct {
 	IV     string
 }
 
+// Parse ...
 func Parse(body []byte) (*M3u8, error) {
 	s := bufio.NewScanner(bytes.NewReader(body))
 	var lines []string
@@ -221,6 +222,7 @@ func Parse(body []byte) (*M3u8, error) {
 	return m3u8, nil
 }
 
+// parseMasterPlaylist ...
 func parseMasterPlaylist(line string) (*MasterPlaylist, error) {
 	params := parseLineParameters(line)
 	if len(params) == 0 {

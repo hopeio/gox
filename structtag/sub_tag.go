@@ -10,10 +10,12 @@ package structtag
 // e.g. `key:"example:'1' type:'\\w' test:'\"'"`
 type SubTag string
 
+// SubTagLookup ...
 func SubTagLookup(subTag, key string) (value string, ok bool) {
 	return SubTag(subTag).Lookup(key)
 }
 
+// Lookup ...
 func (tag SubTag) Lookup(key string) (value string, ok bool) {
 
 	for tag != "" {

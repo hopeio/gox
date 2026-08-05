@@ -30,6 +30,7 @@ func (t ID) MarshalJSON() ([]byte, error) {
 	return strings.ToBytes(`"` + t.String() + `"`), nil
 }
 
+// UnmarshalJSON ...
 func (t ID) UnmarshalJSON(data []byte) error {
 	if len(data) != 18 {
 		return errors.New("invalid ID")
@@ -43,26 +44,32 @@ func (t ID) String() string {
 	return hex.EncodeToString(t[:])
 }
 
+// Hex ...
 func (t ID) Hex() string {
 	return hex.EncodeToString(t[:])
 }
 
+// Bytes ...
 func (t ID) Bytes() []byte {
 	return t[:]
 }
 
+// Base32 ...
 func (t ID) Base32() string {
 	return base32.StdEncoding.EncodeToString(t)
 }
 
+// Base58 ...
 func (t ID) Base58() string {
 	return base58.EncodeToString(t)
 }
 
+// Base62 ...
 func (t ID) Base62() string {
 	return base62.EncodeToString(t)
 }
 
+// Base64 ...
 func (t ID) Base64() string {
 	return base64.StdEncoding.EncodeToString(t)
 }

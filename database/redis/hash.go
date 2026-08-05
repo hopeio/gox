@@ -11,6 +11,7 @@ import (
 	"strconv"
 )
 
+// HashDecode reports whether the condition holds.
 func HashDecode(v any, args map[string]string) {
 	uValue := reflect.ValueOf(v).Elem()
 	uType := uValue.Type()
@@ -36,6 +37,7 @@ func HashDecode(v any, args map[string]string) {
 	}
 }
 
+// HashEncode reports whether the condition holds.
 func HashEncode(v any) []any {
 	uValue := reflect.ValueOf(v).Elem()
 	uType := uValue.Type()

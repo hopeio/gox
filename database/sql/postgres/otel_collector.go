@@ -11,8 +11,8 @@ import (
 )
 
 type OTelCollector struct {
-	meter          metric.Meter
-	db             *sql.DB
+	meter metric.Meter
+	db    *sql.DB
 
 	lagGauge       metric.Float64ObservableGauge
 	startGauge     metric.Float64ObservableGauge
@@ -22,10 +22,12 @@ type OTelCollector struct {
 	closeOnce      sync.Once
 }
 
+// NewOTelCollector creates and returns a new instance.
 func NewOTelCollector(db *sql.DB, meter metric.Meter) *OTelCollector {
 	return &OTelCollector{db: db, meter: meter}
 }
 
+// Init ...
 func (c *OTelCollector) Init() error {
 	if err := c.initInstruments(); err != nil {
 		return err
@@ -38,6 +40,7 @@ func (c *OTelCollector) Init() error {
 	return nil
 }
 
+// initInstruments ...
 func (c *OTelCollector) initInstruments() error {
 	var err error
 	c.lagGauge, err = c.meter.Float64ObservableGauge("db.postgres.replication_lag_seconds")
@@ -56,8 +59,7 @@ func (c *OTelCollector) initInstruments() error {
 	return err
 }
 
-
-
+// Close closes and releases resources.
 func (c *OTelCollector) Close(context.Context) error {
 	c.closeOnce.Do(func() {
 		if c.reg != nil {
@@ -67,6 +69,7 @@ func (c *OTelCollector) Close(context.Context) error {
 	return nil
 }
 
+// observe ...
 func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	o.ObserveFloat64(c.lagGauge, c.queryLag())
 	o.ObserveFloat64(c.startGauge, c.queryStartTime())
@@ -80,6 +83,7 @@ func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	return nil
 }
 
+// queryLag ...
 func (c *OTelCollector) queryLag() float64 {
 	rows, err := c.db.Query("SELECT CASE WHEN NOT pg_is_in_recovery() THEN 0 ELSE GREATEST(0, EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp()))) END")
 	if err != nil {
@@ -93,6 +97,7 @@ func (c *OTelCollector) queryLag() float64 {
 	return lag
 }
 
+// queryStartTime ...
 func (c *OTelCollector) queryStartTime() float64 {
 	rows, err := c.db.Query("SELECT EXTRACT(EPOCH FROM pg_postmaster_start_time())")
 	if err != nil {
@@ -106,6 +111,7 @@ func (c *OTelCollector) queryStartTime() float64 {
 	return start
 }
 
+// queryDatabaseSize ...
 func (c *OTelCollector) queryDatabaseSize() map[string]float64 {
 	rows, err := c.db.Query("SELECT datname, pg_database_size(datname) AS size_bytes FROM pg_database")
 	if err != nil {
@@ -123,6 +129,7 @@ func (c *OTelCollector) queryDatabaseSize() map[string]float64 {
 	return out
 }
 
+// queryTableRows ...
 func (c *OTelCollector) queryTableRows() map[string]float64 {
 	rows, err := c.db.Query("SELECT schemaname, relname, COALESCE(n_live_tup,0) FROM pg_stat_user_tables")
 	if err != nil {
@@ -140,6 +147,7 @@ func (c *OTelCollector) queryTableRows() map[string]float64 {
 	return out
 }
 
+// splitTableKey ...
 func splitTableKey(key string) (string, string) {
 	for i := 0; i < len(key); i++ {
 		if key[i] == '.' {

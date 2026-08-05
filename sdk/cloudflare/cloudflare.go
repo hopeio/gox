@@ -10,6 +10,7 @@ import (
 	netx "github.com/hopeio/gox/net"
 )
 
+// DDNSV6 ...
 func DDNSV6(ctx context.Context, api *cloudflare.API, zoneID, recordID string) error {
 	resourceContainer := cloudflare.ResourceContainer{Type: cloudflare.ZoneType, Identifier: zoneID, Level: cloudflare.ZoneRouteLevel}
 	record, err := api.GetDNSRecord(ctx, &resourceContainer, recordID)

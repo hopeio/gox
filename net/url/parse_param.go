@@ -19,10 +19,12 @@ import (
 
 var tag = "json"
 
+// SetTag ...
 func SetTag(t string) {
 	tag = t
 }
 
+// ResolveURL ...
 func ResolveURL(u *stdurl.URL, p string) string {
 	if strings.HasPrefix(p, "https://") || strings.HasPrefix(p, "http://") {
 		return p
@@ -37,10 +39,12 @@ func ResolveURL(u *stdurl.URL, p string) string {
 	return baseURL + path.Join("/", p)
 }
 
+// QueryParam ...
 func QueryParam(param any) string {
 	return QueryParamByTag(param, tag)
 }
 
+// QueryParamByTag ...
 func QueryParamByTag(param any, tag string) string {
 	if param == nil {
 		return ""
@@ -53,6 +57,7 @@ func QueryParamByTag(param any, tag string) string {
 	return query.Encode()
 }
 
+// parseParamByTag ...
 func parseParamByTag(param any, query stdurl.Values, tag string) {
 	v := reflect.ValueOf(param)
 	kind := v.Kind()
@@ -102,6 +107,7 @@ func parseParamByTag(param any, query stdurl.Values, tag string) {
 	}
 }
 
+// getFieldValue ...
 func getFieldValue(v reflect.Value) string {
 	switch v.Kind() {
 	case reflect.Bool,
@@ -119,6 +125,7 @@ func getFieldValue(v reflect.Value) string {
 	}
 }
 
+// AppendQueryParamByTag ...
 func AppendQueryParamByTag(url string, param interface{}, tag string) string {
 	if param == nil {
 		return url
@@ -141,6 +148,7 @@ func AppendQueryParamByTag(url string, param interface{}, tag string) string {
 	return url
 }
 
+// AppendQueryParam ...
 func AppendQueryParam(url string, param interface{}) string {
 	return AppendQueryParamByTag(url, param, tag)
 }

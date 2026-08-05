@@ -15,6 +15,7 @@ import (
 
 type Frame int
 
+// String returns the string representation.
 func (f Frame) String() string {
 	switch f {
 	case I:
@@ -35,6 +36,7 @@ const (
 
 const GetFrameCmd = CommonCmd + `-vf "select=eq(pict_type\,%s)" -fps_mode vfr -qscale:v 2 -f image2 %s/%%03d.jpg`
 
+// GetFrame ...
 func GetFrame(path, outPutDir string, f Frame) error {
 	//cmd := `ffmpeg -i ` + path + ` -vf "select=eq(pict_type\,` + f.String() + `)" -vsync vfr -qscale:v 2 -f image2 ` + dst + `/%03d.jpg`
 	dst := filepath.Clean(outPutDir)

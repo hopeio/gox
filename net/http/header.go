@@ -27,12 +27,14 @@ type IntoHttpHeader interface {
 	IntoHttpHeader(header http.Header)
 }
 
+// HeaderIntoHttpHeader ...
 func HeaderIntoHttpHeader(header Header, httpHeader http.Header) {
 	header.Range(func(key, value string) {
 		httpHeader.Add(key, value)
 	})
 }
 
+// HttpHeaderIntoHeader ...
 func HttpHeaderIntoHeader(httpHeader http.Header, header Header) {
 	for k, vv := range httpHeader {
 		for _, v := range vv {
@@ -43,16 +45,19 @@ func HttpHeaderIntoHeader(httpHeader http.Header, header Header) {
 
 type SliceHeader []string
 
+// NewHeader creates and returns a new instance.
 func NewHeader() *SliceHeader {
 	h := make(SliceHeader, 0, 6)
 	return &h
 }
 
+// Add ...
 func (h *SliceHeader) Add(k, v string) {
 	*h = append(*h, k, v)
 
 }
 
+// Set ...
 func (h *SliceHeader) Set(k, v string) {
 	header := *h
 	for i, s := range header {
@@ -64,6 +69,7 @@ func (h *SliceHeader) Set(k, v string) {
 	h.Add(k, v)
 }
 
+// Get ...
 func (h *SliceHeader) Get(k string) string {
 	header := *h
 	for i, s := range header {
@@ -73,6 +79,8 @@ func (h *SliceHeader) Get(k string) string {
 	}
 	return ""
 }
+
+// Values ...
 func (h *SliceHeader) Values(k string) []string {
 	header := *h
 	var values []string
@@ -84,6 +92,7 @@ func (h *SliceHeader) Values(k string) []string {
 	return values
 }
 
+// Range ...
 func (h *SliceHeader) Range(f func(key, value string)) {
 	header := *h
 	for i, s := range header {
@@ -93,6 +102,7 @@ func (h *SliceHeader) Range(f func(key, value string)) {
 	}
 }
 
+// IntoHttpHeader ...
 func (h SliceHeader) IntoHttpHeader(header http.Header) {
 	hlen := len(h)
 	for i := 0; i < hlen && i+1 < hlen; i += 2 {
@@ -100,18 +110,21 @@ func (h SliceHeader) IntoHttpHeader(header http.Header) {
 	}
 }
 
+// ToHttpHeader ...
 func (h SliceHeader) ToHttpHeader() http.Header {
 	header := make(http.Header)
 	h.IntoHttpHeader(header)
 	return header
 }
 
+// Clone ...
 func (h SliceHeader) Clone() SliceHeader {
 	newh := make(SliceHeader, len(h))
 	copy(newh, h)
 	return newh
 }
 
+// CopyHttpHeader ...
 func CopyHttpHeader(dst, src http.Header) {
 	if src == nil {
 		return
@@ -124,10 +137,12 @@ func CopyHttpHeader(dst, src http.Header) {
 	}
 }
 
+// ParseDisposition ...
 func ParseDisposition(disposition string) (mediatype string, params map[string]string, err error) {
 	return mime.ParseMediaType(disposition)
 }
 
+// ParseContentRange ...
 func ParseContentRange(rangeHeader string) (start int64, end int64, total int64, err error) {
 	// 提取Range值，格式为"bytes unit-unit/*"
 	parts := strings.Split(rangeHeader, " ")
@@ -167,6 +182,7 @@ func ParseContentRange(rangeHeader string) (start int64, end int64, total int64,
 	return
 }
 
+// FormatContentRange ...
 func FormatContentRange(start, end, total int64) string {
 	if end <= 0 {
 		return fmt.Sprintf("bytes=%d-", start)
@@ -177,6 +193,7 @@ func FormatContentRange(start, end, total int64) string {
 	return fmt.Sprintf("bytes=%d-%d/%d", start, end, total)
 }
 
+// ParseRange ...
 func ParseRange(header string) (int64, int64, error) {
 	if len(header) < len("bytes=") {
 		return 0, 0, fmt.Errorf("invalid Content-Range format")
@@ -199,6 +216,7 @@ func ParseRange(header string) (int64, int64, error) {
 	return start, end, nil
 }
 
+// FormatRange ...
 func FormatRange(start, end int64) string {
 	if end <= 0 {
 		return fmt.Sprintf("bytes=%d-", start)
@@ -206,6 +224,7 @@ func FormatRange(start, end int64) string {
 	return fmt.Sprintf("bytes=%d-%d", start, end)
 }
 
+// ParseContentDisposition ...
 func ParseContentDisposition(header string) (string, error) {
 	if len(header) < len("attachment; filename=") {
 		return "", fmt.Errorf("invalid Content-Disposition header")
@@ -217,11 +236,13 @@ func ParseContentDisposition(header string) (string, error) {
 	return url.QueryUnescape(header)
 }
 
+// GetContentLength ...
 func GetContentLength(header http.Header) int64 {
 	length, _ := strconv.ParseInt(header.Get(HeaderContentLength), 10, 64)
 	return length
 }
 
+// FormatContentDisposition ...
 func FormatContentDisposition(filename string) string {
 	// Basic example without encoding considerations
 	return fmt.Sprintf(`attachment; filename="%s"`, filename)
@@ -229,34 +250,41 @@ func FormatContentDisposition(filename string) string {
 
 type MapHeader map[string]string
 
+// IntoHttpHeader ...
 func (h MapHeader) IntoHttpHeader(header http.Header) {
 	for k, v := range h {
 		header.Set(k, v)
 	}
 }
 
+// ToHttpHeader ...
 func (h MapHeader) ToHttpHeader() http.Header {
 	header := make(http.Header)
 	h.IntoHttpHeader(header)
 	return header
 }
 
+// Add ...
 func (h MapHeader) Add(k, v string) {
 	h[k] = v
 }
 
+// Set ...
 func (h MapHeader) Set(k, v string) {
 	h[k] = v
 }
 
+// Get ...
 func (h MapHeader) Get(k string) string {
 	return h[k]
 }
 
+// Values ...
 func (h MapHeader) Values(k string) []string {
 	return []string{h[k]}
 }
 
+// Range ...
 func (h MapHeader) Range(f func(key, value string)) {
 	for k, v := range h {
 		f(k, v)
@@ -265,32 +293,39 @@ func (h MapHeader) Range(f func(key, value string)) {
 
 type HttpHeader http.Header
 
+// IntoHttpHeader ...
 func (h HttpHeader) IntoHttpHeader(header http.Header) {
 	for k, v := range h {
 		header.Set(k, v[0])
 	}
 }
 
+// ToHttpHeader ...
 func (h HttpHeader) ToHttpHeader() http.Header {
 	return http.Header(h)
 }
 
+// Add ...
 func (h HttpHeader) Add(k, v string) {
 	http.Header(h).Add(k, v)
 }
 
+// Set ...
 func (h HttpHeader) Set(k, v string) {
 	http.Header(h).Set(k, v)
 }
 
+// Get ...
 func (h HttpHeader) Get(k string) string {
 	return http.Header(h).Get(k)
 }
 
+// Values ...
 func (h HttpHeader) Values(k string) []string {
 	return http.Header(h).Values(k)
 }
 
+// Range ...
 func (h HttpHeader) Range(f func(key, value string)) {
 	for k, vv := range h {
 		for _, v := range vv {

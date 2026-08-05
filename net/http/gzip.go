@@ -47,11 +47,13 @@ type gzipWriter struct {
 	size   int
 }
 
+// WriteString ...
 func (g *gzipWriter) WriteString(s string) (int, error) {
 	g.Header().Del("Content-Length")
 	return g.writer.Write([]byte(s))
 }
 
+// Write ...
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	g.Header().Del("Content-Length")
 	n, err := g.writer.Write(data)
@@ -62,6 +64,7 @@ func (g *gzipWriter) Write(data []byte) (int, error) {
 	return n, nil
 }
 
+// WriteHeader ...
 func (g *gzipWriter) WriteHeader(code int) {
 	g.Header().Del("Content-Length")
 	g.ResponseWriter.WriteHeader(code)
@@ -72,6 +75,7 @@ type gzipHandler struct {
 	gzPool *sync.Pool
 }
 
+// NewGzipHandler creates and returns a new instance.
 func NewGzipHandler(level int, options *GzipOptions) *gzipHandler {
 	var gzPool sync.Pool
 	gzPool.New = func() interface{} {
@@ -91,6 +95,7 @@ func NewGzipHandler(level int, options *GzipOptions) *gzipHandler {
 	return handler
 }
 
+// ServeHTTP ...
 func (g *gzipHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if !g.shouldCompress(r) {
@@ -116,6 +121,7 @@ func (g *gzipHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// shouldCompress reports whether the condition holds.
 func (g *gzipHandler) shouldCompress(req *http.Request) bool {
 	if !strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") ||
 		strings.Contains(req.Header.Get("Connection"), "Upgrade") ||
@@ -139,6 +145,7 @@ func (g *gzipHandler) shouldCompress(req *http.Request) bool {
 	return true
 }
 
+// GzipBody ...
 func GzipBody(r *http.Request) (io.ReadCloser, error) {
 	if r.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(r.Body)

@@ -12,9 +12,12 @@ import (
 
 type Enum[T constraintsi.Enum] int32
 
+// MarshalText ...
 func (t Enum[T]) MarshalText() ([]byte, error) {
 	return T(t).MarshalText()
 }
+
+// UnmarshalText ...
 func (t *Enum[T]) UnmarshalText(data []byte) error {
 	var tt T
 	err := tt.UnmarshalText(data)
@@ -25,11 +28,13 @@ func (t *Enum[T]) UnmarshalText(data []byte) error {
 	return nil
 }
 
+// UnmarshalJSON ...
 func (t *Enum[T]) UnmarshalJSON(data []byte) error {
 	data = data[1 : len(data)-1]
 	return t.UnmarshalText(data)
 }
 
+// MarshalJSON ...
 func (t Enum[T]) MarshalJSON() ([]byte, error) {
 	text, err := t.MarshalText()
 	if err != nil {

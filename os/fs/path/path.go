@@ -15,7 +15,7 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 )
 
-// windows需要,由于linux的文件也要放到windows看,统一处理
+// FileRewrite ...
 func FileRewrite(filename string) string {
 	var result []rune
 	var empty = []rune{'/', '\\', '*', '|'}
@@ -36,7 +36,7 @@ func FileRewrite(filename string) string {
 	return string(result)
 }
 
-// 仅仅针对文件名,Removed unsupported characters
+// FileCleanse ...
 func FileCleanse(filename string) string {
 
 	filename = strings.Trim(filename, ".-+")
@@ -51,7 +51,7 @@ func FileCleanse(filename string) string {
 	return filename
 }
 
-// 仅仅针对目录名,Removed unsupported characters
+// DirCleanse ...
 func DirCleanse(dir string) string { // will be used when save the dir or the part
 	// remove special symbol
 	// :unix允许存在，windows需要
@@ -62,7 +62,7 @@ func DirCleanse(dir string) string { // will be used when save the dir or the pa
 	return stringsx.RemoveRunes(dir, ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
 }
 
-// 针对带目录的完整文件名,Removed unsupported characters
+// Cleanse ...
 func Cleanse(path string) string { // will be used when save the dir or the part
 	dir, file := filepath.Split(path)
 	if dir == "" {
@@ -75,7 +75,7 @@ func Cleanse(path string) string { // will be used when save the dir or the part
 	return DirCleanse(dir) + string(path[len(dir)-1-len(file)]) + FileCleanse(file)
 }
 
-// 获取文件名除去扩展名
+// FileNoExt ...
 func FileNoExt(filepath string) string {
 	base := sdpath.Base(filepath)
 	return base[:len(base)-len(sdpath.Ext(base))]

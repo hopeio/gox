@@ -72,6 +72,7 @@ var globalMetrics = sync.OnceValue(func() *GlobalMetrics {
 	return &GlobalMetrics{meter: meter}
 })
 
+// GlobalGormMetrics ...
 func GlobalGormMetrics() *GlobalMetrics {
 	return globalMetrics()
 }
@@ -94,60 +95,70 @@ type CustomMetric interface {
 	Record(*RecordContext)
 }
 
+// WithCustomMetrics ...
 func WithCustomMetrics(metrics ...CustomMetric) Option {
 	return func(p *OTelPlugin) {
 		p.customMetrics = append(p.customMetrics, metrics...)
 	}
 }
 
+// WithAttributes ...
 func WithAttributes(attrs ...attribute.KeyValue) Option {
 	return func(p *OTelPlugin) {
 		p.defaultAttrs = append(p.defaultAttrs, attrs...)
 	}
 }
 
+// WithTracerProvider ...
 func WithTracerProvider(provider trace.TracerProvider) Option {
 	return func(p *OTelPlugin) {
 		p.provider = provider
 	}
 }
 
+// WithDBSystem ...
 func WithDBSystem(name string) Option {
 	return func(p *OTelPlugin) {
 		p.defaultAttrs = append(p.defaultAttrs, semconv.DBSystemNameKey.String(name))
 	}
 }
 
+// WithoutQueryVariables ...
 func WithoutQueryVariables() Option {
 	return func(p *OTelPlugin) {
 		p.excludeQueryVars = true
 	}
 }
 
+// WithQueryFormatter ...
 func WithQueryFormatter(fn func(query string) string) Option {
 	return func(p *OTelPlugin) {
 		p.queryFormatter = fn
 	}
 }
 
+// WithoutMetrics ...
 func WithoutMetrics() Option {
 	return func(p *OTelPlugin) {
 		p.excludeMetrics = true
 	}
 }
 
+// WithRecordStackTrace ...
 func WithRecordStackTrace() Option {
 	return func(p *OTelPlugin) {
 		p.recordStackTraceInSpan = true
 	}
 }
 
+// WithServerAddressProvider ...
 func WithServerAddressProvider(fn func(dialector gorm.Dialector) string) Option {
 	return func(p *OTelPlugin) {
 		p.serverAddressProvider = fn
 	}
 }
 
+// NewOTelPlugin creates and returns a new instance.
 func NewOTelPlugin(opts ...Option) *OTelPlugin {
 	p := &OTelPlugin{metrics: GlobalGormMetrics()}
 	for _, opt := range opts {
@@ -160,6 +171,7 @@ func NewOTelPlugin(opts ...Option) *OTelPlugin {
 	return p
 }
 
+// Name ...
 func (p *OTelPlugin) Name() string {
 	return pluginName
 }
@@ -168,6 +180,7 @@ type gormRegister interface {
 	Register(name string, fn func(*gorm.DB)) error
 }
 
+// Initialize ...
 func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 	if !p.excludeMetrics {
 		if err := p.initMetrics(db); err != nil {
@@ -207,6 +220,7 @@ func (p *OTelPlugin) Initialize(db *gorm.DB) error {
 	return firstErr
 }
 
+// Close closes and releases resources.
 func (p *OTelPlugin) Close(ctx context.Context) error {
 	if p.excludeMetrics {
 		return nil
@@ -217,6 +231,7 @@ func (p *OTelPlugin) Close(ctx context.Context) error {
 	return nil
 }
 
+// initMetrics ...
 func (p *OTelPlugin) initMetrics(db *gorm.DB) error {
 	if p.metrics == nil {
 		p.metrics = GlobalGormMetrics()
@@ -228,6 +243,7 @@ func (p *OTelPlugin) initMetrics(db *gorm.DB) error {
 	return p.metrics.Register(db, attrs...)
 }
 
+// Register ...
 func (m *GlobalMetrics) Register(db *gorm.DB, attrs ...attribute.KeyValue) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -261,6 +277,7 @@ func (m *GlobalMetrics) Register(db *gorm.DB, attrs ...attribute.KeyValue) error
 	return err
 }
 
+// registerDBStats ...
 func (p *OTelPlugin) registerDBStats(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -278,6 +295,7 @@ type contextWrapper struct {
 	parent context.Context
 }
 
+// before ...
 func (p *OTelPlugin) before(spanName, op string) func(*gorm.DB) {
 	return func(tx *gorm.DB) {
 		parentCtx := getContext(tx)
@@ -294,6 +312,7 @@ func (p *OTelPlugin) before(spanName, op string) func(*gorm.DB) {
 	}
 }
 
+// after ...
 func (p *OTelPlugin) after(op string) func(*gorm.DB) {
 	return func(tx *gorm.DB) {
 		defer func() {
@@ -384,6 +403,7 @@ func (p *OTelPlugin) after(op string) func(*gorm.DB) {
 	}
 }
 
+// queryText ...
 func (p *OTelPlugin) queryText(tx *gorm.DB) string {
 	if tx == nil || tx.Statement == nil {
 		return ""
@@ -398,6 +418,7 @@ func (p *OTelPlugin) queryText(tx *gorm.DB) string {
 	return tx.Dialector.Explain(sqlStr, tx.Statement.Vars...)
 }
 
+// formatQuery ...
 func (p *OTelPlugin) formatQuery(query string) string {
 	if p.queryFormatter != nil {
 		return p.queryFormatter(query)
@@ -405,12 +426,14 @@ func (p *OTelPlugin) formatQuery(query string) string {
 	return query
 }
 
+// recordCustomMetrics ...
 func (p *OTelPlugin) recordCustomMetrics(record *RecordContext) {
 	for _, cm := range p.customMetrics {
 		cm.Record(record)
 	}
 }
 
+// metricBaseAttrs ...
 func (p *OTelPlugin) metricBaseAttrs(op string, tx *gorm.DB) []attribute.KeyValue {
 	attrs := make([]attribute.KeyValue, 0, len(p.defaultAttrs)+3)
 	attrs = append(attrs, p.defaultAttrs...)
@@ -424,6 +447,7 @@ func (p *OTelPlugin) metricBaseAttrs(op string, tx *gorm.DB) []attribute.KeyValu
 	return attrs
 }
 
+// extraAttrs ...
 func (p *OTelPlugin) extraAttrs(errType string, success bool) []attribute.KeyValue {
 	attrs := []attribute.KeyValue{attribute.Bool("db.success", success)}
 	if errType != "" {
@@ -432,6 +456,7 @@ func (p *OTelPlugin) extraAttrs(errType string, success bool) []attribute.KeyVal
 	return attrs
 }
 
+// isError reports whether the condition holds.
 func isError(err error) bool {
 	switch {
 	case err == nil,
@@ -445,6 +470,7 @@ func isError(err error) bool {
 	}
 }
 
+// errorType ...
 func errorType(err error) string {
 	switch {
 	case err == nil:
@@ -460,6 +486,7 @@ func errorType(err error) string {
 	}
 }
 
+// dbSystem ...
 func dbSystem(tx *gorm.DB) attribute.KeyValue {
 	if tx == nil || tx.Dialector == nil {
 		return attribute.KeyValue{}
@@ -482,6 +509,7 @@ func dbSystem(tx *gorm.DB) attribute.KeyValue {
 	}
 }
 
+// dbOperation ...
 func dbOperation(query string) string {
 	if query == "" {
 		return ""
@@ -492,6 +520,7 @@ func dbOperation(query string) string {
 	return strings.ToLower(firstWordRegex.FindString(s))
 }
 
+// getContext ...
 func getContext(tx *gorm.DB) context.Context {
 	if tx != nil && tx.Statement != nil && tx.Statement.Context != nil {
 		return tx.Statement.Context
@@ -499,6 +528,7 @@ func getContext(tx *gorm.DB) context.Context {
 	return context.Background()
 }
 
+// getStartTime ...
 func getStartTime(tx *gorm.DB, op string) (time.Time, bool) {
 	if tx == nil {
 		return time.Time{}, false

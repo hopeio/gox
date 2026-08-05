@@ -17,18 +17,22 @@ func NoEscape(p unsafe.Pointer) unsafe.Pointer {
 	return unsafe.Pointer(x ^ 0)
 }
 
+// Cast ...
 func Cast[T1, T2 any](p *T2) *T1 {
 	return (*T1)(unsafe.Pointer(p))
 }
 
+// CastSlice ...
 func CastSlice[T1, T2 any](s []T2) []T1 {
 	return unsafe.Slice((*T1)(unsafe.Pointer(unsafe.SliceData(s))), len(s))
 }
 
+// Binary ...
 func Binary(p unsafe.Pointer, n int) (r []byte) {
 	return unsafe.Slice((*byte)(p), n)
 }
 
+// Clear ...
 func Clear[T any](ptr *T) {
 	clear(unsafe.Slice(ptr, 1))
 }

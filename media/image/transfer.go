@@ -15,6 +15,7 @@ import (
 type Decode func(r io.Reader) (image.Image, error)
 type Encode func(io.Writer, image.Image) error
 
+// Transfer ...
 func Transfer(src, dst string, decode Decode, encode Encode) error {
 	file, err := os.Open(src)
 	if err != nil {

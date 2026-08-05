@@ -15,20 +15,24 @@ type EncodingTime struct {
 	*Encoding
 }
 
+// MarshalJSON ...
 func (u EncodingTime) MarshalJSON() ([]byte, error) {
 	return u.marshalJSON(u.Time)
 }
 
+// UnmarshalJSON ...
 func (u *EncodingTime) UnmarshalJSON(data []byte) error {
 	return u.unmarshalJSON(&u.Time, data)
 }
 
 type GlobEncodingTime time.Time
 
+// MarshalJSON ...
 func (u GlobEncodingTime) MarshalJSON() ([]byte, error) {
 	return DefaultEncoding.marshalJSON(time.Time(u))
 }
 
+// UnmarshalJSON ...
 func (u *GlobEncodingTime) UnmarshalJSON(data []byte) error {
 	return DefaultEncoding.unmarshalJSON((*time.Time)(u), data)
 }

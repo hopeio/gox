@@ -10,18 +10,22 @@ import "errors"
 
 type Bool int8
 
+// IsTrue reports whether the condition holds.
 func (b Bool) IsTrue() bool {
 	return b == 1
 }
 
+// IsFalse reports whether the condition holds.
 func (b Bool) IsFalse() bool {
 	return b == 2
 }
 
+// IsNone reports whether the condition holds.
 func (b Bool) IsNone() bool {
 	return b == 0
 }
 
+// MarshalJSON ...
 func (b Bool) MarshalJSON() ([]byte, error) {
 	switch b {
 	case 0:
@@ -141,6 +145,7 @@ func (b Bool) String() string {
 	return "invalid bool value"
 }
 
+// BoolToInt ...
 func BoolToInt(b bool) int {
 	if b {
 		return 1

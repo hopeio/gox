@@ -11,6 +11,7 @@ import (
 	"os"
 )
 
+// IsTerminal reports whether the condition holds.
 func IsTerminal() bool {
 	if _, exists := os.LookupEnv("TERM"); exists {
 		return true

@@ -12,6 +12,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+// UnmarshalJSON ...
 func (p *Processor) UnmarshalJSON(b []byte) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -63,6 +64,7 @@ func (p *Processor) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// UnmarshalJSON_1 ...
 func (p *Processor) UnmarshalJSON_1(b []byte) error {
 	pmap := make(map[string]interface{})
 	if err := jsonx.Unmarshal(b, &pmap); err != nil {
@@ -151,6 +153,7 @@ func (p *Processor) UnmarshalJSON_1(b []byte) error {
 	return nil
 }
 
+// decodeData ...
 func (p *Processor) decodeData(b []byte) ([]byte, error) {
 	// Empty array.
 	if bytes.HasPrefix(b, []byte("null")) {
@@ -191,6 +194,7 @@ func (p *Processor) decodeData(b []byte) ([]byte, error) {
 	return b, nil
 }
 
+// findSegment ...
 func findSegment(bs []byte) ([]byte, error) {
 	level := 0
 	end := -1
@@ -213,6 +217,7 @@ Loop:
 	return bs[:end+1], nil
 }
 
+// decodeSegment ...
 func (p *Processor) decodeSegment(b []byte) error {
 	elmType, err := findElementType(b)
 	if err != nil {
@@ -255,6 +260,7 @@ func (p *Processor) decodeSegment(b []byte) error {
 	return nil
 }
 
+// findElementType ...
 func findElementType(bs []byte) (ElementType, error) {
 	level := -1
 	for i, b := range bs {
@@ -284,6 +290,7 @@ func findElementType(bs []byte) (ElementType, error) {
 	return "", fmt.Errorf("not found")
 }
 
+// decodeCircle ...
 func decodeCircle(b []byte, elm *Circle) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -330,6 +337,7 @@ func decodeCircle(b []byte, elm *Circle) error {
 	return nil
 }
 
+// decodeRectangle ...
 func decodeRectangle(b []byte, elm *Rectangle) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -384,6 +392,7 @@ func decodeRectangle(b []byte, elm *Rectangle) error {
 	return nil
 }
 
+// decodePath ...
 func decodePath(b []byte, elm *Path) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -430,6 +439,7 @@ func decodePath(b []byte, elm *Path) error {
 	return nil
 }
 
+// decodeLine ...
 func decodeLine(b []byte, elm *Line) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -484,6 +494,7 @@ func decodeLine(b []byte, elm *Line) error {
 	return nil
 }
 
+// decodeArc ...
 func decodeArc(b []byte, elm *Arc) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -546,6 +557,7 @@ func decodeArc(b []byte, elm *Arc) error {
 	return nil
 }
 
+// decodePathLine ...
 func decodePathLine(b []byte, elm *PathLine) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -583,6 +595,7 @@ func decodePathLine(b []byte, elm *PathLine) error {
 	return nil
 }
 
+// decodePathArc ...
 func decodePathArc(b []byte, elm *PathArc) error {
 	// Skip '{'.
 	if len(b) < 1 {
@@ -624,6 +637,7 @@ func decodePathArc(b []byte, elm *PathArc) error {
 	return nil
 }
 
+// decodePathCommands ...
 func decodePathCommands(ph *Path, b []byte) ([]byte, error) {
 	// Opening '['.
 	if len(b) < 1 {
@@ -655,6 +669,7 @@ func decodePathCommands(ph *Path, b []byte) ([]byte, error) {
 	return b, nil
 }
 
+// decodePathSegment ...
 func decodePathSegment(ph *Path, b []byte) error {
 	elmType, err := findElementType(b)
 	if err != nil {

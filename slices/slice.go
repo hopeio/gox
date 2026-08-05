@@ -16,6 +16,7 @@ import (
 	"unsafe"
 )
 
+// Every ...
 func Every[S ~[]T, T any](slice S, fn func(T) bool) bool {
 	for _, t := range slice {
 		if !fn(t) {
@@ -25,6 +26,7 @@ func Every[S ~[]T, T any](slice S, fn func(T) bool) bool {
 	return true
 }
 
+// Some ...
 func Some[S ~[]T, T any](slice S, fn func(T) bool) bool {
 	for _, t := range slice {
 		if fn(t) {
@@ -34,6 +36,7 @@ func Some[S ~[]T, T any](slice S, fn func(T) bool) bool {
 	return false
 }
 
+// Zip ...
 func Zip[S ~[]T, T any](s1, s2 S) [][2]T {
 	var newSlice [][2]T
 	for i := range s1 {
@@ -42,7 +45,7 @@ func Zip[S ~[]T, T any](s1, s2 S) [][2]T {
 	return newSlice
 }
 
-// 去重
+// Deduplicate ...
 func Deduplicate[S ~[]T, T comparable](slice S) S {
 	if len(slice) < SmallArrayLen {
 		newslice := make(S, 0, 2)
@@ -64,7 +67,7 @@ func Deduplicate[S ~[]T, T comparable](slice S) S {
 	return newslice
 }
 
-// 将切片转换为map
+// ToMap ...
 func ToMap[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K]V {
 	m := make(map[K]V)
 	for _, s := range s {
@@ -74,7 +77,7 @@ func ToMap[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K]
 	return m
 }
 
-// 将切片按照某个key分类
+// Classify ...
 func Classify[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map[K][]V {
 	m := make(map[K][]V)
 	for _, s := range s {
@@ -89,25 +92,28 @@ func Classify[S ~[]T, T any, K comparable, V any](s S, getKV func(T) (K, V)) map
 	return m
 }
 
+// ForEach ...
 func ForEach[S ~[]T, T any](s S, fn func(idx int, v T)) {
 	for i, t := range s {
 		fn(i, t)
 	}
 }
 
+// ForEachValue ...
 func ForEachValue[S ~[]T, T any](s S, fn func(v T)) {
 	for _, v := range s {
 		fn(v)
 	}
 }
 
-// 遍历切片,参数为下标，利用闭包实现遍历
+// ForEachIndex ...
 func ForEachIndex[S ~[]T, T any](s S, fn func(i int)) {
 	for i := range s {
 		fn(i)
 	}
 }
 
+// ReverseForEach ...
 func ReverseForEach[S ~[]T, T any](s S, fn func(idx int, v T)) {
 	l := len(s)
 	for i := l - 1; i > 0; i-- {
@@ -115,6 +121,7 @@ func ReverseForEach[S ~[]T, T any](s S, fn func(idx int, v T)) {
 	}
 }
 
+// Map ...
 func Map[T1S ~[]T1, T1, T2 any](s T1S, fn func(T1) T2) []T2 {
 	ret := make([]T2, 0, len(s))
 	for _, s := range s {
@@ -123,6 +130,7 @@ func Map[T1S ~[]T1, T1, T2 any](s T1S, fn func(T1) T2) []T2 {
 	return ret
 }
 
+// Filter ...
 func Filter[S ~[]T, T any](fn func(T) bool, src S) S {
 	var dst S
 	for _, v := range src {
@@ -133,6 +141,7 @@ func Filter[S ~[]T, T any](fn func(T) bool, src S) S {
 	return dst
 }
 
+// Reduce ...
 func Reduce[S ~[]T, T any](slices S, fn func(T, T) T) T {
 	ret := fn(slices[0], slices[1])
 	for i := 2; i < len(slices); i++ {
@@ -141,6 +150,7 @@ func Reduce[S ~[]T, T any](slices S, fn func(T, T) T) T {
 	return ret
 }
 
+// Convert ...
 func Convert[T1S ~[]T1, T2S ~[]T2, T1, T2 any](s T1S) T2S {
 	t1, t2 := new(T1), new(T2)
 	t1type, t2type := reflect.TypeOf(t1).Elem(), reflect.TypeOf(t2).Elem()
@@ -169,6 +179,7 @@ func Convert[T1S ~[]T1, T2S ~[]T2, T1, T2 any](s T1S) T2S {
 	panic("unsupported type")
 }
 
+// GuardSlice ...
 func GuardSlice(buf *[]byte, n int) {
 	c := cap(*buf)
 	l := len(*buf)
@@ -193,6 +204,7 @@ func PtrToSlicePtr(s unsafe.Pointer, l int, c int) unsafe.Pointer {
 	return unsafe.Pointer(slice)
 }
 
+// FilterPlace ...
 func FilterPlace[S ~[]T, T any](slices S, fn func(T) bool) S {
 	n := len(slices) - 1
 	for i := 0; i <= n; {
@@ -208,10 +220,12 @@ func FilterPlace[S ~[]T, T any](slices S, fn func(T) bool) S {
 	return slices[:n+1]
 }
 
+// Remove ...
 func Remove[S ~[]T, T any](slices S, i int) S {
 	return append(slices[:i], slices[i+1:]...)
 }
 
+// TwoDimensionalSlice ...
 func TwoDimensionalSlice[S ~[][]T, T any](s S, rowStart, rowEnd, colStart, colEnd int) S {
 	ret := make([][]T, rowEnd-rowStart)
 	for i := range ret {
@@ -220,6 +234,7 @@ func TwoDimensionalSlice[S ~[][]T, T any](s S, rowStart, rowEnd, colStart, colEn
 	return ret
 }
 
+// ThreeDimensionalSlice ...
 func ThreeDimensionalSlice[S ~[][][]T, T any](s S, rowStart, rowEnd, colStart, colEnd, sliceStart, sliceEnd int) S {
 	ret := make(S, rowEnd-rowStart)
 	for i := range ret {
@@ -231,6 +246,7 @@ func ThreeDimensionalSlice[S ~[][][]T, T any](s S, rowStart, rowEnd, colStart, c
 	return ret
 }
 
+// ToPtrs ...
 func ToPtrs[S ~[]T, T any](s S) []*T {
 	ret := make([]*T, len(s))
 	for i := range s {
@@ -239,12 +255,14 @@ func ToPtrs[S ~[]T, T any](s S) []*T {
 	return ret
 }
 
+// Copy ...
 func Copy[S ~[]T, T any](s S) S {
 	c := make([]T, len(s))
 	copy(c, s)
 	return c
 }
 
+// GroupBy ...
 func GroupBy[S ~[]T, T any, K comparable](s S, getK func(T) K) map[K][]T {
 	m := make(map[K][]T)
 	for _, s := range s {
@@ -258,6 +276,7 @@ func GroupBy[S ~[]T, T any, K comparable](s S, getK func(T) K) map[K][]T {
 	return m
 }
 
+// Sum ...
 func Sum[S ~[]T, T constraints.Ordered](s S) T {
 	var ret T
 	for _, s := range s {

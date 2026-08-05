@@ -18,6 +18,7 @@ const (
 	white = 47
 )
 
+// ConsolePrint ...
 func ConsolePrint(qrCode image.Image) {
 	// 将二维码转换为控制台颜色代码
 	pixels := convertQRCodeToConsolePixels(qrCode)
@@ -38,6 +39,7 @@ func ConsolePrint(qrCode image.Image) {
 
 }
 
+// convertQRCodeToConsolePixels ...
 func convertQRCodeToConsolePixels(qr image.Image) [][]int {
 	bounds := qr.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y

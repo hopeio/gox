@@ -22,6 +22,7 @@ func GetGoID() (id uint64) {
 	return id
 }
 
+// slowGetGoID ...
 func slowGetGoID() int64 {
 	var buf [64]byte
 	n := runtime.Stack(buf[:], false)

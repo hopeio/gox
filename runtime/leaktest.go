@@ -24,13 +24,19 @@ type goroutine struct {
 
 type goroutineByID []*goroutine
 
-func (g goroutineByID) Len() int           { return len(g) }
+// Len returns the number of elements.
+func (g goroutineByID) Len() int { return len(g) }
+
+// Less ...
 func (g goroutineByID) Less(i, j int) bool { return g[i].id < g[j].id }
-func (g goroutineByID) Swap(i, j int)      { g[i], g[j] = g[j], g[i] }
+
+// Swap ...
+func (g goroutineByID) Swap(i, j int) { g[i], g[j] = g[j], g[i] }
 
 // TickerInterval defines the interval used by the ticker in Check* functions.
 var TickerInterval = time.Millisecond * 50
 
+// interestingGoroutine ...
 func interestingGoroutine(g string) (*goroutine, error) {
 	sl := strings.SplitN(g, "\n", 2)
 	if len(sl) != 2 {

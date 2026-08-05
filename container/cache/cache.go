@@ -93,6 +93,7 @@ type CacheBuilder struct {
 	janitorInterval  time.Duration
 }
 
+// New ...
 func New(size int) *CacheBuilder {
 	return &CacheBuilder{
 		size: size,
@@ -107,55 +108,65 @@ func (cb *CacheBuilder) LoaderFunc(loaderFunc LoaderFunc) *CacheBuilder {
 	return cb
 }
 
+// EvictedFunc ...
 func (cb *CacheBuilder) EvictedFunc(evictedFunc EvictedFunc) *CacheBuilder {
 	cb.evictedFunc = evictedFunc
 	return cb
 }
 
+// ClearVisitorFunc ...
 func (cb *CacheBuilder) ClearVisitorFunc(purgeVisitorFunc ClearVisitorFunc) *CacheBuilder {
 	cb.clearVisitorFunc = purgeVisitorFunc
 	return cb
 }
 
+// AddedFunc ...
 func (cb *CacheBuilder) AddedFunc(addedFunc AddedFunc) *CacheBuilder {
 	cb.addedFunc = addedFunc
 	return cb
 }
 
+// Expiration ...
 func (cb *CacheBuilder) Expiration(expiration time.Duration) *CacheBuilder {
 	cb.expiration = expiration
 	return cb
 }
 
+// Janitor ...
 func (cb *CacheBuilder) Janitor(interval time.Duration) *CacheBuilder {
 	cb.janitorInterval = interval
 	return cb
 }
 
+// LRU ...
 func (cb *CacheBuilder) LRU() *Cache {
 	c := &Cache{store: &LRU{}}
 	c.init(cb)
 	return c
 }
 
+// LFU ...
 func (cb *CacheBuilder) LFU() *Cache {
 	c := &Cache{store: &LFU{}}
 	c.init(cb)
 	return c
 }
 
+// ARC ...
 func (cb *CacheBuilder) ARC() *Cache {
 	c := &Cache{store: &ARC{}}
 	c.init(cb)
 	return c
 }
 
+// Simple ...
 func (cb *CacheBuilder) Simple() *Cache {
 	c := &Cache{store: &Simple{}}
 	c.init(cb)
 	return c
 }
 
+// init ...
 func (c *Cache) init(cb *CacheBuilder) {
 	c.size = cb.size
 	c.loaderFunc = cb.loaderFunc
@@ -192,6 +203,7 @@ func (c *Cache) load(key any, cb func(any, time.Duration, error) (*item, error),
 	return v.(*item), called, nil
 }
 
+// startJanitor ...
 func (c *Cache) startJanitor(interval time.Duration) {
 	stop := make(chan bool)
 	c.janitorstop = stop
@@ -267,6 +279,7 @@ func (c *Cache) Get(key any) (any, error) {
 	return nil, err
 }
 
+// GetWithExpiration ...
 func (c *Cache) GetWithExpiration(key any) (any, time.Duration, error) {
 	c.mu.Lock()
 	v, err := c.store.get(key, false)
@@ -322,6 +335,7 @@ func (c *Cache) GetALL(checkExpired bool) map[any]any {
 	return items
 }
 
+// getWithLoader ...
 func (c *Cache) getWithLoader(key any, isWait bool) (*item, error) {
 	if c.loaderFunc == nil {
 		return nil, KeyNotFoundError
@@ -948,6 +962,7 @@ func (c *Cache) DecrementFloat64(k any, n float64) (float64, error) {
 	return nv, nil
 }
 
+// has ...
 func (c *Simple) has(key any, now *time.Time) bool {
 	item, ok := c.items[key]
 	if !ok {

@@ -1,9 +1,10 @@
+//go:build windows
+
 /*
  * Copyright 2024 hopeio. All rights reserved.
  * Licensed under the MIT License that can be found in the LICENSE file.
  * @Created by jyb
  */
-//go:build windows
 package win
 
 import (
@@ -14,6 +15,7 @@ import (
 	"unsafe"
 )
 
+// ConvertDosPath ...
 func ConvertDosPath(p string) string {
 	rawDrive := strings.Join(strings.Split(p, `\`)[:3], `\`)
 

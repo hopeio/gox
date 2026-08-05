@@ -19,6 +19,7 @@ import (
 	"github.com/hopeio/gox/text/encoding/ascii"
 )
 
+// FormatLen ...
 func FormatLen(s string, length int) string {
 	if len(s) < length {
 		return s + strings.Repeat(" ", length-len(s))
@@ -26,6 +27,7 @@ func FormatLen(s string, length int) string {
 	return s[:length]
 }
 
+// IsQuoted reports whether the condition holds.
 func IsQuoted[T ~string | ~[]byte](s T) bool {
 	if len(s) < 2 {
 		return false
@@ -33,6 +35,7 @@ func IsQuoted[T ~string | ~[]byte](s T) bool {
 	return (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'')
 }
 
+// CamelToSnake ...
 func CamelToSnake(name string) string {
 	var ret bytes.Buffer
 
@@ -78,7 +81,7 @@ func CamelToSnake(name string) string {
 	return string(ret.Bytes())
 }
 
-// 仅首位小写（更符合接口的规范）
+// LowerCaseFirst ...
 func LowerCaseFirst(t string) string {
 	if t == "" {
 		return ""
@@ -89,6 +92,7 @@ func LowerCaseFirst(t string) string {
 	//return string(LowerCase(t[0])) + t[1:]
 }
 
+// LowerCase ...
 func LowerCase(c byte) byte {
 	if 'A' <= c && c <= 'Z' {
 		return c ^ ' '
@@ -96,6 +100,7 @@ func LowerCase(c byte) byte {
 	return c
 }
 
+// UpperCaseFirst ...
 func UpperCaseFirst(t string) string {
 	if t == "" {
 		return ""
@@ -106,6 +111,7 @@ func UpperCaseFirst(t string) string {
 	//return string(UpperCase(t[0])) + t[1:]
 }
 
+// UpperCase ...
 func UpperCase(c byte) byte {
 	if 'a' <= c && c <= 'z' {
 		return c ^ ' '
@@ -122,6 +128,7 @@ func ReplaceRunes(s string, olds []rune, new rune) string {
 	panic("TODO")
 }
 
+// RemoveRunes ...
 func RemoveRunes(s string, old ...rune) string {
 	if len(old) == 0 {
 		return s // avoid allocation
@@ -156,6 +163,7 @@ func RemoveRunes(s string, old ...rune) string {
 
 // And now lots of helper functions.
 
+// SnakeToCamel ...
 func SnakeToCamel[T ~string](s T) string {
 	if s == "" {
 		return ""
@@ -195,15 +203,17 @@ func SnakeToCamel[T ~string](s T) string {
 	return string(t)
 }
 
+// CamelCaseSlice ...
 func CamelCaseSlice(elem []string) string { return SnakeToCamel(strings.Join(elem, "_")) }
 
 type NumLetterSlice[T any] ['z' - '0' + 1]T
 
-// 原来数组支持这样用
+// Set ...
 func (n *NumLetterSlice[T]) Set(b byte, v T) {
 	n[b-'0'] = v
 }
 
+// ReplaceBytes ...
 func ReplaceBytes(s string, olds []byte, new byte) string {
 	if len(olds) == 0 || (len(olds) == 1 && olds[0] == new) {
 		return s // avoid allocation
@@ -228,7 +238,7 @@ func ReplaceBytes(s string, olds []byte, new byte) string {
 	return string(t)
 }
 
-// 将字符串中指定的ascii字符替换为空
+// ReplaceBytesEmpty ...
 func ReplaceBytesEmpty(s string, old ...byte) string {
 	if len(old) == 0 {
 		return s // avoid allocation
@@ -266,6 +276,7 @@ func ReplaceBytesEmpty(s string, old ...byte) string {
 	return string(t[0:w])
 }
 
+// Rand ...
 func Rand(length int) string {
 	randId := make([]byte, length)
 	for i := range randId {
@@ -284,9 +295,7 @@ func Rand(length int) string {
 	return FromBytes(randId)
 }
 
-/*
-从字符串尾开始,返回指定字符截断后的字符串
-*/
+// ReverseCutPart ...
 func ReverseCutPart(s, key string) string {
 	keyLen := len(key)
 	sEndIndex := len(s) - 1
@@ -302,9 +311,7 @@ func ReverseCutPart(s, key string) string {
 	return s
 }
 
-/*
-指定字符截断，返回阶段前的字符串
-*/
+// CutPart ...
 func CutPart(s, sep string) string {
 	sepLen := len(sep)
 	sEndIndex := len(s) - 1
@@ -317,9 +324,7 @@ func CutPart(s, sep string) string {
 	return s
 }
 
-/*
-指定字符截断，返回阶段前加指定字符的字符串
-*/
+// CutPartContain ...
 func CutPartContain(s, sep string) string {
 	sepLen := len(sep)
 	sEndIndex := len(s) - 1
@@ -332,6 +337,7 @@ func CutPartContain(s, sep string) string {
 	return s
 }
 
+// Cut ...
 func Cut(s, sep string) (string, string, bool) {
 	if i := strings.Index(s, sep); i >= 0 {
 		return s[:i], s[i+len(sep):], true
@@ -339,6 +345,7 @@ func Cut(s, sep string) (string, string, bool) {
 	return s, "", false
 }
 
+// ReverseCut ...
 func ReverseCut(s, sep string) (string, string, bool) {
 	if i := strings.LastIndex(s, sep); i >= 0 {
 		return s[:i], s[i+len(sep):], true
@@ -346,19 +353,7 @@ func ReverseCut(s, sep string) (string, string, bool) {
 	return s, "", false
 }
 
-// 寻找括号区间
-// BracketsIntervals 在给定字符串中寻找由特定开始和结束符号包围的区间。
-// 它会返回第一个找到的由tokenBegin和tokenEnd界定的字符串区间，
-// 如果找到了则返回该区间和true，否则返回空字符串和false。
-//
-// 参数:
-// s - 待搜索的字符串。
-// tokenBegin - 搜索的开始符号。
-// tokenEnd - 搜索的结束符号。
-//
-// 返回值:
-// 第一个找到的由tokenBegin和tokenEnd界定的字符串区间，
-// 如果找到了则返回该区间和true，否则返回空字符串和false。
+// BracketsIntervals ...
 func BracketsIntervals(s string, tokenBegin, tokenEnd rune) (string, bool) {
 	var level int // 当前嵌套层级
 	begin := -1   // 记录开始符号的索引
@@ -504,7 +499,7 @@ func CamelCase(s string) string {
 	return string(b)
 }
 
-// 有一个匹配成功就返回true
+// HasPrefixes reports whether the condition holds.
 func HasPrefixes(s string, prefixes []string) bool {
 	for _, prefix := range prefixes {
 		if len(s) >= len(prefix) && s[0:len(prefix)] == prefix {
@@ -514,6 +509,7 @@ func HasPrefixes(s string, prefixes []string) bool {
 	return false
 }
 
+// IsNumber reports whether the condition holds.
 func IsNumber(str string) bool {
 	if str == "" {
 		return false
@@ -555,6 +551,7 @@ func IsNumber(str string) bool {
 	return true
 }
 
+// DJB33 ...
 func DJB33(seed uint32, k string) uint32 {
 	var (
 		l = uint32(len(k))
@@ -585,6 +582,7 @@ func DJB33(seed uint32, k string) uint32 {
 	return d ^ (d >> 16)
 }
 
+// RemoveSymbol ...
 func RemoveSymbol(s string) string {
 	return CommonRuneHandler(s, func(r rune) bool {
 		return !(unicode.IsLetter(r) || unicode.IsNumber(r))
@@ -593,21 +591,26 @@ func RemoveSymbol(s string) string {
 
 var emojiReg = regexp.MustCompile(`[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]`)
 
+// RemoveEmoji ...
 func RemoveEmoji(s string) string {
 	return emojiReg.ReplaceAllString(s, "")
 }
+
+// RetainHanAndASCIIGt32 ...
 func RetainHanAndASCIIGt32(s string) string {
 	return CommonRuneHandler(s, func(r rune) bool {
 		return !(unicode.Is(unicode.Han, r) || (r > 32 && r < 127))
 	})
 }
 
+// RetainHanAndASCII ...
 func RetainHanAndASCII(s string) string {
 	return CommonRuneHandler(s, func(r rune) bool {
 		return !(unicode.Is(unicode.Han, r) || (r < 127))
 	})
 }
 
+// CommonRuneHandler ...
 func CommonRuneHandler(s string, rm func(r rune) bool) string {
 	if len(s) == 0 {
 		return s // avoid allocation
@@ -640,6 +643,7 @@ func CommonRuneHandler(s string, rm func(r rune) bool) string {
 	return FromBytes(t[0:w])
 }
 
+// CommonRuneReplace ...
 func CommonRuneReplace(s string, f func(r rune) rune) string {
 	if len(s) == 0 {
 		return s // avoid allocation
@@ -653,10 +657,12 @@ func CommonRuneReplace(s string, f func(r rune) rune) string {
 	return builder.String()
 }
 
+// IsEmpty reports whether the condition holds.
 func IsEmpty(str string) bool {
 	return len(strings.TrimSpace(str)) == 0
 }
 
+// JoinIndexFunc ...
 func JoinIndexFunc[S ~[]T, T any](s S, toString func(i int) string, sep string) string {
 	switch len(s) {
 	case 0:
@@ -679,6 +685,7 @@ func JoinIndexFunc[S ~[]T, T any](s S, toString func(i int) string, sep string) 
 	return b.String()
 }
 
+// JoinValueFunc ...
 func JoinValueFunc[S ~[]T, T any](s S, toString func(v T) string, sep string) string {
 	switch len(s) {
 	case 0:
@@ -703,6 +710,7 @@ func JoinValueFunc[S ~[]T, T any](s S, toString func(v T) string, sep string) st
 	return b.String()
 }
 
+// JoinFunc ...
 func JoinFunc[S ~[]T, T any](s S, toString func(idx int, v T) string, sep string) string {
 	switch len(s) {
 	case 0:
@@ -727,6 +735,7 @@ func JoinFunc[S ~[]T, T any](s S, toString func(idx int, v T) string, sep string
 	return b.String()
 }
 
+// Join ...
 func Join[S ~[]T, T fmt.Stringer](s S, sep string) string {
 	switch len(s) {
 	case 0:

@@ -12,6 +12,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 )
 
+// init ...
 func init() {
 	gomonkey.ApplyFunc(NewDao, func() Dao {
 		return &UserProxy{&User{}}
@@ -31,9 +32,12 @@ func NewDao() Dao {
 	return &User{}
 }
 
+// Save ...
 func (u *User) Save() {
 
 }
+
+// Update ...
 func (u *User) Update() {
 
 }
@@ -42,10 +46,13 @@ type UserProxy struct {
 	user *User
 }
 
+// Save ...
 func (u *UserProxy) Save() {
 	log.Println("save")
 	u.user.Save()
 }
+
+// Update ...
 func (u *UserProxy) Update() {
 	log.Println("update")
 	u.user.Update()

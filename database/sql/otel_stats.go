@@ -30,9 +30,8 @@ type OTelDBStats struct {
 	reg     metric.Registration
 }
 
-
 type target struct {
-	db *stdsql.DB
+	db      *stdsql.DB
 	attrOpt metric.ObserveOption
 }
 
@@ -41,10 +40,12 @@ var globalOTelDBStats = sync.OnceValue(func() *OTelDBStats {
 	return &OTelDBStats{meter: meter, targets: make([]target, 0)}
 })
 
+// GlobalOTelDBStats ...
 func GlobalOTelDBStats() *OTelDBStats {
 	return globalOTelDBStats()
 }
 
+// Register ...
 func (s *OTelDBStats) Register(db *stdsql.DB, attrs ...attribute.KeyValue) error {
 	if db == nil {
 		return stdsql.ErrConnDone
@@ -72,6 +73,7 @@ func (s *OTelDBStats) Register(db *stdsql.DB, attrs ...attribute.KeyValue) error
 	return nil
 }
 
+// Close closes and releases resources.
 func (s *OTelDBStats) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -83,6 +85,7 @@ func (s *OTelDBStats) Close() error {
 	return nil
 }
 
+// observe ...
 func (s *OTelDBStats) observe(_ context.Context, o metric.Observer) error {
 	for _, target := range s.targets {
 		st := target.db.Stats()
@@ -98,6 +101,7 @@ func (s *OTelDBStats) observe(_ context.Context, o metric.Observer) error {
 	return nil
 }
 
+// initInstruments ...
 func (s *OTelDBStats) initInstruments() error {
 
 	var err error

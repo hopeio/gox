@@ -14,6 +14,7 @@ import (
 	"github.com/rs/cors"
 )
 
+// Rewrite ...
 func Rewrite() *httputil.ReverseProxy {
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
@@ -43,6 +44,7 @@ func Rewrite() *httputil.ReverseProxy {
 	return proxy
 }
 
+// RewriteServer ...
 func RewriteServer(addr string) error {
 	server := cors.AllowAll()
 	return http.ListenAndServe(addr, server.Handler(Rewrite()))

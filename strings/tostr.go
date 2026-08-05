@@ -9,10 +9,12 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+// Format ...
 func Format(t any) string {
 	return FormatReflectValue(reflect.ValueOf(t))
 }
 
+// FormatReflectValue ...
 func FormatReflectValue(value reflect.Value) string {
 	v := value.Interface()
 	if t, ok := v.(encoding.TextMarshaler); ok {
@@ -42,6 +44,7 @@ func FormatReflectValue(value reflect.Value) string {
 	return ""
 }
 
+// FormatInteger ...
 func FormatInteger(value any) string {
 	switch v := value.(type) {
 	case int:
@@ -68,10 +71,12 @@ func FormatInteger(value any) string {
 	return ""
 }
 
+// FormatSigned ...
 func FormatSigned[T constraints.Signed](v T) string {
 	return strconv.FormatInt(int64(v), 10)
 }
 
+// FormatUnsigned ...
 func FormatUnsigned[T constraints.Unsigned](v T) string {
 	return strconv.FormatUint(uint64(v), 10)
 }

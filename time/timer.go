@@ -19,24 +19,29 @@ type Ticker interface {
 
 type FixedTicker time.Ticker
 
+// Stop closes and releases resources.
 func (t *FixedTicker) Stop() bool {
 	(*time.Ticker)(t).Stop()
 	return true
 }
 
+// Reset ...
 func (t *FixedTicker) Reset(d time.Duration) bool {
 	(*time.Ticker)(t).Reset(d)
 	return true
 }
 
+// Wait ...
 func (t *FixedTicker) Wait() {
 	<-t.C
 }
 
+// Channel ...
 func (t *FixedTicker) Channel() <-chan time.Time {
 	return t.C
 }
 
+// NewTicker creates and returns a new instance.
 func NewTicker(interval time.Duration) Ticker {
 	return (*FixedTicker)(time.NewTicker(interval))
 }
@@ -48,12 +53,13 @@ type RandTicker struct {
 	limitBase, limitRange time.Duration
 }
 
-// 设置最小间隔
+// Reset ...
 func (t *RandTicker) Reset(d time.Duration) bool {
 	t.limitBase = d
 	return t.reset()
 }
 
+// reset ...
 func (t *RandTicker) reset() bool {
 	if t.limitRange == 0 {
 		return t.timer.Reset(t.limitBase)
@@ -61,18 +67,18 @@ func (t *RandTicker) reset() bool {
 	return t.timer.Reset(t.limitBase + time.Duration(rand.Intn(int(t.limitRange))))
 }
 
+// Wait ...
 func (t *RandTicker) Wait() {
 	<-t.timer.C
 	t.reset()
 }
 
+// Stop closes and releases resources.
 func (t *RandTicker) Stop() bool {
 	return t.timer.Stop()
 }
 
-// minInterval:最小等待时间
-// maxInterval：最大等待时间
-// maxInterval-minInterval: 等待范围
+// NewRandTicker creates and returns a new instance.
 func NewRandTicker(minInterval, maxInterval time.Duration) Ticker {
 	limitRange := maxInterval - minInterval
 	if limitRange == 0 {

@@ -30,6 +30,7 @@ func StartCPUProfile(filename string) func() {
 	}
 }
 
+// WriteHeapProfile ...
 func WriteHeapProfile(filename string) {
 	f, err := os.Create(filename)
 	if err != nil {
@@ -42,6 +43,7 @@ func WriteHeapProfile(filename string) {
 	f.Close()
 }
 
+// WriteProfile ...
 func WriteProfile(filename, pname string) {
 	f, err := os.Create(filename)
 	if err != nil {

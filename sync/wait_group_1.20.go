@@ -22,17 +22,19 @@ type WaitGroup struct {
 	sema  uint32
 }
 
-// WaitGroupState返回 sync.WaitGroup 的状态,
+// WaitGroupState ...
 func WaitGroupState(wg *sync.WaitGroup) (counter int32, wcounter uint32) {
 	wgc := (*WaitGroup)(unsafe.Pointer(wg))
 	return wgc.State()
 }
 
+// State ...
 func (wg *WaitGroup) State() (counter int32, wcounter uint32) {
 	state := wg.state.Load()
 	return int32(state >> 32), uint32(state)
 }
 
+// WaitGroupStopWait ...
 func WaitGroupStopWait(wg *sync.WaitGroup) {
 	state, _ := WaitGroupState(wg)
 	wg.Add(int(-state))

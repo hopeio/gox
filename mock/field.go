@@ -21,6 +21,7 @@ const (
 	DateTime
 )
 
+// String returns the string representation.
 func (t Type) String() string {
 	switch t {
 	case Phone:

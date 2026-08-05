@@ -16,33 +16,42 @@ type Option[T any] struct {
 	ok    bool
 }
 
+// Some ...
 func Some[T any](v T) Option[T] {
 	return Option[T]{value: v, ok: true}
 }
 
+// None ...
 func None[T any]() Option[T] {
 	return Option[T]{ok: false}
 }
+
+// Nil ...
 func Nil[T any]() Option[T] {
 	return Option[T]{ok: false}
 }
 
+// Val ...
 func (opt *Option[T]) Val() (T, bool) {
 	return opt.value, opt.ok
 }
 
+// Get ...
 func (opt *Option[T]) Get() (T, bool) {
 	return opt.value, opt.ok
 }
 
+// IsNone reports whether the condition holds.
 func (opt *Option[T]) IsNone() bool {
 	return !opt.ok
 }
 
+// IsSome reports whether the condition holds.
 func (opt *Option[T]) IsSome() bool {
 	return opt.ok
 }
 
+// Unwrap ...
 func (opt *Option[T]) Unwrap() T {
 	if opt.IsNone() {
 		panic("Attempted to unwrap an empty Option.")
@@ -50,6 +59,7 @@ func (opt *Option[T]) Unwrap() T {
 	return opt.value
 }
 
+// UnwrapOr ...
 func (opt *Option[T]) UnwrapOr(def T) T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -57,6 +67,7 @@ func (opt *Option[T]) UnwrapOr(def T) T {
 	return def
 }
 
+// UnwrapOrElse ...
 func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -64,6 +75,7 @@ func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	return fn()
 }
 
+// MapOption ...
 func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
 	if !opt.IsSome() {
 		return None[R]()
@@ -71,18 +83,21 @@ func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
 	return Some(fn(opt.Unwrap()))
 }
 
+// IfSome ...
 func (opt *Option[T]) IfSome(action func(value T)) {
 	if opt.ok {
 		action(opt.value)
 	}
 }
 
+// IfNone ...
 func (opt *Option[T]) IfNone(action func()) {
 	if !opt.ok {
 		action()
 	}
 }
 
+// MarshalJSON ...
 func (opt *Option[T]) MarshalJSON() ([]byte, error) {
 	if opt.ok {
 		return jsonx.Marshal(opt.value)
@@ -90,6 +105,7 @@ func (opt *Option[T]) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
+// UnmarshalJSON ...
 func (opt *Option[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		opt.ok = false
@@ -103,17 +119,22 @@ type OptionPtr[T any] struct {
 	value *T
 }
 
+// SomePtr ...
 func SomePtr[T any](v *T) OptionPtr[T] {
 	return OptionPtr[T]{value: v}
 }
 
+// NonePtr ...
 func NonePtr[T any]() OptionPtr[T] {
 	return OptionPtr[T]{}
 }
+
+// NilPtr ...
 func NilPtr[T any]() OptionPtr[T] {
 	return OptionPtr[T]{}
 }
 
+// Val ...
 func (opt OptionPtr[T]) Val() (*T, bool) {
 	if opt.value == nil {
 		return nil, false
@@ -121,6 +142,7 @@ func (opt OptionPtr[T]) Val() (*T, bool) {
 	return opt.value, true
 }
 
+// Get ...
 func (opt OptionPtr[T]) Get() (*T, bool) {
 	if opt.value == nil {
 		return nil, false
@@ -128,14 +150,17 @@ func (opt OptionPtr[T]) Get() (*T, bool) {
 	return opt.value, true
 }
 
+// IsNone reports whether the condition holds.
 func (opt OptionPtr[T]) IsNone() bool {
 	return opt.value == nil
 }
 
+// IsSome reports whether the condition holds.
 func (opt OptionPtr[T]) IsSome() bool {
 	return opt.value != nil
 }
 
+// Unwrap ...
 func (opt OptionPtr[T]) Unwrap() *T {
 	if opt.IsNone() {
 		panic("Attempted to unwrap an empty OptionPtr.")
@@ -143,6 +168,7 @@ func (opt OptionPtr[T]) Unwrap() *T {
 	return opt.value
 }
 
+// UnwrapOr ...
 func (opt OptionPtr[T]) UnwrapOr(def *T) *T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -150,6 +176,7 @@ func (opt OptionPtr[T]) UnwrapOr(def *T) *T {
 	return def
 }
 
+// UnwrapOrElse ...
 func (opt OptionPtr[T]) UnwrapOrElse(fn func() *T) *T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -157,6 +184,7 @@ func (opt OptionPtr[T]) UnwrapOrElse(fn func() *T) *T {
 	return fn()
 }
 
+// MapOptionPtr ...
 func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
 	if !opt.IsSome() {
 		return NonePtr[R]()
@@ -164,18 +192,21 @@ func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
 	return SomePtr(fn(opt.Unwrap()))
 }
 
+// IfSome ...
 func (opt OptionPtr[T]) IfSome(action func(value *T)) {
 	if opt.IsSome() {
 		action(opt.value)
 	}
 }
 
+// IfNone ...
 func (opt OptionPtr[T]) IfNone(action func()) {
 	if opt.IsNone() {
 		action()
 	}
 }
 
+// MarshalJSON ...
 func (opt OptionPtr[T]) MarshalJSON() ([]byte, error) {
 	if opt.IsSome() {
 		return jsonx.Marshal(opt.value)
@@ -183,6 +214,7 @@ func (opt OptionPtr[T]) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
+// UnmarshalJSON ...
 func (opt *OptionPtr[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		return nil

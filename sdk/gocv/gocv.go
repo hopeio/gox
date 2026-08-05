@@ -4,7 +4,6 @@
  * @Created by jyb
  */
 
-
 package gocv
 
 import (
@@ -15,6 +14,7 @@ import (
 	"gocv.io/x/gocv"
 )
 
+// SearchCircle ...
 func SearchCircle(path string, radius int) (circles []imagex.Circle, err error) {
 	gimg := gocv.IMRead(path, gocv.IMReadGrayScale)
 	// 定义高斯核的大小和标准差
@@ -37,7 +37,7 @@ func SearchCircle(path string, radius int) (circles []imagex.Circle, err error) 
 	return
 }
 
-// 有一定重合的固定大小的图片拼图
+// MergeUniformBoundsImagesByOverlap ...
 func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) ([]byte, error), imgWidth, imgHeight int,
 	horizontalOverlaps, verticalOverlaps []int, dst string) error {
 	var resultWidth, resultHeight int
@@ -101,6 +101,7 @@ func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) ([]by
 	return nil
 }
 
+// Sharpness ...
 func Sharpness(imgPath string, rect image.Rectangle) (float64, error) {
 	img := gocv.IMRead(imgPath, gocv.IMReadGrayScale|gocv.IMReadAnyDepth)
 
@@ -117,6 +118,7 @@ func Sharpness(imgPath string, rect image.Rectangle) (float64, error) {
 	return stddev.GetDoubleAt(0, 0), nil
 }
 
+// AffineMatByPoints ...
 func AffineMatByPoints(p1, p2, p3, q1, q2, q3 gocv.Point2f) gocv.Mat {
 	src := gocv.NewMatWithSize(3, 1, gocv.MatTypeCV32FC2)
 	defer src.Close()
@@ -140,7 +142,7 @@ func AffineMatByPoints(p1, p2, p3, q1, q2, q3 gocv.Point2f) gocv.Mat {
 	return gocv.GetAffineTransform2f(srcVec, dstVec)
 }
 
-// 坑,输入是float32,输出是float64
+// AffineMat ...
 func AffineMat(src []gocv.Point2f, dst []gocv.Point2f) gocv.Mat {
 	pvsrc := gocv.NewPoint2fVectorFromPoints(src)
 	defer pvsrc.Close()
@@ -150,6 +152,7 @@ func AffineMat(src []gocv.Point2f, dst []gocv.Point2f) gocv.Mat {
 	return gocv.GetAffineTransform2f(pvsrc, pvdst)
 }
 
+// AffineTransform ...
 func AffineTransform(affineMat gocv.Mat, points []gocv.Point2f) []gocv.Point2f {
 	n := len(points)
 	mat := gocv.NewMatWithSize(n, 1, gocv.MatTypeCV32FC2)
@@ -168,6 +171,7 @@ func AffineTransform(affineMat gocv.Mat, points []gocv.Point2f) []gocv.Point2f {
 	return ret
 }
 
+// CropRotated ...
 func CropRotated(img gocv.Mat, centerX, centerY, length, width float64, angle float64) gocv.Mat {
 	points := imagex.RectRotateByCenter(int(centerX), int(centerY), int(length), int(width), angle)
 	srcPoints := gocv.NewPointVectorFromPoints(points)
@@ -191,6 +195,7 @@ func CropRotated(img gocv.Mat, centerX, centerY, length, width float64, angle fl
 	return dst
 }
 
+// CountNonZeroInPointsVector ...
 func CountNonZeroInPointsVector(img gocv.Mat, pointsVector gocv.PointsVector) int {
 	mask := gocv.Zeros(img.Rows(), img.Cols(), img.Type())
 	gocv.FillPoly(&mask, pointsVector, color.RGBA{255, 255, 255, 255})
@@ -201,10 +206,12 @@ func CountNonZeroInPointsVector(img gocv.Mat, pointsVector gocv.PointsVector) in
 	return nonZeroCount
 }
 
+// PointVectorToPointsVector ...
 func PointVectorToPointsVector(pointVector gocv.PointVector) gocv.PointsVector {
 	return gocv.NewPointsVectorFromPoints([][]image.Point{pointVector.ToPoints()})
 }
 
+// PointsVectorFromPoints ...
 func PointsVectorFromPoints(points []image.Point) gocv.PointsVector {
 	return gocv.NewPointsVectorFromPoints([][]image.Point{points})
 }

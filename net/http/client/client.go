@@ -31,6 +31,7 @@ const (
 	ClientTypeUpload
 )
 
+// apiTransport ...
 func apiTransport() *http.Transport {
 	return &http.Transport{
 		Proxy:             http.ProxyFromEnvironment,
@@ -46,6 +47,7 @@ func apiTransport() *http.Transport {
 	}
 }
 
+// newHttpClient creates and returns a new instance.
 func newHttpClient(typ ClientType) *http.Client {
 	switch typ {
 	case ClientTypeDownload, ClientTypeUpload:
@@ -82,15 +84,18 @@ type Client struct {
 	retryHandler  func(*http.Request)
 }
 
+// New ...
 func New() *Client {
 	return &Client{httpClient: DefaultHttpClient, logger: DefaultLogger, logLevel: DefaultLogLevel, retryInterval: 200 * time.Millisecond}
 }
 
+// BaseUrl ...
 func (d *Client) BaseUrl(url string) *Client {
 	d.baseUrl = url
 	return d
 }
 
+// Header ...
 func (d *Client) Header(header http.Header) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)
@@ -99,6 +104,7 @@ func (d *Client) Header(header http.Header) *Client {
 	return d
 }
 
+// HeaderX ...
 func (d *Client) HeaderX(header httpx.Header) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)
@@ -107,6 +113,7 @@ func (d *Client) HeaderX(header httpx.Header) *Client {
 	return d
 }
 
+// AddHeader ...
 func (d *Client) AddHeader(k, v string) *Client {
 	if d.header == nil {
 		d.header = make(http.Header)
@@ -115,6 +122,7 @@ func (d *Client) AddHeader(k, v string) *Client {
 	return d
 }
 
+// Logger ...
 func (d *Client) Logger(logger AccessLog) *Client {
 	if logger == nil {
 		return d
@@ -123,43 +131,49 @@ func (d *Client) Logger(logger AccessLog) *Client {
 	return d
 }
 
+// DisableLog ...
 func (d *Client) DisableLog() *Client {
 	d.logLevel = LogLevelSilent
 	return d
 }
 
+// LogLevel ...
 func (d *Client) LogLevel(lvl LogLevel) *Client {
 	d.logLevel = lvl
 	return d
 }
 
-// handler 返回值:是否重试,返回数据,错误
+// ResponseHandler ...
 func (d *Client) ResponseHandler(handler func(response *http.Response) (retry bool, reader io.ReadCloser, err error)) *Client {
 	d.responseHandler = handler
 	return d
 }
 
+// RespBodyHandler ...
 func (d *Client) RespBodyHandler(handler func(data []byte) ([]byte, error)) *Client {
 	d.respBodyHandler = handler
 	return d
 }
 
+// ReqBodyMarshal ...
 func (d *Client) ReqBodyMarshal(handler func(v any) ([]byte, error)) *Client {
 	d.reqBodyMarshal = handler
 	return d
 }
 
+// RespBodyUnMarshal ...
 func (d *Client) RespBodyUnMarshal(handler func(data []byte, v any) error) *Client {
 	d.respBodyUnMarshal = handler
 	return d
 }
 
+// HttpRequestOptions ...
 func (d *Client) HttpRequestOptions(opts ...HttpRequestOption) *Client {
 	d.httpRequestOptions = append(d.httpRequestOptions, opts...)
 	return d
 }
 
-// 设置过期时间,仅对单次请求有效
+// Timeout ...
 func (d *Client) Timeout(timeout time.Duration) *Client {
 	if !d.newHttpClient {
 		d.httpClient = newHttpClient(d.typ)
@@ -169,12 +183,14 @@ func (d *Client) Timeout(timeout time.Duration) *Client {
 	return d
 }
 
+// HttpClient ...
 func (d *Client) HttpClient(client *http.Client) *Client {
 	d.httpClient = client
 	d.newHttpClient = true
 	return d
 }
 
+// SetHttpClient ...
 func (d *Client) SetHttpClient(opt HttpClientOption) *Client {
 	if !d.newHttpClient {
 		d.httpClient = newHttpClient(d.typ)
@@ -184,22 +200,26 @@ func (d *Client) SetHttpClient(opt HttpClientOption) *Client {
 	return d
 }
 
+// RetryTimes ...
 func (d *Client) RetryTimes(retryTimes int) *Client {
 	d.retryTimes = retryTimes
 	return d
 }
 
+// RetryTimesWithInterval ...
 func (d *Client) RetryTimesWithInterval(retryTimes int, retryInterval time.Duration) *Client {
 	d.retryTimes = retryTimes
 	d.retryInterval = retryInterval
 	return d
 }
 
+// RetryHandler ...
 func (d *Client) RetryHandler(handle func(r *http.Request)) *Client {
 	d.retryHandler = handle
 	return d
 }
 
+// ensureOwnHttpClient ...
 func (d *Client) ensureOwnHttpClient() {
 	if !d.newHttpClient {
 		d.httpClient = newHttpClient(d.typ)
@@ -207,6 +227,7 @@ func (d *Client) ensureOwnHttpClient() {
 	}
 }
 
+// Proxy ...
 func (d *Client) Proxy(proxyUrl string) *Client {
 	d.ensureOwnHttpClient()
 	if proxyUrl == "" {
@@ -220,19 +241,21 @@ func (d *Client) Proxy(proxyUrl string) *Client {
 	return d
 }
 
-// NoProxy 禁用代理（不读取 HTTP_PROXY 等环境变量）。
+// NoProxy ...
 func (d *Client) NoProxy() *Client {
 	d.ensureOwnHttpClient()
 	setProxy(d.httpClient, nil)
 	return d
 }
 
+// ResetProxy ...
 func (d *Client) ResetProxy() *Client {
 	d.ensureOwnHttpClient()
 	setProxy(d.httpClient, http.ProxyFromEnvironment)
 	return d
 }
 
+// BasicAuth ...
 func (d *Client) BasicAuth(authUser, authPass string) *Client {
 	d.httpRequestOptions = append(d.httpRequestOptions, func(request *http.Request) {
 		request.SetBasicAuth(authUser, authPass)
@@ -240,6 +263,7 @@ func (d *Client) BasicAuth(authUser, authPass string) *Client {
 	return d
 }
 
+// Clone ...
 func (d *Client) Clone() *Client {
 	c := *d
 	if d.header != nil {
@@ -252,6 +276,7 @@ func (d *Client) Clone() *Client {
 	return &c
 }
 
+// Request ...
 func (d *Client) Request(method, url string) *Request {
 	r := &Request{
 		Method: method, Url: url, client: d,
@@ -259,58 +284,72 @@ func (d *Client) Request(method, url string) *Request {
 	return r
 }
 
+// Do ...
 func (d *Client) Do(r *Request, param, response any) error {
 	return r.Client(d).Do(param, response)
 }
 
+// Get ...
 func (d *Client) Get(url string, param, response any) error {
 	return NewRequest(http.MethodGet, url).Client(d).Do(param, response)
 }
 
+// GetRequest ...
 func (d *Client) GetRequest(url string) *Request {
 	return NewRequest(http.MethodGet, url).Client(d)
 }
 
+// Post ...
 func (d *Client) Post(url string, param, response any) error {
 	return NewRequest(http.MethodPost, url).Client(d).Do(param, response)
 }
 
+// PostRequest ...
 func (d *Client) PostRequest(url string) *Request {
 	return NewRequest(http.MethodPost, url).Client(d)
 }
 
+// Put ...
 func (d *Client) Put(url string, param, response any) error {
 	return NewRequest(http.MethodPut, url).Client(d).Do(param, response)
 }
 
+// PutRequest ...
 func (d *Client) PutRequest(url string) *Request {
 	return NewRequest(http.MethodPut, url).Client(d)
 }
 
+// Delete ...
 func (d *Client) Delete(url string, param, response any) error {
 	return NewRequest(http.MethodDelete, url).Client(d).Do(param, response)
 }
 
+// DeleteRequest ...
 func (d *Client) DeleteRequest(url string) *Request {
 	return NewRequest(http.MethodDelete, url).Client(d)
 }
 
+// GetX ...
 func (d *Client) GetX(url string, response any) error {
 	return NewRequest(http.MethodGet, url).Client(d).Do(nil, response)
 }
 
+// GetRaw ...
 func (d *Client) GetRaw(url string, param any) (RawBytes, error) {
 	return NewRequest(http.MethodGet, url).Client(d).DoRaw(param)
 }
 
+// GetRawX ...
 func (d *Client) GetRawX(url string) (RawBytes, error) {
 	return NewRequest(http.MethodGet, url).Client(d).DoRaw(nil)
 }
 
+// GetStream ...
 func (d *Client) GetStream(url string, param any) (io.ReadCloser, error) {
 	return NewRequest(http.MethodGet, url).Client(d).DoStream(param)
 }
 
+// GetStreamX ...
 func (d *Client) GetStreamX(url string) (io.ReadCloser, error) {
 	return NewRequest(http.MethodGet, url).Client(d).DoStream(nil)
 }

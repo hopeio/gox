@@ -10,6 +10,7 @@ type BitMask struct {
 	Rect image.Rectangle
 }
 
+// NewBitMask creates and returns a new instance.
 func NewBitMask(rect image.Rectangle) *BitMask {
 	total := rect.Dx() * rect.Dy()
 	n := total / 8
@@ -22,6 +23,7 @@ func NewBitMask(rect image.Rectangle) *BitMask {
 	}
 }
 
+// Set ...
 func (m *BitMask) Set(x, y int, v bool) error {
 	if !(image.Point{X: x, Y: y}).In(m.Rect) {
 		return errors.New("out of range")
@@ -41,6 +43,7 @@ func (m *BitMask) Set(x, y int, v bool) error {
 	return nil
 }
 
+// Get ...
 func (m *BitMask) Get(x, y int) (bool, bool) {
 	if !(image.Point{X: x, Y: y}).In(m.Rect) {
 		return false, false
@@ -60,6 +63,7 @@ type Mask struct {
 	Rect image.Rectangle
 }
 
+// NewMask creates and returns a new instance.
 func NewMask(rect image.Rectangle) *Mask {
 	return &Mask{
 		Rect: rect,
@@ -67,6 +71,7 @@ func NewMask(rect image.Rectangle) *Mask {
 	}
 }
 
+// Set ...
 func (m *Mask) Set(x, y int, v uint8) error {
 	if !(image.Point{X: x, Y: y}).In(m.Rect) {
 		return errors.New("out of range")
@@ -76,6 +81,7 @@ func (m *Mask) Set(x, y int, v uint8) error {
 	return nil
 }
 
+// Get ...
 func (m *Mask) Get(x, y int) (uint8, bool) {
 	if !(image.Point{X: x, Y: y}).In(m.Rect) {
 		return 0, false

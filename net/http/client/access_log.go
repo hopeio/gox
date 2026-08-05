@@ -35,6 +35,7 @@ type AccessLogParam struct {
 }
 type AccessLog func(param *AccessLogParam, err error)
 
+// DefaultLogger ...
 func DefaultLogger(param *AccessLogParam, err error) {
 	reqField, respField, statusField := zap.Skip(), zap.Skip(), zap.Skip()
 	if len(param.ReqBody) > 0 && param.Request != nil {

@@ -7,16 +7,19 @@ type MutexQueue[T any] struct {
 	mu sync.RWMutex
 }
 
+// NewMutexQueue creates and returns a new instance.
 func NewMutexQueue[T any]() *MutexQueue[T] {
 	return &MutexQueue[T]{v: make([]T, 0)}
 }
 
+// Enqueue ...
 func (q *MutexQueue[T]) Enqueue(v T) {
 	q.mu.Lock()
 	q.v = append(q.v, v)
 	q.mu.Unlock()
 }
 
+// Dequeue ...
 func (q *MutexQueue[T]) Dequeue() (T, bool) {
 	q.mu.Lock()
 	if len(q.v) == 0 {

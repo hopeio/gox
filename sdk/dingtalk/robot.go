@@ -28,6 +28,7 @@ const (
 	ROOT = "https://oapi.dingtalk.com/"
 )
 
+// RobotSendMessage ...
 func RobotSendMessage(accessToken, secret string, msg MessageType) error {
 	signUrl, err := RobotUrl(accessToken, secret)
 	if err != nil {
@@ -38,6 +39,7 @@ func RobotSendMessage(accessToken, secret string, msg MessageType) error {
 	return client.Post(ROOT+signUrl, body, nil)
 }
 
+// RobotUrl ...
 func RobotUrl(accessToken, secret string) (string, error) {
 	if accessToken == "" {
 		return "", errors.New("token不能为为空")
@@ -59,6 +61,7 @@ func RobotSendTextMessage(accessToken string, content string) error {
 	return RobotSendTextMessageWithSecret(accessToken, "", content)
 }
 
+// RobotSendTextMessageWithSecret ...
 func RobotSendTextMessageWithSecret(accessToken, secret, content string) error {
 	signUrl, err := RobotUrl(accessToken, secret)
 	if err != nil {
@@ -69,6 +72,7 @@ func RobotSendTextMessageWithSecret(accessToken, secret, content string) error {
 	return client.Post(ROOT+signUrl, body, nil)
 }
 
+// RobotSendMarkDownMessage ...
 func RobotSendMarkDownMessage(token, title, content string, at *At) error {
 	msg := &Markdown{
 		Title: title,
@@ -78,6 +82,7 @@ func RobotSendMarkDownMessage(token, title, content string, at *At) error {
 	return RobotSendMessage(token, "", msg)
 }
 
+// RobotSendMarkDownMessageWithSecret ...
 func RobotSendMarkDownMessageWithSecret(token, secret, title, content string, at *At) error {
 	msg := &Markdown{
 		Title: title,
@@ -92,6 +97,7 @@ type Robot struct {
 	Secret      string
 }
 
+// SendMessage ...
 func (r *Robot) SendMessage(msg MessageType) error {
 	return RobotSendMessage(r.AccessToken, r.Secret, msg)
 }

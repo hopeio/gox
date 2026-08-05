@@ -13,10 +13,12 @@ type Interface[T any] interface {
 
 type Heap[E any, I Interface[E]] []E
 
+// New ...
 func New[E any, I Interface[E]](capacity int) Heap[E, I] {
 	return make([]E, 0, capacity)
 }
 
+// NewFromArray creates and returns a new instance.
 func NewFromArray[E any, I Interface[E]](arr I) Heap[E, I] {
 	heap := Heap[E, I](arr)
 	for i := 1; i < len(arr); i++ {
@@ -25,6 +27,7 @@ func NewFromArray[E any, I Interface[E]](arr I) Heap[E, I] {
 	return heap
 }
 
+// Init ...
 func (heap Heap[E, I]) Init() {
 	// heapify
 	n := len(heap)
@@ -33,12 +36,14 @@ func (heap Heap[E, I]) Init() {
 	}
 }
 
+// Push ...
 func (heap *Heap[E, I]) Push(x E) {
 	h := *heap
 	*heap = append(h, x)
 	heap.up(len(h))
 }
 
+// Put ...
 func (heap *Heap[E, I]) Put(val E) {
 	h := *heap
 	if len(h) < cap(h) {
@@ -56,6 +61,7 @@ func (heap *Heap[E, I]) Put(val E) {
 	heap.down(0, len(h))
 }
 
+// Pop ...
 func (heap *Heap[E, I]) Pop() (E, bool) {
 	h := *heap
 	if len(h) == 0 {
@@ -69,6 +75,7 @@ func (heap *Heap[E, I]) Pop() (E, bool) {
 	return item, true
 }
 
+// First ...
 func (heap Heap[E, I]) First() (E, bool) {
 	if len(heap) == 0 {
 		return *new(E), false
@@ -76,6 +83,7 @@ func (heap Heap[E, I]) First() (E, bool) {
 	return heap[0], true
 }
 
+// Last ...
 func (heap Heap[E, I]) Last() (E, bool) {
 	if len(heap) == 0 {
 		return *new(E), false
@@ -83,6 +91,7 @@ func (heap Heap[E, I]) Last() (E, bool) {
 	return heap[len(heap)-1], true
 }
 
+// Remove ...
 func (heap *Heap[E, I]) Remove(i int) (E, bool) {
 	h := *heap
 	if len(h) <= i {
@@ -100,6 +109,7 @@ func (heap *Heap[E, I]) Remove(i int) (E, bool) {
 	return item, true
 }
 
+// up ...
 func (heap Heap[E, I]) up(j int) {
 
 	for {
@@ -112,6 +122,7 @@ func (heap Heap[E, I]) up(j int) {
 	}
 }
 
+// down ...
 func (heap Heap[E, I]) down(i0, n int) bool {
 	i := i0
 	for {
@@ -132,6 +143,7 @@ func (heap Heap[E, I]) down(i0, n int) bool {
 	return i > i0
 }
 
+// Size returns the number of elements.
 func (heap Heap[E, I]) Size() int {
 	return len(heap)
 }

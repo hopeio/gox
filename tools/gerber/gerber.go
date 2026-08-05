@@ -23,6 +23,7 @@ import (
 	"gocv.io/x/gocv"
 )
 
+// main ...
 func main() {
 	path := `D:\Gerber_TopLayer.GTL`
 	maxWidth := 100.0
@@ -132,6 +133,7 @@ type RotatedRect struct {
 	Angle        float64
 }
 
+// CvGerber ...
 func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect, []*imagex.Circle, image.Rectangle) {
 	var rects []*RotatedRect
 	img := gocv.IMRead(path, gocv.IMReadUnchanged)

@@ -31,6 +31,7 @@ const OpenapiEXT = ".openapi.json"
 const SwaggerEXT = ".swagger.json"
 const JsonEXT = ".json"
 
+// OpenApi creates and returns a new instance.
 func OpenApi(w http.ResponseWriter, r *http.Request) {
 	prefixUri := UriPrefix + "/"
 	if r.RequestURI[len(r.RequestURI)-5:] == ".json" {
@@ -51,6 +52,8 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 		Path:     mod,
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
+
+// DocList ...
 func DocList(w http.ResponseWriter, r *http.Request) {
 	fileInfos, err := os.ReadDir(DocDir)
 	if err != nil {
@@ -67,6 +70,7 @@ func DocList(w http.ResponseWriter, r *http.Request) {
 	w.Write(buff.Bytes())
 }
 
+// Openapi creates and returns a new instance.
 func Openapi(mux *http.ServeMux, uriPrefix, dir string) {
 	if dir != "" {
 		if b := dir[len(dir)-1:]; b == "/" || b == "\\" {
@@ -82,6 +86,7 @@ func Openapi(mux *http.ServeMux, uriPrefix, dir string) {
 	mux.HandleFunc(UriPrefix+"/{file...}", OpenApi)
 }
 
+// WriteToFile ...
 func WriteToFile(docDir, modName string, doc *openapi3.T) error {
 	if doc == nil {
 		return errors.New("doc is nil")

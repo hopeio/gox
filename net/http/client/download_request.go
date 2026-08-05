@@ -45,6 +45,7 @@ type DownloadReq struct {
 	rangeSize  int64
 }
 
+// NewDownloadReq creates and returns a new instance.
 func NewDownloadReq(url string) *DownloadReq {
 	return &DownloadReq{
 		ctx:        context.Background(),
@@ -53,22 +54,26 @@ func NewDownloadReq(url string) *DownloadReq {
 	}
 }
 
+// Context ...
 func (dReq *DownloadReq) Context(ctx context.Context) *DownloadReq {
 	dReq.ctx = ctx
 	return dReq
 }
 
+// Downloader ...
 func (dReq *DownloadReq) Downloader(c *Downloader) *DownloadReq {
 	dReq.downloader = c
 	return dReq
 }
 
+// SetDownloader ...
 func (dReq *DownloadReq) SetDownloader(set func(c *Downloader)) *DownloadReq {
 	dReq.downloader = NewDownloader()
 	set(dReq.downloader)
 	return dReq
 }
 
+// Header ...
 func (dReq *DownloadReq) Header(header http.Header) *DownloadReq {
 	if dReq.header == nil {
 		dReq.header = make(http.Header)
@@ -77,6 +82,7 @@ func (dReq *DownloadReq) Header(header http.Header) *DownloadReq {
 	return dReq
 }
 
+// AddHeader ...
 func (dReq *DownloadReq) AddHeader(k, v string) *DownloadReq {
 	if dReq.header == nil {
 		dReq.header = make(http.Header)
@@ -85,21 +91,24 @@ func (dReq *DownloadReq) AddHeader(k, v string) *DownloadReq {
 	return dReq
 }
 
+// Mode ...
 func (dReq *DownloadReq) Mode(mode DownloadMode) *DownloadReq {
 	dReq.mode = mode
 	return dReq
 }
 
+// GetMode ...
 func (dReq *DownloadReq) GetMode() DownloadMode {
 	return dReq.mode
 }
 
-// 如果文件已存在，强制覆盖
+// OverwriteMode ...
 func (dReq *DownloadReq) OverwriteMode() *DownloadReq {
 	dReq.mode |= DModeOverwrite
 	return dReq
 }
 
+// GetResponse ...
 func (dReq *DownloadReq) GetResponse(options ...func(*http.Request)) (*http.Response, error) {
 	d := dReq.downloader
 	req, err := http.NewRequestWithContext(dReq.ctx, http.MethodGet, dReq.Url, nil)
@@ -156,11 +165,13 @@ func (dReq *DownloadReq) GetResponse(options ...func(*http.Request)) (*http.Resp
 	return nil, err
 }
 
+// GetReader ...
 func (dReq *DownloadReq) GetReader() (io.ReadCloser, error) {
 	_, reader, err := dReq.getReader()
 	return reader, err
 }
 
+// getReader ...
 func (dReq *DownloadReq) getReader() (*http.Response, io.ReadCloser, error) {
 	for {
 		resp, err := dReq.GetResponse()
@@ -210,6 +221,7 @@ func (dReq *DownloadReq) getReader() (*http.Response, io.ReadCloser, error) {
 	}
 }
 
+// Download ...
 func (dReq *DownloadReq) Download(filepath string) error {
 	if dReq.mode&DModeOverwrite == 0 && fs.Exist(filepath) {
 		return nil
@@ -247,6 +259,7 @@ func (dReq *DownloadReq) Download(filepath string) error {
 	return err
 }
 
+// DownloadAttachment ...
 func (dReq *DownloadReq) DownloadAttachment(dir string) error {
 
 	if dReq.downloader.retryTimes == 0 {
@@ -295,6 +308,7 @@ func (dReq *DownloadReq) DownloadAttachment(dir string) error {
 	return err
 }
 
+// continuationDownload ...
 func (dReq *DownloadReq) continuationDownload(filepath string) error {
 	f, err := fs.OpenFile(filepath+DownloadKey, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -340,7 +354,7 @@ func (dReq *DownloadReq) continuationDownload(filepath string) error {
 const defaultRange = "bytes=0-"
 const defaultSize = 30 * 1024 * 1024
 
-// TODO: 利用简单任务调度实现
+// ConcurrencyDownload ...
 func (dReq *DownloadReq) ConcurrencyDownload(filepath string, concurrencyNum int) error {
 	if dReq.mode&DModeOverwrite == 0 && fs.Exist(filepath) {
 		return nil
@@ -348,10 +362,12 @@ func (dReq *DownloadReq) ConcurrencyDownload(filepath string, concurrencyNum int
 	panic("not implemented")
 }
 
+// GetReader ...
 func GetReader(url string) (io.ReadCloser, error) {
 	return GetReaderWithHttpRequestOptions(url)
 }
 
+// GetReaderWithHttpRequestOptions ...
 func GetReaderWithHttpRequestOptions(url string, opts ...HttpRequestOption) (io.ReadCloser, error) {
 	resp, err := NewDownloader().HttpRequestOptions(opts...).DownloadReq(url).GetResponse()
 	if err != nil {
@@ -360,14 +376,17 @@ func GetReaderWithHttpRequestOptions(url string, opts ...HttpRequestOption) (io.
 	return resp.Body, nil
 }
 
+// Download ...
 func Download(filepath, url string) error {
 	return NewDownloadReq(url).Download(filepath)
 }
 
+// GetImage ...
 func GetImage(url string) (io.ReadCloser, error) {
 	return GetReaderWithHttpRequestOptions(url, ImageOption)
 }
 
+// DownloadImage ...
 func DownloadImage(filepath, url string) error {
 	reader, err := GetReaderWithHttpRequestOptions(url, ImageOption)
 	if err != nil {
@@ -376,10 +395,12 @@ func DownloadImage(filepath, url string) error {
 	return fs.Download(filepath, reader)
 }
 
+// ImageOption ...
 func ImageOption(req *http.Request) {
 	req.Header.Set(httpx.HeaderAccept, "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
 }
 
+// DownloadToDir ...
 func DownloadToDir(dir, url string) error {
 	return NewDownloadReq(url).Download(dir + fs.PathSeparator + urlx.URIBase(url))
 }

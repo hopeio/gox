@@ -68,6 +68,7 @@ type KindHandler[KEY Key] struct {
 	Handler TaskFunc[KEY]
 }
 
+// NewEngine creates and returns a new instance.
 func NewEngine[KEY Key](workerCount uint64, opts ...Option[KEY]) *Engine[KEY] {
 	engine := &Engine[KEY]{
 		workerCount:      workerCount,
@@ -106,6 +107,7 @@ func NewEngine[KEY Key](workerCount uint64, opts ...Option[KEY]) *Engine[KEY] {
 	return engine
 }
 
+// SkipKind ...
 func (e *Engine[KEY]) SkipKind(kinds ...Kind) *Engine[KEY] {
 	length := slices.Max(kinds) + 1
 	if e.kindHandlers == nil {
@@ -125,6 +127,7 @@ func (e *Engine[KEY]) SkipKind(kinds ...Kind) *Engine[KEY] {
 	return e
 }
 
+// MonitorInterval ...
 func (e *Engine[KEY]) MonitorInterval(interval time.Duration) {
 	if interval < time.Second {
 		log.Warn("monitor interval min one second")
@@ -134,11 +137,13 @@ func (e *Engine[KEY]) MonitorInterval(interval time.Duration) {
 	e.monitorInterval = interval
 }
 
+// ErrHandler ...
 func (e *Engine[KEY]) ErrHandler(errHandler func(task *Task[KEY])) *Engine[KEY] {
 	e.errHandler = errHandler
 	return e
 }
 
+// ErrHandlerUtilSuccess ...
 func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
 	log.Warn("ErrHandlerUtilSuccess will clear history exec log contains err")
 	return e.ErrHandler(func(task *Task[KEY]) {
@@ -148,6 +153,7 @@ func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
 	})
 }
 
+// ErrHandlerRetryTimes ...
 func (e *Engine[KEY]) ErrHandlerRetryTimes(times int) *Engine[KEY] {
 	return e.ErrHandler(func(task *Task[KEY]) {
 		if task.reExecTimes < times {
@@ -161,6 +167,7 @@ func (e *Engine[KEY]) ErrHandlerRetryTimes(times int) *Engine[KEY] {
 	})
 }
 
+// ErrHandlerWriteToFile ...
 func (e *Engine[KEY]) ErrHandlerWriteToFile(path string) *Engine[KEY] {
 	file, err := fs.Create(path)
 	if err != nil {
@@ -174,33 +181,39 @@ func (e *Engine[KEY]) ErrHandlerWriteToFile(path string) *Engine[KEY] {
 	})
 }
 
+// OnStop ...
 func (e *Engine[KEY]) OnStop(callBack func(context.Context)) *Engine[KEY] {
 	e.onStop = append(e.onStop, callBack)
 	return e
 }
 
+// SpeedLimited ...
 func (e *Engine[KEY]) SpeedLimited(interval time.Duration) *Engine[KEY] {
 	e.speedLimit = timex.NewTicker(interval)
 	return e
 }
 
+// RandSpeedLimited ...
 func (e *Engine[KEY]) RandSpeedLimited(minInterval, maxInterval time.Duration) *Engine[KEY] {
 	e.speedLimit = timex.NewRandTicker(minInterval, maxInterval)
 	return e
 }
 
+// KindSpeedLimit ...
 func (e *Engine[KEY]) KindSpeedLimit(kind Kind, interval time.Duration) *Engine[KEY] {
 	limiter := timex.NewRandTicker(interval, interval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
+// KindRandSpeedLimit ...
 func (e *Engine[KEY]) KindRandSpeedLimit(kind Kind, minInterval, maxInterval time.Duration) *Engine[KEY] {
 	limiter := timex.NewRandTicker(minInterval, maxInterval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
+// kindSpeedLimit ...
 func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timex.Ticker) *Engine[KEY] {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
@@ -216,7 +229,7 @@ func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timex.Ticker) *Engine[KE
 	return e
 }
 
-// 多个kind共用一个timer
+// KindGroupSpeedLimit ...
 func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind) *Engine[KEY] {
 	limiter := timex.NewRandTicker(interval, interval)
 	for _, kind := range kinds {
@@ -225,6 +238,7 @@ func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind)
 	return e
 }
 
+// KindGroupRandSpeedLimit ...
 func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Duration, kinds ...Kind) *Engine[KEY] {
 	limiter := timex.NewRandTicker(minInterval, maxInterval)
 	for _, kind := range kinds {
@@ -233,16 +247,19 @@ func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Dura
 	return e
 }
 
+// Limiter ...
 func (e *Engine[KEY]) Limiter(r rate.Limit, b int) *Engine[KEY] {
 	e.rateLimiter = rate.NewLimiter(r, b)
 	return e
 }
 
+// KindLimiter ...
 func (e *Engine[KEY]) KindLimiter(kind Kind, r rate.Limit, b int) *Engine[KEY] {
 	e.kindLimiter(kind, r, b)
 	return e
 }
 
+// kindLimiter ...
 func (e *Engine[KEY]) kindLimiter(kind Kind, r rate.Limit, b int) {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
@@ -259,7 +276,7 @@ func (e *Engine[KEY]) kindLimiter(kind Kind, r rate.Limit, b int) {
 
 type AddTask[KEY Key] func(ctx context.Context, priority int, task ...*Task[KEY])
 
-// TaskSource,参数为添加任务的函数，直到该函数运行结束，任务引擎才会检测任务是否结束
+// TaskSource ...
 func (e *Engine[KEY]) TaskSource(taskSource func(addTask *Engine[KEY])) {
 	e.wg.Add(1)
 	go func() {
@@ -270,12 +287,12 @@ func (e *Engine[KEY]) TaskSource(taskSource func(addTask *Engine[KEY])) {
 
 type Option[KEY Key] func(engine *Engine[KEY])
 
-// WithMaxPending 限制"已加入未结束"的任务总数,防止任务堆无界膨胀。
-// 背压只作用在 ingest 协程/外部调用者,不会阻塞 worker。建议 >= WorkerCount。
+// WithMaxPending ...
 func WithMaxPending[KEY Key](n uint64) Option[KEY] {
 	return func(c *Engine[KEY]) { c.maxPending = n }
 }
 
+// WithContext ...
 func WithContext[KEY Key](ctx context.Context) Option[KEY] {
 	return func(c *Engine[KEY]) { c.ctx = ctx }
 }

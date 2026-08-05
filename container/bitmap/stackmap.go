@@ -28,12 +28,14 @@ type Bitmap struct {
 	B []byte
 }
 
+// grow ...
 func (self *Bitmap) grow() {
 	if self.N >= len(self.B)*8 {
 		self.B = append(self.B, 0)
 	}
 }
 
+// mark ...
 func (self *Bitmap) mark(i int, bv int) {
 	if bv != 0 {
 		self.B[i/8] |= 1 << (i % 8)
@@ -42,6 +44,7 @@ func (self *Bitmap) mark(i int, bv int) {
 	}
 }
 
+// Set ...
 func (self *Bitmap) Set(i int, bv int) {
 	if i >= self.N {
 		panic("bitmap: invalid bit position")
@@ -50,12 +53,14 @@ func (self *Bitmap) Set(i int, bv int) {
 	}
 }
 
+// Append ...
 func (self *Bitmap) Append(bv int) {
 	self.grow()
 	self.mark(self.N, bv)
 	self.N++
 }
 
+// AppendMany ...
 func (self *Bitmap) AppendMany(n int, bv int) {
 	for i := 0; i < n; i++ {
 		self.Append(bv)
@@ -72,10 +77,12 @@ type BitVec struct {
 	B unsafe.Pointer
 }
 
+// Bit ...
 func (self BitVec) Bit(i uintptr) byte {
 	return (*(*byte)(unsafe.Pointer(uintptr(self.B) + i/8)) >> (i % 8)) & 1
 }
 
+// String returns the string representation.
 func (self BitVec) String() string {
 	var i uintptr
 	var v []string
@@ -104,11 +111,13 @@ type StackMap struct {
 //     _stackMapLock.Unlock()
 // }
 
+// Pin ...
 func (self *StackMap) Pin() uintptr {
 	// self.add()
 	return uintptr(unsafe.Pointer(self))
 }
 
+// Get ...
 func (self *StackMap) Get(i int32) BitVec {
 	return BitVec{
 		N: uintptr(self.L),
@@ -116,6 +125,7 @@ func (self *StackMap) Get(i int32) BitVec {
 	}
 }
 
+// String returns the string representation.
 func (self *StackMap) String() string {
 	sb := strings.Builder{}
 	sb.WriteString("StackMap {")
@@ -131,6 +141,7 @@ func (self *StackMap) String() string {
 	return sb.String()
 }
 
+// MarshalBinary ...
 func (self *StackMap) MarshalBinary() ([]byte, error) {
 	size := int(self.N)*int(self.L) + int(unsafe.Sizeof(self.L)) + int(unsafe.Sizeof(self.N))
 	return reflect.BytesFrom(unsafe.Pointer(self), size, size), nil
@@ -164,6 +175,7 @@ func (self *StackMapBuilder) Build() (p *StackMap) {
 	return
 }
 
+// AddField ...
 func (self *StackMapBuilder) AddField(ptr bool) {
 	if ptr {
 		self.b.Append(1)
@@ -172,6 +184,7 @@ func (self *StackMapBuilder) AddField(ptr bool) {
 	}
 }
 
+// AddFields ...
 func (self *StackMapBuilder) AddFields(n int, ptr bool) {
 	if ptr {
 		self.b.AppendMany(n, 1)

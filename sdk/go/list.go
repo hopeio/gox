@@ -18,6 +18,7 @@ const GOPATHKey = "GOPATH"
 
 var gopath, modPath string
 
+// init ...
 func init() {
 	if gopath == "" {
 		gopath = os.Getenv(GOPATHKey)
@@ -28,6 +29,7 @@ func init() {
 	modPath = gopath + "pkg/mod/"
 }
 
+// GetDepDir ...
 func GetDepDir(dep string) string {
 	if !strings.Contains(dep, "@") {
 		return modDepDir(dep)
@@ -40,6 +42,7 @@ func GetDepDir(dep string) string {
 	return depPath
 }
 
+// modDepDir ...
 func modDepDir(dep string) string {
 	depPath, err := execx.RunGetOut(GoListDir + dep)
 	if err != nil || depPath == "" {

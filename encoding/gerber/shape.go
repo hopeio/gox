@@ -25,6 +25,7 @@ type Contour struct {
 	Polarity bool
 }
 
+// Bounds ...
 func (e *Contour) Bounds() *geom.Bounds {
 	bounds := image.Rectangle{Min: image.Point{X: int(e.X), Y: int(e.Y)}, Max: image.Point{int(e.X), int(e.Y)}}
 	lastPoint := image.Point{X: int(e.X), Y: int(e.Y)}
@@ -46,6 +47,7 @@ type Rectangle struct {
 	geom.Rectangle
 }
 
+// Bounds ...
 func (e *Rectangle) Bounds() *geom.Bounds {
 	return e.Rectangle.Bounds()
 }
@@ -56,6 +58,7 @@ type Obround struct {
 	geom.Rectangle
 }
 
+// Bounds ...
 func (e *Obround) Bounds() *geom.Bounds {
 	return e.Rectangle.Bounds()
 }
@@ -66,6 +69,7 @@ type Circle struct {
 	geom.Circle
 }
 
+// Bounds ...
 func (e *Circle) Bounds() *geom.Bounds {
 	return e.Circle.Bounds()
 }
@@ -77,6 +81,7 @@ type Arc struct {
 	Interpolation
 }
 
+// Bounds ...
 func (e *Arc) Bounds() *geom.Bounds {
 	return e.CircularArc2.ToCircularArc().Bounds()
 }
@@ -88,6 +93,7 @@ type Line struct {
 	Cap         LineCap
 }
 
+// Bounds ...
 func (e *Line) Bounds() *geom.Bounds {
 	if e.Cap == LineCapButt {
 		vector := geom.NewVector(e.Start, e.End)

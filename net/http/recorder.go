@@ -68,10 +68,12 @@ func NewRecorder(w http.ResponseWriter, r *http.Request) *Recorder {
 	}
 }
 
+// Header ...
 func (rw *ResponseRecorder) Header() http.Header {
 	return rw.originWriter.Header()
 }
 
+// Write ...
 func (rw *ResponseRecorder) Write(buf []byte) (int, error) {
 	if len(buf) > 0 {
 		if rw.Raw == nil {
@@ -97,6 +99,7 @@ func (rw *ResponseRecorder) Flush() {
 	rw.originWriter.(http.Flusher).Flush()
 }
 
+// Read ...
 func (rw *RequestRecorder) Read(b []byte) (int, error) {
 	read, err := rw.originBody.Read(b)
 	if err != nil {
@@ -109,10 +112,12 @@ func (rw *RequestRecorder) Read(b []byte) (int, error) {
 	return rw.Body.Write(b)*/
 }
 
+// Close closes and releases resources.
 func (rw *RequestRecorder) Close() error {
 	return rw.originBody.Close()
 }
 
+// Reset ...
 func (rw *Recorder) Reset() {
 	rw.StatusCode = http.StatusOK
 	rw.RequestRecorder.Body = nil
@@ -128,6 +133,7 @@ func (rw *Recorder) Reset() {
 	}
 }
 
+// RecordBody ...
 func (rw *Record) RecordBody(raw []byte, v any) {
 	if len(raw) > 0 {
 		rw.Raw = raw

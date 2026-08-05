@@ -7,16 +7,19 @@ type MutexStack[T any] struct {
 	mu sync.RWMutex
 }
 
+// NewMutexStack creates and returns a new instance.
 func NewMutexStack[T any]() *MutexStack[T] {
 	return &MutexStack[T]{v: make([]T, 0)}
 }
 
+// Push ...
 func (s *MutexStack[T]) Push(v T) {
 	s.mu.Lock()
 	s.v = append(s.v, v)
 	s.mu.Unlock()
 }
 
+// Pop ...
 func (s *MutexStack[T]) Pop() (T, bool) {
 	s.mu.Lock()
 	if len(s.v) == 0 {

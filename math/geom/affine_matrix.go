@@ -8,7 +8,7 @@ import (
 // 定义一个2x3的仿射变换矩阵
 type AffineMatrix [2][3]float64
 
-// 应用仿射变换到点上
+// Transform ...
 func (m AffineMatrix) Transform(p Point) Point {
 	return Point{
 		X: m[0][0]*p.X + m[0][1]*p.Y + m[0][2],
@@ -16,10 +16,12 @@ func (m AffineMatrix) Transform(p Point) Point {
 	}
 }
 
+// RotationAngle ...
 func (m AffineMatrix) RotationAngle() float64 {
 	return math.Atan2(m[1][0], m[0][0])
 }
 
+// NewRotationMat creates and returns a new instance.
 func NewRotationMat(center Point, angleDeg float64) AffineMatrix {
 	angleRad := angleDeg * math.Pi / 180.0
 	cosA := math.Cos(angleRad)
@@ -30,6 +32,7 @@ func NewRotationMat(center Point, angleDeg float64) AffineMatrix {
 	}
 }
 
+// NewTranslateMat creates and returns a new instance.
 func NewTranslateMat(src, dst Point) AffineMatrix {
 	return AffineMatrix{
 		{1, 0, dst.X - src.X},
@@ -41,9 +44,7 @@ func NewTranslateMat(src, dst Point) AffineMatrix {
 //y2)，求该点在O1内的坐标(x1,y1).
 // 图像如何转换，图像可看做第四象限，输入-y,返回-y
 
-// NewTranslateRotationMat transforms a point from coordinate system a2 to a1
-// 在数学和计算机图形学中，旋转角度的正负通常遵循右手定则。默认情况下，顺时针方向被认为是负的，而逆时针方向被认为是正的。
-// 实验证明,坐标系间的旋转等效于一个点先选择再平移的仿射矩阵
+// NewTranslateRotationMat creates and returns a new instance.
 func NewTranslateRotationMat(src, dst Point, angleDeg float64) AffineMatrix {
 	// Convert angle from degrees to radians
 	angleRad := angleDeg * math.Pi / 180.0
@@ -56,7 +57,7 @@ func NewTranslateRotationMat(src, dst Point, angleDeg float64) AffineMatrix {
 	}
 }
 
-// 计算仿射变换矩阵
+// newAffineMatrix creates and returns a new instance.
 func newAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 	// 构造线性方程组的系数矩阵A和常数向量b
 	A := [][]float64{
@@ -84,6 +85,7 @@ func newAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 	return transformMatrix, nil
 }
 
+// NewAffineMatrix creates and returns a new instance.
 func NewAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 	// 构造源点矩阵和目标点矩阵
 	srcMatrix := [3][3]float64{
@@ -114,7 +116,7 @@ func NewAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 	return affineMatrix, nil
 }
 
-// InverseMatrix 计算 3x3 矩阵的逆
+// InverseMatrix ...
 func InverseMatrix(m [3][3]float64) ([3][3]float64, error) {
 	det := m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1]) -
 		m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) +
@@ -138,7 +140,7 @@ func InverseMatrix(m [3][3]float64) ([3][3]float64, error) {
 	return inv, nil
 }
 
-// GaussJordanElimination 高斯-约旦消元法求解线性方程组 Ax = b
+// GaussJordanElimination ...
 func GaussJordanElimination(A [][]float64, b []float64) ([]float64, error) {
 	n := len(b)
 	m := len(A)

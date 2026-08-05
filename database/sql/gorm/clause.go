@@ -33,6 +33,7 @@ type Clauses interface {
 
 var conditionExprType = reflect.TypeOf((*ConditionExpr)(nil)).Elem()
 
+// NewCondition creates and returns a new instance.
 func NewCondition(field string, op sqlx.ConditionOperation, args any) clause.Expression {
 	if field == "" {
 		return nil
@@ -112,6 +113,7 @@ func NewCondition(field string, op sqlx.ConditionOperation, args any) clause.Exp
 	}
 }
 
+// ByPrimaryKey ...
 func ByPrimaryKey(v any) clause.Expression {
 	return clause.Eq{
 		Column: clause.PrimaryColumn,
@@ -124,6 +126,7 @@ type Between struct {
 	Begin, End any
 }
 
+// Build ...
 func (gt Between) Build(builder clause.Builder) {
 	builder.WriteQuoted(gt.Column)
 	builder.WriteString(" BETWEEN ")
@@ -132,6 +135,7 @@ func (gt Between) Build(builder clause.Builder) {
 	builder.AddVar(builder, gt.End)
 }
 
+// NegationBuild ...
 func (gt Between) NegationBuild(builder clause.Builder) {
 	builder.WriteQuoted(gt.Column)
 	builder.WriteString(" < ")
@@ -146,6 +150,7 @@ type Not struct {
 	Expr clause.NegationExpressionBuilder
 }
 
+// Build ...
 func (n Not) Build(builder clause.Builder) {
 	n.Expr.NegationBuild(builder)
 }
@@ -154,28 +159,33 @@ type IsNull struct {
 	Column any
 }
 
+// Build ...
 func (in IsNull) Build(builder clause.Builder) {
 	builder.WriteQuoted(in.Column)
 	builder.WriteString(" IS NULL")
 }
 
+// NegationBuild ...
 func (in IsNull) NegationBuild(builder clause.Builder) {
 	IsNotNull(in).Build(builder)
 }
 
 type IsNotNull IsNull
 
+// Build ...
 func (inn IsNotNull) Build(builder clause.Builder) {
 	builder.WriteQuoted(inn.Column)
 	builder.WriteString(" IS NOT NULL")
 }
 
+// NegationBuild ...
 func (inn IsNotNull) NegationBuild(builder clause.Builder) {
 	IsNull(inn).Build(builder)
 }
 
 type NotLike clause.Neq
 
+// Build ...
 func (nl NotLike) Build(builder clause.Builder) {
 	builder.WriteQuoted(nl.Column)
 	builder.WriteString(" NOT LIKE ")

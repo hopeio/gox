@@ -33,6 +33,7 @@ type FileWatchInfo struct {
 
 type FileWatchInfos map[string]*FileWatchInfo
 
+// NewFileWatcher creates and returns a new instance.
 func NewFileWatcher(interval time.Duration) *FileWatcher {
 	w := &FileWatcher{
 		interval: interval,
@@ -49,6 +50,7 @@ func NewFileWatcher(interval time.Duration) *FileWatcher {
 	return w
 }
 
+// Add ...
 func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...func(r *http.Request)) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -69,6 +71,7 @@ func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...fun
 	return nil
 }
 
+// Remove ...
 func (w *FileWatcher) Remove(url string) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -76,6 +79,7 @@ func (w *FileWatcher) Remove(url string) error {
 	return nil
 }
 
+// run ...
 func (w *FileWatcher) run() {
 	for range w.timer.C {
 		w.mu.Lock()
@@ -86,10 +90,12 @@ func (w *FileWatcher) run() {
 	}
 }
 
+// Close closes and releases resources.
 func (w *FileWatcher) Close() {
 	w.timer.Stop()
 }
 
+// Do ...
 func (c *FileWatchInfo) Do() {
 	file, err := FetchFileByRequest(c.req)
 	if err != nil {
@@ -118,6 +124,7 @@ func (c *FileWatchInfo) Do() {
 	}
 }
 
+// Update ...
 func (w *FileWatcher) Update(interval time.Duration) {
 	w.interval = interval
 	w.timer.Reset(interval)

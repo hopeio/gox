@@ -16,7 +16,7 @@ import (
 
 type WalkCallback = func(dir string, entry os.DirEntry) error
 
-// 遍历WalkCallback文件调用callback,包括文件夹,与filepath.WalkDir不同的是回调函数的参数不同,filepath.WalkDir的第一个参数是文件完整路径,WalkFile是文件所在目录的路径
+// Walk ...
 func Walk(dir string, callback WalkCallback) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -40,7 +40,7 @@ func Walk(dir string, callback WalkCallback) error {
 	return err
 }
 
-// 遍历根目录中的每个文件，为每个文件调用callback,不包括文件夹,与filepath.WalkDir不同的是回调函数的参数不同,filepath.WalkDir的第一个参数是文件完整路径,WalkFile是文件所在目录的路径
+// WalkFile ...
 func WalkFile(dir string, callback WalkCallback) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -61,9 +61,7 @@ func WalkFile(dir string, callback WalkCallback) error {
 	return err
 }
 
-// WalkDir 遍历根目录中的每个文件夹，为文件夹中所有文件和目录的切片(os.ReadDir的返回)调用callback
-// callback 需要处理每个文件夹下的所有文件和目录,返回值为需要递归遍历的目录和error
-// 几乎每个文件夹下的文件夹都会被循环两次！
+// WalkDir ...
 func WalkDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os.DirEntry, error)) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -85,6 +83,7 @@ func WalkDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os.
 	return err
 }
 
+// All ...
 func All(path string) (iter.Seq[os.DirEntry], error) {
 	dirs, err := os.ReadDir(path)
 	if err != nil {

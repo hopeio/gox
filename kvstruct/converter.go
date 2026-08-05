@@ -12,6 +12,7 @@ var Sep = ","
 type StringConverter func(string) any
 type StringConverterE func(string) (any, error)
 
+// IgnoreError ...
 func (c StringConverterE) IgnoreError() StringConverter {
 	if c == nil {
 		return nil
@@ -58,10 +59,12 @@ var stringConverterSliceArrays = [...]StringConverterE{
 	reflect.Float64: stringConvertFloat64Slice,
 }
 
+// GetStringConverter ...
 func GetStringConverter(typ reflect.Type) StringConverter {
 	return GetStringConverterE(typ).IgnoreError()
 }
 
+// GetStringConverterE ...
 func GetStringConverterE(typ reflect.Type) StringConverterE {
 	kind := typ.Kind()
 	if kind == reflect.Slice || kind == reflect.Array {
@@ -70,10 +73,12 @@ func GetStringConverterE(typ reflect.Type) StringConverterE {
 	return GetStringConverterEByKind(kind)
 }
 
+// GetStringSliceConverter ...
 func GetStringSliceConverter(elemTyp reflect.Type) func(value string) (any, error) {
 	return GetStringSliceConverterByKind(elemTyp.Kind())
 }
 
+// GetStringSliceConverterByKind ...
 func GetStringSliceConverterByKind(kind reflect.Kind) func(value string) (any, error) {
 	if kind == reflect.String {
 		return stringConvertString
@@ -84,10 +89,12 @@ func GetStringSliceConverterByKind(kind reflect.Kind) func(value string) (any, e
 	return stringConverterSliceArrays[kind]
 }
 
+// GetStringConverterByKind ...
 func GetStringConverterByKind(kind reflect.Kind) StringConverter {
 	return GetStringConverterEByKind(kind).IgnoreError()
 }
 
+// GetStringConverterEByKind ...
 func GetStringConverterEByKind(kind reflect.Kind) StringConverterE {
 	if kind == reflect.String {
 		return stringConvertString
@@ -98,88 +105,142 @@ func GetStringConverterEByKind(kind reflect.Kind) StringConverterE {
 	return stringConverterArrays[kind]
 }
 
+// stringConvertBool ...
 func stringConvertBool(value string) (any, error) {
 	return strconv.ParseBool(value)
 }
+
+// stringConvertBoolSlice ...
 func stringConvertBoolSlice(value string) (any, error) {
 	return stringsx.BoolSlice(value, Sep)
 }
+
+// stringConvertFloat32 ...
 func stringConvertFloat32(value string) (any, error) {
 	return stringsx.Float32(value)
 }
+
+// stringConvertFloat32Slice ...
 func stringConvertFloat32Slice(value string) (any, error) {
 	return stringsx.Float32Slice(value, Sep)
 }
+
+// stringConvertFloat64 ...
 func stringConvertFloat64(value string) (any, error) {
 	return strconv.ParseFloat(value, 64)
 }
+
+// stringConvertFloat64Slice ...
 func stringConvertFloat64Slice(value string) (any, error) {
 	return stringsx.Float64Slice(value, Sep)
 }
+
+// stringConvertInt ...
 func stringConvertInt(value string) (any, error) {
 	return stringsx.Int(value)
 }
+
+// stringConvertIntSlice ...
 func stringConvertIntSlice(value string) (any, error) {
 	return stringsx.IntSlice(value, Sep)
 }
+
+// stringConvertInt8 ...
 func stringConvertInt8(value string) (any, error) {
 	return stringsx.Int8(value)
 }
+
+// stringConvertInt8Slice ...
 func stringConvertInt8Slice(value string) (any, error) {
 	return stringsx.Int8Slice(value, Sep)
 }
+
+// stringConvertInt16 ...
 func stringConvertInt16(value string) (any, error) {
 	return stringsx.Int16(value)
 }
+
+// stringConvertInt16Slice ...
 func stringConvertInt16Slice(value string) (any, error) {
 	return stringsx.Int16Slice(value, Sep)
 }
+
+// stringConvertInt32 ...
 func stringConvertInt32(value string) (any, error) {
 	return stringsx.Int32(value)
 }
+
+// stringConvertInt32Slice ...
 func stringConvertInt32Slice(value string) (any, error) {
 	return stringsx.Int32Slice(value, Sep)
 }
+
+// stringConvertInt64 ...
 func stringConvertInt64(value string) (any, error) {
 	return strconv.ParseInt(value, 10, 64)
 }
+
+// stringConvertInt64Slice ...
 func stringConvertInt64Slice(value string) (any, error) {
 	return stringsx.Int64Slice(value, Sep)
 }
+
+// stringConvertString ...
 func stringConvertString(value string) (any, error) {
 	return value, nil
 }
 
+// stringConvertStringSlice ...
 func stringConvertStringSlice(value string) (any, error) {
 	return stringsx.StringSlice(value, Sep)
 }
+
+// stringConvertUint ...
 func stringConvertUint(value string) (any, error) {
 	return stringsx.Uint(value)
 }
+
+// stringConvertUintSlice ...
 func stringConvertUintSlice(value string) (any, error) {
 	return stringsx.UintSlice(value, Sep)
 }
+
+// stringConvertUint8 ...
 func stringConvertUint8(value string) (any, error) {
 	return stringsx.Uint8(value)
 }
+
+// stringConvertUint8Slice ...
 func stringConvertUint8Slice(value string) (any, error) {
 	return stringsx.Uint8Slice(value, Sep)
 }
+
+// stringConvertUint16 ...
 func stringConvertUint16(value string) (any, error) {
 	return stringsx.Uint16(value)
 }
+
+// stringConvertUint16Slice ...
 func stringConvertUint16Slice(value string) (any, error) {
 	return stringsx.Uint16Slice(value, Sep)
 }
+
+// stringConvertUint32 ...
 func stringConvertUint32(value string) (any, error) {
 	return stringsx.Uint32(value)
 }
+
+// stringConvertUint32Slice ...
 func stringConvertUint32Slice(value string) (any, error) {
 	return stringsx.Uint32Slice(value, Sep)
 }
+
+// stringConvertUint64 ...
 func stringConvertUint64(value string) (any, error) {
 	return strconv.ParseUint(value, 10, 64)
 }
+
+// stringConvertUint64Slice ...
 func stringConvertUint64Slice(value string) (any, error) {
 	return stringsx.Uint64Slice(value, Sep)
 }

@@ -14,6 +14,7 @@ var code = []byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C
 	'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
 	'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
 
+// RandomCode ...
 func RandomCode(n int) string {
 	rand.Shuffle(len(code), func(i, j int) {
 		code[i], code[j] = code[j], code[i]
@@ -23,6 +24,8 @@ func RandomCode(n int) string {
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const number = "0123456789"
+
+// RandomChars ...
 func RandomChars(n int) string {
 	result := make([]byte, n)
 	for i := range result {
@@ -31,7 +34,7 @@ func RandomChars(n int) string {
 	return string(result)
 }
 
-
+// RandomNumber ...
 func RandomNumber(n int) string {
 	result := make([]byte, n)
 	for i := range result {

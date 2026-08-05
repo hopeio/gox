@@ -34,6 +34,7 @@ const (
 	MsgTypeTemplateCard
 )
 
+// String returns the string representation.
 func (c MsgType) String() string {
 	switch c {
 	case MsgTypeText:
@@ -59,6 +60,7 @@ type Markdown struct {
 	Content string `json:"content"`
 }
 
+// MessageType ...
 func (*Markdown) MessageType() MsgType {
 	return MsgTypeMarkdown
 }
@@ -69,6 +71,7 @@ type Text struct {
 	MentionedMobileList []string `json:"mentioned_mobile_list"`
 }
 
+// MessageType ...
 func (*Text) MessageType() MsgType {
 	return MsgTypeText
 }
@@ -78,6 +81,7 @@ type Image struct {
 	Md5    string `json:"md5"`
 }
 
+// MessageType ...
 func (Image) MessageType() MsgType {
 	return MsgTypeImage
 }
@@ -91,6 +95,7 @@ type News struct {
 	} `json:"articles"`
 }
 
+// MessageType ...
 func (*News) MessageType() MsgType {
 	return MsgTypeNews
 }
@@ -99,6 +104,7 @@ type File struct {
 	MediaId string `json:"media_id"`
 }
 
+// MessageType ...
 func (File) MessageType() MsgType {
 	return MsgTypeFile
 }
@@ -107,6 +113,7 @@ type Voice struct {
 	MediaId string `json:"media_id"`
 }
 
+// MessageType ...
 func (Voice) MessageType() MsgType {
 	return MsgTypeVoice
 }
@@ -170,10 +177,12 @@ type CardAction struct {
 	Pagepath string `json:"pagepath"`
 }
 
+// MessageType ...
 func (*TemplateCard) MessageType() MsgType {
 	return MsgTypeTemplateCard
 }
 
+// MarkdownMessage ...
 func MarkdownMessage(text string) string {
 	buf := strings.Builder{}
 	buf.WriteString(`{"msgtype":"markdown","markdown":{"content":`)
@@ -182,6 +191,7 @@ func MarkdownMessage(text string) string {
 	return buf.String()
 }
 
+// Format ...
 func Format(msg MessageType) string {
 	msgType := msg.MessageType()
 	buf := strings.Builder{}
@@ -196,6 +206,7 @@ func Format(msg MessageType) string {
 	return buf.String()
 }
 
+// Upload ...
 func Upload() {
 	// 文件类型，分别有语音(voice)和普通文件(file)
 	const api = "https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key=KEY&type=TYPE"

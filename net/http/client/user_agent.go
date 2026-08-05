@@ -17,10 +17,12 @@ const (
 
 var userAgent = []string{UserAgent1}
 
+// GetRandUserAgent ...
 func GetRandUserAgent() string {
 	return userAgent[rand.Intn(len(userAgent))]
 }
 
+// UserAgentChrome ...
 func UserAgentChrome(version string) string {
 	return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + version + " Safari/537.36"
 }

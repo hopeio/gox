@@ -6,6 +6,7 @@ type Pool[T any] struct {
 	pool sync.Pool
 }
 
+// NewPool creates and returns a new instance.
 func NewPool[T any](fn func() T) *Pool[T] {
 	return &Pool[T]{
 		pool: sync.Pool{

@@ -66,10 +66,12 @@ type NameOff int32 // offset to a name
 type TypeOff int32 // offset to an *Rtype
 type TextOff int32 // offset from top of text section
 
+// TypeByOff ...
 func TypeByOff(section unsafe.Pointer, off int32) *Type {
 	return (*Type)(add(section, uintptr(off)))
 }
 
+// add ...
 func add(p unsafe.Pointer, x uintptr) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(p) + x)
 }
@@ -165,6 +167,7 @@ type Func struct {
 	Nfuncdata uint8   // must be last
 }
 
+// Hash reports whether the condition holds.
 func Hash(v any) uint32 {
 	ia := *(*Iface)(unsafe.Pointer(&v))
 	return ia.Itab.Hash
@@ -178,11 +181,12 @@ type Value struct {
 	Flag
 }
 
+// RuntimeTypeID ...
 func RuntimeTypeID(t reflect.Type) uintptr {
 	return uintptrElem(uintptr(unsafe.Pointer(&t)) + PtrOffset)
 }
 
-// 获取引用类型的原始类型
+// DerefType ...
 func DerefType(typ reflect.Type) reflect.Type {
 	for {
 		kind := typ.Kind()

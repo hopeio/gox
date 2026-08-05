@@ -2,6 +2,7 @@ package geom
 
 type Polygon []Point
 
+// ContainsPoint reports whether the condition holds.
 func (p Polygon) ContainsPoint(point Point) bool {
 	inside := false
 	j := len(p) - 1 // The last vertex connects to the first one.

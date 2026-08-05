@@ -32,6 +32,7 @@ type SharedMemory struct {
 	content []byte
 }
 
+// New ...
 func New(name string, size int) (*SharedMemory, error) {
 	// init shm
 	shm, addr, err := OpenShm(name, size)
@@ -48,6 +49,7 @@ func New(name string, size int) (*SharedMemory, error) {
 	}, nil
 }
 
+// OpenShm creates and returns a new instance.
 func OpenShm(name string, size int) (uintptr, uintptr, error) {
 	shm0, _, _ := openFileMapping.Call(
 		FILE_MAP_ALL_ACCESS,
@@ -84,6 +86,8 @@ func OpenShm(name string, size int) (uintptr, uintptr, error) {
 
 	return uintptr(shm), addr, nil
 }
+
+// ReadMemory ...
 func (shm *SharedMemory) ReadMemory(begin, end int, data any) error {
 	if begin > end {
 		return errors.New("invalid addr")
@@ -110,6 +114,7 @@ func (shm *SharedMemory) ReadMemory(begin, end int, data any) error {
 	return nil
 }
 
+// WriteMemory ...
 func (shm *SharedMemory) WriteMemory(begin, end int, data any) (err error) {
 	if begin > end {
 		return errors.New("invalid addr")
@@ -150,6 +155,7 @@ func (shm *SharedMemory) WriteMemory(begin, end int, data any) (err error) {
 	return nil
 }
 
+// Close closes and releases resources.
 func (shm *SharedMemory) Close() error {
 	err := windows.UnmapViewOfFile(shm.addr)
 	if err != nil {

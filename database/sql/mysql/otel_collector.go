@@ -21,10 +21,12 @@ type OTelCollector struct {
 	closeOnce     sync.Once
 }
 
+// NewOTelCollector creates and returns a new instance.
 func NewOTelCollector(db *sql.DB, meter metric.Meter, variableNames ...string) *OTelCollector {
 	return &OTelCollector{db: db, meter: meter, VariableNames: variableNames}
 }
 
+// Init ...
 func (c *OTelCollector) Init() error {
 	c.allowSet = make(map[string]struct{}, len(c.VariableNames))
 	for _, name := range c.VariableNames {
@@ -43,6 +45,7 @@ func (c *OTelCollector) Init() error {
 	return nil
 }
 
+// Close closes and releases resources.
 func (c *OTelCollector) Close(context.Context) error {
 	c.closeOnce.Do(func() {
 		if c.reg != nil {
@@ -52,6 +55,7 @@ func (c *OTelCollector) Close(context.Context) error {
 	return nil
 }
 
+// observe ...
 func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	rows, err := c.db.Query("SHOW STATUS")
 	if err != nil {
@@ -72,6 +76,7 @@ func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	return nil
 }
 
+// allowed ...
 func (c *OTelCollector) allowed(name string) bool {
 	if len(c.allowSet) == 0 {
 		return true
@@ -80,6 +85,7 @@ func (c *OTelCollector) allowed(name string) bool {
 	return ok
 }
 
+// parseStatusNumber ...
 func parseStatusNumber(raw string) (int64, bool) {
 	if raw == "" || strings.Contains(raw, ":") {
 		return 0, false

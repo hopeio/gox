@@ -23,6 +23,7 @@ var (
 	errUnknownField = errors.New("unknown field")
 )
 
+// ParseStringSetReflectValue ...
 func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.StructField) error {
 	if val == "" {
 		return nil
@@ -102,6 +103,7 @@ func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.
 	return nil
 }
 
+// ParseStringsSetReflectValue ...
 func ParseStringsSetReflectValue(value reflect.Value, vals []string, field *reflect.StructField) error {
 	if len(vals) == 0 {
 		return nil
@@ -119,6 +121,7 @@ func ParseStringsSetReflectValue(value reflect.Value, vals []string, field *refl
 	}
 }
 
+// setIntField ...
 func setIntField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -130,6 +133,7 @@ func setIntField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
+// setUintField ...
 func setUintField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -141,6 +145,7 @@ func setUintField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
+// setBoolField ...
 func setBoolField(val string, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -152,6 +157,7 @@ func setBoolField(val string, field reflect.Value) error {
 	return err
 }
 
+// setFloatField ...
 func setFloatField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -163,6 +169,7 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
+// setTimeField ...
 func setTimeField(val string, structField *reflect.StructField, value reflect.Value) error {
 	timeFormat := time.RFC3339
 	l := time.Local
@@ -213,6 +220,7 @@ func setTimeField(val string, structField *reflect.StructField, value reflect.Va
 	return nil
 }
 
+// setArray ...
 func setArray(vals []string, value reflect.Value, field *reflect.StructField) error {
 	for i, s := range vals {
 		err := ParseStringSetReflectValue(value.Index(i), s, field)
@@ -223,6 +231,7 @@ func setArray(vals []string, value reflect.Value, field *reflect.StructField) er
 	return nil
 }
 
+// setSlice ...
 func setSlice(vals []string, value reflect.Value, field *reflect.StructField) error {
 	slice := reflect.MakeSlice(value.Type(), len(vals), len(vals))
 	err := setArray(vals, slice, field)
@@ -233,6 +242,7 @@ func setSlice(vals []string, value reflect.Value, field *reflect.StructField) er
 	return nil
 }
 
+// setTimeDuration ...
 func setTimeDuration(val string, value reflect.Value) error {
 	d, err := time.ParseDuration(val)
 	if err != nil {
