@@ -30,7 +30,7 @@ func LimitReader(r io.Reader, ctx context.Context, limiter *rate.Limiter) io.Rea
 	}
 }
 
-// Read ...
+// Read performs the operation.
 func (r *limitReader) Read(buf []byte) (int, error) {
 	burst := r.limiter.Burst()
 	l := len(buf)
@@ -65,7 +65,7 @@ func LimitWriter(w io.Writer, ctx context.Context, limiter *rate.Limiter) io.Wri
 	}
 }
 
-// Write ...
+// Write performs the operation.
 func (w *limitWriter) Write(buf []byte) (int, error) {
 	burst := w.limiter.Burst()
 	l := len(buf)

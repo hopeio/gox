@@ -18,19 +18,19 @@ import (
 	"unsafe"
 )
 
-// StringToCharPtr ...
+// StringToCharPtr returns the result.
 func StringToCharPtr(str string) *uint8 {
 	chars := append([]byte(str), 0)
 	return &chars[0]
 }
 
-// AddElementFunc ...
+// AddElementFunc updates or inserts a value.
 func AddElementFunc(hWnd win.HWND, hWndList *[]win.HWND) uintptr {
 	*hWndList = append(*hWndList, hWnd)
 	return 1
 }
 
-// DesktopWindowHWND ...
+// DesktopWindowHWND returns the result.
 func DesktopWindowHWND() []win.HWND {
 	var hWndList []win.HWND
 	hL := &hWndList
@@ -41,7 +41,7 @@ func DesktopWindowHWND() []win.HWND {
 	return hWndList
 }
 
-// FindWindow ...
+// FindWindow returns the result.
 func FindWindow(title, processName string) win.HWND {
 	hwnd, _, _ := findWindow.Call(0, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))))
 	if hwnd == 0 {
@@ -67,7 +67,7 @@ func FindWindow(title, processName string) win.HWND {
 	return win.HWND(hwnd)
 }
 
-// findProcess ...
+// findProcess returns the result.
 func findProcess(name string) uint32 {
 
 	processIDs, ok := w32.EnumProcesses(make([]uint32, 256))
@@ -86,7 +86,7 @@ func findProcess(name string) uint32 {
 	return 0
 }
 
-// GetProcName ...
+// GetProcName returns the value.
 func GetProcName(pid uint32) string {
 	if pid == 0 {
 		return "System Idle Process"

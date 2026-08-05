@@ -16,7 +16,7 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 )
 
-// Run ...
+// Run executes the operation.
 func Run(s string, opts ...Option) error {
 	cmd := CMD(s, opts...)
 	cmd.Stdout = os.Stdout
@@ -24,7 +24,7 @@ func Run(s string, opts ...Option) error {
 	return cmd.Run()
 }
 
-// RunWithLog ...
+// RunWithLog executes the operation.
 func RunWithLog(s string, opts ...Option) error {
 	opts = append(opts, func(cmd *exec.Cmd) {
 		log.Printf(`exec:"%s"`, CmdString(cmd))
@@ -34,12 +34,12 @@ func RunWithLog(s string, opts ...Option) error {
 
 type Option func(cmd *exec.Cmd)
 
-// RunGetOut ...
+// RunGetOut executes the operation.
 func RunGetOut(s string, opts ...Option) (string, error) {
 	return runGetOutCmd(CMD(s, opts...))
 }
 
-// runGetOutCmd ...
+// runGetOutCmd performs the operation.
 func runGetOutCmd(cmd *exec.Cmd) (string, error) {
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
@@ -55,7 +55,7 @@ func runGetOutCmd(cmd *exec.Cmd) (string, error) {
 	return stringsx.FromBytes(buf), nil
 }
 
-// RunGetOutWithLog ...
+// RunGetOutWithLog executes the operation.
 func RunGetOutWithLog(s string, opts ...Option) (string, error) {
 	cmd := CMD(s, opts...)
 	out, err := runGetOutCmd(cmd)

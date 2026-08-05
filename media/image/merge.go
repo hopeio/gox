@@ -14,7 +14,7 @@ import (
 	"math"
 )
 
-// MergeUniformBoundsImagesByOverlap ...
+// MergeUniformBoundsImagesByOverlap returns the result.
 func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) image.Image, imgWidth, imgHeight int,
 	horizontalOverlaps, verticalOverlaps []int) image.Image {
 	var resultWidth, resultHeight int
@@ -31,11 +31,11 @@ func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) image
 		}
 	}
 
-	// 创建一个新的 RGBA 图片，用于存储合并后的图片
+	// Create a new RGBA image for the merged result
 	result := image.NewRGBA(image.Rect(0, 0, resultWidth, resultHeight))
 	slideWin := image.Rect(0, 0, imgWidth, imgHeight)
 	var img image.Image
-	// 将 img1 复制到结果图片中
+	// Copy img1 into the result image
 	for i, rowimgs := range imgIdxs {
 		for j, imgIdx := range rowimgs {
 			img = getImage(imgIdx)
@@ -56,7 +56,7 @@ func MergeUniformBoundsImagesByOverlap(imgIdxs [][]int, getImage func(int) image
 	return result
 }
 
-// MergeUniformBoundsImagesByOverlapReuseMemory ...
+// MergeUniformBoundsImagesByOverlapReuseMemory returns the result.
 func MergeUniformBoundsImagesByOverlapReuseMemory(imgIdxs [][]int, getImage func(int) image.Image, imgWidth, imgHeight int,
 	horizontalOverlaps, verticalOverlaps []int, result *image.RGBA) {
 	if result == nil {
@@ -77,12 +77,12 @@ func MergeUniformBoundsImagesByOverlapReuseMemory(imgIdxs [][]int, getImage func
 			}
 		}
 
-		// 创建一个新的 RGBA 图片，用于存储合并后的图片
+		// Create a new RGBA image for the merged result
 		result = image.NewRGBA(image.Rect(0, 0, resultWidth, resultHeight))
 	}
 	slideWin := image.Rect(0, 0, imgWidth, imgHeight)
 	var img image.Image
-	// 将 img1 复制到结果图片中
+	// Copy img1 into the result image
 	for i, rowimgs := range imgIdxs {
 		for j, imgIdx := range rowimgs {
 			img = getImage(imgIdx)
@@ -109,17 +109,17 @@ type MergeImage struct {
 	Rect                       image.Rectangle
 }
 
-// ColorModel ...
+// ColorModel returns the result.
 func (m *MergeImage) ColorModel() color.Model {
 	return m.Pixes[0][0].ColorModel()
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (m *MergeImage) Bounds() image.Rectangle {
 	return m.Rect
 }
 
-// ImgOffset ...
+// ImgOffset returns the result.
 func (m *MergeImage) ImgOffset(row, col int) image.Image {
 	if m.effectiveRow[m.cacheRow] == row {
 		m.cacheRow += 1
@@ -142,7 +142,7 @@ func (m *MergeImage) ImgOffset(row, col int) image.Image {
 	return m.Pixes[m.cacheCol][m.cacheRow]
 }
 
-// findImgIdx ...
+// findImgIdx returns the result.
 func findImgIdx(idx []int, start, end, x int) int {
 	for i := start; i < end; i++ {
 		if idx[i] > x && (i-1 < 0 || idx[i-1] <= x) {
@@ -152,7 +152,7 @@ func findImgIdx(idx []int, start, end, x int) int {
 	return len(idx) - 1
 }
 
-// At ...
+// At returns the result.
 func (m *MergeImage) At(x, y int) color.Color {
 	if !(image.Point{X: x, Y: y}.In(m.Rect)) {
 		return colori.RGB{}
@@ -195,10 +195,10 @@ func NewMergeImage(imgs [][]image.Image, width, height int, horizontalOverlaps, 
 	}
 }
 
-// CalculateContrast ...
+// CalculateContrast returns the result.
 func CalculateContrast(img image.Image) float64 {
 	var sum int
-	// 遍历图片的每个像素
+	// Iterate every pixel
 	bounds := img.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
@@ -216,6 +216,6 @@ func CalculateContrast(img image.Image) float64 {
 		}
 	}
 
-	// 对比度为亮度的标准差
+	// Contrast is the standard deviation of luminance
 	return math.Sqrt(varianceSum / float64(bounds.Dx()*bounds.Dy()))
 }

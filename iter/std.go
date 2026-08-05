@@ -13,7 +13,7 @@ import (
 	constraintsx "github.com/hopeio/gox/types/constraints"
 )
 
-// SliceAll ...
+// SliceAll returns the result.
 func SliceAll[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
 	return func(yield func(types.Pair[int, T]) bool) {
 		for i, v := range input {
@@ -24,7 +24,7 @@ func SliceAll[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
 	}
 }
 
-// SliceAllValues ...
+// SliceAllValues returns the result.
 func SliceAllValues[S ~[]T, T any](input S) Seq[T] {
 	return func(yield func(T) bool) {
 		for _, v := range input {
@@ -35,7 +35,7 @@ func SliceAllValues[S ~[]T, T any](input S) Seq[T] {
 	}
 }
 
-// SliceBackwardValues ...
+// SliceBackwardValues returns the result.
 func SliceBackwardValues[S ~[]T, T any](input S) Seq[T] {
 	return func(yield func(T) bool) {
 		n := len(input) - 1
@@ -47,7 +47,7 @@ func SliceBackwardValues[S ~[]T, T any](input S) Seq[T] {
 	}
 }
 
-// SliceBackward ...
+// SliceBackward returns the result.
 func SliceBackward[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
 	return func(yield func(types.Pair[int, T]) bool) {
 		n := len(input) - 1
@@ -70,7 +70,7 @@ func HashMapAll[M ~map[K]V, K comparable, V any](m M) Seq[types.Pair[K, V]] {
 	}
 }
 
-// StringAll ...
+// StringAll returns the result.
 func StringAll[T ~string](input T) Seq[types.Pair[int, rune]] {
 	return func(yield func(types.Pair[int, rune]) bool) {
 		for i, v := range input {
@@ -81,7 +81,7 @@ func StringAll[T ~string](input T) Seq[types.Pair[int, rune]] {
 	}
 }
 
-// StringAll2 ...
+// StringAll2 returns the result.
 func StringAll2[T ~string](input T) iter.Seq2[int, rune] {
 	return func(yield func(int, rune) bool) {
 		for i, v := range input {
@@ -92,7 +92,7 @@ func StringAll2[T ~string](input T) iter.Seq2[int, rune] {
 	}
 }
 
-// StringRunes ...
+// StringRunes returns the result.
 func StringRunes[T ~string](input T) Seq[rune] {
 	return func(yield func(rune) bool) {
 		for _, v := range input {
@@ -103,7 +103,7 @@ func StringRunes[T ~string](input T) Seq[rune] {
 	}
 }
 
-// ChannelAll ...
+// ChannelAll returns the result.
 func ChannelAll[C ~chan T, T any](c C) Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range c {
@@ -114,7 +114,7 @@ func ChannelAll[C ~chan T, T any](c C) Seq[T] {
 	}
 }
 
-// ChannelAll2 ...
+// ChannelAll2 returns the result.
 func ChannelAll2[C ~chan T, T any](c C) iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		var count int
@@ -127,7 +127,7 @@ func ChannelAll2[C ~chan T, T any](c C) iter.Seq2[int, T] {
 	}
 }
 
-// RangeAll ...
+// RangeAll returns the result.
 func RangeAll[T constraintsx.Number](begin, end, step T) Seq[T] {
 	return func(yield func(T) bool) {
 		for v := begin; v <= end; v += step {
@@ -138,7 +138,7 @@ func RangeAll[T constraintsx.Number](begin, end, step T) Seq[T] {
 	}
 }
 
-// RangeAll2 ...
+// RangeAll2 returns the result.
 func RangeAll2[T constraintsx.Number](begin, end, step T) iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		var count int

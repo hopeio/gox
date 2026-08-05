@@ -10,37 +10,37 @@ type StoreProcessor struct {
 	ViewBox  *ViewBox
 }
 
-// Circle ...
+// Circle performs the operation.
 func (s *StoreProcessor) Circle(circle *Circle) {
 	s.Circles = append(s.Circles, circle)
 }
 
-// Rectangle ...
+// Rectangle performs the operation.
 func (s *StoreProcessor) Rectangle(rectangle *Rectangle) {
 	s.Rects = append(s.Rects, rectangle)
 }
 
-// Obround ...
+// Obround performs the operation.
 func (s *StoreProcessor) Obround(obround *Obround) {
 	s.Obrounds = append(s.Obrounds, obround)
 }
 
-// Contour ...
+// Contour performs the operation.
 func (s *StoreProcessor) Contour(contour *Contour) {
 	s.Contours = append(s.Contours, contour)
 }
 
-// Line ...
+// Line performs the operation.
 func (s *StoreProcessor) Line(line *Line) {
 	s.Lines = append(s.Lines, line)
 }
 
-// Arc ...
+// Arc performs the operation.
 func (s *StoreProcessor) Arc(arc *Arc) {
 	s.Arcs = append(s.Arcs, arc)
 }
 
-// SetViewBox ...
+// SetViewBox updates or inserts a value.
 func (s *StoreProcessor) SetViewBox(box *ViewBox) {
 	s.ViewBox = box
 }

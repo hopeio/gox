@@ -20,7 +20,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
 	}
-	// 小数组
+	// small slice
 	if len(s1) < SmallArrayLen && len(s2) < SmallArrayLen {
 		for i := range s1 {
 			for j := range s2 {
@@ -30,7 +30,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 			}
 		}
 	}
-	// 同时遍历检测
+	// scan both in one pass
 	n, m := len(s1), len(s2)
 	tmpMap := make(map[T]struct{})
 	l := gox.TernaryOperator(n > m, n, m)
@@ -53,7 +53,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
 	}
-	// 小数组
+	// small slice
 	if len(s1) < SmallArrayLen && len(s2) < SmallArrayLen {
 		for i := range s1 {
 			for j := range s2 {
@@ -64,7 +64,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 		}
 	}
 
-	// 同时遍历检测
+	// scan both in one pass
 	n, m := len(s1), len(s2)
 	tmpMap := make(map[T]struct{})
 	l := gox.TernaryOperator(n > m, n, m)
@@ -81,7 +81,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	return false
 }
 
-// RemoveDuplicates ...
+// RemoveDuplicates removes or resets state.
 func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 	if len(s) == 0 {
 		return s
@@ -93,7 +93,7 @@ func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 	return maps.Keys(m)
 }
 
-// RemoveDuplicatesByKey ...
+// RemoveDuplicatesByKey removes or resets state.
 func RemoveDuplicatesByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 	if len(s) == 0 {
 		return s
@@ -109,7 +109,7 @@ func RemoveDuplicatesByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 	return maps.Values(m)
 }
 
-// RemoveDuplicatesByKeyRetainBehind ...
+// RemoveDuplicatesByKeyRetainBehind removes or resets state.
 func RemoveDuplicatesByKeyRetainBehind[S ~[]E, E cmp.EqualKey[T], T comparable](s S) S {
 	if len(s) == 0 {
 		return s
@@ -121,7 +121,7 @@ func RemoveDuplicatesByKeyRetainBehind[S ~[]E, E cmp.EqualKey[T], T comparable](
 	return maps.Values(m)
 }
 
-// Intersection ...
+// Intersection returns the result.
 func Intersection[S ~[]T, T comparable](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
@@ -135,7 +135,7 @@ func Intersection[S ~[]T, T comparable](a S, b S) S {
 	return intersection(a, b)
 }
 
-// smallArrayIntersection ...
+// smallArrayIntersection returns the result.
 func smallArrayIntersection[S ~[]T, T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
@@ -146,12 +146,12 @@ func smallArrayIntersection[S ~[]T, T comparable](a S, b S) S {
 	return ret
 }
 
-// intersection ...
+// intersection returns the result.
 func intersection[S ~[]T, T comparable](a S, b S) S {
 	return maps.Keys(IntersectionMap(a, b))
 }
 
-// IntersectionMap ...
+// IntersectionMap returns the result.
 func IntersectionMap[S ~[]T, T comparable](a S, b S) map[T]struct{} {
 	if len(a) == 0 || len(b) == 0 {
 		return make(map[T]struct{})
@@ -164,7 +164,7 @@ func IntersectionMap[S ~[]T, T comparable](a S, b S) map[T]struct{} {
 	for _, v := range short {
 		aMap[v] = struct{}{}
 	}
-	// 这里可以用两个map，也可以用map[T]bool类型最后过滤出来,但是最后过滤相当于遍历了两遍a
+	// Could use two maps, or map[T]bool then filter; filtering walks a twice
 	for _, v := range long {
 		if _, ok := aMap[v]; ok {
 			intersectionMap[v] = struct{}{}
@@ -173,7 +173,7 @@ func IntersectionMap[S ~[]T, T comparable](a S, b S) map[T]struct{} {
 	return intersectionMap
 }
 
-// IntersectionByKey ...
+// IntersectionByKey returns the result.
 func IntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
@@ -190,7 +190,7 @@ func IntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 		}
 		tmpMap[key] = struct{}{}
 	}
-	// 这里可以用两个map，也可以用map[T]bool类型最后过滤出来,但是最后过滤相当于遍历了两遍a
+	// Could use two maps, or map[T]bool then filter; filtering walks a twice
 	for _, v := range a {
 		key := v.EqualKey()
 		if _, ok := intersectionMap[key]; ok {
@@ -203,7 +203,7 @@ func IntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return maps.Values(intersectionMap)
 }
 
-// smallArrayIntersectionByKey ...
+// smallArrayIntersectionByKey returns the result.
 func smallArrayIntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var ret S
 	for _, x := range a {
@@ -216,7 +216,7 @@ func smallArrayIntersectionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b
 	return ret
 }
 
-// OrderedArrayIntersection ...
+// OrderedArrayIntersection returns the result.
 func OrderedArrayIntersection[S ~[]T, T constraints.Ordered](a S, b S) S {
 	if len(a) == 0 || len(b) == 0 {
 		return S{}
@@ -247,7 +247,7 @@ func OrderedArrayIntersection[S ~[]T, T constraints.Ordered](a S, b S) S {
 	return ret
 }
 
-// Union ...
+// Union returns the result.
 func Union[S ~[]T, T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return b
@@ -265,7 +265,7 @@ func Union[S ~[]T, T comparable](a S, b S) S {
 	return maps.Keys(set)
 }
 
-// UnionByKey ...
+// UnionByKey returns the result.
 func UnionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return b
@@ -291,7 +291,7 @@ func UnionByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return maps.Values(m)
 }
 
-// DifferenceSet ...
+// DifferenceSet returns the result.
 func DifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return S{}
@@ -305,7 +305,7 @@ func DifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	return differenceSet(a, b)
 }
 
-// smallArrayDifferenceSet ...
+// smallArrayDifferenceSet returns the result.
 func smallArrayDifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
@@ -316,7 +316,7 @@ func smallArrayDifferenceSet[S ~[]T, T comparable](a S, b S) S {
 	return diff
 }
 
-// differenceSet ...
+// differenceSet returns the result.
 func differenceSet[S ~[]T, T comparable](a S, b S) S {
 	var diff S
 	if len(b)/len(a) >= 2 {
@@ -348,7 +348,7 @@ func differenceSet[S ~[]T, T comparable](a S, b S) S {
 	return diff
 }
 
-// DifferenceSetByKey ...
+// DifferenceSetByKey returns the result.
 func DifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	if len(a) == 0 {
 		return S{}
@@ -362,7 +362,7 @@ func DifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return differenceSetByKey(a, b)
 }
 
-// smallArrayDifferenceSetByKey ...
+// smallArrayDifferenceSetByKey returns the result.
 func smallArrayDifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var diff S
 	for _, x := range a {
@@ -375,7 +375,7 @@ func smallArrayDifferenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, 
 	return diff
 }
 
-// differenceSetByKey ...
+// differenceSetByKey returns the result.
 func differenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	var diff S
 	if len(b)/len(a) >= 2 {
@@ -408,7 +408,7 @@ func differenceSetByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a S, b S) S {
 	return diff
 }
 
-// Difference ...
+// Difference performs the operation.
 func Difference[S ~[]T, T comparable](a, b S) (S, S) {
 	if len(a) == 0 {
 		return S{}, b
@@ -454,7 +454,7 @@ func Difference[S ~[]T, T comparable](a, b S) (S, S) {
 	return diff1, diff2
 }
 
-// DifferenceByKey ...
+// DifferenceByKey performs the operation.
 func DifferenceByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a, b S) (S, S) {
 	if len(a) == 0 {
 		return S{}, b
@@ -499,7 +499,7 @@ func DifferenceByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a, b S) (S, S) {
 	return diff1, diff2
 }
 
-// UnionAndIntersectionAndDifference ...
+// UnionAndIntersectionAndDifference performs the operation.
 func UnionAndIntersectionAndDifference[S ~[]T, T comparable](a, b S) (S, S, S, S) {
 	if len(a) == 0 {
 		return b, b, S{}, b

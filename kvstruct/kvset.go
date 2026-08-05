@@ -12,7 +12,7 @@ type Setter interface {
 
 type Setters []Setter
 
-// TrySet ...
+// TrySet performs the operation.
 func (receiver Setters) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	for _, arg := range receiver {
 		if arg != nil {
@@ -25,13 +25,13 @@ func (receiver Setters) TrySet(value reflect.Value, field *reflect.StructField, 
 	return
 }
 
-// Mapping ...
+// Mapping performs the operation.
 func Mapping(ptr any, setter Setter, tag string) error {
 	_, err := mapping(reflect.ValueOf(ptr), nil, setter, tag)
 	return err
 }
 
-// mapping ...
+// mapping performs the operation.
 func mapping(value reflect.Value, field *reflect.StructField, setter Setter, tag string) (bool, error) {
 	var tagValue string
 	if field != nil {
@@ -97,7 +97,7 @@ type Options struct {
 	Omitempty bool
 }
 
-// ParseTag ...
+// ParseTag parses the input.
 func ParseTag(tagValue string) (string, *Options) {
 	if tagValue == "" { // when field is "emptyField" variable
 		return "", nil
@@ -124,7 +124,7 @@ func ParseTag(tagValue string) (string, *Options) {
 	return alias, &setOpt
 }
 
-// tryToSetValue ...
+// tryToSetValue performs the operation.
 func tryToSetValue(value reflect.Value, field *reflect.StructField, setter Setter, tagValue string) (bool, error) {
 
 	alias, opts := ParseTag(tagValue)
@@ -140,19 +140,19 @@ type Getter interface {
 
 type GetFunc func(key string) (string, bool)
 
-// Get ...
+// Get returns the value.
 func (f GetFunc) Get(key string) (string, bool) {
 	return f(key)
 }
 
-// TrySet ...
+// TrySet performs the operation.
 func (f GetFunc) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	return SetValueByGetter(value, field, f, key, opt)
 }
 
 type Getters []Getter
 
-// Get ...
+// Get returns the value.
 func (args Getters) Get(key string) (v string, ok bool) {
 	for i := range args {
 		if v, ok = args[i].Get(key); ok {
@@ -162,14 +162,14 @@ func (args Getters) Get(key string) (v string, ok bool) {
 	return
 }
 
-// TrySet ...
+// TrySet performs the operation.
 func (args Getters) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	return SetValueByGetter(value, field, args, key, opt)
 }
 
 type KVSource map[string]string
 
-// Get ...
+// Get returns the value.
 func (form KVSource) Get(key string) (string, bool) {
 	v, ok := form[key]
 	return v, ok
@@ -184,7 +184,7 @@ type KVsSource map[string][]string
 
 var _ Setter = KVsSource(nil)
 
-// Get ...
+// Get returns the value.
 func (form KVsSource) Get(key string) ([]string, bool) {
 	v, ok := form[key]
 	return v, ok
@@ -201,19 +201,19 @@ type ValuesGetter interface {
 
 type ValuesGetFunc func(key string) ([]string, bool)
 
-// Get ...
+// Get returns the value.
 func (f ValuesGetFunc) Get(key string) ([]string, bool) {
 	return f(key)
 }
 
-// TrySet ...
+// TrySet performs the operation.
 func (f ValuesGetFunc) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	return SetValueByValuesGetter(value, field, f, key, opt)
 }
 
 type ValuesGetters []ValuesGetter
 
-// Get ...
+// Get returns the value.
 func (args ValuesGetters) Get(key string) (v []string, ok bool) {
 	for i := range args {
 		if v, ok = args[i].Get(key); ok {
@@ -223,12 +223,12 @@ func (args ValuesGetters) Get(key string) (v []string, ok bool) {
 	return
 }
 
-// TrySet ...
+// TrySet performs the operation.
 func (args ValuesGetters) TrySet(value reflect.Value, field *reflect.StructField, key string, opt *Options) (isSet bool, err error) {
 	return SetValueByValuesGetter(value, field, args, key, opt)
 }
 
-// SetValueByGetter ...
+// SetValueByGetter updates or inserts a value.
 func SetValueByGetter(value reflect.Value, field *reflect.StructField, getter Getter, key string, opt *Options) (isSet bool, err error) {
 	vs, _ := getter.Get(key)
 	if vs == "" {
@@ -244,7 +244,7 @@ func SetValueByGetter(value reflect.Value, field *reflect.StructField, getter Ge
 	return true, nil
 }
 
-// SetValueByValuesGetter ...
+// SetValueByValuesGetter updates or inserts a value.
 func SetValueByValuesGetter(value reflect.Value, field *reflect.StructField, getter ValuesGetter, key string, opt *Options) (isSet bool, err error) {
 	vals, _ := getter.Get(key)
 	if len(vals) == 0 {

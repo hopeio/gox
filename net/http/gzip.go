@@ -47,13 +47,13 @@ type gzipWriter struct {
 	size   int
 }
 
-// WriteString ...
+// WriteString performs the operation.
 func (g *gzipWriter) WriteString(s string) (int, error) {
 	g.Header().Del("Content-Length")
 	return g.writer.Write([]byte(s))
 }
 
-// Write ...
+// Write performs the operation.
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	g.Header().Del("Content-Length")
 	n, err := g.writer.Write(data)
@@ -64,7 +64,7 @@ func (g *gzipWriter) Write(data []byte) (int, error) {
 	return n, nil
 }
 
-// WriteHeader ...
+// WriteHeader performs the operation.
 func (g *gzipWriter) WriteHeader(code int) {
 	g.Header().Del("Content-Length")
 	g.ResponseWriter.WriteHeader(code)
@@ -95,7 +95,7 @@ func NewGzipHandler(level int, options *GzipOptions) *gzipHandler {
 	return handler
 }
 
-// ServeHTTP ...
+// ServeHTTP executes the operation.
 func (g *gzipHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if !g.shouldCompress(r) {
@@ -145,7 +145,7 @@ func (g *gzipHandler) shouldCompress(req *http.Request) bool {
 	return true
 }
 
-// GzipBody ...
+// GzipBody performs the operation.
 func GzipBody(r *http.Request) (io.ReadCloser, error) {
 	if r.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(r.Body)

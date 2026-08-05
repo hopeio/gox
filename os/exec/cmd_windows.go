@@ -8,7 +8,7 @@ import (
 	osx "github.com/hopeio/gox/os"
 )
 
-// CMD ...
+// CMD returns the result.
 func CMD(s string, opts ...Option) *exec.Cmd {
 	var cmd *exec.Cmd
 	if strings.Contains(s, "\"") {
@@ -31,7 +31,7 @@ func CMD(s string, opts ...Option) *exec.Cmd {
 	return cmd
 }
 
-// CmdString ...
+// CmdString returns the result.
 func CmdString(cmd *exec.Cmd) string {
 	if cmd.SysProcAttr != nil && cmd.SysProcAttr.CmdLine != "" {
 		return cmd.Path + cmd.SysProcAttr.CmdLine

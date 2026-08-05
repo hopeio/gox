@@ -13,7 +13,7 @@ type Interface[T any] interface {
 
 type Heap[E any, I Interface[E]] []E
 
-// New ...
+// New creates a new instance.
 func New[E any, I Interface[E]](capacity int) Heap[E, I] {
 	return make([]E, 0, capacity)
 }
@@ -27,7 +27,7 @@ func NewFromArray[E any, I Interface[E]](arr I) Heap[E, I] {
 	return heap
 }
 
-// Init ...
+// Init performs the operation.
 func (heap Heap[E, I]) Init() {
 	// heapify
 	n := len(heap)
@@ -36,14 +36,14 @@ func (heap Heap[E, I]) Init() {
 	}
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (heap *Heap[E, I]) Push(x E) {
 	h := *heap
 	*heap = append(h, x)
 	heap.up(len(h))
 }
 
-// Put ...
+// Put updates or inserts a value.
 func (heap *Heap[E, I]) Put(val E) {
 	h := *heap
 	if len(h) < cap(h) {
@@ -61,7 +61,7 @@ func (heap *Heap[E, I]) Put(val E) {
 	heap.down(0, len(h))
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (heap *Heap[E, I]) Pop() (E, bool) {
 	h := *heap
 	if len(h) == 0 {
@@ -75,7 +75,7 @@ func (heap *Heap[E, I]) Pop() (E, bool) {
 	return item, true
 }
 
-// First ...
+// First performs the operation.
 func (heap Heap[E, I]) First() (E, bool) {
 	if len(heap) == 0 {
 		return *new(E), false
@@ -83,7 +83,7 @@ func (heap Heap[E, I]) First() (E, bool) {
 	return heap[0], true
 }
 
-// Last ...
+// Last performs the operation.
 func (heap Heap[E, I]) Last() (E, bool) {
 	if len(heap) == 0 {
 		return *new(E), false
@@ -91,7 +91,7 @@ func (heap Heap[E, I]) Last() (E, bool) {
 	return heap[len(heap)-1], true
 }
 
-// Remove ...
+// Remove removes or resets state.
 func (heap *Heap[E, I]) Remove(i int) (E, bool) {
 	h := *heap
 	if len(h) <= i {
@@ -109,7 +109,7 @@ func (heap *Heap[E, I]) Remove(i int) (E, bool) {
 	return item, true
 }
 
-// up ...
+// up performs the operation.
 func (heap Heap[E, I]) up(j int) {
 
 	for {
@@ -122,7 +122,7 @@ func (heap Heap[E, I]) up(j int) {
 	}
 }
 
-// down ...
+// down reports whether the condition holds.
 func (heap Heap[E, I]) down(i0, n int) bool {
 	i := i0
 	for {

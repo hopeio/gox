@@ -10,7 +10,7 @@ import (
 	constraintsi "github.com/hopeio/gox/types/constraints"
 )
 
-// StandardDeviation ...
+// StandardDeviation returns the result.
 func StandardDeviation[S ~[]T, T constraintsi.Number](data S, isSample bool) float64 {
 	n := float64(len(data))
 	var sum float64
@@ -29,34 +29,34 @@ func StandardDeviation[S ~[]T, T constraintsi.Number](data S, isSample bool) flo
 	return varianceSum / n
 }
 
-// Variance ...
+// Variance returns the result.
 func Variance[S ~[]T, T constraintsi.Number](data S, isSample bool) float64 {
 	n := float64(len(data))
 	if n == 0 {
 		return 0
 	}
 
-	// 计算均值
+	// Compute the mean
 	var sum float64
 	for _, v := range data {
 		sum += float64(v)
 	}
 	mean := sum / n
 
-	// 计算平方和
+	// Compute the sum of squares
 	var varianceSum float64
 	for _, v := range data {
 		varianceSum += (float64(v) - mean) * (float64(v) - mean)
 	}
 
-	// 总体或样本方差
+	// population or sample variance
 	if isSample {
 		return varianceSum / (n - 1)
 	}
 	return varianceSum / n
 }
 
-// Max ...
+// Max returns the result.
 func Max[T constraintsi.Ordered](data ...T) T {
 	max := data[0]
 	n := len(data)
@@ -68,7 +68,7 @@ func Max[T constraintsi.Ordered](data ...T) T {
 	return max
 }
 
-// Min ...
+// Min returns the result.
 func Min[T constraintsi.Ordered](data ...T) T {
 	min := data[0]
 	n := len(data)
@@ -80,7 +80,7 @@ func Min[T constraintsi.Ordered](data ...T) T {
 	return min
 }
 
-// MinAndMax ...
+// MinAndMax performs the operation.
 func MinAndMax[T constraintsi.Ordered](data ...T) (T, T) {
 	min, max := data[0], data[0]
 	n := len(data)

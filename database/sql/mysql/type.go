@@ -8,7 +8,7 @@ package mysql
 
 import "strings"
 
-// MySqlTypeToGoType ...
+// MySqlTypeToGoType returns the result.
 func MySqlTypeToGoType(typ string) string {
 	if strings.Contains(typ, "int") {
 		return "int"

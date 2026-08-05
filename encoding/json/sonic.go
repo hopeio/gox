@@ -27,7 +27,7 @@ var (
 	UnmarshalFromString = json.UnmarshalFromString
 )
 
-// MarshalReader ...
+// MarshalReader performs the operation.
 func MarshalReader(v interface{}) (io.Reader, error) {
 	data, err := sonic.Marshal(v)
 	if err != nil {

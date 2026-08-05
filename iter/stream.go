@@ -16,8 +16,8 @@ type Stream[T any] interface {
 	Seq() iter.Seq[T]
 
 	Filter(types.Predicate[T]) Stream[T]
-	Map(types.UnaryFunction[T, T]) Stream[T]               //同类型转换,没啥意义
-	FlatMap(types.UnaryFunction[T, iter.Seq[T]]) Stream[T] //同Map
+	Map(types.UnaryFunction[T, T]) Stream[T]               //Same-type conversion; not very useful
+	FlatMap(types.UnaryFunction[T, iter.Seq[T]]) Stream[T] //Same as Map
 	Peek(types.Consumer[T]) Stream[T]
 	Sorted(types.Comparator[T]) Stream[T]
 	Distinct(types.UnaryFunction[T, int]) Stream[T]
@@ -37,12 +37,12 @@ type Stream[T any] interface {
 	Sum(types.BinaryOperator[T]) T
 }
 
-// StreamOf ...
+// StreamOf returns the result.
 func StreamOf[T any](seq iter.Seq[T]) Stream[T] {
 	return Seq[T](seq)
 }
 
-// Seq2Seq ...
+// Seq2Seq returns the result.
 func Seq2Seq[K, V any](s iter.Seq2[K, V]) iter.Seq[types.Pair[K, V]] {
 	return func(yield func(types.Pair[K, V]) bool) {
 		for k, v := range s {
@@ -53,7 +53,7 @@ func Seq2Seq[K, V any](s iter.Seq2[K, V]) iter.Seq[types.Pair[K, V]] {
 	}
 }
 
-// Seq2Keys ...
+// Seq2Keys returns the result.
 func Seq2Keys[K, V any](s iter.Seq2[K, V]) iter.Seq[K] {
 	return func(yield func(K) bool) {
 		for k, _ := range s {
@@ -64,7 +64,7 @@ func Seq2Keys[K, V any](s iter.Seq2[K, V]) iter.Seq[K] {
 	}
 }
 
-// Seq2Values ...
+// Seq2Values returns the result.
 func Seq2Values[K, V any](s iter.Seq2[K, V]) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for _, v := range s {
@@ -77,37 +77,37 @@ func Seq2Values[K, V any](s iter.Seq2[K, V]) iter.Seq[V] {
 
 type Seq[T any] iter.Seq[T]
 
-// Seq ...
+// Seq returns the result.
 func (it Seq[T]) Seq() iter.Seq[T] {
 	return iter.Seq[T](it)
 }
 
-// Filter ...
+// Filter returns the result.
 func (it Seq[T]) Filter(test types.Predicate[T]) Stream[T] {
 	return Seq[T](Filter(iter.Seq[T](it), test))
 }
 
-// Map ...
+// Map returns the result.
 func (it Seq[T]) Map(f types.UnaryFunction[T, T]) Stream[T] {
 	return Seq[T](Map(iter.Seq[T](it), f))
 }
 
-// FlatMap ...
+// FlatMap returns the result.
 func (it Seq[T]) FlatMap(f types.UnaryFunction[T, iter.Seq[T]]) Stream[T] {
 	return Seq[T](FlatMap(iter.Seq[T](it), f))
 }
 
-// Peek ...
+// Peek returns the result.
 func (it Seq[T]) Peek(accept types.Consumer[T]) Stream[T] {
 	return Seq[T](Peek(iter.Seq[T](it), accept))
 }
 
-// Distinct ...
+// Distinct returns the result.
 func (it Seq[T]) Distinct(f types.UnaryFunction[T, int]) Stream[T] {
 	return Seq[T](Distinct(iter.Seq[T](it), f))
 }
 
-// Sorted ...
+// Sorted returns the result.
 func (it Seq[T]) Sorted(cmp types.Comparator[T]) Stream[T] {
 	return Seq[T](Sorted(iter.Seq[T](it), cmp))
 }
@@ -117,52 +117,52 @@ func (it Seq[T]) IsSorted(cmp types.Comparator[T]) bool {
 	return IsSorted(iter.Seq[T](it), cmp)
 }
 
-// Limit ...
+// Limit returns the result.
 func (it Seq[T]) Limit(limit int) Stream[T] {
 	return Seq[T](Limit(iter.Seq[T](it), limit))
 }
 
-// Until ...
+// Until returns the result.
 func (it Seq[T]) Until(test types.Predicate[T]) Stream[T] {
 	return Seq[T](Until(iter.Seq[T](it), test))
 }
 
-// Skip ...
+// Skip returns the result.
 func (it Seq[T]) Skip(skip int) Stream[T] {
 	return Seq[T](Skip(iter.Seq[T](it), skip))
 }
 
-// ForEach ...
+// ForEach performs the operation.
 func (it Seq[T]) ForEach(accept types.Consumer[T]) {
 	ForEach(iter.Seq[T](it), accept)
 }
 
-// Collect ...
+// Collect returns the result.
 func (it Seq[T]) Collect() []T {
 	return slices.Collect(iter.Seq[T](it))
 }
 
-// All ...
+// All reports whether the condition holds.
 func (it Seq[T]) All(test types.Predicate[T]) bool {
 	return AllMatch(iter.Seq[T](it), test)
 }
 
-// Any ...
+// Any reports whether the condition holds.
 func (it Seq[T]) Any(test types.Predicate[T]) bool {
 	return AnyMatch(iter.Seq[T](it), test)
 }
 
-// Reduce ...
+// Reduce performs the operation.
 func (it Seq[T]) Reduce(acc types.BinaryOperator[T]) (T, bool) {
 	return Reduce(iter.Seq[T](it), acc)
 }
 
-// Fold ...
+// Fold returns the result.
 func (it Seq[T]) Fold(initVal T, acc types.BinaryOperator[T]) T {
 	return Fold(iter.Seq[T](it), initVal, types.BinaryFunction[T, T, T](acc))
 }
 
-// First ...
+// First performs the operation.
 func (it Seq[T]) First() (T, bool) {
 	return First(iter.Seq[T](it))
 }
@@ -172,18 +172,18 @@ func (it Seq[T]) Count() int {
 	return Count(iter.Seq[T](it))
 }
 
-// Sum ...
+// Sum returns the result.
 func (it Seq[T]) Sum(add types.BinaryOperator[T]) T {
 	return Operator(iter.Seq[T](it), add)
 }
 
-// Iter ...
+// Iter returns the result.
 func (it Seq[T]) Iter() Iterator[T] {
 	next, stop := iter.Pull(iter.Seq[T](it))
 	return &seqIter[T]{next, stop}
 }
 
-// SeqSeq2 ...
+// SeqSeq2 returns the result.
 func SeqSeq2[T any](seq iter.Seq[T]) iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		var count int

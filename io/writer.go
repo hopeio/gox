@@ -28,7 +28,7 @@ func (w *WriterToWrapper) Close() error {
 	return w.close()
 }
 
-// WrapWriterTo ...
+// WrapWriterTo returns the result.
 func WrapWriterTo(w io.WriterTo, close func() error) *WriterToWrapper {
 	return &WriterToWrapper{
 		WriterTo: w,
@@ -43,7 +43,7 @@ func NewLimitedWriter(max int64) LimitedWriter {
 	return make([]byte, 0, max)
 }
 
-// Write ...
+// Write performs the operation.
 func (lw *LimitedWriter) Write(p []byte) (int, error) {
 	b := *lw
 	l, c := len(b), cap(b)

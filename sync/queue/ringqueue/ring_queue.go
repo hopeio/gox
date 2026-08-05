@@ -24,7 +24,7 @@ type RingQueue[T any] struct {
 	zero     T
 }
 
-// New ...
+// New creates a new instance.
 func New[T any](capacity uint32) *RingQueue[T] {
 	q := new(RingQueue[T])
 	q.capacity = minQuantity(capacity)
@@ -51,12 +51,12 @@ func (q *RingQueue[T]) String() string {
 		q.capacity, q.capMod, putPos, getPos)
 }
 
-// Capaciity ...
+// Capaciity returns the result.
 func (q *RingQueue[T]) Capaciity() uint32 {
 	return q.capacity
 }
 
-// Quantity ...
+// Quantity returns the result.
 func (q *RingQueue[T]) Quantity() uint32 {
 	var putPos, getPos uint32
 	var quantity uint32
@@ -253,7 +253,7 @@ func (q *RingQueue[T]) Gets(values []T) (gets, quantity uint32) {
 	return getCnt, posCnt - getCnt
 }
 
-// minQuantity ...
+// minQuantity returns the result.
 func minQuantity(v uint32) uint32 {
 	v--
 	v |= v >> 1
@@ -265,7 +265,7 @@ func minQuantity(v uint32) uint32 {
 	return v
 }
 
-// Delay ...
+// Delay performs the operation.
 func Delay(z int) {
 	for x := z; x > 0; x-- {
 	}

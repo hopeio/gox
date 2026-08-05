@@ -12,10 +12,10 @@ import (
 	"strings"
 )
 
-// webp 无损模式
+// webp lossless mode
 const ImgToWebpLosslessCmd = CommonCmd + `-c:v libwebp -lossless 1 -quality 100 -compression_level 6 "%s.webp"`
 
-// ImgToWebpLossless ...
+// ImgToWebpLossless performs the operation.
 func ImgToWebpLossless(filePath, dst string) error {
 	if strings.HasSuffix(dst, ".webp") {
 		dst = dst[:len(dst)-5]
@@ -25,7 +25,7 @@ func ImgToWebpLossless(filePath, dst string) error {
 
 const ImgToWebpCmd = CommonCmd + `-c:v libwebp -quality %d "%s.webp"`
 
-// ImgToWebp ...
+// ImgToWebp performs the operation.
 func ImgToWebp(filePath, dst string, quality int) error {
 	if strings.HasSuffix(dst, ".webp") {
 		dst = dst[:len(dst)-5]
@@ -35,11 +35,11 @@ func ImgToWebp(filePath, dst string, quality int) error {
 
 const ImgToTAvifCmd = CommonCmd + `-c:v libaom-av1 -crf %d -cpu-used %d -row-mt 1 "%s.avif"`
 
-// 多次压缩后avif会出现明显色差,比webp略好
-// -cpu-used 3 会加速，但是图片大小会变大,质量变差,<=3比较好,推荐2
+// Repeated AVIF compression shows color shift; slightly better than webp
+// -cpu-used 3 is faster but larger/worse quality; <=3 is fine, 2 recommended
 // More encoding options are available: -b 700k -tile-columns 600 -tile-rows 800 - example for the bitrate and tales.
 
-// ImgToAvif ...
+// ImgToAvif performs the operation.
 func ImgToAvif(filePath, dst string, crf, cpuUsed int) error {
 	if strings.HasSuffix(dst, ".avif") {
 		dst = dst[:len(dst)-5]
@@ -52,7 +52,7 @@ const ImgToHeicCmd2 = CommonCmd + `-hide_banner -r 1 -vf "scale=trunc(iw/2)*2:tr
 const ImgToHeicCmd3 = CommonCmd + `-hide_banner -r 1 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2,zscale=m=170m:r=pc" -pix_fmt yuv420p -frames 1 -c:v libx265 -preset veryslow -crf 20 -x265-params range=full:colorprim=smpte170m:aq-strength=1.2 -deblock -2:-2 "%s.hevc"
 `
 
-// ImgToHeic ...
+// ImgToHeic performs the operation.
 func ImgToHeic(filePath, dst string) error {
 	if strings.HasSuffix(dst, ".heic") {
 		dst = dst[:len(dst)-5]
@@ -67,7 +67,7 @@ func ImgToHeic(filePath, dst string) error {
 
 const ImgToJxlCmd = CommonCmd + `-c:v libjxl "%s.jxl"`
 
-// ImgToJxl ...
+// ImgToJxl performs the operation.
 func ImgToJxl(filePath, dst string) error {
 	if strings.HasSuffix(dst, ".jxl") {
 		dst = dst[:len(dst)-4]

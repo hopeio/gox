@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// GrowSlice ...
+// GrowSlice returns the result.
 func GrowSlice(et *reflect.Type, old reflect.Slice, cap int) reflect.Slice {
 	s := growslice(old.Ptr, cap, old.Cap, cap-old.Len, et)
 	s.Len = old.Len

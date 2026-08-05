@@ -13,57 +13,57 @@ import (
 	httpx "github.com/hopeio/gox/net/http"
 )
 
-// DefaultHeader ...
+// DefaultHeader returns the result.
 func DefaultHeader() http.Header {
 	return http.Header{
 		httpx.HeaderAcceptLanguage: []string{"zh-CN,zh;q=0.9;charset=utf-8"},
 		httpx.HeaderConnection:     []string{"keep-alive"},
 		httpx.HeaderUserAgent:      []string{UserAgentChrome117},
-		//"Accept", "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8", // 将会越来越少用，服务端一般固定格式
+		//"Accept", "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8", // Less common over time; servers usually use a fixed format
 	}
 }
 
-// DefaultHeaderClient ...
+// DefaultHeaderClient returns the result.
 func DefaultHeaderClient() *Client {
 	return New().Header(DefaultHeader())
 }
 
-// DefaultHeaderRequest ...
+// DefaultHeaderRequest returns the result.
 func DefaultHeaderRequest() *Request {
 	return &Request{client: New().Header(DefaultHeader())}
 }
 
-// GetRequest ...
+// GetRequest returns the value.
 func GetRequest(url string) *Request {
 	return NewRequest(http.MethodGet, url)
 }
 
-// PostRequest ...
+// PostRequest returns the result.
 func PostRequest(url string) *Request {
 	return NewRequest(http.MethodPost, url)
 }
 
-// PutRequest ...
+// PutRequest updates or inserts a value.
 func PutRequest(url string) *Request {
 	return NewRequest(http.MethodPut, url)
 }
 
-// DeleteRequest ...
+// DeleteRequest removes or resets state.
 func DeleteRequest(url string) *Request {
 	return NewRequest(http.MethodDelete, url)
 }
 
-// Get ...
+// Get returns the value.
 func Get(url string, param, response any) error {
 	return GetRequest(url).Do(param, response)
 }
 
-// GetX ...
+// GetX returns the value.
 func GetX(url string, response any) error {
 	return Get(url, nil, response)
 }
 
-// GetStream ...
+// GetStream returns the value.
 func GetStream(url string, param any) (io.ReadCloser, error) {
 	var resp *http.Response
 	err := Get(url, param, &resp)
@@ -73,22 +73,22 @@ func GetStream(url string, param any) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-// GetStreamX ...
+// GetStreamX returns the value.
 func GetStreamX(url string) (io.ReadCloser, error) {
 	return GetStream(url, nil)
 }
 
-// Post ...
+// Post performs the operation.
 func Post(url string, param, response interface{}) error {
 	return PostRequest(url).Do(param, response)
 }
 
-// Put ...
+// Put updates or inserts a value.
 func Put(url string, param, response interface{}) error {
 	return PutRequest(url).Do(param, response)
 }
 
-// Delete ...
+// Delete removes or resets state.
 func Delete(url string, param, response interface{}) error {
 	return DeleteRequest(url).Do(param, response)
 }

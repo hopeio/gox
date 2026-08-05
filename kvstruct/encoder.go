@@ -79,7 +79,7 @@ func isZero(v reflect.Value) bool {
 	return v.Interface() == z.Interface()
 }
 
-// encode ...
+// encode performs the operation.
 func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -144,7 +144,7 @@ func (e *Encoder) encode(v reflect.Value, dst map[string][]string) error {
 	return errs
 }
 
-// typeEncoder ...
+// typeEncoder returns the result.
 func typeEncoder(t reflect.Type, reg map[reflect.Type]encoderFunc) encoderFunc {
 	if f, ok := reg[t]; ok {
 		return f
@@ -176,37 +176,37 @@ func typeEncoder(t reflect.Type, reg map[reflect.Type]encoderFunc) encoderFunc {
 	}
 }
 
-// encodeBool ...
+// encodeBool returns the result.
 func encodeBool(v reflect.Value) string {
 	return strconv.FormatBool(v.Bool())
 }
 
-// encodeInt ...
+// encodeInt returns the result.
 func encodeInt(v reflect.Value) string {
 	return strconv.FormatInt(int64(v.Int()), 10)
 }
 
-// encodeUint ...
+// encodeUint returns the result.
 func encodeUint(v reflect.Value) string {
 	return strconv.FormatUint(uint64(v.Uint()), 10)
 }
 
-// encodeFloat ...
+// encodeFloat returns the result.
 func encodeFloat(v reflect.Value, bits int) string {
 	return strconv.FormatFloat(v.Float(), 'f', 6, bits)
 }
 
-// encodeFloat32 ...
+// encodeFloat32 returns the result.
 func encodeFloat32(v reflect.Value) string {
 	return encodeFloat(v, 32)
 }
 
-// encodeFloat64 ...
+// encodeFloat64 returns the result.
 func encodeFloat64(v reflect.Value) string {
 	return encodeFloat(v, 64)
 }
 
-// encodeString ...
+// encodeString returns the result.
 func encodeString(v reflect.Value) string {
 	return v.String()
 }

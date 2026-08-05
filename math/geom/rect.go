@@ -30,7 +30,7 @@ func NewRect(center Point, width, height float64, angleDeg float64) *Rectangle {
 	}
 }
 
-// RectNoRotate ...
+// RectNoRotate returns the result.
 func RectNoRotate(x0, y0, x1, y1 float64) *Rectangle {
 	if x0 > x1 {
 		x0, x1 = x1, x0
@@ -45,7 +45,7 @@ func RectNoRotate(x0, y0, x1, y1 float64) *Rectangle {
 	}
 }
 
-// RectNoRotate2 ...
+// RectNoRotate2 returns the result.
 func RectNoRotate2(ltp, rdp Point) *Rectangle {
 	return &Rectangle{
 		Center: Point{(ltp.X + rdp.X) / 2, (ltp.Y + rdp.Y) / 2},
@@ -54,12 +54,12 @@ func RectNoRotate2(ltp, rdp Point) *Rectangle {
 	}
 }
 
-// RectFromImageRect ...
+// RectFromImageRect returns the result.
 func RectFromImageRect(r image.Rectangle) *Rectangle {
 	return RectNoRotate(float64(r.Min.X), float64(r.Min.Y), float64(r.Max.X), float64(r.Max.Y))
 }
 
-// RectFromCorners ...
+// RectFromCorners returns the result.
 func RectFromCorners(points [4]Point) *Rectangle {
 	var center Point
 	for _, p := range points {
@@ -72,7 +72,7 @@ func RectFromCorners(points [4]Point) *Rectangle {
 	height := points[1].Length(points[2])
 	dx := points[1].X - points[0].X
 	dy := points[1].Y - points[0].Y
-	angle := math.Atan2(dy, dx) * 180 / math.Pi // 转为度数
+	angle := math.Atan2(dy, dx) * 180 / math.Pi // convert to degrees
 	return &Rectangle{
 		Center: center,
 		Width:  width,
@@ -81,7 +81,7 @@ func RectFromCorners(points [4]Point) *Rectangle {
 	}
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (rect *Rectangle) Bounds() *Bounds {
 	if rect.Angle == 0 {
 		return NewBounds(rect.Center.X-rect.Width/2, rect.Center.Y-rect.Height/2, rect.Center.X+rect.Width/2, rect.Center.Y+rect.Height/2)
@@ -92,7 +92,7 @@ func (rect *Rectangle) Bounds() *Bounds {
 	return NewBounds(minx, miny, maxx, maxy)
 }
 
-// Corners ...
+// Corners returns the result.
 func (rect *Rectangle) Corners() [4]Point {
 	if rect.Angle == 0 {
 		return [4]Point{{rect.Center.X - rect.Width/2, rect.Center.Y - rect.Height/2},
@@ -105,7 +105,7 @@ func (rect *Rectangle) Corners() [4]Point {
 	cosA := math.Cos(angleRad)
 	sinA := math.Sin(angleRad)
 	halfW, halfH := rect.Width/2, rect.Height/2
-	// 计算矩形四个角的坐标 (A左下-B右下-C右上-D左上)
+	// Compute the four rectangle corners (A bottom-left, B bottom-right, C top-right, D top-left)
 	dx := rect.Center.X + halfW*cosA - halfH*sinA
 	dy := rect.Center.Y + halfW*sinA + halfH*cosA
 	ax := rect.Center.X - halfW*cosA - halfH*sinA
@@ -120,7 +120,7 @@ func (rect *Rectangle) Corners() [4]Point {
 // ContainsPoint reports whether the condition holds.
 func (rect *Rectangle) ContainsPoint(p Point) bool {
 
-	// 射线法判断点是否在矩形内
+	// Ray casting to test whether a point is inside the rectangle
 	inside := false
 	intersections := 0
 	corners := rect.Corners()
@@ -129,10 +129,10 @@ func (rect *Rectangle) ContainsPoint(p Point) bool {
 		x1, y1 := corners[i].X, corners[i].Y
 		x2, y2 := corners[(i+1)%len(corners)].X, corners[(i+1)%len(corners)].Y
 
-		if y1 == y2 { // 水平边
+		if y1 == y2 { // horizontal edge
 			continue
 		}
-		if p.Y < min(y1, y2) || p.Y > max(y1, y2) { // 在边的外部
+		if p.Y < min(y1, y2) || p.Y > max(y1, y2) { // outside the edge
 			continue
 		}
 
@@ -156,7 +156,7 @@ type RectangleInt[T constraints.Integer] struct {
 	Angle  float64
 }
 
-// ToFloat64 ...
+// ToFloat64 converts the value.
 func (rect *RectangleInt[T]) ToFloat64(factor float64) *Rectangle {
 	if factor == 0 {
 		factor = 1
@@ -174,7 +174,7 @@ func NewRectInt[T constraints.Integer](center PointInt[T], width, height T, angl
 	return &RectangleInt[T]{center, width, height, angle}
 }
 
-// RectIntFromFloat64 ...
+// RectIntFromFloat64 returns the result.
 func RectIntFromFloat64[T constraints.Integer](e *Rectangle, factor float64) *RectangleInt[T] {
 	if factor == 0 {
 		factor = 1
@@ -195,7 +195,7 @@ type Bounds struct {
 	Max Point
 }
 
-// ToRect ...
+// ToRect converts the value.
 func (b *Bounds) ToRect() *Rectangle {
 	return RectNoRotate((b.Min.X+b.Max.X)/2, (b.Min.Y+b.Max.Y)/2, b.Max.X-b.Min.X, b.Max.Y-b.Min.Y)
 }
@@ -214,7 +214,7 @@ func NewBounds(x0, y0, x1, y1 float64) *Bounds {
 	}
 }
 
-// BoundsFromImageRect ...
+// BoundsFromImageRect returns the result.
 func BoundsFromImageRect(r image.Rectangle) *Bounds {
 	return NewBounds(float64(r.Min.X), float64(r.Min.Y), float64(r.Max.X), float64(r.Max.Y))
 }

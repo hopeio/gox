@@ -86,7 +86,7 @@ type Parameter struct {
 	ApplyCustomSchema func(s *openapi3.Parameter)
 }
 
-// Type ...
+// Type returns the result.
 func Type(fieldType reflect.Type) string {
 	var typ string
 	switch fieldType.Kind() {
@@ -170,7 +170,7 @@ func (api *API) Merge(r Route) {
 	mergeMap(toUpdate.Models.Responses, r.Models.Responses)
 }
 
-// mergeMap ...
+// mergeMap performs the operation.
 func mergeMap[TKey comparable, TValue any](into, from map[TKey]TValue) {
 	for kf, vf := range from {
 		_, ok := into[kf]
@@ -375,7 +375,7 @@ func ModelOf[T any]() Model {
 	return m
 }
 
-// modelFromType ...
+// modelFromType returns the result.
 func modelFromType(t reflect.Type) Model {
 	m := Model{
 		Type: t,
@@ -399,7 +399,7 @@ type Model struct {
 	s    func(s *openapi3.Schema)
 }
 
-// ApplyCustomSchema ...
+// ApplyCustomSchema performs the operation.
 func (m Model) ApplyCustomSchema(s *openapi3.Schema) {
 	if m.s == nil {
 		return

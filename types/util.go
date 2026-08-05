@@ -11,27 +11,27 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// CastSigned ...
+// CastSigned converts the value.
 func CastSigned[T, V constraints.Signed](v V) T {
 	return T(v)
 }
 
-// CastFloat ...
+// CastFloat converts the value.
 func CastFloat[T, V constraints.Float](v V) T {
 	return T(v)
 }
 
-// CastUnsigned ...
+// CastUnsigned converts the value.
 func CastUnsigned[T, V constraints.Unsigned](v V) T {
 	return T(v)
 }
 
-// CastInteger ...
+// CastInteger converts the value.
 func CastInteger[T, V constraints.Integer](v V) T {
 	return T(v)
 }
 
-// CastNumber ...
+// CastNumber converts the value.
 func CastNumber[T, V constraintsi.Number](v V) T {
 	return T(v)
 }

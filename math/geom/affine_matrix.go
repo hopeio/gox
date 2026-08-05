@@ -5,10 +5,10 @@ import (
 	"math"
 )
 
-// 定义一个2x3的仿射变换矩阵
+// Define a 2x3 affine transform matrix
 type AffineMatrix [2][3]float64
 
-// Transform ...
+// Transform returns the result.
 func (m AffineMatrix) Transform(p Point) Point {
 	return Point{
 		X: m[0][0]*p.X + m[0][1]*p.Y + m[0][2],
@@ -16,7 +16,7 @@ func (m AffineMatrix) Transform(p Point) Point {
 	}
 }
 
-// RotationAngle ...
+// RotationAngle returns the result.
 func (m AffineMatrix) RotationAngle() float64 {
 	return math.Atan2(m[1][0], m[0][0])
 }
@@ -40,9 +40,9 @@ func NewTranslateMat(src, dst Point) AffineMatrix {
 	}
 }
 
-// 两个原点不重合的坐标系O1,O2。O2相对于O1旋转c度。其中的点分别用(x1,y1),(x2,y2)表示，已知某个点在两个坐标系中的坐标(x1,y1),(x2,y2),以及另一点在O2内的坐标(x2,
-//y2)，求该点在O1内的坐标(x1,y1).
-// 图像如何转换，图像可看做第四象限，输入-y,返回-y
+// Two coordinate frames O1,O2 with different origins; O2 is rotated by c degrees relative to O1. Points are (x1,y1)/(x2,y2). Given one point in both frames and another point in O2,
+//y2), find that point's coordinates in O1 (x1,y1).
+// Image transform: treat the image as quadrant IV; input -y, return -y
 
 // NewTranslateRotationMat creates and returns a new instance.
 func NewTranslateRotationMat(src, dst Point, angleDeg float64) AffineMatrix {
@@ -59,7 +59,7 @@ func NewTranslateRotationMat(src, dst Point, angleDeg float64) AffineMatrix {
 
 // newAffineMatrix creates and returns a new instance.
 func newAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
-	// 构造线性方程组的系数矩阵A和常数向量b
+	// Build coefficient matrix A and constant vector b
 	A := [][]float64{
 		{src[0].X, src[0].Y, 1, 0, 0, 0},
 		{0, 0, 0, src[0].X, src[0].Y, 1},
@@ -70,13 +70,13 @@ func newAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 	}
 	b := []float64{dst[0].X, dst[0].Y, dst[1].X, dst[1].Y, dst[2].X, dst[2].Y}
 
-	// 使用高斯-约旦消元法求解线性方程组 Ax = b
+	// Solve Ax = b with Gauss-Jordan elimination
 	solution, err := GaussJordanElimination(A, b)
 	if err != nil {
 		return AffineMatrix{}, err
 	}
 
-	// 构造仿射变换矩阵
+	// Build the affine transform matrix
 	transformMatrix := AffineMatrix{
 		{solution[0], solution[1], solution[2]},
 		{solution[3], solution[4], solution[5]},
@@ -87,7 +87,7 @@ func newAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 
 // NewAffineMatrix creates and returns a new instance.
 func NewAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
-	// 构造源点矩阵和目标点矩阵
+	// Build source and destination point matrices
 	srcMatrix := [3][3]float64{
 		{src[0].X, src[0].Y, 1},
 		{src[1].X, src[1].Y, 1},
@@ -99,24 +99,24 @@ func NewAffineMatrix(src, dst [3]Point) (AffineMatrix, error) {
 		{dst[2].X, dst[2].Y},
 	}
 
-	// 计算源点矩阵的逆
+	// Invert the source point matrix
 	invSrcMatrix, err := InverseMatrix(srcMatrix)
 	if err != nil {
 		return AffineMatrix{}, err
 	}
 
-	// 计算仿射变换矩阵：inv(srcMatrix) * dstMatrix
+	// Affine matrix: inv(srcMatrix) * dstMatrix
 	affineMatrix := AffineMatrix{}
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 2; j++ {
 			affineMatrix[j][i] = invSrcMatrix[i][0]*dstMatrix[0][j] + invSrcMatrix[i][1]*dstMatrix[1][j] + invSrcMatrix[i][2]*dstMatrix[2][j]
 		}
 	}
-	// 转换为 2x3 形式
+	// Convert to 2x3 form
 	return affineMatrix, nil
 }
 
-// InverseMatrix ...
+// InverseMatrix performs the operation.
 func InverseMatrix(m [3][3]float64) ([3][3]float64, error) {
 	det := m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1]) -
 		m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) +
@@ -140,7 +140,7 @@ func InverseMatrix(m [3][3]float64) ([3][3]float64, error) {
 	return inv, nil
 }
 
-// GaussJordanElimination ...
+// GaussJordanElimination performs the operation.
 func GaussJordanElimination(A [][]float64, b []float64) ([]float64, error) {
 	n := len(b)
 	m := len(A)
@@ -148,7 +148,7 @@ func GaussJordanElimination(A [][]float64, b []float64) ([]float64, error) {
 		return nil, fmt.Errorf("invalid matrix dimensions")
 	}
 
-	// 扩展矩阵 [A | b]
+	// Augmented matrix [A | b]
 	extendedMatrix := make([][]float64, n)
 	for i := range extendedMatrix {
 		extendedMatrix[i] = make([]float64, n+1)
@@ -156,9 +156,9 @@ func GaussJordanElimination(A [][]float64, b []float64) ([]float64, error) {
 		extendedMatrix[i][n] = b[i]
 	}
 
-	// 高斯-约旦消元法
+	// Gauss-Jordan elimination
 	for i := 0; i < n; i++ {
-		// 寻找主元素
+		// Find the pivot
 		maxRow := i
 		for k := i + 1; k < n; k++ {
 			if math.Abs(extendedMatrix[k][i]) > math.Abs(extendedMatrix[maxRow][i]) {
@@ -166,15 +166,15 @@ func GaussJordanElimination(A [][]float64, b []float64) ([]float64, error) {
 			}
 		}
 
-		// 交换行
+		// Swap rows
 		extendedMatrix[i], extendedMatrix[maxRow] = extendedMatrix[maxRow], extendedMatrix[i]
 
-		// 主元为0则无法继续
+		// Cannot continue if the pivot is 0
 		if extendedMatrix[i][i] == 0 {
 			return nil, fmt.Errorf("matrix is singular")
 		}
 
-		// 消元
+		// Eliminate
 		pivot := extendedMatrix[i][i]
 		for j := 0; j < n+1; j++ {
 			extendedMatrix[i][j] /= pivot
@@ -189,7 +189,7 @@ func GaussJordanElimination(A [][]float64, b []float64) ([]float64, error) {
 		}
 	}
 
-	// 提取解
+	// Extract the solution
 	solution := make([]float64, n)
 	for i := 0; i < n; i++ {
 		solution[i] = extendedMatrix[i][n]

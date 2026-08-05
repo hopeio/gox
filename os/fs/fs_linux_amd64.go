@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// init ...
+// init initializes package state.
 func init() {
 	syscall.Umask(0)
 }

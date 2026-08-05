@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Generator ...
+// Generator performs the operation.
 func Generator(db *gorm.DB, outPath, modelPkgPath string, tables ...string) error {
 	g := gen.NewGenerator(gen.Config{
 		OutPath:           outPath,

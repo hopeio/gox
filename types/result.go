@@ -15,22 +15,22 @@ type Result[T any] struct {
 	err   error
 }
 
-// Ok ...
+// Ok returns the value.
 func Ok[T any](a T) Result[T] {
 	return Result[T]{value: a}
 }
 
-// Err ...
+// Err returns the value.
 func Err[T any](a error) Result[T] {
 	return Result[T]{err: a}
 }
 
-// Val ...
+// Val returns the value.
 func (a Result[T]) Val() (value T, err error) {
 	return a.value, a.err
 }
 
-// OrPanic ...
+// OrPanic returns the value.
 func (a Result[T]) OrPanic() T {
 	if a.err != nil {
 		panic("error of result")
@@ -38,7 +38,7 @@ func (a Result[T]) OrPanic() T {
 	return a.value
 }
 
-// Or ...
+// Or returns the value.
 func (a Result[T]) Or(value T) T {
 	if a.err != nil {
 		return value
@@ -46,7 +46,7 @@ func (a Result[T]) Or(value T) T {
 	return a.value
 }
 
-// OrDefault ...
+// OrDefault returns the value.
 func (a Result[T]) OrDefault() (v T) {
 	if a.err != nil {
 		return
@@ -80,21 +80,21 @@ func (a Result[T]) IsErrAnd(f func(error) bool) bool {
 	return f(a.err)
 }
 
-// IfOk ...
+// IfOk performs the operation.
 func (a Result[T]) IfOk(action func(value T)) {
 	if a.err == nil {
 		action(a.value)
 	}
 }
 
-// IfErr ...
+// IfErr performs the operation.
 func (a Result[T]) IfErr(action func(err error)) {
 	if a.err != nil {
 		action(a.err)
 	}
 }
 
-// MarshalJSON ...
+// MarshalJSON encodes the value.
 func (a *Result[T]) MarshalJSON() ([]byte, error) {
 	if a.err == nil {
 		return jsonx.Marshal(a.value)
@@ -102,7 +102,7 @@ func (a *Result[T]) MarshalJSON() ([]byte, error) {
 	return []byte("null"), a.err
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON decodes into the value.
 func (a *Result[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		return nil
@@ -110,7 +110,7 @@ func (a *Result[T]) UnmarshalJSON(data []byte) error {
 	return jsonx.Unmarshal(data, &a.value)
 }
 
-// ResultVal ...
+// ResultVal returns the result.
 func ResultVal[T any](v T, err error) T {
 	return v
 }

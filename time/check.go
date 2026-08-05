@@ -45,7 +45,7 @@ const (
 	InvalidNanos
 )
 
-// Check ...
+// Check returns the result.
 func Check(x Time) uint {
 	if x == nil {
 		return InvalidNil

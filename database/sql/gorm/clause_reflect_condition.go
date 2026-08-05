@@ -15,22 +15,22 @@ var paginationEmbeddedPtrType = reflect.TypeFor[*PaginationEmbedded]()
 var paginationType = reflect.TypeFor[Pagination]()
 var paginationPtrType = reflect.TypeFor[*Pagination]()
 
-// AndConditionBy ...
+// AndConditionBy returns the result.
 func AndConditionBy(param any) clause.Expression {
 	return andConditionBy(reflect.ValueOf(param))
 }
 
-// OrConditionBy ...
+// OrConditionBy returns the result.
 func OrConditionBy(param any) clause.Expression {
 	return orConditionBy(reflect.ValueOf(param))
 }
 
-// NotConditionBy ...
+// NotConditionBy returns the result.
 func NotConditionBy(param any) clause.Expression {
 	return notConditionBy(reflect.ValueOf(param))
 }
 
-// andConditionBy ...
+// andConditionBy returns the result.
 func andConditionBy(param reflect.Value) clause.Expression {
 	conditions := conditionsBy(param)
 	if len(conditions) > 0 {
@@ -39,7 +39,7 @@ func andConditionBy(param reflect.Value) clause.Expression {
 	return nil
 }
 
-// orConditionBy ...
+// orConditionBy returns the result.
 func orConditionBy(param reflect.Value) clause.Expression {
 	conditions := conditionsBy(param)
 
@@ -49,7 +49,7 @@ func orConditionBy(param reflect.Value) clause.Expression {
 	return nil
 }
 
-// notConditionBy ...
+// notConditionBy returns the result.
 func notConditionBy(param reflect.Value) clause.Expression {
 	conditions := conditionsBy(param)
 	if len(conditions) > 0 {
@@ -58,12 +58,12 @@ func notConditionBy(param reflect.Value) clause.Expression {
 	return nil
 }
 
-// ConditionsBy ...
+// ConditionsBy returns the result.
 func ConditionsBy(param any) []clause.Expression {
 	return conditionsBy(reflect.ValueOf(param))
 }
 
-// conditionsByImpl ...
+// conditionsByImpl performs the operation.
 func conditionsByImpl(param reflect.Value) (clause.Expression, bool) {
 	t := param.Type()
 	if t.Implements(conditionExprType) {
@@ -81,7 +81,7 @@ func conditionsByImpl(param reflect.Value) (clause.Expression, bool) {
 	return nil, false
 }
 
-// conditionsBy ...
+// conditionsBy returns the result.
 func conditionsBy(param reflect.Value) []clause.Expression {
 	condition, impl := conditionsByImpl(param)
 	if impl {

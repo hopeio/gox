@@ -9,7 +9,7 @@ import (
 	"github.com/hopeio/gox/log"
 )
 
-// Split ...
+// Split returns the result.
 func Split(line string) []string {
 	var words []string
 Words:
@@ -64,7 +64,7 @@ var env = []string{
 	"GOOS=" + runtime.GOOS,
 }
 
-// expandVar ...
+// expandVar returns the result.
 func expandVar(word string) string {
 	w := word + "="
 	for _, e := range env {

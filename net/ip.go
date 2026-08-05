@@ -15,12 +15,12 @@ import (
 	"regexp"
 )
 
-// IPStrToUint32 ...
+// IPStrToUint32 returns the result.
 func IPStrToUint32(ipStr string) uint32 {
 	return IPv4ToUint32(net.ParseIP(ipStr))
 }
 
-// IPv4ToUint32 ...
+// IPv4ToUint32 returns the result.
 func IPv4ToUint32(ip net.IP) uint32 {
 	if ip.To4() == nil {
 		return 0
@@ -30,7 +30,7 @@ func IPv4ToUint32(ip net.IP) uint32 {
 	return uint32(ipBytes[0])<<24 | uint32(ipBytes[1])<<16 | uint32(ipBytes[2])<<8 | uint32(ipBytes[3])
 }
 
-// Uint32ToIPv4 ...
+// Uint32ToIPv4 returns the result.
 func Uint32ToIPv4(ipInt uint32) net.IP {
 	if ipInt == 0 {
 		return nil
@@ -43,13 +43,13 @@ func Uint32ToIPv4(ipInt uint32) net.IP {
 	return ip
 }
 
-// ExternalIPStr ...
+// ExternalIPStr returns the result.
 func ExternalIPStr() string {
 	ip, _ := ExternalIP()
 	return ip.String()
 }
 
-// ExternalIP ...
+// ExternalIP performs the operation.
 func ExternalIP() (net.IP, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -77,7 +77,7 @@ func ExternalIP() (net.IP, error) {
 	return nil, errors.New("network error")
 }
 
-// AddrToIP ...
+// AddrToIP updates or inserts a value.
 func AddrToIP(addr net.Addr) net.IP {
 	var ip net.IP
 	switch v := addr.(type) {
@@ -97,7 +97,7 @@ func AddrToIP(addr net.Addr) net.IP {
 	return ip
 }
 
-// CommonIPV4 ...
+// CommonIPV4 performs the operation.
 func CommonIPV4() (string, error) {
 	res, err := http.Get("http://txt.go.sohu.com/ip/soip")
 	if err != nil {
@@ -112,7 +112,7 @@ func CommonIPV4() (string, error) {
 	return string(reg.Find(body)), nil
 }
 
-// CommonIPv6 ...
+// CommonIPv6 performs the operation.
 func CommonIPv6() (string, error) {
 	resp, err := http.Get("https://api64.ipify.org")
 	if err != nil {
@@ -128,7 +128,7 @@ func CommonIPv6() (string, error) {
 	return ip, nil
 }
 
-// LocalIPv4s ...
+// LocalIPv4s performs the operation.
 func LocalIPv4s() ([]net.IP, error) {
 	var ipv4Addrs []net.IP
 	addrs, err := net.InterfaceAddrs()
@@ -145,7 +145,7 @@ func LocalIPv4s() ([]net.IP, error) {
 	return ipv4Addrs, nil
 }
 
-// IPv4s ...
+// IPv4s performs the operation.
 func IPv4s() ([]net.IP, error) {
 	var ipv4Addrs []net.IP
 	address, err := net.InterfaceAddrs()
@@ -162,20 +162,20 @@ func IPv4s() ([]net.IP, error) {
 	return ipv4Addrs, nil
 }
 
-// LocalIPv6s ...
+// LocalIPv6s performs the operation.
 func LocalIPv6s() ([]net.IP, error) {
 	var ipv6Addrs []net.IP
 
-	// 获取所有网络接口的地址
+	// Get addresses of all network interfaces
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, addr := range addrs {
-		// 检查地址族是否为IP网卡地址
+		// Check whether the address family is an IP interface address
 		if ipNet, ok := addr.(*net.IPNet); ok {
-			// 检查是否为IPv6地址
+			// Check whether it is an IPv6 address
 			if ipNet.IP.To4() == nil && !ipNet.IP.IsLoopback() {
 				ipv6Addrs = append(ipv6Addrs, ipNet.IP)
 			}
@@ -185,20 +185,20 @@ func LocalIPv6s() ([]net.IP, error) {
 	return ipv6Addrs, nil
 }
 
-// IPv6s ...
+// IPv6s performs the operation.
 func IPv6s() ([]net.IP, error) {
 	var ipv6s []net.IP
 
-	// 获取所有网络接口的地址
+	// Get addresses of all network interfaces
 	address, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, addr := range address {
-		// 检查地址族是否为IP网卡地址
+		// Check whether the address family is an IP interface address
 		if ipNet, ok := addr.(*net.IPNet); ok {
-			// 检查是否为IPv6地址
+			// Check whether it is an IPv6 address
 			if ipNet.IP.To4() == nil && !ipNet.IP.IsPrivate() && ipNet.IP.IsGlobalUnicast() {
 				ipv6s = append(ipv6s, ipNet.IP)
 			}
@@ -208,7 +208,7 @@ func IPv6s() ([]net.IP, error) {
 	return ipv6s, nil
 }
 
-// PrivateIPv4 ...
+// PrivateIPv4 performs the operation.
 func PrivateIPv4() (net.IP, error) {
 	as, err := net.InterfaceAddrs()
 	if err != nil {

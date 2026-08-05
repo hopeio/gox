@@ -8,7 +8,7 @@ package rand
 
 import "math/rand/v2"
 
-// Chinese ...
+// Chinese returns the result.
 func Chinese() string {
 	runes := make([]rune, 5)
 	for i := range runes {
@@ -17,7 +17,7 @@ func Chinese() string {
 	return string(runes)
 }
 
-// ChineseChar ...
+// ChineseChar returns the result.
 func ChineseChar() rune {
 	r := rand.N(500)
 	return rune(r + 19968)
@@ -25,7 +25,7 @@ func ChineseChar() rune {
 
 const codes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-// English ...
+// English returns the result.
 func English() string {
 	bytes := make([]byte, 5)
 	for i := range bytes {

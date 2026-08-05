@@ -32,7 +32,7 @@ type Map struct {
 	hashMap  map[int]string
 }
 
-// New ...
+// New creates a new instance.
 func New(replicas int, fn Hash) *Map {
 	m := &Map{
 		replicas: replicas,

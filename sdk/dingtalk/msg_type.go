@@ -32,7 +32,7 @@ type Markdown struct {
 	At    *At    `json:"at,omitempty"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*Markdown) MessageType() MsgType {
 	return MsgTypeMarkdown
 }
@@ -41,7 +41,7 @@ type Text struct {
 	Content string `json:"content"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (Text) MessageType() MsgType {
 	return MsgTypeText
 }
@@ -59,7 +59,7 @@ type Link struct {
 	MessageUrl string `json:"messageUrl"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*Link) MessageType() MsgType {
 	return MsgTypeLink
 }
@@ -72,7 +72,7 @@ type ActionCard struct {
 	SingleURL      string `json:"singleURL"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*ActionCard) MessageType() MsgType {
 	return MsgTypeActionCard
 }
@@ -85,7 +85,7 @@ type FeedCard struct {
 	} `json:"links"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*FeedCard) MessageType() MsgType {
 	return MsgTypeFeedCard
 }
@@ -119,7 +119,7 @@ func (c MsgType) String() string {
 	}
 }
 
-// TextMessage ...
+// TextMessage returns the result.
 func TextMessage(text string) string {
 	buf := strings.Builder{}
 	buf.WriteString(`{"msgtype":"text","text":{"content":`)
@@ -128,7 +128,7 @@ func TextMessage(text string) string {
 	return buf.String()
 }
 
-// Format ...
+// Format formats or converts the value.
 func Format(msg MessageType) string {
 	msgType := msg.MessageType()
 	buf := strings.Builder{}

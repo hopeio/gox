@@ -19,7 +19,7 @@ var FirstFallBack = func(r rune, a pinyin.Args) []string {
 	return []string{string(r)}
 }
 
-// FistLetter ...
+// FistLetter returns the result.
 func FistLetter(s string) string {
 	a := pinyin.Args{Style: pinyin.FirstLetter, Heteronym: pinyin.Heteronym, Separator: pinyin.Separator, Fallback: FirstFallBack}
 

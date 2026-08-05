@@ -11,7 +11,7 @@ import (
 	"github.com/hopeio/gox/container/list"
 )
 
-// MinStack ...
+// MinStack defines a type.
 type MinStack[T any] struct {
 	store *list.List[node[T]]
 	less  cmp.LessFunc[T]
@@ -22,12 +22,12 @@ type node[T any] struct {
 	min   T
 }
 
-// NewMinStack ...
+// NewMinStack creates a new instance.
 func NewMinStack[T any](less cmp.LessFunc[T]) MinStack[T] {
 	return MinStack[T]{store: list.New[node[T]](), less: less}
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (ms *MinStack[T]) Push(x T) {
 	if ms.store.Head() != nil && ms.less(ms.store.Head().Value.min, x) {
 		ms.store.PushFront(node[T]{value: x, min: ms.store.Head().Value.min})
@@ -36,7 +36,7 @@ func (ms *MinStack[T]) Push(x T) {
 	}
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (ms *MinStack[T]) Pop() (T, bool) {
 	node, ok := ms.store.Pop()
 	if !ok {
@@ -45,12 +45,12 @@ func (ms *MinStack[T]) Pop() (T, bool) {
 	return node.value, true
 }
 
-// Top ...
+// Top converts the value.
 func (ms *MinStack[T]) Top() T {
 	return ms.store.Head().Value.value
 }
 
-// GetMin ...
+// GetMin returns the value.
 func (ms *MinStack[T]) GetMin() T {
 	return ms.store.Head().Value.min
 }

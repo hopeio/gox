@@ -29,7 +29,7 @@ func newSpec(name string) *openapi3.T {
 	}
 }
 
-// getSortedKeys ...
+// getSortedKeys performs the operation.
 func getSortedKeys[V any](m map[string]V) (op []string) {
 	for k := range m {
 		op = append(op, k)
@@ -157,7 +157,7 @@ func (api *API) createOpenAPI() (spec *openapi3.T, err error) {
 	return spec, err
 }
 
-// getModelName ...
+// getModelName returns the result.
 func (api *API) getModelName(t reflect.Type) string {
 	pkgPath, typeName := t.PkgPath(), t.Name()
 	if t.Kind() == reflect.Pointer {
@@ -174,7 +174,7 @@ func (api *API) getModelName(t reflect.Type) string {
 	return schemaName
 }
 
-// getSchemaReferenceOrValue ...
+// getSchemaReferenceOrValue returns the result.
 func getSchemaReferenceOrValue(name string, schema *openapi3.Schema) *openapi3.SchemaRef {
 	if shouldBeReferenced(schema) {
 		return openapi3.NewSchemaRef(fmt.Sprintf("#/components/schemas/%s", name), nil)
@@ -380,7 +380,7 @@ func (api *API) RegisterModel(model Model, opts ...ModelOpts) (name string, sche
 	return
 }
 
-// getCommentsForPackage ...
+// getCommentsForPackage performs the operation.
 func (api *API) getCommentsForPackage(pkg string) (pkgComments map[string]string, err error) {
 	if pkgComments, loaded := api.comments[pkg]; loaded {
 		return pkgComments, nil
@@ -393,7 +393,7 @@ func (api *API) getCommentsForPackage(pkg string) (pkgComments map[string]string
 	return
 }
 
-// getTypeComment ...
+// getTypeComment performs the operation.
 func (api *API) getTypeComment(pkg string, name string) (comment string, deprecated bool, err error) {
 	pkgComments, err := api.getCommentsForPackage(pkg)
 	if err != nil {
@@ -404,7 +404,7 @@ func (api *API) getTypeComment(pkg string, name string) (comment string, depreca
 	return
 }
 
-// getTypeFieldComment ...
+// getTypeFieldComment performs the operation.
 func (api *API) getTypeFieldComment(pkg string, name string, field string) (comment string, deprecated bool, err error) {
 	pkgComments, err := api.getCommentsForPackage(pkg)
 	if err != nil {
@@ -431,7 +431,7 @@ var normalizer = strings.NewReplacer("/", "_",
 	"[", "_",
 	"]", "_")
 
-// normalizeTypeName ...
+// normalizeTypeName returns the result.
 func (api *API) normalizeTypeName(pkgPath, name string) string {
 	var omitPackage bool
 	for _, pkg := range api.StripPkgPaths {

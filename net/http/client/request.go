@@ -37,7 +37,7 @@ type Request struct {
 	ctx         context.Context
 	Method, Url string
 	contentType ContentType
-	header      http.Header //请求级请求头
+	header      http.Header //request-level headers
 	client      *Client
 }
 
@@ -55,13 +55,13 @@ func NewRequest(method, url string, opts ...RequestOption) *Request {
 	return r
 }
 
-// Client ...
+// Client returns the result.
 func (req *Request) Client(c *Client) *Request {
 	req.client = c
 	return req
 }
 
-// Header ...
+// Header returns the result.
 func (req *Request) Header(header http.Header) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
@@ -70,7 +70,7 @@ func (req *Request) Header(header http.Header) *Request {
 	return req
 }
 
-// HeaderX ...
+// HeaderX returns the result.
 func (req *Request) HeaderX(header httpx.Header) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
@@ -79,7 +79,7 @@ func (req *Request) HeaderX(header httpx.Header) *Request {
 	return req
 }
 
-// AddHeader ...
+// AddHeader updates or inserts a value.
 func (req *Request) AddHeader(k, v string) *Request {
 	if req.header == nil {
 		req.header = make(http.Header)
@@ -88,19 +88,19 @@ func (req *Request) AddHeader(k, v string) *Request {
 	return req
 }
 
-// ContentType ...
+// ContentType returns the result.
 func (req *Request) ContentType(contentType ContentType) *Request {
 	req.contentType = contentType
 	return req
 }
 
-// Context ...
+// Context returns the result.
 func (req *Request) Context(ctx context.Context) *Request {
 	req.ctx = ctx
 	return req
 }
 
-// DoRaw ...
+// DoRaw executes the operation.
 func (req *Request) DoRaw(param any) (RawBytes, error) {
 	var raw RawBytes
 	err := req.Do(param, &raw)
@@ -110,7 +110,7 @@ func (req *Request) DoRaw(param any) (RawBytes, error) {
 	return raw, nil
 }
 
-// DoStream ...
+// DoStream executes the operation.
 func (req *Request) DoStream(param any) (io.ReadCloser, error) {
 	var resp *http.Response
 	err := req.Do(param, &resp)
@@ -120,7 +120,7 @@ func (req *Request) DoStream(param any) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-// DoResponse ...
+// DoResponse executes the operation.
 func (req *Request) DoResponse(param any) (*http.Response, error) {
 	var resp *http.Response
 	err := req.Do(param, &resp)
@@ -130,7 +130,7 @@ func (req *Request) DoResponse(param any) (*http.Response, error) {
 	return resp, nil
 }
 
-// Do ...
+// Do executes the operation.
 func (req *Request) Do(param, response any) error {
 	if req.Method == "" {
 		return errors.New("not set method")
@@ -156,7 +156,7 @@ func (req *Request) Do(param, response any) error {
 	reqTime := time.Now()
 	var request *http.Request
 	var resp *http.Response
-	// 日志记录
+	// logging
 	defer func(now time.Time) {
 		if c.logLevel == LogLevelInfo || (err != nil && c.logLevel == LogLevelError) {
 			c.logger(&AccessLogParam{
@@ -289,8 +289,8 @@ func (req *Request) Do(param, response any) error {
 			return nil
 		}
 
-		// net/http会自动处理gzip
-		// go1.22 发现没有处理(并不是,是请求时header标明Content-Encoding时不会处理)
+		// net/http auto-handles gzip
+		// In go1.22 it seemed unhandled (actually: no auto-decode when Content-Encoding is set on the request)
 		encoding := resp.Header.Get(httpx.HeaderContentEncoding)
 		var compress bool
 		if encoding != "" {

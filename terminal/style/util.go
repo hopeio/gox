@@ -16,7 +16,7 @@ import (
 
 var supportLevel int
 
-// init ...
+// init initializes package state.
 func init() {
 	if EnableColor() {
 		colorDepth, _ := ColorDepth()
@@ -30,7 +30,7 @@ func init() {
 	}
 }
 
-// EnableColor ...
+// EnableColor reports whether the condition holds.
 func EnableColor() bool {
 	if _, exists := os.LookupEnv("NO_COLOR"); exists {
 		return false
@@ -46,7 +46,7 @@ func EnableColor() bool {
 	return true
 }
 
-// ColorDepth ...
+// ColorDepth performs the operation.
 func ColorDepth() (int, error) {
 	colorTerm := os.Getenv("COLORTERM")
 	if colorTerm == "truecolor" || colorTerm == "24bit" {

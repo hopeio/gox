@@ -28,7 +28,7 @@ const (
 	ROOT = "https://oapi.dingtalk.com/"
 )
 
-// RobotSendMessage ...
+// RobotSendMessage performs the operation.
 func RobotSendMessage(accessToken, secret string, msg MessageType) error {
 	signUrl, err := RobotUrl(accessToken, secret)
 	if err != nil {
@@ -39,13 +39,13 @@ func RobotSendMessage(accessToken, secret string, msg MessageType) error {
 	return client.Post(ROOT+signUrl, body, nil)
 }
 
-// RobotUrl ...
+// RobotUrl performs the operation.
 func RobotUrl(accessToken, secret string) (string, error) {
 	if accessToken == "" {
 		return "", errors.New("token不能为为空")
 	}
 	if secret != "" {
-		// 密钥加签处理
+		// Sign with the secret key
 		now := time.Now().UnixNano() / int64(time.Millisecond)
 		timestampStr := strconv.FormatInt(now, 10)
 		h := hmac.New(sha256.New, []byte(secret))
@@ -61,7 +61,7 @@ func RobotSendTextMessage(accessToken string, content string) error {
 	return RobotSendTextMessageWithSecret(accessToken, "", content)
 }
 
-// RobotSendTextMessageWithSecret ...
+// RobotSendTextMessageWithSecret performs the operation.
 func RobotSendTextMessageWithSecret(accessToken, secret, content string) error {
 	signUrl, err := RobotUrl(accessToken, secret)
 	if err != nil {
@@ -72,7 +72,7 @@ func RobotSendTextMessageWithSecret(accessToken, secret, content string) error {
 	return client.Post(ROOT+signUrl, body, nil)
 }
 
-// RobotSendMarkDownMessage ...
+// RobotSendMarkDownMessage performs the operation.
 func RobotSendMarkDownMessage(token, title, content string, at *At) error {
 	msg := &Markdown{
 		Title: title,
@@ -82,7 +82,7 @@ func RobotSendMarkDownMessage(token, title, content string, at *At) error {
 	return RobotSendMessage(token, "", msg)
 }
 
-// RobotSendMarkDownMessageWithSecret ...
+// RobotSendMarkDownMessageWithSecret performs the operation.
 func RobotSendMarkDownMessageWithSecret(token, secret, title, content string, at *At) error {
 	msg := &Markdown{
 		Title: title,
@@ -97,7 +97,7 @@ type Robot struct {
 	Secret      string
 }
 
-// SendMessage ...
+// SendMessage performs the operation.
 func (r *Robot) SendMessage(msg MessageType) error {
 	return RobotSendMessage(r.AccessToken, r.Secret, msg)
 }

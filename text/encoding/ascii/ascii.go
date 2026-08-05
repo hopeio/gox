@@ -56,7 +56,7 @@ func IsAllLetter(s string) bool {
 	return true
 }
 
-// EqualFold ...
+// EqualFold reports whether the condition holds.
 func EqualFold(s, t string) bool {
 	if len(s) != len(t) {
 		return false
@@ -69,7 +69,7 @@ func EqualFold(s, t string) bool {
 	return true
 }
 
-// Lower ...
+// Lower returns the result.
 func Lower(b byte) byte {
 	if 'A' <= b && b <= 'Z' {
 		return b ^ ' '
@@ -77,7 +77,7 @@ func Lower(b byte) byte {
 	return b
 }
 
-// Upper ...
+// Upper returns the result.
 func Upper(b byte) byte {
 	if 'a' <= b && b <= 'z' {
 		return b ^ ' '

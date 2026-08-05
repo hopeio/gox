@@ -65,7 +65,7 @@ func (line *Line) String() string {
 	return builder.String()
 }
 
-// parseAssembly ...
+// parseAssembly performs the operation.
 func parseAssembly(path string) (map[string][]Line, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -121,7 +121,7 @@ func parseAssembly(path string) (map[string][]Line, error) {
 	return functions, nil
 }
 
-// parseObjectDump ...
+// parseObjectDump performs the operation.
 func parseObjectDump(dump string, functions map[string][]Line) error {
 	var (
 		functionName string
@@ -159,7 +159,7 @@ func parseObjectDump(dump string, functions map[string][]Line) error {
 	return nil
 }
 
-// generateGoAssembly ...
+// generateGoAssembly performs the operation.
 func generateGoAssembly(path string, functions []Function) error {
 	// generate code
 	var builder strings.Builder

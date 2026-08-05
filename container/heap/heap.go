@@ -12,7 +12,7 @@ import (
 
 type Heap[T cmp.Comparable[T]] []T
 
-// New ...
+// New creates a new instance.
 func New[T cmp.Comparable[T]](l int) Heap[T] {
 	return make([]T, 0, l)
 }
@@ -26,12 +26,12 @@ func NewFromArray[T cmp.Comparable[T]](arr []T) Heap[T] {
 	return heap
 }
 
-// Init ...
+// Init performs the operation.
 func (heap Heap[T]) Init() {
 	Init(heap)
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (heap *Heap[T]) Push(x T) {
 	h := *heap
 	h = append(h, x)
@@ -39,7 +39,7 @@ func (heap *Heap[T]) Push(x T) {
 	*heap = h
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (heap *Heap[T]) Pop() (T, bool) {
 	h := *heap
 	if len(h) == 0 {
@@ -53,7 +53,7 @@ func (heap *Heap[T]) Pop() (T, bool) {
 	return item, true
 }
 
-// First ...
+// First performs the operation.
 func (heap Heap[T]) First() (T, bool) {
 	if len(heap) == 0 {
 		return *new(T), false
@@ -61,7 +61,7 @@ func (heap Heap[T]) First() (T, bool) {
 	return heap[0], true
 }
 
-// Last ...
+// Last performs the operation.
 func (heap Heap[T]) Last() (T, bool) {
 	if len(heap) == 0 {
 		return *new(T), false
@@ -69,7 +69,7 @@ func (heap Heap[T]) Last() (T, bool) {
 	return heap[len(heap)-1], true
 }
 
-// Remove ...
+// Remove removes or resets state.
 func (heap *Heap[T]) Remove(i int) (T, bool) {
 	h := *heap
 	if len(h) == 0 {

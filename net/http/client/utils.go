@@ -16,18 +16,18 @@ import (
 	urli "github.com/hopeio/gox/net/url"
 )
 
-// SetTag ...
+// SetTag updates or inserts a value.
 func SetTag(t string) {
 	urli.SetTag(t)
 }
 
-// SetProxyEnv ...
+// SetProxyEnv updates or inserts a value.
 func SetProxyEnv(url string) {
 	os.Setenv("HTTP_PROXY", url)
 	os.Setenv("HTTPS_PROXY", url)
 }
 
-// setTimeout ...
+// setTimeout performs the operation.
 func setTimeout(client *http.Client, timeout time.Duration) {
 	if client == nil {
 		client = DefaultHttpClient
@@ -35,7 +35,7 @@ func setTimeout(client *http.Client, timeout time.Duration) {
 	client.Timeout = timeout
 }
 
-// ensureTransport ...
+// ensureTransport returns the result.
 func ensureTransport(client *http.Client) *http.Transport {
 	if t, ok := client.Transport.(*http.Transport); ok && t != nil {
 		return t
@@ -45,7 +45,7 @@ func ensureTransport(client *http.Client) *http.Transport {
 	return t
 }
 
-// setProxy ...
+// setProxy performs the operation.
 func setProxy(client *http.Client, proxy func(*http.Request) (*url.URL, error)) {
 	ensureTransport(client).Proxy = proxy
 }

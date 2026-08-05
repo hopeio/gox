@@ -30,17 +30,17 @@ func (a anyValue) String() string {
 	return stringsx.FormatReflectValue(reflect.Value(a))
 }
 
-// Type ...
+// Type returns the result.
 func (a anyValue) Type() string {
 	return reflect.Value(a).Kind().String()
 }
 
-// Set ...
+// Set updates or inserts a value.
 func (a anyValue) Set(v string) error {
 	return kvstruct.ParseStringSetReflectValue(reflect.Value(a), v, nil)
 }
 
-// Bind ...
+// Bind performs the operation.
 func Bind(args []string, v any) error {
 	commandLine := pflag.NewFlagSet(args[0], pflag.ContinueOnError)
 	commandLine.ParseErrorsAllowlist.UnknownFlags = true
@@ -51,7 +51,7 @@ func Bind(args []string, v any) error {
 	return commandLine.Parse(args[1:])
 }
 
-// AddFlag ...
+// AddFlag updates or inserts a value.
 func AddFlag(commandLine *pflag.FlagSet, v any) error {
 	fcValue := reflectx.DerefValue(reflect.ValueOf(v))
 	if !fcValue.IsValid() {
@@ -60,7 +60,7 @@ func AddFlag(commandLine *pflag.FlagSet, v any) error {
 	return AddFlagByReflectValue(commandLine, fcValue)
 }
 
-// AddFlagByReflectValue ...
+// AddFlagByReflectValue updates or inserts a value.
 func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) error {
 	fcTyp := fcValue.Type()
 	for i := range fcTyp.NumField() {
@@ -84,7 +84,7 @@ func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) er
 			if err != nil {
 				return err
 			}
-			// 从环境变量设置
+			// Set from environment variables
 			if flagTagSettings.Env != "" {
 				if value, ok := os.LookupEnv(strings.ToUpper(flagTagSettings.Env)); ok {
 					err := kvstruct.ParseStringSetReflectValue(fcValue.Field(i), value, nil)
@@ -94,7 +94,7 @@ func AddFlagByReflectValue(commandLine *pflag.FlagSet, fcValue reflect.Value) er
 				}
 			}
 			if flagTagSettings.Name != "" {
-				// flag设置
+				// Set from flags
 				flag := commandLine.VarPF(anyValue(fieldValue), flagTagSettings.Name, flagTagSettings.Short, flagTagSettings.Usage)
 				if kind == reflect.Bool {
 					flag.NoOptDefVal = "true"

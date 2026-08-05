@@ -105,9 +105,9 @@ func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
 type ZipConfig = zap.Config
 
 type Config struct {
-	Name        string `json:"name,omitempty"` //系统名称namespace.service
+	Name        string `json:"name,omitempty"` //system name namespace.service
 	LevelNumber int    `json:"levelNumber,omitempty"`
-	// EnableOtel 开启后，日志会同时桥接到 OpenTelemetry 日志管线(通过 otelzap)。
+	// When EnableOtel is on, logs are also bridged to the OpenTelemetry log pipeline (via otelzap).
 	EnableOtel bool
 	Otel       OtelConfig `json:"otel,omitempty"`
 	zap.Config
@@ -123,7 +123,7 @@ type OtelConfig struct {
 	LoggerProvider otellog.LoggerProvider `json:"loggerProvider,omitempty"`
 }
 
-// Init ...
+// Init performs the operation.
 func (lc *Config) Init() {
 	if lc.Name == "" {
 		lc.Name = FieldApp
@@ -236,7 +236,7 @@ func (lc *Config) Init() {
 // NewLogger creates and returns a new instance.
 func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 	logger := lc.initLogger(cores...)
-	// 不是测试环境要加主机名和ip
+	// Outside tests, include hostname and IP
 	if !lc.Development {
 		hostname, _ := os.Hostname()
 		logger = logger.With(
@@ -248,7 +248,7 @@ func (lc *Config) NewLogger(cores ...zapcore.Core) *Logger {
 	return &Logger{logger}
 }
 
-// initLogger ...
+// initLogger returns the result.
 func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	lc.Init()
 
@@ -263,7 +263,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 				log.Fatal("invalid encoder")
 			}
 		}
-		// 如果输出同时有stdout和stderr,那么warn级别及以下的用stdout,error级别及以上的用stderr
+		// If both stdout and stderr are set, warn and below go to stdout, error and above to stderr
 		ustdout, ustderr := false, false
 		consolePaths := make([]string, 0, len(lc.OutputPaths))
 		slices.ForEachIndex(lc.OutputPaths, func(i int) {
@@ -300,7 +300,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 		cores = append(cores, otelzap.NewCore(lc.Name, otelzap.WithLoggerProvider(lc.Otel.LoggerProvider), otelzap.WithVersion(lc.Otel.Version), otelzap.WithSchemaURL(lc.Otel.SchemaURL), otelzap.WithAttributes(lc.Otel.Attributes...)))
 	}
 
-	//如果没有设置输出，默认控制台
+	//If no output is set, default to the console
 	if len(cores) == 0 {
 		cores = append(cores, zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stdout), lc.Level))
 	}
@@ -312,7 +312,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	return logger
 }
 
-// hook ...
+// hook returns the result.
 func (lc *Config) hook() []zap.Option {
 	var hooks []zap.Option
 

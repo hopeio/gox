@@ -14,13 +14,13 @@ import (
 	"strings"
 )
 
-// 字符
+// ANSI format string for a single character.
 const rbgcFormat = "\x1b[38;2;%d;%d;%dm%c"
 const rbgcWithResetFormat = rbgcFormat + reset
 const rbgcBgFormat = "\x1b[48;2;%d;%d;%dm%c"
 const rbgcBgWithResetFormat = rbgcBgFormat + reset
 
-// 字符串
+// ANSI format string for a string.
 const rbgsFormat = "\x1b[38;2;%d;%d;%dm%s"
 const rbgsWithResetFormat = rbgsFormat + reset
 const rbgsBgFormat = "\x1b[48;2;%d;%d;%dm%s"
@@ -30,7 +30,7 @@ type colorRGB struct {
 	r, g, b uint16
 }
 
-// Format ...
+// Format renders the given string with the RGB color.
 func (c colorRGB) Format(s string) string {
 	return fmt.Sprintf(rbgsWithResetFormat, c.r, c.g, c.b, s)
 }
@@ -40,17 +40,17 @@ func NewRGBColor(r, g, b byte) colorRGB {
 	return colorRGB{r: uint16(r), g: uint16(g), b: uint16(b)}
 }
 
-// RGB ...
+// RGB renders s with the given foreground RGB color.
 func RGB(s string, r, g, b byte) string {
 	return fmt.Sprintf(rbgsWithResetFormat, r, g, b, s)
 }
 
-// BgRGB ...
+// BgRGB renders s with the given background RGB color.
 func BgRGB(s string, r, g, b byte) string {
 	return fmt.Sprintf(rbgsBgWithResetFormat, r, g, b, s)
 }
 
-// Gradient ...
+// Gradient renders text with a linear RGB gradient.
 func Gradient(text string, begin, end colorRGB) string {
 	var colorText []string
 	for i, r := range text {
@@ -64,14 +64,14 @@ func Gradient(text string, begin, end colorRGB) string {
 	return strings.Join(colorText, "")
 }
 
-// GradientRandom ...
+// GradientRandom renders text with a random gradient.
 func GradientRandom(text string) string {
 	var begin = colorRGB{r: uint16(rand.N(byte(255))), g: uint16(rand.N(byte(255))), b: uint16(rand.N(byte(255)))}
 	var end = colorRGB{r: uint16(rand.N(byte(255))), g: uint16(rand.N(byte(255))), b: uint16(rand.N(byte(255)))}
 	return Gradient(text, begin, end)
 }
 
-// GradientMultiLine ...
+// GradientMultiLine renders each line with a gradient.
 func GradientMultiLine(text string, begin, end colorRGB) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
@@ -81,7 +81,7 @@ func GradientMultiLine(text string, begin, end colorRGB) string {
 	return strings.Join(colorText, "\n")
 }
 
-// GradientMultiLineRandom ...
+// GradientMultiLineRandom renders each line with a random gradient.
 func GradientMultiLineRandom(text string) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
@@ -104,7 +104,7 @@ var (
 	RainbowPurpleRGB = NewRGBColor(128, 0, 128)
 )
 
-// Rainbow ...
+// Rainbow renders text using a repeating rainbow palette.
 func Rainbow(text string) string {
 	var colorText []string
 	var n int
@@ -120,7 +120,7 @@ func Rainbow(text string) string {
 	return strings.Join(colorText, "")
 }
 
-// RainbowMultiLine ...
+// RainbowMultiLine renders each line using a repeating rainbow palette.
 func RainbowMultiLine(text string) string {
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	var colorText []string
@@ -142,7 +142,7 @@ func rainbowGradient(text string) {
 
 }
 
-// rgbToAnsi256 ...
+// rgbToAnsi256 converts RGB components to an ANSI 256-color palette index.
 func rgbToAnsi256(r, g, b byte) byte {
 	// We use the extended greyscale palette here, with the exception of
 	// black and white. normal palette only has 4 greyscale shades.

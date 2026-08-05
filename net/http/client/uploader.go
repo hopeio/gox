@@ -26,7 +26,7 @@ func NewUploader() *Uploader {
 	}
 }
 
-// UploadReq ...
+// UploadReq returns the result.
 func (d *Uploader) UploadReq(url string) *UploadReq {
 	return NewUploadReq(url).Uploader(d)
 }

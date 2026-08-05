@@ -32,7 +32,7 @@ type SharedMemory struct {
 	content []byte
 }
 
-// New ...
+// New creates a new instance.
 func New(name string, size int) (*SharedMemory, error) {
 	// init shm
 	shm, addr, err := OpenShm(name, size)
@@ -87,7 +87,7 @@ func OpenShm(name string, size int) (uintptr, uintptr, error) {
 	return uintptr(shm), addr, nil
 }
 
-// ReadMemory ...
+// ReadMemory performs the operation.
 func (shm *SharedMemory) ReadMemory(begin, end int, data any) error {
 	if begin > end {
 		return errors.New("invalid addr")
@@ -114,7 +114,7 @@ func (shm *SharedMemory) ReadMemory(begin, end int, data any) error {
 	return nil
 }
 
-// WriteMemory ...
+// WriteMemory performs the operation.
 func (shm *SharedMemory) WriteMemory(begin, end int, data any) (err error) {
 	if begin > end {
 		return errors.New("invalid addr")

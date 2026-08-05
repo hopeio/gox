@@ -11,7 +11,7 @@ var (
 	Unmarshal = json.Unmarshal
 )
 
-// UnmarshalTextFor ...
+// UnmarshalTextFor performs the operation.
 func UnmarshalTextFor[T any](text []byte) error {
 	var t T
 	v, vp := any(t), any(&t)

@@ -26,7 +26,7 @@ func NewOTelCollector(db *sql.DB, meter metric.Meter, variableNames ...string) *
 	return &OTelCollector{db: db, meter: meter, VariableNames: variableNames}
 }
 
-// Init ...
+// Init performs the operation.
 func (c *OTelCollector) Init() error {
 	c.allowSet = make(map[string]struct{}, len(c.VariableNames))
 	for _, name := range c.VariableNames {
@@ -55,7 +55,7 @@ func (c *OTelCollector) Close(context.Context) error {
 	return nil
 }
 
-// observe ...
+// observe performs the operation.
 func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	rows, err := c.db.Query("SHOW STATUS")
 	if err != nil {
@@ -76,7 +76,7 @@ func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	return nil
 }
 
-// allowed ...
+// allowed reports whether the condition holds.
 func (c *OTelCollector) allowed(name string) bool {
 	if len(c.allowSet) == 0 {
 		return true
@@ -85,7 +85,7 @@ func (c *OTelCollector) allowed(name string) bool {
 	return ok
 }
 
-// parseStatusNumber ...
+// parseStatusNumber performs the operation.
 func parseStatusNumber(raw string) (int64, bool) {
 	if raw == "" || strings.Contains(raw, ":") {
 		return 0, false

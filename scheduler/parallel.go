@@ -44,13 +44,13 @@ func NewParallel(workNum uint, opts ...ParallelOption) *Parallel {
 	return p
 }
 
-// AddFunc ...
+// AddFunc updates or inserts a value.
 func (p *Parallel) AddFunc(task func()) {
 	p.wg.Add(1)
 	p.taskCh <- task
 }
 
-// Wait ...
+// Wait performs the operation.
 func (p *Parallel) Wait() {
 	p.wg.Wait()
 }
@@ -65,7 +65,7 @@ type ParallelOption func(p *Parallel)
 
 type Funcs []func()
 
-// Do ...
+// Do executes the operation.
 func (t *Funcs) Do() {
 	taskChain := *t
 	for i := 0; i < len(taskChain); i++ {

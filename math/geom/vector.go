@@ -15,18 +15,18 @@ func NewVector(p1, p2 Point) Vector {
 	return Vector{p2.X - p1.X, p2.Y - p1.Y}
 }
 
-// Angle ...
+// Angle returns the result.
 func (v Vector) Angle() float64 {
 	angleRadians := math.Atan2(v.Y, v.X)
 	return angleRadians * (180.0 / math.Pi)
 }
 
-// Length ...
+// Length returns the result.
 func (v Vector) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y)
 }
 
-// AngleWith ...
+// AngleWith returns the result.
 func (v Vector) AngleWith(v2 Vector) float64 {
 	dotProduct := v.X*v2.X + v.Y*v2.Y
 	magnitudeV1 := math.Sqrt(v.X*v.X + v.Y*v.Y)
@@ -35,7 +35,7 @@ func (v Vector) AngleWith(v2 Vector) float64 {
 	return angleInRadians * (180.0 / math.Pi)
 }
 
-// CrossProduct ...
+// CrossProduct returns the result.
 func (v Vector) CrossProduct(v2 Vector) float64 {
 	return v.X*v2.Y - v.Y*v2.X
 }
@@ -45,7 +45,7 @@ type VectorInt[T constraints.Integer] struct {
 	Y T
 }
 
-// ToFloat64 ...
+// ToFloat64 converts the value.
 func (l *VectorInt[T]) ToFloat64(factor float64) *Vector {
 	return &Vector{
 		X: float64(l.X) / factor,

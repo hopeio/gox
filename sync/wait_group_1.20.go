@@ -14,7 +14,7 @@ import (
 	"unsafe"
 )
 
-// 运行计数，等待计数，信号计数
+// running count, waiter count, and signal count.
 type WaitGroup struct {
 	noCopy noCopy
 
@@ -22,19 +22,19 @@ type WaitGroup struct {
 	sema  uint32
 }
 
-// WaitGroupState ...
+// WaitGroupState reads internal counter/state values from the standard sync.WaitGroup.
 func WaitGroupState(wg *sync.WaitGroup) (counter int32, wcounter uint32) {
 	wgc := (*WaitGroup)(unsafe.Pointer(wg))
 	return wgc.State()
 }
 
-// State ...
+// State returns the wait-group's internal counter and waiter counter.
 func (wg *WaitGroup) State() (counter int32, wcounter uint32) {
 	state := wg.state.Load()
 	return int32(state >> 32), uint32(state)
 }
 
-// WaitGroupStopWait ...
+// WaitGroupStopWait reduces the wait-group counter by its current running count.
 func WaitGroupStopWait(wg *sync.WaitGroup) {
 	state, _ := WaitGroupState(wg)
 	wg.Add(int(-state))

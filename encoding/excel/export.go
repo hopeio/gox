@@ -16,17 +16,17 @@ type Export struct {
 	Options excelize.Options
 }
 
-// WriteTo ...
+// WriteTo performs the operation.
 func (e *Export) WriteTo(w io.Writer) (int64, error) {
 	return e.File.WriteTo(w, e.Options)
 }
 
-// ServeHTTP ...
+// ServeHTTP executes the operation.
 func (res *Export) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res.Respond(r.Context(), w)
 }
 
-// Respond ...
+// Respond performs the operation.
 func (res *Export) Respond(ctx context.Context, w http.ResponseWriter) (int, error) {
 	header := w.Header()
 	header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)

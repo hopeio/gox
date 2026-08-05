@@ -37,11 +37,11 @@ type FileWatchInfos map[string]*FileWatchInfo
 func NewFileWatcher(interval time.Duration) *FileWatcher {
 	w := &FileWatcher{
 		interval: interval,
-		//1.map和数组做取舍
+		//1. trade-off between map and slice
 		handlers: make(map[string]*FileWatchInfo),
 		timer:    time.NewTicker(interval),
 		//handlers:  make(map[string]map[fsnotify.Operate]func()),
-		//2.提高时间复杂度，用event做key，然后每次事件循环取值
+		//2. use event as key (higher time cost) and look up on each event loop
 		//handlers:  make(map[fsnotify.Event]func()),
 	}
 
@@ -50,7 +50,7 @@ func NewFileWatcher(interval time.Duration) *FileWatcher {
 	return w
 }
 
-// Add ...
+// Add updates or inserts a value.
 func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...func(r *http.Request)) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -71,7 +71,7 @@ func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...fun
 	return nil
 }
 
-// Remove ...
+// Remove removes or resets state.
 func (w *FileWatcher) Remove(url string) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -79,7 +79,7 @@ func (w *FileWatcher) Remove(url string) error {
 	return nil
 }
 
-// run ...
+// run performs the operation.
 func (w *FileWatcher) run() {
 	for range w.timer.C {
 		w.mu.Lock()
@@ -95,7 +95,7 @@ func (w *FileWatcher) Close() {
 	w.timer.Stop()
 }
 
-// Do ...
+// Do executes the operation.
 func (c *FileWatchInfo) Do() {
 	file, err := FetchFileByRequest(c.req)
 	if err != nil {
@@ -124,7 +124,7 @@ func (c *FileWatchInfo) Do() {
 	}
 }
 
-// Update ...
+// Update updates or inserts a value.
 func (w *FileWatcher) Update(interval time.Duration) {
 	w.interval = interval
 	w.timer.Reset(interval)

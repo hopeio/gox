@@ -20,17 +20,17 @@ type MergeBGR struct {
 	Rect                            image.Rectangle
 }
 
-// ColorModel ...
+// ColorModel returns the result.
 func (m *MergeBGR) ColorModel() color.Model {
 	return colori.RGBModel
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (m *MergeBGR) Bounds() image.Rectangle {
 	return m.Rect
 }
 
-// ImgOffset ...
+// ImgOffset returns the result.
 func (m *MergeBGR) ImgOffset(x, y int) []uint8 {
 	if m.effectiveWidth[m.cacheXIdx] == x {
 		m.cacheXIdx += 1
@@ -53,7 +53,7 @@ func (m *MergeBGR) ImgOffset(x, y int) []uint8 {
 	return m.Pixes[m.cacheYIdx][m.cacheXIdx]
 }
 
-// findImgIdx ...
+// findImgIdx returns the result.
 func findImgIdx(idx []int, start, end, x int) int {
 	for i := start; i < end; i++ {
 		if idx[i] > x && (i-1 < 0 || idx[i-1] <= x) {
@@ -63,7 +63,7 @@ func findImgIdx(idx []int, start, end, x int) int {
 	return len(idx) - 1
 }
 
-// At ...
+// At returns the result.
 func (m *MergeBGR) At(x, y int) color.Color {
 	if !(image.Point{X: x, Y: y}.In(m.Rect)) {
 		return colori.RGB{}

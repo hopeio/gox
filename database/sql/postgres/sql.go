@@ -7,7 +7,7 @@
 package postgres
 
 const (
-	// 创建一个删除指定用户名的public schema下的表的函数
+	// Create a function that drops tables in the public schema for the given username
 	DeleteTablesFunc = `CREATE OR REPLACE FUNCTION del_tabs(username IN VARCHAR) RETURNS void AS $$
 DECLARE
 	statements CURSOR FOR
@@ -20,7 +20,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql`
 	DeleteTables = `SELECT del_tabs('postgres')`
-	// 创建一个清空指定用户名的public schema下的表的函数
+	// Create a function that truncates tables in the public schema for the given username
 	TruncateTablesFunc = `CREATE OR REPLACE FUNCTION truncate_tables(username IN VARCHAR) RETURNS void AS $$
 DECLARE
     statements CURSOR FOR

@@ -15,7 +15,7 @@ import (
 	"unsafe"
 )
 
-// ConvertDosPath ...
+// ConvertDosPath converts the value.
 func ConvertDosPath(p string) string {
 	rawDrive := strings.Join(strings.Split(p, `\`)[:3], `\`)
 

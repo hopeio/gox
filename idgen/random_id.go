@@ -9,7 +9,7 @@ import (
 
 var defaultRandomIDGenerator randomIDGenerator
 
-// init ...
+// init initializes package state.
 func init() {
 	var rngSeed int64
 	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)

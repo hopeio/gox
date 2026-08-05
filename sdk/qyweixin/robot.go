@@ -21,7 +21,7 @@ const (
 	ROOT = "https://qyapi.weixin.qq.com/cgi-bin/webhook/"
 )
 
-// RobotSendMessage ...
+// RobotSendMessage performs the operation.
 func RobotSendMessage(key string, msg MessageType) error {
 	signUrl, err := RobotUrl(key)
 	if err != nil {
@@ -32,7 +32,7 @@ func RobotSendMessage(key string, msg MessageType) error {
 	return client.Post(ROOT+signUrl, body, nil)
 }
 
-// RobotUrl ...
+// RobotUrl performs the operation.
 func RobotUrl(key string) (string, error) {
 	if key == "" {
 		return "", errors.New("key不能为为空")
@@ -52,7 +52,7 @@ func RobotSendMarkDownMessage(key string, content string) error {
 	return client.Post(ROOT+signUrl, body, nil)
 }
 
-// RobotSendTextMessage ...
+// RobotSendTextMessage performs the operation.
 func RobotSendTextMessage(key, content string, mobiles []string, user ...string) error {
 	msg := &Text{
 		Content:             content,
@@ -66,7 +66,7 @@ type Robot struct {
 	Key string
 }
 
-// SendMessage ...
+// SendMessage performs the operation.
 func (r *Robot) SendMessage(msg MessageType) error {
 	return RobotSendMessage(r.Key, msg)
 }

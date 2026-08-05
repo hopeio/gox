@@ -19,7 +19,7 @@ func newDownloadHttpClient() *http.Client {
 	return &http.Client{Transport: apiTransport()}
 }
 
-// TODO: Range Status(206) PartialContent 下载
+// TODO: Range Status(206) PartialContent download
 type Downloader = Client
 
 // NewDownloader creates and returns a new instance.
@@ -38,17 +38,17 @@ func NewDownloader(options ...Option) *Downloader {
 	return downloader
 }
 
-// Download ...
+// Download executes the operation.
 func (d *Downloader) Download(filepath string, r *DownloadReq) error {
 	return r.Downloader(d).Download(filepath)
 }
 
-// DownloadAttachment ...
+// DownloadAttachment executes the operation.
 func (d *Downloader) DownloadAttachment(dir string, r *DownloadReq) {
 	r.Downloader(d).DownloadAttachment(dir)
 }
 
-// DownloadReq ...
+// DownloadReq executes the operation.
 func (d *Downloader) DownloadReq(url string) *DownloadReq {
 	return NewDownloadReq(url).Downloader(d)
 }

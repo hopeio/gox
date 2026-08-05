@@ -78,7 +78,7 @@ type Node[T any] struct {
 	nType    nodeType
 	priority uint16
 	indices  []byte
-	cType    nodeType //if>3 wildChild,代替原来的wildChild
+	cType    nodeType // if >3 wildChild, replace the original wildChild
 	children []*Node[T]
 	data     T
 	ok       bool
@@ -211,7 +211,7 @@ walk:
 	}
 }
 
-// insertChild ...
+// insertChild inserts the path segment and associates the handler.
 func (n *Node[T]) insertChild(path, fullPath string, data T) {
 	for {
 		// Find prefix until first wildcard
@@ -307,7 +307,7 @@ func (n *Node[T]) insertChild(path, fullPath string, data T) {
 	n.ok = true
 }
 
-// sortIndices ...
+// sortIndices sorts indices and child nodes by their byte order.
 func (n *Node[T]) sortIndices() {
 	sort.Slice(n.indices, func(i, j int) bool {
 		return n.indices[i] < n.indices[j]

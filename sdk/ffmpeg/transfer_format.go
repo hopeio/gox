@@ -18,7 +18,7 @@ import (
 
 const TransferFormatGPUCmd = ` -hwaccel qsv -i "%s" -c copy -y "%s"`
 
-// TransferFormatGPU ...
+// TransferFormatGPU performs the operation.
 func TransferFormatGPU(filePath, dst string) error {
 	command := fmt.Sprintf(ExecPath+TransferFormatGPUCmd, filePath, dst)
 	log.Println(command)
@@ -28,19 +28,19 @@ func TransferFormatGPU(filePath, dst string) error {
 
 const TransferFormatCmd = CommonCmd + ` -c copy -y "%s"`
 
-// TransferFormat ...
+// TransferFormat performs the operation.
 func TransferFormat(filePath, dst string) error {
 	return Run(fmt.Sprintf(TransferFormatCmd, filePath, dst))
 }
 
 const ConcatCmd = ` -f concat -safe 0  -i "%s" -c copy -y "%s"`
 
-// ConcatByFile ...
+// ConcatByFile performs the operation.
 func ConcatByFile(filePath, dst string) error {
 	return Run(fmt.Sprintf(ConcatCmd, filePath, dst))
 }
 
-// Concat ...
+// Concat performs the operation.
 func Concat(dir, dst string) error {
 	files, err := os.ReadDir(dir)
 	if err != nil {

@@ -25,7 +25,7 @@ type Contour struct {
 	Polarity bool
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e *Contour) Bounds() *geom.Bounds {
 	bounds := image.Rectangle{Min: image.Point{X: int(e.X), Y: int(e.Y)}, Max: image.Point{int(e.X), int(e.Y)}}
 	lastPoint := image.Point{X: int(e.X), Y: int(e.Y)}
@@ -33,7 +33,7 @@ func (e *Contour) Bounds() *geom.Bounds {
 		if s.Interpolation == InterpolationLinear {
 			bounds = imagex.RectUnionPoint(bounds, image.Point{X: int(s.X), Y: int(s.Y)})
 		} else {
-			// 粗暴解决
+			// brute-force workaround
 			bounds = bounds.Union(image.Rect(lastPoint.X, lastPoint.Y, int(s.X), int(s.Y)).Add(image.Pt(int(s.X), int(s.Y))))
 		}
 
@@ -47,7 +47,7 @@ type Rectangle struct {
 	geom.Rectangle
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e *Rectangle) Bounds() *geom.Bounds {
 	return e.Rectangle.Bounds()
 }
@@ -58,7 +58,7 @@ type Obround struct {
 	geom.Rectangle
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e *Obround) Bounds() *geom.Bounds {
 	return e.Rectangle.Bounds()
 }
@@ -69,7 +69,7 @@ type Circle struct {
 	geom.Circle
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e *Circle) Bounds() *geom.Bounds {
 	return e.Circle.Bounds()
 }
@@ -81,7 +81,7 @@ type Arc struct {
 	Interpolation
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e *Arc) Bounds() *geom.Bounds {
 	return e.CircularArc2.ToCircularArc().Bounds()
 }
@@ -93,7 +93,7 @@ type Line struct {
 	Cap         LineCap
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e *Line) Bounds() *geom.Bounds {
 	if e.Cap == LineCapButt {
 		vector := geom.NewVector(e.Start, e.End)

@@ -11,18 +11,18 @@ import (
 	"unsafe"
 )
 
-// 性能比用DirectItem差
+// Node has better performance than using DirectItem.
 type Node[T any] struct {
 	Next  atomic.Pointer[Node[T]]
 	Value T
 }
 
-// LoadNode ...
+// LoadNode atomically loads a Node pointer.
 func LoadNode[T any](p *unsafe.Pointer) *Node[T] {
 	return (*Node[T])(atomic.LoadPointer(p))
 }
 
-// CasNode ...
+// CasNode performs an atomic compare-and-swap on a Node pointer.
 func CasNode[T any](p *unsafe.Pointer, old, new *Node[T]) bool {
 	return atomic.CompareAndSwapPointer(p, unsafe.Pointer(old), unsafe.Pointer(new))
 }
@@ -32,12 +32,12 @@ type DirectItem struct {
 	Value any
 }
 
-// LoadItem ...
+// LoadItem atomically loads a DirectItem pointer.
 func LoadItem(p *unsafe.Pointer) *DirectItem {
 	return (*DirectItem)(atomic.LoadPointer(p))
 }
 
-// CasItem ...
+// CasItem performs an atomic compare-and-swap on a DirectItem pointer.
 func CasItem(p *unsafe.Pointer, old, new *DirectItem) bool {
 	return atomic.CompareAndSwapPointer(p, unsafe.Pointer(old), unsafe.Pointer(new))
 }

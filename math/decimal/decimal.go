@@ -46,7 +46,7 @@ func (d *DecimalModel) String() string {
 	return string(buf)
 }
 
-// appendZeros ...
+// appendZeros returns the result.
 func appendZeros(buf []byte, n int32) []byte {
 	for ; n > 0; n-- {
 		buf = append(buf, '0')
@@ -54,13 +54,13 @@ func appendZeros(buf []byte, n int32) []byte {
 	return buf
 }
 
-// Decompose ...
+// Decompose performs the operation.
 func (d *DecimalModel) Decompose(buf []byte) (form byte, negative bool, coefficient []byte, exponent int32) {
 	// TODO:
 	return d.form, d.negative, d.coefficient, d.exponent
 }
 
-// Compose ...
+// Compose performs the operation.
 func (d *DecimalModel) Compose(form byte, negative bool, coefficient []byte, exponent int32) error {
 	switch form {
 	default:

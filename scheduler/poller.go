@@ -23,17 +23,17 @@ func NewPoller() *Poller {
 	return &Poller{ch: make(chan struct{})}
 }
 
-// Times ...
+// Times returns the result.
 func (p *Poller) Times() uint {
 	return p.times
 }
 
-// LimitDuration ...
+// LimitDuration performs the operation.
 func (p *Poller) LimitDuration(d time.Duration) {
 	p.limit = d
 }
 
-// Run ...
+// Run executes the operation.
 func (p *Poller) Run(interval time.Duration, do func()) {
 	timer := time.NewTicker(interval)
 	p.times++
@@ -50,7 +50,7 @@ func (p *Poller) Run(interval time.Duration, do func()) {
 	}
 }
 
-// RandRun ...
+// RandRun performs the operation.
 func (p *Poller) RandRun(minInterval, maxInterval time.Duration, do func()) {
 	timer := timex.NewRandTicker(minInterval, maxInterval)
 	p.times++

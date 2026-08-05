@@ -15,7 +15,7 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 )
 
-// FileRewrite ...
+// FileRewrite returns the result.
 func FileRewrite(filename string) string {
 	var result []rune
 	var empty = []rune{'/', '\\', '*', '|'}
@@ -36,7 +36,7 @@ func FileRewrite(filename string) string {
 	return string(result)
 }
 
-// FileCleanse ...
+// FileCleanse returns the result.
 func FileCleanse(filename string) string {
 
 	filename = strings.Trim(filename, ".-+")
@@ -46,15 +46,15 @@ func FileCleanse(filename string) string {
 	//filename = stringsx.RemoveRunes(filename, '\'', '*','?', '@', '#', '$', '&', '(', ')', '|', ';',  '/', '%', '^', ' ', '\t', '\n')
 
 	filename = stringsx.RemoveRunes(filename, '/', '\\', ':', '*', '?', '"', '<', '>', '|', ';', '/', '%', '^', ' ', '\t', '\n', '$', '&')
-	// 中文符号
+	// CJK punctuation
 	//filename = stringsx.RemoveRunes(filename, '：', '，', '。', '！', '？', '、', '“', '”', '、')
 	return filename
 }
 
-// DirCleanse ...
+// DirCleanse returns the result.
 func DirCleanse(dir string) string { // will be used when save the dir or the part
 	// remove special symbol
-	// :unix允许存在，windows需要
+	// : allowed on unix; required handling on windows
 	// windows path
 	if len(dir) > 2 && dir[1] == ':' && ((dir[0] >= 'A' && dir[0] <= 'Z') || (dir[0] >= 'a' && dir[0] <= 'z')) && (dir[2] == '/' || dir[2] == '\\') {
 		return dir[:3] + stringsx.RemoveRunes(dir[3:], ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
@@ -62,7 +62,7 @@ func DirCleanse(dir string) string { // will be used when save the dir or the pa
 	return stringsx.RemoveRunes(dir, ':', '*', '?', '"', '<', '>', '|', ',', ' ', '\t', '\n')
 }
 
-// Cleanse ...
+// Cleanse returns the result.
 func Cleanse(path string) string { // will be used when save the dir or the part
 	dir, file := filepath.Split(path)
 	if dir == "" {
@@ -75,7 +75,7 @@ func Cleanse(path string) string { // will be used when save the dir or the part
 	return DirCleanse(dir) + string(path[len(dir)-1-len(file)]) + FileCleanse(file)
 }
 
-// FileNoExt ...
+// FileNoExt returns the result.
 func FileNoExt(filepath string) string {
 	base := sdpath.Base(filepath)
 	return base[:len(base)-len(sdpath.Ext(base))]

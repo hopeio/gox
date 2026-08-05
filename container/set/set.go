@@ -10,28 +10,28 @@ import "github.com/hopeio/gox/maps"
 
 type Set[K comparable] map[K]struct{}
 
-// New ...
+// New creates a new instance.
 func New[K comparable]() Set[K] {
 	return make(Set[K])
 }
 
-// Add ...
+// Add updates or inserts a value.
 func (s Set[K]) Add(key K) {
 	s[key] = struct{}{}
 }
 
-// Contains ...
+// Contains reports whether the condition holds.
 func (s Set[K]) Contains(key K) bool {
 	_, ok := s[key]
 	return ok
 }
 
-// Remove ...
+// Remove removes or resets state.
 func (s Set[K]) Remove(key K) {
 	delete(s, key)
 }
 
-// ToSlice ...
+// ToSlice converts the value.
 func (s Set[K]) ToSlice() []K {
 	return maps.Keys(s)
 }

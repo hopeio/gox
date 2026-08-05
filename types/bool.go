@@ -25,7 +25,7 @@ func (b Bool) IsNone() bool {
 	return b == 0
 }
 
-// MarshalJSON ...
+// MarshalJSON encodes the value.
 func (b Bool) MarshalJSON() ([]byte, error) {
 	switch b {
 	case 0:
@@ -145,7 +145,7 @@ func (b Bool) String() string {
 	return "invalid bool value"
 }
 
-// BoolToInt ...
+// BoolToInt returns the result.
 func BoolToInt(b bool) int {
 	if b {
 		return 1

@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// TableName ...
+// TableName returns the result.
 func TableName(tx *gorm.DB, name string) *gorm.DB {
 	tx.Statement.TableExpr = &clause.Expr{SQL: tx.Statement.Quote(name)}
 	tx.Statement.Table = name

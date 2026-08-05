@@ -34,7 +34,7 @@ type Circle struct {
 	Attr map[string]string
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e Circle) Bounds() *geom.Bounds {
 	radius := e.Diameter / 2
 	return geom.NewBounds(e.Centre.X-radius, e.Centre.Y-radius, e.Centre.X+radius, e.Centre.Y+radius)
@@ -46,7 +46,7 @@ func (e Circle) MarshalJSON() ([]byte, error) {
 	return jsonx.Marshal(e)
 }
 
-// SetAttr ...
+// SetAttr updates or inserts a value.
 func (e Circle) SetAttr(k, v string) Circle {
 	if e.Attr == nil {
 		e.Attr = make(map[string]string)
@@ -66,7 +66,7 @@ type Rectangle struct {
 	Attr    map[string]string
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e Rectangle) Bounds() *geom.Bounds {
 	return geom.NewBounds(e.Center.X, e.Center.Y, e.Center.X+e.Width, e.Center.Y+e.Height)
 }
@@ -77,7 +77,7 @@ func (e Rectangle) MarshalJSON() ([]byte, error) {
 	return jsonx.Marshal(e)
 }
 
-// SetAttr ...
+// SetAttr updates or inserts a value.
 func (e Rectangle) SetAttr(k, v string) Rectangle {
 	if e.Attr == nil {
 		e.Attr = make(map[string]string)
@@ -127,7 +127,7 @@ type Path struct {
 	Attr     map[string]string
 }
 
-// Bounds ...
+// Bounds performs the operation.
 func (e Path) Bounds() (*geom.Bounds, error) {
 	bounds := geom.Bounds{Min: geom.Point{X: math.MaxFloat64, Y: math.MaxFloat64}, Max: geom.Point{X: -math.MaxFloat64, Y: -math.MaxFloat64}}
 	updateMinMax := func(x, y float64) {
@@ -158,7 +158,7 @@ func (e Path) MarshalJSON() ([]byte, error) {
 	return jsonx.Marshal(e)
 }
 
-// SetAttr ...
+// SetAttr updates or inserts a value.
 func (e Path) SetAttr(k, v string) Path {
 	if e.Attr == nil {
 		e.Attr = make(map[string]string)
@@ -175,7 +175,7 @@ type Line struct {
 	Attr   map[string]string
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e Line) Bounds() *geom.Bounds {
 	return geom.NewBounds(e.Start.X, e.Start.Y, e.End.X, e.End.Y)
 }
@@ -186,7 +186,7 @@ func (e Line) MarshalJSON() ([]byte, error) {
 	return jsonx.Marshal(e)
 }
 
-// SetAttr ...
+// SetAttr updates or inserts a value.
 func (e Line) SetAttr(k, v string) Line {
 	if e.Attr == nil {
 		e.Attr = make(map[string]string)
@@ -209,7 +209,7 @@ type Arc struct {
 	Attr   map[string]string
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (e Arc) Bounds() *geom.Bounds {
 	return e.Arc.Bounds()
 }
@@ -220,7 +220,7 @@ func (e Arc) MarshalJSON() ([]byte, error) {
 	return jsonx.Marshal(e)
 }
 
-// SetAttr ...
+// SetAttr updates or inserts a value.
 func (e Arc) SetAttr(k, v string) Arc {
 	if e.Attr == nil {
 		e.Attr = make(map[string]string)
@@ -264,7 +264,7 @@ func NewProcessor() *Processor {
 	return p
 }
 
-// fill ...
+// fill returns the result.
 func (p *Processor) fill(polarity bool) string {
 	if polarity {
 		return p.PolarityDark
@@ -272,19 +272,19 @@ func (p *Processor) fill(polarity bool) string {
 	return p.PolarityClear
 }
 
-// Circle ...
+// Circle performs the operation.
 func (p *Processor) Circle(circle *gerber.Circle) {
 	p.Data = append(p.Data, Circle{Circle: circle, Fill: p.fill(circle.Polarity)})
 }
 
-// Rectangle ...
+// Rectangle performs the operation.
 func (p *Processor) Rectangle(rectangle *gerber.Rectangle) {
 	rectangle.Center.X -= rectangle.Width / 2
 	rectangle.Center.Y += rectangle.Height / 2
 	p.Data = append(p.Data, Rectangle{Aperture: "R", Rectangle: rectangle, Fill: p.fill(rectangle.Polarity)})
 }
 
-// Obround ...
+// Obround performs the operation.
 func (p *Processor) Obround(obround *gerber.Obround) {
 	r := min(obround.Width, obround.Height) / 2
 	obround.Center.X -= obround.Width / 2
@@ -292,7 +292,7 @@ func (p *Processor) Obround(obround *gerber.Obround) {
 	p.Data = append(p.Data, Rectangle{Aperture: "O", Rectangle: &gerber.Rectangle{Line: obround.Line, Polarity: obround.Polarity, Rectangle: obround.Rectangle}, RadiusX: r, RadiusY: r, Fill: p.fill(obround.Polarity)})
 }
 
-// Contour ...
+// Contour performs the operation.
 func (p *Processor) Contour(contour *gerber.Contour) {
 	if len(contour.Segments) == 1 {
 		s := contour.Segments[0]
@@ -331,7 +331,7 @@ func (p *Processor) Contour(contour *gerber.Contour) {
 	return
 }
 
-// calcArcParams ...
+// calcArcParams performs the operation.
 func calcArcParams(vs, ve [2]float64, sweep int) (float64, int, error) {
 	radiusS := math.Sqrt(math.Pow(float64(vs[0]), 2) + math.Pow(float64(vs[1]), 2))
 	radiusE := math.Sqrt(math.Pow(float64(ve[0]), 2) + math.Pow(float64(ve[1]), 2))
@@ -350,7 +350,7 @@ func calcArcParams(vs, ve [2]float64, sweep int) (float64, int, error) {
 	return radiusS, largeArc, nil
 }
 
-// calcArc ...
+// calcArc performs the operation.
 func calcArc(contour *gerber.Contour, idx int) (PathArc, error) {
 	var xs, ys float64
 	if idx == 0 {
@@ -387,13 +387,13 @@ func calcArc(contour *gerber.Contour, idx int) (PathArc, error) {
 	return arc, nil
 }
 
-// Line ...
+// Line performs the operation.
 func (p *Processor) Line(gline *gerber.Line) {
 	line := Line{Line: gline, Stroke: p.PolarityDark}
 	p.Data = append(p.Data, line)
 }
 
-// Arc ...
+// Arc performs the operation.
 func (p *Processor) Arc(garc *gerber.Arc) {
 	if garc.End.X == garc.Start.X && garc.End.Y == garc.Start.Y {
 		p.err = fmt.Errorf("degenerate arc")
@@ -423,7 +423,7 @@ func (p *Processor) Arc(garc *gerber.Arc) {
 	return
 }
 
-// SetViewBox ...
+// SetViewBox updates or inserts a value.
 func (p *Processor) SetViewBox(box *gerber.ViewBox) {
 	p.ViewBox = box
 }
@@ -494,7 +494,7 @@ func (p *Processor) Write(w io.Writer) error {
 	return nil
 }
 
-// Bounds ...
+// Bounds performs the operation.
 func Bounds(element interface{}) (*geom.Bounds, error) {
 	switch e := element.(type) {
 	case Circle:
@@ -512,7 +512,7 @@ func Bounds(element interface{}) (*geom.Bounds, error) {
 	}
 }
 
-// pathBytes ...
+// pathBytes performs the operation.
 func (p *Processor) pathBytes(svgp Path) ([]byte, error) {
 	cmds := []string{fmt.Sprintf("M %s %s", p.x(svgp.X), p.y(svgp.Y))}
 	for _, cmd := range svgp.Commands {
@@ -531,22 +531,22 @@ func (p *Processor) pathBytes(svgp Path) ([]byte, error) {
 	return []byte(b), nil
 }
 
-// x ...
+// x returns the result.
 func (p *Processor) x(x float64) string {
 	return strconv.FormatFloat(x*p.Scale, 'f', -1, 64)
 }
 
-// y ...
+// y returns the result.
 func (p *Processor) y(y float64) string {
 	return strconv.FormatFloat((p.Max.Y-y)*p.Scale, 'f', -1, 64)
 }
 
-// m ...
+// m returns the result.
 func (p *Processor) m(f float64) string {
 	return strconv.FormatFloat(f*p.Scale, 'f', -1, 64)
 }
 
-// a ...
+// a returns the result.
 func (p *Processor) a(a float64) float64 {
 	return 360 - a
 }

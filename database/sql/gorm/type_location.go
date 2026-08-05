@@ -18,12 +18,12 @@ type Location struct {
 	X, Y float64
 }
 
-// GormDataType ...
+// GormDataType returns the result.
 func (loc Location) GormDataType() string {
 	return "geometry"
 }
 
-// GormValue ...
+// GormValue returns the result.
 func (loc Location) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	return clause.Expr{
 		SQL:  "ST_PointFromText(?)",
@@ -31,7 +31,7 @@ func (loc Location) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	}
 }
 
-// Scan ...
+// Scan performs the operation.
 func (loc *Location) Scan(v interface{}) error {
 	// Scan a value into struct from database driver
 	return nil

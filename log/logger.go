@@ -34,7 +34,7 @@ func (l *Logger) With(fields ...zap.Field) *Logger {
 	return &Logger{l.Logger.With(fields...)}
 }
 
-// WithLazy ...
+// WithLazy updates or inserts a value.
 func (l *Logger) WithLazy(fields ...zap.Field) *Logger {
 	if len(fields) == 0 {
 		return l
@@ -67,14 +67,14 @@ func (l *Logger) AddCallerSkip(skip int) *Logger {
 	return &Logger{l.Logger.WithOptions(zap.AddCallerSkip(skip))}
 }
 
-// Printf ...
+// Printf performs the operation.
 func (l *Logger) Printf(template string, args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Write()
 	}
 }
 
-// Print ...
+// Print performs the operation.
 func (l *Logger) Print(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Message = sprintln(args...)
@@ -261,7 +261,7 @@ func (l *Logger) Fatalf(template string, args ...any) {
 	}
 }
 
-// Println ...
+// Println performs the operation.
 func (l *Logger) Println(args ...any) {
 	if ce := l.Check(zap.InfoLevel, ""); ce != nil {
 		ce.Message = fmt.Sprint(args...)
@@ -271,14 +271,14 @@ func (l *Logger) Println(args ...any) {
 
 type StdOutLevel zapcore.Level
 
-// Enabled ...
+// Enabled reports whether the condition holds.
 func (l StdOutLevel) Enabled(lvl zapcore.Level) bool {
 	return lvl >= zapcore.Level(l) && lvl < zapcore.ErrorLevel
 }
 
 type StdErrLevel zapcore.Level
 
-// Enabled ...
+// Enabled reports whether the condition holds.
 func (l StdErrLevel) Enabled(lvl zapcore.Level) bool {
 	return lvl >= zapcore.Level(l) && lvl >= zapcore.ErrorLevel
 }

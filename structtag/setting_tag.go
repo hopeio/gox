@@ -66,7 +66,7 @@ func ParseSettingTagToMap(tag, sep, assignSep string) map[string]string {
 	return settings
 }
 
-// ParseSettingTagToStruct ...
+// ParseSettingTagToStruct parses the input.
 func ParseSettingTagToStruct[T any](tag, sep, assignSep string) (*T, error) {
 	if tag == "-" {
 		return nil, nil
@@ -81,7 +81,7 @@ func ParseSettingTagToStruct[T any](tag, sep, assignSep string) (*T, error) {
 
 const metaTag = "meta"
 
-// ParseSettingTagIntoStruct 解析tag中的子tag, meta标识tag中都有哪些字段
+// ParseSettingTagIntoStruct parses nested tags; meta lists which fields appear in the tag
 // ParseTagSettingInto default sep ;
 /*
 type tag struct {
@@ -95,7 +95,7 @@ var tag tag
 ParseSettingTagIntoStruct("tagName",";",":",&tag)
 */
 
-// ParseSettingTagIntoStruct ...
+// ParseSettingTagIntoStruct parses the input.
 func ParseSettingTagIntoStruct(tag, sep, assignSep string, settings any) error {
 	if tag == "-" {
 		return ErrTagIgnore

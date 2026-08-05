@@ -53,7 +53,7 @@ func Getu4(s []byte) rune {
 	return r
 }
 
-// ToUtf8 ...
+// ToUtf8 converts the value.
 func ToUtf8(s []byte) string {
 	if len(s) < 6 {
 		return stringsx.FromBytes(s)
@@ -89,7 +89,7 @@ func ToUtf8(s []byte) string {
 	return stringsx.FromBytes(b[:bbegin])
 }
 
-// ToLowerFirst ...
+// ToLowerFirst converts the value.
 func ToLowerFirst(s string) string {
 	if len(s) > 0 {
 		return string(unicode.ToLower(rune(s[0]))) + s[1:]

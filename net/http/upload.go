@@ -15,7 +15,7 @@ import (
 	"github.com/hopeio/gox/os/fs"
 )
 
-// Upload ...
+// Upload returns the result.
 func Upload(dir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -32,7 +32,7 @@ func Upload(dir string) http.HandlerFunc {
 			fmt.Fprintf(w, "ok:%d", http.StatusOK)
 			return
 		}
-		// 解析Range头部
+		// Parse the Range header
 		rangeHeader := r.Header.Get(HeaderContentRange)
 		if rangeHeader == "" {
 			http.Error(w, "missing Content-Range header", http.StatusBadRequest)
@@ -45,21 +45,21 @@ func Upload(dir string) http.HandlerFunc {
 			return
 		}
 
-		// 打开文件准备写入，使用O_RDWR | O_CREATE | O_APPEND以追加模式打开
+		// Open the file for writing with O_RDWR|O_CREATE|O_APPEND
 		file, err := os.OpenFile(dir+fileHeader.Filename+".uploading", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			http.Error(w, "failed to open file", http.StatusInternalServerError)
 			return
 		}
 		defer file.Close()
-		// 移动文件指针到开始位置
+		// Seek to the start of the file
 		_, err = file.Seek(start, io.SeekStart)
 		if err != nil {
 			http.Error(w, "failed to seek file", http.StatusInternalServerError)
 			return
 		}
 
-		// 读取请求体并写入文件
+		// Read the request body and write it to the file
 		_, err = io.CopyN(file, bodyfile, end-start+1)
 		if err != nil && err != io.EOF {
 			http.Error(w, "failed to write to file", http.StatusInternalServerError)
@@ -71,7 +71,7 @@ func Upload(dir string) http.HandlerFunc {
 			return
 		}
 		if stats.Size() == total {
-			// 文件大小等于总大小，说明上传完成，重命名文件
+			// When size equals total, upload is complete; rename the file
 			err = os.Rename(dir+fileHeader.Filename+".uploading", dir+fileHeader.Filename)
 			if err != nil {
 				http.Error(w, "failed to rename file", http.StatusInternalServerError)
@@ -79,7 +79,7 @@ func Upload(dir string) http.HandlerFunc {
 			}
 		}
 
-		// 如果一切顺利，发送成功的响应
+		// On success, send a success response
 		w.Header().Set(HeaderContentRange, fmt.Sprintf("bytes %d-%d/%d", start, end, stats.Size()))
 		w.WriteHeader(http.StatusPartialContent)
 		fmt.Fprintf(w, "Uploaded chunk from byte %d to %d", start, end)

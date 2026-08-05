@@ -17,7 +17,7 @@ type ARC struct {
 	b2   *arcList
 }
 
-// init ...
+// init initializes package state.
 func (c *ARC) init(bc *baseCache) {
 	c.baseCache = bc
 	c.items = make(map[any]*item)
@@ -27,7 +27,7 @@ func (c *ARC) init(bc *baseCache) {
 	c.b2 = newARCList()
 }
 
-// replace ...
+// replace performs the operation.
 func (c *ARC) replace(key any) {
 	if !c.isCacheFull() {
 		return
@@ -52,7 +52,7 @@ func (c *ARC) replace(key any) {
 	}
 }
 
-// set ...
+// set performs the operation.
 func (c *ARC) set(key, value any, expiration *time.Time) (*item, error) {
 	it, ok := c.items[key]
 	if ok {
@@ -124,7 +124,7 @@ func (c *ARC) set(key, value any, expiration *time.Time) (*item, error) {
 	return it, nil
 }
 
-// get ...
+// get performs the operation.
 func (c *ARC) get(key any, onLoad bool) (*item, error) {
 	if elt := c.t1.Lookup(key); elt != nil {
 		c.t1.Remove(key, elt)
@@ -167,7 +167,7 @@ func (c *ARC) get(key any, onLoad bool) (*item, error) {
 	return nil, KeyNotFoundError
 }
 
-// has ...
+// has reports whether the condition holds.
 func (c *ARC) has(key any, now *time.Time) bool {
 	item, ok := c.items[key]
 	if !ok {
@@ -176,7 +176,7 @@ func (c *ARC) has(key any, now *time.Time) bool {
 	return !item.Expired(now)
 }
 
-// remove ...
+// remove reports whether the condition holds.
 func (c *ARC) remove(key any) bool {
 	if elt := c.t1.Lookup(key); elt != nil {
 		c.t1.Remove(key, elt)
@@ -208,14 +208,14 @@ func (c *ARC) length() int {
 	return len(c.items)
 }
 
-// foreach ...
+// foreach performs the operation.
 func (c *ARC) foreach(f func(*item)) {
 	for _, v := range c.items {
 		f(v)
 	}
 }
 
-// setPart ...
+// setPart performs the operation.
 func (c *ARC) setPart(p int) {
 	if c.isCacheFull() {
 		c.part = p
@@ -240,24 +240,24 @@ func newARCList() *arcList {
 	}
 }
 
-// Has ...
+// Has reports whether the condition holds.
 func (al *arcList) Has(key any) bool {
 	_, ok := al.keys[key]
 	return ok
 }
 
-// Lookup ...
+// Lookup returns the result.
 func (al *arcList) Lookup(key any) *list.Element {
 	elt := al.keys[key]
 	return elt
 }
 
-// MoveToFront ...
+// MoveToFront performs the operation.
 func (al *arcList) MoveToFront(elt *list.Element) {
 	al.l.MoveToFront(elt)
 }
 
-// PushFront ...
+// PushFront updates or inserts a value.
 func (al *arcList) PushFront(key any) {
 	if elt, ok := al.keys[key]; ok {
 		al.l.MoveToFront(elt)
@@ -267,13 +267,13 @@ func (al *arcList) PushFront(key any) {
 	al.keys[key] = elt
 }
 
-// Remove ...
+// Remove removes or resets state.
 func (al *arcList) Remove(key any, elt *list.Element) {
 	delete(al.keys, key)
 	al.l.Remove(elt)
 }
 
-// RemoveTail ...
+// RemoveTail removes or resets state.
 func (al *arcList) RemoveTail() any {
 	elt := al.l.Back()
 	if elt == nil {

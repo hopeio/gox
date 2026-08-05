@@ -23,7 +23,7 @@ func NewExcludedExtensions(extensions []string) ExcludedExtensions {
 	return res
 }
 
-// Contains ...
+// Contains reports whether the condition holds.
 func (e ExcludedExtensions) Contains(target string) bool {
 	_, ok := e[target]
 	return ok
@@ -36,7 +36,7 @@ func NewExcludedPaths(paths []string) ExcludedPaths {
 	return paths
 }
 
-// Contains ...
+// Contains reports whether the condition holds.
 func (e ExcludedPaths) Contains(requestURI string) bool {
 	for _, path := range e {
 		if strings.HasPrefix(requestURI, path) {
@@ -57,7 +57,7 @@ func NewExcludedPathsRegex(regexes []string) ExcludedPathsRegex {
 	return result
 }
 
-// Contains ...
+// Contains reports whether the condition holds.
 func (e ExcludedPathsRegex) Contains(requestURI string) bool {
 	for _, reg := range e {
 		if reg.MatchString(requestURI) {

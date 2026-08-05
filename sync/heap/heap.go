@@ -19,7 +19,7 @@ type MutexHeap[T cmp.Comparable[T]] struct {
 	zero T
 }
 
-// New ...
+// New creates a new instance.
 func New[T cmp.Comparable[T]](l int) MutexHeap[T] {
 	return MutexHeap[T]{
 		data: make([]T, 0, l),
@@ -33,7 +33,7 @@ func NewFromArray[T cmp.Comparable[T]](arr []T) MutexHeap[T] {
 	}
 }
 
-// First ...
+// First performs the operation.
 func (h *MutexHeap[T]) First() (T, bool) {
 	h.mu.RLock()
 	if len(h.data) == 0 {
@@ -45,14 +45,14 @@ func (h *MutexHeap[T]) First() (T, bool) {
 	return first, true
 }
 
-// Init ...
+// Init performs the operation.
 func (h *MutexHeap[T]) Init() {
 	h.mu.Lock()
 	heap.Init(h.data)
 	h.mu.Unlock()
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (h *MutexHeap[T]) Push(x T) {
 	h.mu.Lock()
 	h.data = append(h.data, x)
@@ -60,7 +60,7 @@ func (h *MutexHeap[T]) Push(x T) {
 	h.mu.Unlock()
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (h *MutexHeap[T]) Pop() (T, bool) {
 	h.mu.Lock()
 	if len(h.data) == 0 {
@@ -76,7 +76,7 @@ func (h *MutexHeap[T]) Pop() (T, bool) {
 	return item, true
 }
 
-// Last ...
+// Last performs the operation.
 func (h *MutexHeap[T]) Last() (T, bool) {
 	h.mu.Lock()
 	if len(h.data) == 0 {
@@ -88,7 +88,7 @@ func (h *MutexHeap[T]) Last() (T, bool) {
 	return last, false
 }
 
-// Remove ...
+// Remove removes or resets state.
 func (h *MutexHeap[T]) Remove(i int) (T, bool) {
 	h.mu.Lock()
 	if len(h.data) == 0 {

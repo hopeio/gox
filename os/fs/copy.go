@@ -24,7 +24,7 @@ const (
 	sameNameRename
 )
 
-// handle ...
+// handle performs the operation.
 func (c mode) handle(dst string, src io.Reader) (skip bool, err error) {
 	switch c {
 	case Cover:
@@ -50,7 +50,7 @@ func (c mode) handle(dst string, src io.Reader) (skip bool, err error) {
 	return false, nil
 }
 
-// Copy ...
+// Copy performs the operation.
 func Copy(dst, src string) error {
 	r, err := os.Open(src)
 	if err != nil {
@@ -62,7 +62,7 @@ func Copy(dst, src string) error {
 	return err
 }
 
-// CopyByMode ...
+// CopyByMode performs the operation.
 func CopyByMode(dst, src string, c mode) error {
 	r, err := os.Open(src)
 	if err != nil {
@@ -82,7 +82,7 @@ func CopyByMode(dst, src string, c mode) error {
 
 const DownloadKey = ".downloading"
 
-// WriteFile ...
+// WriteFile performs the operation.
 func WriteFile(filepath string, reader io.Reader) (int64, error) {
 	f, err := Create(filepath)
 	if err != nil {
@@ -102,7 +102,7 @@ func WriteFile(filepath string, reader io.Reader) (int64, error) {
 	return n, nil
 }
 
-// Download ...
+// Download executes the operation.
 func Download(filepath string, reader io.Reader) error {
 	tmpFilepath := filepath + DownloadKey
 	_, err := WriteFile(tmpFilepath, reader)
@@ -112,7 +112,7 @@ func Download(filepath string, reader io.Reader) error {
 	return os.Rename(tmpFilepath, filepath)
 }
 
-// DownloadByMode ...
+// DownloadByMode executes the operation.
 func DownloadByMode(filepath string, reader io.Reader, c mode) error {
 	skip, err := c.handle(filepath, reader)
 	if err != nil {
@@ -124,7 +124,7 @@ func DownloadByMode(filepath string, reader io.Reader, c mode) error {
 	return Download(filepath, reader)
 }
 
-// CopyDirByMode ...
+// CopyDirByMode performs the operation.
 func CopyDirByMode(dst, src string, c mode) error {
 	if src[len(src)-1] == os.PathSeparator {
 		src = src[:len(src)-1]
@@ -160,12 +160,12 @@ func CopyDirByMode(dst, src string, c mode) error {
 	return nil
 }
 
-// CopyDir ...
+// CopyDir performs the operation.
 func CopyDir(dst, src string) error {
 	return CopyDirByMode(dst, src, Cover)
 }
 
-// MoveDirByMode ...
+// MoveDirByMode performs the operation.
 func MoveDirByMode(src, dst string, c mode) error {
 	if src[len(src)-1] == os.PathSeparator {
 		src = src[:len(src)-1]

@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-// UnixNano ...
+// UnixNano converts a Unix nanosecond timestamp to time.Time.
 func UnixNano(nsec int64) time.Time {
 	return time.Unix(0, nsec)
 }
 
 var ZeroTime = time.Time{}
 
-// StrToIntMonth ...
+// StrToIntMonth converts a month name to its numeric value.
 func StrToIntMonth(month string) int {
 	var data = map[string]int{
 		January:   1,
@@ -37,7 +37,7 @@ func StrToIntMonth(month string) int {
 	return data[month]
 }
 
-// GetYMD ...
+// GetYMD formats the date as YYYY{sep}MM{sep}DD.
 func GetYMD(time time.Time, sep string) string {
 	year, month, day := time.Date()
 
@@ -57,7 +57,7 @@ func GetYMD(time time.Time, sep string) string {
 	return strconv.Itoa(year) + sep + monthStr + sep + dateStr
 }
 
-// GetYM ...
+// GetYM formats the date as YYYY{sep}MM.
 func GetYM(time time.Time, sep string) string {
 	year, month, _ := time.Date()
 
@@ -70,24 +70,24 @@ func GetYM(time time.Time, sep string) string {
 	return strconv.Itoa(year) + sep + monthStr
 }
 
-// GetYesterdayYMD ...
+// GetYesterdayYMD formats yesterday as YYYY{sep}MM{sep}DD.
 func GetYesterdayYMD(sep string) string {
 	return GetYM(time.Now().AddDate(0, 0, -1), sep)
 }
 
-// GetTomorrowYMD ...
+// GetTomorrowYMD formats tomorrow as YYYY{sep}MM{sep}DD.
 func GetTomorrowYMD(sep string) string {
 	return GetYM(time.Now().AddDate(0, 0, 1), sep)
 }
 
-// TodayZeroTime ...
+// TodayZeroTime returns today's date in the local time zone with time set to 00:00:00.
 func TodayZeroTime() time.Time {
 	year, month, day := time.Now().Date()
-	// now.Year(), now.Month(), now.Day() 是以本地时区为参照的年、月、日
+	// now.Year(), now.Month(), now.Day() are based on the local time zone.
 	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }
 
-// YesterdayZeroTime ...
+// YesterdayZeroTime returns the local date for yesterday at 00:00:00.
 func YesterdayZeroTime() time.Time {
 	return TodayZeroTime().AddDate(0, 0, -1)
 }

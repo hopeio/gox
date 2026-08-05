@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// Oval ...
+// Oval performs the operation.
 func (p *commandProcessor) Oval(lineIdx int, word string) error {
 	var pe primitive
 	tmpl := template{Line: lineIdx, Name: "Oval"}

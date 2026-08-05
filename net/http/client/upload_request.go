@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultChunkSize = 5 * 1024 * 1024 // 每个分块的大小，这里是5MB
+	defaultChunkSize = 5 * 1024 * 1024 // chunk size, here 5MB
 )
 
 var (
@@ -45,7 +45,7 @@ type UploadReq struct {
 	Url       string
 	uploader  *Uploader
 	ctx       context.Context
-	header    http.Header //请求级请求头
+	header    http.Header //request-level headers
 	boundary  string
 	mode      UploadMode
 	chunkSize int64
@@ -76,7 +76,7 @@ func NewFile(path string) (*File, error) {
 	}, nil
 }
 
-// ToMutilPart ...
+// ToMutilPart converts the value.
 func (f *File) ToMutilPart(param string) *Multipart {
 	contentType := mime.TypeByExtension(filepath.Ext(f.Path))
 	return NewMultipart(param, path.Base(f.Path), textproto.MIMEHeader{httpx.HeaderContentType: []string{contentType}}, f.File)
@@ -101,31 +101,31 @@ func NewUploadReq(url string) *UploadReq {
 	}
 }
 
-// Context ...
+// Context returns the result.
 func (r *UploadReq) Context(ctx context.Context) *UploadReq {
 	r.ctx = ctx
 	return r
 }
 
-// Uploader ...
+// Uploader returns the result.
 func (r *UploadReq) Uploader(u *Uploader) *UploadReq {
 	r.uploader = u
 	return r
 }
 
-// Boundary ...
+// Boundary returns the result.
 func (r *UploadReq) Boundary(boundary string) *UploadReq {
 	r.boundary = boundary
 	return r
 }
 
-// Mode ...
+// Mode returns the result.
 func (r *UploadReq) Mode(mode UploadMode) *UploadReq {
 	r.mode = mode
 	return r
 }
 
-// ChunkSize ...
+// ChunkSize returns the result.
 func (r *UploadReq) ChunkSize(chunkSize int64) *UploadReq {
 	if chunkSize < 512 {
 		panic("buffer size should > 512")
@@ -134,7 +134,7 @@ func (r *UploadReq) ChunkSize(chunkSize int64) *UploadReq {
 	return r
 }
 
-// UploadMultipart ...
+// UploadMultipart performs the operation.
 func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multipart) error {
 	body := bufPool.Get().(*bytes.Buffer)
 	defer func() {
@@ -206,12 +206,12 @@ func (r *UploadReq) UploadMultipart(formData map[string]string, files ...*Multip
 
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
-// escapeQuotes ...
+// escapeQuotes returns the result.
 func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-// UploadReader ...
+// UploadReader performs the operation.
 func (r *UploadReq) UploadReader(reader io.Reader, name string) error {
 	u := r.uploader
 
@@ -234,7 +234,7 @@ func (r *UploadReq) UploadReader(reader io.Reader, name string) error {
 	return nil
 }
 
-// UploadReaderChunked ...
+// UploadReaderChunked performs the operation.
 func (r *UploadReq) UploadReaderChunked(reader io.ReaderAt, name string, total int64) error {
 
 	var start int64
@@ -266,12 +266,12 @@ func (r *UploadReq) UploadReaderChunked(reader io.ReaderAt, name string, total i
 	return nil
 }
 
-// Upload ...
+// Upload performs the operation.
 func (r *UploadReq) Upload(filepath string) error {
 	panic("not implemented")
 }
 
-// ConcurrentUploadReaderChunked ...
+// ConcurrentUploadReaderChunked performs the operation.
 func (r *UploadReq) ConcurrentUploadReaderChunked(reader io.ReaderAt, name string, total int64, concurrencyNum int) error {
 	panic("not implemented")
 }

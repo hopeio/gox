@@ -11,18 +11,18 @@ import (
 	"net/http"
 )
 
-// SetBasicAuth ...
+// SetBasicAuth updates or inserts a value.
 func SetBasicAuth(header http.Header, username, password string) {
 	header.Set(HeaderAuthorization, "Basic "+BasicAuth(username, password))
 }
 
-// BasicAuth ...
+// BasicAuth returns the result.
 func BasicAuth(username, password string) string {
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
-// GetToken ...
+// GetToken returns the value.
 func GetToken(header http.Header) string {
 	if token := header.Get(HeaderAuthorization); token != "" {
 		return token

@@ -23,7 +23,7 @@ func NewMutexList[T any]() *MutexList[T] {
 	return &MutexList[T]{}
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (l *MutexList[T]) Push(v T) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -39,7 +39,7 @@ func (l *MutexList[T]) Push(v T) {
 	l.size++
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (l *MutexList[T]) Pop() (v T, ok bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()

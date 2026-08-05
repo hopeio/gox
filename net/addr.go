@@ -8,7 +8,7 @@ package net
 
 type StrAddr string
 
-// Network ...
+// Network returns the result.
 func (a StrAddr) Network() string {
 	if a != "" {
 		// Per the documentation on net/http.Request.RemoteAddr, if this is

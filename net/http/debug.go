@@ -13,7 +13,7 @@ import (
 	"runtime/debug"
 )
 
-// HandleDebug ...
+// HandleDebug executes the operation.
 func HandleDebug(mux *http.ServeMux, prefix string) {
 	mux.HandleFunc(prefix+"/debug/stack", HandleStack)
 	if prefix != "" && prefix != "GET " {
@@ -26,7 +26,7 @@ func HandleDebug(mux *http.ServeMux, prefix string) {
 	}
 }
 
-// HandleStack ...
+// HandleStack executes the operation.
 func HandleStack(w http.ResponseWriter, r *http.Request) {
 	w.Write(debug.Stack())
 }

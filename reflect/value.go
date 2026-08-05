@@ -54,7 +54,7 @@ func DerefValue(v reflect.Value) reflect.Value {
 	}
 }
 
-// InitPtr ...
+// InitPtr returns the result.
 func InitPtr(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
 		if !v.IsValid() || v.IsNil() {

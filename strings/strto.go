@@ -17,7 +17,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// ParseFor ...
+// ParseFor parses the input.
 func ParseFor[T any](str string) (T, error) {
 	var t T
 	a, ap := any(t), any(&t)
@@ -39,7 +39,7 @@ func ParseFor[T any](str string) (T, error) {
 	return t, nil
 }
 
-// setReflectValueFromString ...
+// setReflectValueFromString performs the operation.
 func setReflectValueFromString(v reflect.Value, str string) error {
 	if !v.IsValid() || !v.CanSet() {
 		return fmt.Errorf("cannot set value of kind %v", v.Kind())
@@ -94,12 +94,12 @@ func setReflectValueFromString(v reflect.Value, str string) error {
 	}
 }
 
-// ParsePtrFor ...
+// ParsePtrFor parses the input.
 func ParsePtrFor[T any](str string) (*T, error) {
 	return toPtr(ParseFor[T](str))
 }
 
-// Signed ...
+// Signed performs the operation.
 func Signed[T constraints.Signed](value string) (T, error) {
 	i, err := strconv.ParseInt(value, 10, int(unsafe.Sizeof(T(0))*8))
 	if err != nil {
@@ -108,7 +108,7 @@ func Signed[T constraints.Signed](value string) (T, error) {
 	return T(i), nil
 }
 
-// SignedP ...
+// SignedP performs the operation.
 func SignedP[T constraints.Signed](value string) (*T, error) {
 	return toPtr(Signed[T](value))
 }
@@ -128,7 +128,7 @@ func SignedSlice[T constraints.Signed](val, sep string) ([]T, error) {
 	return values, nil
 }
 
-// UnSigned ...
+// UnSigned performs the operation.
 func UnSigned[T constraints.Unsigned](value string) (T, error) {
 	i, err := strconv.ParseUint(value, 10, int(unsafe.Sizeof(T(0))*8))
 	if err != nil {
@@ -137,7 +137,7 @@ func UnSigned[T constraints.Unsigned](value string) (T, error) {
 	return T(i), nil
 }
 
-// UnSignedP ...
+// UnSignedP performs the operation.
 func UnSignedP[T constraints.Unsigned](value string) (*T, error) {
 	return toPtr(UnSigned[T](value))
 }
@@ -157,7 +157,7 @@ func UnsignedSlice[T constraints.Unsigned](val, sep string) ([]T, error) {
 	return values, nil
 }
 
-// Float ...
+// Float performs the operation.
 func Float[T constraints.Float](value string) (T, error) {
 	f, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -166,7 +166,7 @@ func Float[T constraints.Float](value string) (T, error) {
 	return T(f), nil
 }
 
-// FloatP ...
+// FloatP performs the operation.
 func FloatP[T constraints.Float](value string) (*T, error) {
 	return toPtr(Float[T](value))
 }
@@ -197,12 +197,12 @@ func StringSlice(val, sep string) ([]string, error) {
 	return strings.Split(val, sep), nil
 }
 
-// Bool ...
+// Bool performs the operation.
 func Bool(value string) (bool, error) {
 	return strconv.ParseBool(value)
 }
 
-// BoolP ...
+// BoolP performs the operation.
 func BoolP(value string) (*bool, error) {
 	return toPtr(Bool(value))
 }
@@ -256,7 +256,7 @@ func Float64(val string) (float64, error) {
 	return strconv.ParseFloat(val, 64)
 }
 
-// Float64P ...
+// Float64P performs the operation.
 func Float64P(val string) (*float64, error) {
 	return toPtr(Float64(val))
 }
@@ -285,7 +285,7 @@ func Float32(val string) (float32, error) {
 	return float32(f), nil
 }
 
-// Float32P ...
+// Float32P performs the operation.
 func Float32P(val string) (*float32, error) {
 	return toPtr(Float32(val))
 }
@@ -305,7 +305,7 @@ func Float32Slice(val, sep string) ([]float32, error) {
 	return values, nil
 }
 
-// Int ...
+// Int performs the operation.
 func Int(val string) (int, error) {
 	i, err := strconv.ParseInt(val, 0, 0)
 	if err != nil {
@@ -314,7 +314,7 @@ func Int(val string) (int, error) {
 	return int(i), nil
 }
 
-// IntP ...
+// IntP performs the operation.
 func IntP(val string) (*int, error) {
 	return toPtr(Int(val))
 }
@@ -334,7 +334,7 @@ func IntSlice(val, sep string) ([]int, error) {
 	return values, nil
 }
 
-// Int8 ...
+// Int8 performs the operation.
 func Int8(val string) (int8, error) {
 	i, err := strconv.ParseInt(val, 0, 8)
 	if err != nil {
@@ -343,7 +343,7 @@ func Int8(val string) (int8, error) {
 	return int8(i), nil
 }
 
-// Int8P ...
+// Int8P performs the operation.
 func Int8P(val string) (*int8, error) {
 	return toPtr(Int8(val))
 }
@@ -363,7 +363,7 @@ func Int8Slice(val, sep string) ([]int8, error) {
 	return values, nil
 }
 
-// Int16 ...
+// Int16 performs the operation.
 func Int16(val string) (int16, error) {
 	i, err := strconv.ParseInt(val, 0, 16)
 	if err != nil {
@@ -372,7 +372,7 @@ func Int16(val string) (int16, error) {
 	return int16(i), nil
 }
 
-// Int16P ...
+// Int16P performs the operation.
 func Int16P(val string) (*int16, error) {
 	return toPtr(Int16(val))
 }
@@ -401,7 +401,7 @@ func Int32(val string) (int32, error) {
 	return int32(i), nil
 }
 
-// Int32P ...
+// Int32P performs the operation.
 func Int32P(val string) (*int32, error) {
 	return toPtr(Int32(val))
 }
@@ -426,7 +426,7 @@ func Int64(val string) (int64, error) {
 	return strconv.ParseInt(val, 0, 64)
 }
 
-// Int64P ...
+// Int64P performs the operation.
 func Int64P(val string) (*int64, error) {
 	return toPtr(Int64(val))
 }
@@ -446,7 +446,7 @@ func Int64Slice(val, sep string) ([]int64, error) {
 	return values, nil
 }
 
-// Uint ...
+// Uint performs the operation.
 func Uint(val string) (uint, error) {
 	i, err := strconv.ParseUint(val, 0, 0)
 	if err != nil {
@@ -455,7 +455,7 @@ func Uint(val string) (uint, error) {
 	return uint(i), nil
 }
 
-// UintP ...
+// UintP performs the operation.
 func UintP(val string) (*uint, error) {
 	return toPtr(Uint(val))
 }
@@ -475,7 +475,7 @@ func UintSlice(val, sep string) ([]uint, error) {
 	return values, nil
 }
 
-// Uint8 ...
+// Uint8 performs the operation.
 func Uint8(val string) (uint8, error) {
 	i, err := strconv.ParseUint(val, 0, 8)
 	if err != nil {
@@ -484,7 +484,7 @@ func Uint8(val string) (uint8, error) {
 	return uint8(i), nil
 }
 
-// Uint8P ...
+// Uint8P performs the operation.
 func Uint8P(val string) (*uint8, error) {
 	return toPtr(Uint8(val))
 }
@@ -504,7 +504,7 @@ func Uint8Slice(val, sep string) ([]uint8, error) {
 	return values, nil
 }
 
-// Uint16 ...
+// Uint16 performs the operation.
 func Uint16(val string) (uint16, error) {
 	i, err := strconv.ParseUint(val, 0, 16)
 	if err != nil {
@@ -513,7 +513,7 @@ func Uint16(val string) (uint16, error) {
 	return uint16(i), nil
 }
 
-// Uint16P ...
+// Uint16P performs the operation.
 func Uint16P(val string) (*uint16, error) {
 	return toPtr(Uint16(val))
 }
@@ -542,7 +542,7 @@ func Uint32(val string) (uint32, error) {
 	return uint32(i), nil
 }
 
-// Uint32P ...
+// Uint32P performs the operation.
 func Uint32P(val string) (*uint32, error) {
 	return toPtr(Uint32(val))
 }
@@ -567,7 +567,7 @@ func Uint64(val string) (uint64, error) {
 	return strconv.ParseUint(val, 0, 64)
 }
 
-// Uint64P ...
+// Uint64P performs the operation.
 func Uint64P(val string) (*uint64, error) {
 	return toPtr(Uint64(val))
 }
@@ -587,7 +587,7 @@ func Uint64Slice(val, sep string) ([]uint64, error) {
 	return values, nil
 }
 
-// toPtr ...
+// toPtr performs the operation.
 func toPtr[T any](v T, err error) (*T, error) {
 	if err != nil {
 		return nil, err

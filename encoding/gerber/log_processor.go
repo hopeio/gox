@@ -11,37 +11,37 @@ import "log"
 type LogProcessor struct {
 }
 
-// Circle ...
+// Circle performs the operation.
 func (l LogProcessor) Circle(circle *Circle) {
 	log.Println("circle", circle)
 }
 
-// Rectangle ...
+// Rectangle performs the operation.
 func (l LogProcessor) Rectangle(rectangle *Rectangle) {
 	log.Println("rectangle", rectangle)
 }
 
-// Obround ...
+// Obround performs the operation.
 func (l LogProcessor) Obround(obround *Obround) {
 	log.Println("obround", obround)
 }
 
-// Contour ...
+// Contour performs the operation.
 func (l LogProcessor) Contour(contour *Contour) {
 	log.Println("contour", contour)
 }
 
-// Line ...
+// Line performs the operation.
 func (l LogProcessor) Line(line *Line) {
 	log.Println("line", line)
 }
 
-// Arc ...
+// Arc performs the operation.
 func (l LogProcessor) Arc(arc *Arc) {
 	log.Println("arc", arc)
 }
 
-// SetViewBox ...
+// SetViewBox updates or inserts a value.
 func (l LogProcessor) SetViewBox(box *ViewBox) {
 	log.Println("SetViewBox", box)
 }

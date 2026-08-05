@@ -8,7 +8,7 @@ package runtime
 
 import "runtime"
 
-// GetCallerFrame ...
+// GetCallerFrame returns the value.
 func GetCallerFrame(skip int) (frame runtime.Frame, ok bool) {
 	const skipOffset = 2 // skip getCallerFrame and Callers
 

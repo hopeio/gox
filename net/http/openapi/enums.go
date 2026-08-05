@@ -13,7 +13,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// GetEnums ...
+// GetEnums returns the value.
 func GetEnums(ty reflect.Type) ([]any, error) {
 	var enum []any
 	config := &packages.Config{
@@ -58,7 +58,7 @@ func GetEnums(ty reflect.Type) ([]any, error) {
 	return enum, nil
 }
 
-// getConstantValue ...
+// getConstantValue performs the operation.
 func getConstantValue(ty reflect.Type, name *ast.Ident, pkg *packages.Package) (any, error) {
 	c, ok := pkg.TypesInfo.ObjectOf(name).(*types.Const)
 	if !ok {

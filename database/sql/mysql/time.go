@@ -12,7 +12,7 @@ import (
 	timex "github.com/hopeio/gox/time"
 )
 
-// Now ...
+// Now returns the result.
 func Now() string {
 	return time.Now().Format(timex.LayoutTimeMacro)
 }

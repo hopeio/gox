@@ -14,17 +14,18 @@ import (
 )
 
 /*
- *这种序列化序列化的是指针，一旦结构体包含指针，是不能从[]byte里还原结构体的，只能做临时的转换，基本没什么用，序列化和
- *反序列化必须成对出现，而且go的GC偏移回收的话，有可能也GG
+ * This serialization operates on pointers. If a struct contains pointers, it
+ * cannot be restored from []byte and is only useful as a temporary conversion.
+ * Serialize and deserialize must be paired; GC moving objects may also break it.
  */
 
-// getSize ...
+// getSize returns the result.
 func getSize(t any) int {
 	size := reflect.TypeOf(t).Elem().Size()
 	return (int)(size)
 }
 
-// FromAny ...
+// FromAny returns the result.
 func FromAny(s any) []byte {
 	sizeOfStruct := getSize(s)
 	var x reflect.SliceHeader

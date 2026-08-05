@@ -66,7 +66,7 @@ func (g *Group) Do(key any, fn func() (any, error), isWait bool) (any, bool, err
 	return v, true, err
 }
 
-// call ...
+// call performs the operation.
 func (g *Group) call(c *call, key any, fn func() (any, error)) (any, error) {
 	c.val, c.err = fn()
 	c.wg.Done()

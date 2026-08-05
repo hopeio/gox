@@ -40,12 +40,12 @@ var globalOTelDBStats = sync.OnceValue(func() *OTelDBStats {
 	return &OTelDBStats{meter: meter, targets: make([]target, 0)}
 })
 
-// GlobalOTelDBStats ...
+// GlobalOTelDBStats returns the result.
 func GlobalOTelDBStats() *OTelDBStats {
 	return globalOTelDBStats()
 }
 
-// Register ...
+// Register performs the operation.
 func (s *OTelDBStats) Register(db *stdsql.DB, attrs ...attribute.KeyValue) error {
 	if db == nil {
 		return stdsql.ErrConnDone
@@ -85,7 +85,7 @@ func (s *OTelDBStats) Close() error {
 	return nil
 }
 
-// observe ...
+// observe performs the operation.
 func (s *OTelDBStats) observe(_ context.Context, o metric.Observer) error {
 	for _, target := range s.targets {
 		st := target.db.Stats()
@@ -101,7 +101,7 @@ func (s *OTelDBStats) observe(_ context.Context, o metric.Observer) error {
 	return nil
 }
 
-// initInstruments ...
+// initInstruments performs the operation.
 func (s *OTelDBStats) initInstruments() error {
 
 	var err error

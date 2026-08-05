@@ -7,19 +7,19 @@ import (
 
 const base62Alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-// EncodeToString ...
+// EncodeToString formats or converts the value.
 func EncodeToString(data []byte) string {
 	if len(data) == 0 {
 		return ""
 	}
 
-	// 计算前导零的数量
+	// Count leading zeros
 	leadingZeros := 0
 	for leadingZeros < len(data) && data[leadingZeros] == 0 {
 		leadingZeros++
 	}
 
-	// 将字节转换为大整数
+	// Convert bytes to a big integer
 	bigNum := new(big.Int).SetBytes(data)
 	base := big.NewInt(62)
 	var result []byte
@@ -30,12 +30,12 @@ func EncodeToString(data []byte) string {
 		result = append(result, base62Alphabet[remainder.Int64()])
 	}
 
-	// 添加前导零对应的字符
+	// Append characters for leading zeros
 	for i := 0; i < leadingZeros; i++ {
-		result = append(result, '0') // 前导零在Base62中对应'0'
+		result = append(result, '0') // Leading zeros map to '0' in Base62
 	}
 
-	// 反转结果，因为我们是从低位开始计算的
+	// Reverse the result because digits were computed from low to high
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
 		result[i], result[j] = result[j], result[i]
 	}
@@ -45,7 +45,7 @@ func EncodeToString(data []byte) string {
 
 var base62DecodeMap [256]byte
 
-// init ...
+// init initializes package state.
 func init() {
 	for i := range base62DecodeMap {
 		base62DecodeMap[i] = 255
@@ -55,13 +55,13 @@ func init() {
 	}
 }
 
-// DecodeString ...
+// DecodeString formats or converts the value.
 func DecodeString(s string) ([]byte, error) {
 	if s == "" {
 		return []byte{}, nil
 	}
 
-	// 计算前导零的数量
+	// Count leading zeros
 	leadingZeros := 0
 	for i := 0; i < len(s); i++ {
 		if s[i] == '0' {
@@ -71,15 +71,15 @@ func DecodeString(s string) ([]byte, error) {
 		}
 	}
 
-	// 跳过前导零，处理剩余字符
+	// Skip leading zeros and process the rest
 	remaining := s[leadingZeros:]
 	if remaining == "" {
-		// 如果全是零
+		// If all zeros
 		result := make([]byte, leadingZeros)
 		return result, nil
 	}
 
-	// 将Base62字符串转换为大整数（alphabet: 0-9a-zA-Z）
+	// Convert a Base62 string to a big integer (alphabet: 0-9a-zA-Z)
 	bigNum := new(big.Int)
 	base := big.NewInt(62)
 
@@ -93,10 +93,10 @@ func DecodeString(s string) ([]byte, error) {
 		bigNum.Add(bigNum, big.NewInt(int64(index)))
 	}
 
-	// 转换为字节数组
+	// Convert to a byte slice
 	byteArray := bigNum.Bytes()
 
-	// 添加前导零
+	// Append leading zeros
 	if leadingZeros > 0 {
 		result := make([]byte, leadingZeros+len(byteArray))
 		copy(result[leadingZeros:], byteArray)

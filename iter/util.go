@@ -15,7 +15,7 @@ import (
 	"github.com/hopeio/gox/types"
 )
 
-// Filter ...
+// Filter returns the result.
 func Filter[T any](seq iter.Seq[T], test types.Predicate[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -26,7 +26,7 @@ func Filter[T any](seq iter.Seq[T], test types.Predicate[T]) iter.Seq[T] {
 	}
 }
 
-// Map ...
+// Map returns the result.
 func Map[T, R any](seq iter.Seq[T], f types.UnaryFunction[T, R]) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for v := range seq {
@@ -37,7 +37,7 @@ func Map[T, R any](seq iter.Seq[T], f types.UnaryFunction[T, R]) iter.Seq[R] {
 	}
 }
 
-// FlatMap ...
+// FlatMap returns the result.
 func FlatMap[T, R any](seq iter.Seq[T], flatten types.UnaryFunction[T, iter.Seq[R]]) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for v := range seq {
@@ -50,7 +50,7 @@ func FlatMap[T, R any](seq iter.Seq[T], flatten types.UnaryFunction[T, iter.Seq[
 	}
 }
 
-// Peek ...
+// Peek returns the result.
 func Peek[T any](seq iter.Seq[T], accept types.Consumer[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -62,7 +62,7 @@ func Peek[T any](seq iter.Seq[T], accept types.Consumer[T]) iter.Seq[T] {
 	}
 }
 
-// Distinct ...
+// Distinct returns the result.
 func Distinct[T any, C comparable](seq iter.Seq[T], f types.UnaryFunction[T, C]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		var set = make(map[C]struct{})
@@ -79,7 +79,7 @@ func Distinct[T any, C comparable](seq iter.Seq[T], f types.UnaryFunction[T, C])
 	}
 }
 
-// Sorted ...
+// Sorted returns the result.
 func Sorted[T any](it iter.Seq[T], cmp types.Comparator[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		vals := slices.SortedFunc(it, cmp)
@@ -116,7 +116,7 @@ func IsSorted[T any](seq iter.Seq[T], cmp types.Comparator[T]) bool {
 	return true
 }
 
-// Limit ...
+// Limit returns the result.
 func Limit[T any](seq iter.Seq[T], limit int) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -131,7 +131,7 @@ func Limit[T any](seq iter.Seq[T], limit int) iter.Seq[T] {
 	}
 }
 
-// Skip ...
+// Skip returns the result.
 func Skip[T any](seq iter.Seq[T], skip int) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -145,7 +145,7 @@ func Skip[T any](seq iter.Seq[T], skip int) iter.Seq[T] {
 	}
 }
 
-// UntilComparable ...
+// UntilComparable returns the result.
 func UntilComparable[T comparable](seq iter.Seq[T], e T) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -159,7 +159,7 @@ func UntilComparable[T comparable](seq iter.Seq[T], e T) iter.Seq[T] {
 	}
 }
 
-// Until ...
+// Until returns the result.
 func Until[T any](seq iter.Seq[T], match types.Predicate[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -173,14 +173,14 @@ func Until[T any](seq iter.Seq[T], match types.Predicate[T]) iter.Seq[T] {
 	}
 }
 
-// ForEach ...
+// ForEach performs the operation.
 func ForEach[T any](seq iter.Seq[T], accept types.Consumer[T]) {
 	for v := range seq {
 		accept(v)
 	}
 }
 
-// Every ...
+// Every reports whether the condition holds.
 func Every[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if !test(v) {
@@ -190,7 +190,7 @@ func Every[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return true
 }
 
-// Some ...
+// Some returns the value.
 func Some[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if test(v) {
@@ -200,7 +200,7 @@ func Some[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return false
 }
 
-// AllMatch ...
+// AllMatch reports whether the condition holds.
 func AllMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if !test(v) {
@@ -210,7 +210,7 @@ func AllMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return true
 }
 
-// AnyMatch ...
+// AnyMatch reports whether the condition holds.
 func AnyMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	for v := range seq {
 		if test(v) {
@@ -220,7 +220,7 @@ func AnyMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
 	return false
 }
 
-// Reduce ...
+// Reduce performs the operation.
 func Reduce[T any](seq iter.Seq[T], acc types.BinaryOperator[T]) (T, bool) {
 	var result T
 	var has bool
@@ -238,7 +238,7 @@ func Reduce[T any](seq iter.Seq[T], acc types.BinaryOperator[T]) (T, bool) {
 	return result, has
 }
 
-// Fold ...
+// Fold performs the operation.
 func Fold[T, R any](seq iter.Seq[T], initVal R, acc types.BinaryFunction[R, T, R]) (result R) {
 	result = initVal
 	for v := range seq {
@@ -247,7 +247,7 @@ func Fold[T, R any](seq iter.Seq[T], initVal R, acc types.BinaryFunction[R, T, R
 	return result
 }
 
-// First ...
+// First performs the operation.
 func First[T any](seq iter.Seq[T]) (T, bool) {
 	for v := range seq {
 		return v, true
@@ -263,7 +263,7 @@ func Count[T any](seq iter.Seq[T]) (count int) {
 	return
 }
 
-// Enumerate ...
+// Enumerate returns the result.
 func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
 	return func(yield func(types.Pair[int, T]) bool) {
 		var count int
@@ -276,7 +276,7 @@ func Enumerate[T any](seq iter.Seq[T]) iter.Seq[types.Pair[int, T]] {
 	}
 }
 
-// Chain ...
+// Chain returns the result.
 func Chain[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, seq := range seqs {
@@ -289,7 +289,7 @@ func Chain[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
 	}
 }
 
-// Operator ...
+// Operator returns the result.
 func Operator[T any](seq iter.Seq[T], add types.BinaryOperator[T]) T {
 	var result T
 	var idx int
@@ -330,7 +330,7 @@ func Contains[T comparable](it iter.Seq[T], target T) bool {
 	return false
 }
 
-// OperatorBy ...
+// OperatorBy returns the result.
 func OperatorBy[T any](it iter.Seq[T], f types.BinaryOperator[T]) T {
 	result, _ := Reduce(it, func(a, b T) T {
 		return f(a, b)
@@ -384,7 +384,7 @@ func ToMap[K comparable, V any](it iter.Seq[types.Pair[K, V]]) map[K]V {
 	return r
 }
 
-// ToSlice ...
+// ToSlice converts the value.
 func ToSlice[V any](it iter.Seq[V]) []V {
 	var r []V
 	for p := range it {
@@ -402,7 +402,7 @@ func Collect[T any, S any, R any](it iter.Seq[T], collector container.Collector[
 	return collector.Finish(s)
 }
 
-// Merge ...
+// Merge returns the result.
 func Merge[T any](iters ...iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, it := range iters {
@@ -415,7 +415,7 @@ func Merge[T any](iters ...iter.Seq[T]) iter.Seq[T] {
 	}
 }
 
-// JoinBy ...
+// JoinBy returns the result.
 func JoinBy[T any](it iter.Seq[T], toString func(T) string, sep string) string {
 	var b strings.Builder
 	for v := range it {

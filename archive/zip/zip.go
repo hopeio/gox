@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 )
 
-// CompressDir ...
+// CompressDir performs the operation.
 func CompressDir(sourceDir, targetZip string, containRootDir bool) error {
-	// 创建ZIP文件
+	// Create the ZIP file
 	zipFile, err := os.Create(targetZip)
 	if err != nil {
 		return err
@@ -19,27 +19,27 @@ func CompressDir(sourceDir, targetZip string, containRootDir bool) error {
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 	rootDir := filepath.Base(sourceDir)
-	// 遍历目录内容
+	// Walk directory contents
 	return filepath.Walk(sourceDir, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		// 获取相对路径（排除顶层目录）
+		// Relative path excluding the top directory
 		relPath, err := filepath.Rel(sourceDir, filePath)
 		if err != nil {
 			return err
 		}
 		var zipPath string
 		if containRootDir {
-			// 构建ZIP内部路径
+			// Build the path inside the ZIP
 			zipPath = filepath.Join(rootDir, relPath)
-			zipPath = filepath.ToSlash(zipPath) // 统一为斜杠路径
+			zipPath = filepath.ToSlash(zipPath) // Normalize to slash paths
 		} else {
 			zipPath = filepath.ToSlash(relPath)
 		}
 
-		// 跳过源目录自身（relPath == "." 时表示根目录）
+		// Skip the source directory itself (relPath == "." is the root)
 		if relPath == "." {
 			if !containRootDir {
 				return nil
@@ -47,28 +47,28 @@ func CompressDir(sourceDir, targetZip string, containRootDir bool) error {
 			zipPath = rootDir
 		}
 
-		// 创建文件头
+		// Create the file header
 		header, err := zip.FileInfoHeader(info)
 		if err != nil {
 			return err
 		}
 		header.Name = zipPath
 
-		// 设置压缩方法
+		// Set the compression method
 		if info.IsDir() {
-			header.Name += "/"        // 目录需要尾部斜杠
-			header.Method = zip.Store // 目录不压缩
+			header.Name += "/"        // Directories need a trailing slash
+			header.Method = zip.Store // Do not compress directories
 		} else {
-			header.Method = zip.Deflate // 文件压缩
+			header.Method = zip.Deflate // Compress files
 		}
 
-		// 写入文件头
+		// Write the file header
 		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {
 			return err
 		}
 
-		// 如果是文件则写入内容
+		// If it is a file, write its contents
 		if !info.IsDir() {
 			file, err := os.Open(filePath)
 			if err != nil {

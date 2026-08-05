@@ -18,10 +18,10 @@ import (
 	syncx "github.com/hopeio/gox/sync"
 )
 
-// Run ...
+// Run executes the operation.
 func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
-	// 在持锁前递交初始任务:addTasks 内部会获取 pending 额度并在短临界区内 push,
-	// 若持锁调用会触发非重入锁自死锁。
+	// Submit initial tasks before holding the lock: addTasks acquires pending quota and pushes in a short critical section,
+	// Calling while holding the lock would self-deadlock the non-reentrant mutex.
 	if len(tasks) > 0 {
 		e.addTasks(e.ctx, 0, tasks...)
 	}
@@ -35,8 +35,8 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 			for {
 				select {
 				case <-e.ctx.Done():
-					// 排空残留错误任务,确保每个 pending 任务都 wg.Done,
-					// 否则 Run 的 wg.Wait 会因计数未归零而永久阻塞
+					// Drain leftover error tasks so every pending task calls wg.Done,
+					// otherwise Run's wg.Wait blocks forever if the count never reaches zero
 					for {
 						select {
 						case task := <-e.errTaskChan:
@@ -49,7 +49,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 					}
 				case task := <-e.errTaskChan:
 					e.taskErrHandleCount++
-					e.taskDone() // 先归还 pending 额度,避免 errHandler 内 re-add 与 pendingSem 形成自死锁
+					e.taskDone() // Return pending quota first to avoid self-deadlock between errHandler re-add and pendingSem
 					e.errHandler(task)
 				}
 			}
@@ -63,7 +63,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 		go func() {
 			timer := time.NewTimer(5 * time.Second)
 			defer timer.Stop()
-			defer e.wg.Done() // 与上面 e.wg.Add(1) 配对,所有退出路径都必须 Done
+			defer e.wg.Done() // Pairs with e.wg.Add(1) above; every exit path must Done
 			var emptyTimes uint
 			var readyTaskCh chan *Task[KEY]
 			var readyTask *Task[KEY]
@@ -81,9 +81,9 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 					readyTaskCh = nil
 					readyTask = nil
 				case <-e.wakeup:
-					// 新任务入堆,立即回到循环顶部尝试分发
+					// New tasks entered the heap; jump to the top of the loop to dispatch
 				case <-timer.C:
-					//检测任务是否已空(堆长度与 workingWorkerCount 的读取都需加锁/原子,避免与 addTasks 竞争)
+					//Check whether tasks are empty (heap len and workingWorkerCount need lock/atomic vs addTasks)
 					e.mu.Lock()
 					heapEmpty := len(e.readyTaskHeap) == 0
 					e.mu.Unlock()
@@ -111,8 +111,8 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 					if err := e.ctx.Err(); err != nil {
 						log.Error(err)
 					}
-					// 取消时回收堆中尚未分发、以及已出堆但未成功投递给 worker 的任务计数,
-					// 否则这些任务永不 Done,Run 的 wg.Wait 会永久阻塞
+					// On cancel, reclaim counts for undispatched heap tasks and tasks popped but not handed to a worker,
+					// otherwise those tasks never Done and Run's wg.Wait blocks forever
 					e.mu.Lock()
 					for len(e.readyTaskHeap) > 0 {
 						if _, ok := e.readyTaskHeap.Pop(); ok {
@@ -141,7 +141,7 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	atomic.AddUint64(&e.currentWorkerCount, 1)
 	//id := c.currentWorkerCount
-	// 这里考虑回复多channel,worker数量多起来的时候,channel维护的goroutine数量太多
+	// Consider multiple channels; with many workers, one channel may create too many managing goroutines
 	worker := &Worker[KEY]{id: uint(e.currentWorkerCount)}
 	go func() {
 		defer func() {
@@ -150,7 +150,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 				log.StackLogger().Error(r, spew.Sdump(readyTask))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.taskDone()
-				// 创建一个新的
+				// create a new one
 				e.newWorker(nil)
 			}
 			atomic.AddUint64(&e.currentWorkerCount, ^uint64(0))
@@ -164,7 +164,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 			select {
 			case readyTask, ok = <-e.taskChanConsumer:
 				if !ok {
-					// channel 已被关闭(引擎停止),worker 退出,避免收到 nil 任务空指针 panic
+					// Channel closed (engine stopped); worker exits to avoid nil-task panic
 					worker.canExecute = false
 					return
 				}
@@ -180,7 +180,7 @@ func (e *Engine[KEY]) newWorker(readyTask *Task[KEY]) {
 	e.workersMu.Unlock()
 }
 
-// addWorker ...
+// addWorker performs the operation.
 func (e *Engine[KEY]) addWorker() {
 	if atomic.LoadUint64(&e.currentWorkerCount) == 0 {
 		e.newWorker(nil)
@@ -214,13 +214,13 @@ func (e *Engine[KEY]) addWorker() {
 
 }
 
-// addTasks ...
+// addTasks performs the operation.
 func (e *Engine[KEY]) addTasks(ctx context.Context, priority int, tasks ...*Task[KEY]) {
-	// 外部/初始任务入口:先在不持锁的情况下获取 pending 额度(背压点),额度满则阻塞调用者。
-	// 仅对有效任务获取额度,与 taskDone 的归还严格 1:1。
-	// 注意:绝不可在持有 e.mu 时执行这里,否则主循环无法拿到 e.mu 分发任务 -> 死锁。
-	// worker 产出的子任务不走此路径(pending 额度由 worker 在 produce 时占用,见 execTask),
-	// 因此 ingest 协程永不在此阻塞,submitCh 始终被及时消费,不存在背压自死锁。
+	// External/initial task entry: acquire pending quota without the lock (backpressure); block when full.
+	// Acquire quota only for valid tasks, strictly 1:1 with taskDone returns.
+	// Never run this while holding e.mu, or the main loop cannot take e.mu to dispatch -> deadlock.
+	// Worker-produced subtasks skip this path (pending quota taken at produce in execTask),
+	// so the ingest goroutine never blocks here, submitCh stays drained, no backpressure self-deadlock.
 	valid := 0
 	for _, task := range tasks {
 		if task != nil && task.Run != nil {
@@ -231,7 +231,7 @@ func (e *Engine[KEY]) addTasks(ctx context.Context, priority int, tasks ...*Task
 		}
 	}
 	n := e.pushTasks(ctx, priority, tasks...)
-	// 去重跳过的任务归还多占的 pending 额度
+	// Return extra pending quota for tasks skipped by dedup
 	if skipped := valid - n; skipped > 0 && e.maxPending > 0 && e.pendingSem != nil {
 		for i := 0; i < skipped; i++ {
 			e.pendingSem <- struct{}{}
@@ -241,7 +241,7 @@ func (e *Engine[KEY]) addTasks(ctx context.Context, priority int, tasks ...*Task
 	e.wg.Add(n)
 }
 
-// pushTasks ...
+// pushTasks returns the result.
 func (e *Engine[KEY]) pushTasks(ctx context.Context, priority int, tasks ...*Task[KEY]) int {
 	n := 0
 	e.mu.Lock()
@@ -249,7 +249,7 @@ func (e *Engine[KEY]) pushTasks(ctx context.Context, priority int, tasks ...*Tas
 		if task == nil || task.Run == nil {
 			continue
 		}
-		// 提交时去重:相同 key 只入堆一次
+		// Dedup on submit: the same key enters the heap only once
 		if task.Key != e.zeroKey {
 			if _, exists := e.seen[task.Key]; exists {
 				atomic.AddUint64(&e.taskSkipCount, 1)
@@ -270,7 +270,7 @@ func (e *Engine[KEY]) pushTasks(ctx context.Context, priority int, tasks ...*Tas
 	}
 	e.mu.Unlock()
 	if n > 0 {
-		// 非阻塞通知 dispatcher 有新任务入堆
+		// Non-blocking notify that new tasks entered the heap
 		select {
 		case e.wakeup <- struct{}{}:
 		default:
@@ -279,7 +279,7 @@ func (e *Engine[KEY]) pushTasks(ctx context.Context, priority int, tasks ...*Tas
 	return n
 }
 
-// taskDone ...
+// taskDone performs the operation.
 func (e *Engine[KEY]) taskDone() {
 	if e.maxPending > 0 && e.pendingSem != nil {
 		e.pendingSem <- struct{}{}
@@ -287,12 +287,12 @@ func (e *Engine[KEY]) taskDone() {
 	e.wg.Done()
 }
 
-// ingest ...
+// ingest performs the operation.
 func (e *Engine[KEY]) ingest() {
 	for {
 		select {
 		case <-e.ctx.Done():
-			// 排空残留任务后退出
+			// Drain leftover tasks then exit
 			for {
 				select {
 				case <-e.submitCh:
@@ -301,24 +301,24 @@ func (e *Engine[KEY]) ingest() {
 				}
 			}
 		case task := <-e.submitCh:
-			// worker 已在 produce 时占用 pending 额度,这里只负责 push + wg.Add。
+			// Worker already took pending quota at produce; here only push + wg.Add.
 			n := e.pushTasks(task.ctx, task.Priority, task)
 			e.wg.Add(n)
 		}
 	}
 }
 
-// AddOptionTasks ...
+// AddOptionTasks updates or inserts a value.
 func (e *Engine[KEY]) AddOptionTasks(ctx context.Context, priority int, tasks ...*Task[KEY]) {
 	e.addTasks(ctx, priority, tasks...)
 }
 
-// AddTasks ...
+// AddTasks updates or inserts a value.
 func (e *Engine[KEY]) AddTasks(tasks ...*Task[KEY]) {
 	e.addTasks(nil, 0, tasks...)
 }
 
-// AddWorker ...
+// AddWorker updates or inserts a value.
 func (e *Engine[KEY]) AddWorker(num int) {
 	atomic.AddUint64(&e.workerCount, uint64(num))
 	e.addWorker()
@@ -336,7 +336,7 @@ func (e *Engine[KEY]) NewFixedWorker(interval time.Duration) int {
 	return idx
 }
 
-// fixedWorker ...
+// fixedWorker returns the result.
 func (e *Engine[KEY]) fixedWorker(workerId int) *Worker[KEY] {
 	e.workersMu.Lock()
 	defer e.workersMu.Unlock()
@@ -356,7 +356,7 @@ func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration
 				log.StackLogger().Error(r, spew.Sdump(task))
 				atomic.AddUint64(&e.taskFailedCount, 1)
 				e.wg.Done()
-				// 创建一个新的
+				// create a new one
 				e.newFixedWorker(worker, interval)
 			}
 		}()
@@ -375,14 +375,14 @@ func (e *Engine[KEY]) newFixedWorker(worker *Worker[KEY], interval time.Duration
 				}
 				e.ExecTask(worker, task)
 			case <-e.ctx.Done():
-				// 引擎停止时退出,避免 fixed worker 永久阻塞在 taskCh 上
+				// Exit when the engine stops so fixed workers do not block forever on taskCh
 				return
 			}
 		}
 	}()
 }
 
-// AddFixedTasks ...
+// AddFixedTasks updates or inserts a value.
 func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task[KEY]) error {
 	err := fmt.Errorf("不存在workId为%d的fixed worker,请调用NewFixedWorker添加", workerId)
 	worker := e.fixedWorker(workerId)
@@ -411,7 +411,7 @@ func (e *Engine[KEY]) AddFixedTasks(workerId int, generation int, tasks ...*Task
 	return nil
 }
 
-// ExecTask ...
+// ExecTask performs the operation.
 func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 	if task == nil {
 		return
@@ -428,7 +428,7 @@ func (e *Engine[KEY]) ExecTask(worker *Worker[KEY], task *Task[KEY]) {
 	}
 }
 
-// execTask ...
+// execTask reports whether the condition holds.
 func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 
 	if e.speedLimit != nil {
@@ -487,7 +487,7 @@ func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 			task.err = err
 		}
 
-		// ctx 已取消时不再重试/投递错误队列,归还 wg 后返回,避免 cancel 后任务堆积导致 Run 永久阻塞
+		// If ctx is canceled, skip retry/error queue, return after wg, avoid Run hang from piled tasks
 		if e.ctx.Err() != nil {
 			e.taskDone()
 			return false
@@ -513,21 +513,21 @@ func (e *Engine[KEY]) execTask(task *Task[KEY]) bool {
 	}
 	if len(tasks) > 0 && e.ctx.Err() == nil {
 		if e.submitCh != nil {
-			// worker 在 produce 子任务时先占用 pending 额度(背压在此生效,减慢子任务生成速率),
-			// 再非阻塞发往 submitCh。ingest 协程只 push 堆、不获取额度,因此始终及时消费 submitCh,
-			// worker 不会被 ingest 阻塞。额度与 taskDone 的归还严格 1:1。
+			// Worker takes pending quota when producing subtasks (backpressure slows production),
+			// then non-blocking send to submitCh. ingest only pushes the heap and never takes quota, so it always drains submitCh,
+			// workers are never blocked by ingest. Quota returns are 1:1 with taskDone.
 			for _, c := range tasks {
 				if e.maxPending > 0 && e.pendingSem != nil {
 					select {
 					case <-e.pendingSem:
 					case <-e.ctx.Done():
-						return true // 取消时丢弃尚未入队的子任务(未计入 wg,无泄漏)
+						return true // On cancel, drop not-yet-queued subtasks (not in wg; no leak)
 					}
 				}
 				select {
 				case e.submitCh <- c:
 				case <-e.ctx.Done():
-					return true // 取消时丢弃尚未入队的子任务(未计入 wg,无泄漏)
+					return true // On cancel, drop not-yet-queued subtasks (not in wg; no leak)
 				}
 			}
 		} else {

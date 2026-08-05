@@ -11,12 +11,12 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// ByPrimary ...
+// ByPrimary returns the result.
 func ByPrimary(id any) clause.Expression {
 	return clause.Eq{Column: clause.PrimaryColumn, Value: id}
 }
 
-// ByName ...
+// ByName returns the result.
 func ByName(name string) clause.Expression {
 	return clause.Eq{Column: sqlx.ColumnName, Value: name}
 }

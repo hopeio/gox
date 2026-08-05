@@ -12,14 +12,14 @@ func NewMutexQueue[T any]() *MutexQueue[T] {
 	return &MutexQueue[T]{v: make([]T, 0)}
 }
 
-// Enqueue ...
+// Enqueue updates or inserts a value.
 func (q *MutexQueue[T]) Enqueue(v T) {
 	q.mu.Lock()
 	q.v = append(q.v, v)
 	q.mu.Unlock()
 }
 
-// Dequeue ...
+// Dequeue removes or resets state.
 func (q *MutexQueue[T]) Dequeue() (T, bool) {
 	q.mu.Lock()
 	if len(q.v) == 0 {

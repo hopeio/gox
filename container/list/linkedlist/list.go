@@ -15,13 +15,13 @@ type Node[T any] struct {
 	next *Node[T]
 }
 
-// 链表
+// linked list
 type LinkedList[T comparable] struct {
 	head, tail *Node[T]
 	size       int
 }
 
-// New ...
+// New creates a new instance.
 func New[T comparable]() *LinkedList[T] {
 	l := LinkedList[T]{}
 	return &l
@@ -37,7 +37,7 @@ func (l *LinkedList[T]) Len() int {
 	return l.size
 }
 
-// Exist ...
+// Exist reports whether the condition holds.
 func (l *LinkedList[T]) Exist(node *Node[T]) bool {
 	var p = l.head
 	for p != nil {
@@ -50,11 +50,11 @@ func (l *LinkedList[T]) Exist(node *Node[T]) bool {
 	return false
 }
 
-// GetNode ...
+// GetNode returns the value.
 func (l *LinkedList[T]) GetNode(e T) *Node[T] {
 	var p = l.head
 	for p != nil {
-		//找到该数据所在结点
+		//Find the node holding the data
 		if e == p.data {
 			return p
 		} else {
@@ -64,9 +64,9 @@ func (l *LinkedList[T]) GetNode(e T) *Node[T] {
 	return nil
 }
 
-// Append ...
+// Append updates or inserts a value.
 func (l *LinkedList[T]) Append(e T) {
-	//为数据创建新结点
+	//Create a new node for the data
 	newNode := Node[T]{}
 	newNode.data = e
 	newNode.next = nil
@@ -81,7 +81,7 @@ func (l *LinkedList[T]) Append(e T) {
 	l.size++
 }
 
-// InsertHead ...
+// InsertHead updates or inserts a value.
 func (l *LinkedList[T]) InsertHead(e T) {
 	newNode := Node[T]{}
 	newNode.data = e
@@ -93,9 +93,9 @@ func (l *LinkedList[T]) InsertHead(e T) {
 	l.size++
 }
 
-// InsertAfterNode ...
+// InsertAfterNode updates or inserts a value.
 func (l *LinkedList[T]) InsertAfterNode(pre *Node[T], e T) error {
-	//如果链表中存在该结点，才进行插入
+	//Insert only if the node exists in the list
 	if l.Exist(pre) {
 		newNode := Node[T]{}
 		newNode.data = e
@@ -111,11 +111,11 @@ func (l *LinkedList[T]) InsertAfterNode(pre *Node[T], e T) error {
 	return errors.New("链表中不存在该结点")
 }
 
-// InsertAfterData ...
+// InsertAfterData updates or inserts a value.
 func (l *LinkedList[T]) InsertAfterData(preData T, e T) error {
 	var p = l.head
 	for p != nil {
-		//找到该数据所在结点
+		//Find the node holding the data
 		if p.data == preData {
 			l.InsertAfterNode(p, e)
 			return nil
@@ -123,45 +123,45 @@ func (l *LinkedList[T]) InsertAfterData(preData T, e T) error {
 			p = p.next
 		}
 	}
-	//没有找到该数据
+	//Data not found
 	return errors.New("链表中没有该数据，插入失败")
 }
 
-// Insert ...
+// Insert updates or inserts a value.
 func (l *LinkedList[T]) Insert(position int, e T) error {
 	if position < 0 {
 		return errors.New("下标不能为负数")
 	} else if position == 0 {
-		//在头部插入
+		//Insert at the head
 		l.InsertHead(e)
 		return nil
 	} else if position == l.size {
-		//在尾部插入
+		//Insert at the tail
 		l.Append(e)
 		return nil
 	} else if position > l.size {
 		return errors.New("指定下标超出链表长度")
 	} else {
-		//在中间插入
+		//Insert in the middle
 		var index int
 		var p = l.head
-		//逐个移动指针
-		//position是插入后新结点的下标，position-1时需要定位到的其前一个结点的下标
+		//Advance pointers one by one
+		//position is the new node's index after insert; at position-1 locate the previous node
 		for index = 0; index < position-1; index++ {
 			p = p.next
 		}
-		//找到
+		//found
 		l.InsertAfterNode(p, e)
 		return nil
 	}
 
 }
 
-// DeleteNode ...
+// DeleteNode removes or resets state.
 func (l *LinkedList[T]) DeleteNode(node *Node[T]) {
-	//存在该结点
+	//node exists
 	if l.Exist(node) {
-		//如果是头部结点
+		//If it is the head node
 		if node == l.head {
 			if node == l.tail {
 				l.head = nil
@@ -170,16 +170,16 @@ func (l *LinkedList[T]) DeleteNode(node *Node[T]) {
 				l.head = l.head.next
 			}
 			return
-			//如果是尾部结点
+			//If it is the tail node
 		} else if node == l.tail {
-			//寻找指向其前一个结点的指针
+			//Find the pointer to the previous node
 			var p = l.head
 			for p.next != l.tail {
 				p = p.next
 			}
 			p.next = nil
 			l.tail = p
-			//中间结点
+			//middle node
 		} else {
 			var p = l.head
 			for p.next != node {
@@ -191,7 +191,7 @@ func (l *LinkedList[T]) DeleteNode(node *Node[T]) {
 	}
 }
 
-// Delete ...
+// Delete removes or resets state.
 func (l *LinkedList[T]) Delete(e T) {
 	p := l.GetNode(e)
 	if p == nil {
@@ -200,7 +200,7 @@ func (l *LinkedList[T]) Delete(e T) {
 	l.DeleteNode(p)
 }
 
-// traverse ...
+// traverse performs the operation.
 func (l *LinkedList[T]) traverse(f func(T)) {
 	var p = l.head
 	if l.IsEmpty() {

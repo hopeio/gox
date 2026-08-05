@@ -37,7 +37,7 @@ const (
 	NotLike
 )
 
-// ParseConditionOperation ...
+// ParseConditionOperation parses the input.
 func ParseConditionOperation(op string) ConditionOperation {
 	op = strings.ToUpper(op)
 	switch op {
@@ -69,7 +69,7 @@ func ParseConditionOperation(op string) ConditionOperation {
 	return OperationPlace
 }
 
-// SQL ...
+// SQL returns the result.
 func (m ConditionOperation) SQL() string {
 	switch m {
 	case Equal:
@@ -143,7 +143,7 @@ type FilterExpr struct {
 	Value     any                `json:"value,omitempty"`
 }
 
-// Build ...
+// Build returns the result.
 func (filter *FilterExpr) Build() string {
 	filter.Field = strings.TrimSpace(filter.Field)
 
@@ -178,7 +178,7 @@ func (filter *FilterExpr) Build() string {
 
 type FilterExprs []FilterExpr
 
-// Build ...
+// Build returns the result.
 func (f FilterExprs) Build() string {
 	var conditions []string
 	for _, filter := range f {
@@ -195,7 +195,7 @@ func (f FilterExprs) Build() string {
 	return strings.Join(conditions, " AND ")
 }
 
-// ConvertParams ...
+// ConvertParams converts the value.
 func ConvertParams(v any, escaper string) string {
 	switch v := v.(type) {
 	case bool:
@@ -290,7 +290,7 @@ func (f FilterExprs) BuildSQL() (string, []any) {
 	return "", nil
 }
 
-// AnyToAnys ...
+// AnyToAnys returns the result.
 func AnyToAnys(a any) []any {
 	if a == nil {
 		return nil

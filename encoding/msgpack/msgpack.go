@@ -14,7 +14,7 @@ import (
 
 var handler = codec.MsgpackHandle{}
 
-// Marshal ...
+// Marshal encodes the value.
 func Marshal(v any) ([]byte, error) {
 	r := bytes.NewBuffer(nil)
 	decoder := codec.NewEncoder(r, &handler)

@@ -10,7 +10,7 @@ import (
 	"github.com/hopeio/gox/cmp"
 )
 
-// Init ...
+// Init performs the operation.
 func Init[T cmp.Comparable[T]](heap []T) {
 	// heapify
 	n := len(heap)
@@ -19,7 +19,7 @@ func Init[T cmp.Comparable[T]](heap []T) {
 	}
 }
 
-// Down ...
+// Down executes the operation.
 func Down[T cmp.Comparable[T]](heap []T, i0, n int) bool {
 	i := i0
 	for {
@@ -40,7 +40,7 @@ func Down[T cmp.Comparable[T]](heap []T, i0, n int) bool {
 	return i > i0
 }
 
-// Up ...
+// Up performs the operation.
 func Up[T cmp.Comparable[T]](heap []T, j int) {
 
 	for {
@@ -53,14 +53,14 @@ func Up[T cmp.Comparable[T]](heap []T, j int) {
 	}
 }
 
-// Fix ...
+// Fix performs the operation.
 func Fix[T cmp.Comparable[T]](heap []T, i int) {
 	if !Down(heap, i, len(heap)) {
 		Up(heap, i)
 	}
 }
 
-// AdjustDown ...
+// AdjustDown performs the operation.
 func AdjustDown[T cmp.Comparable[T]](heap []T, i int) {
 	child := leftChild(i)
 	for child < len(heap) {
@@ -76,7 +76,7 @@ func AdjustDown[T cmp.Comparable[T]](heap []T, i int) {
 	}
 }
 
-// AdjustUp ...
+// AdjustUp performs the operation.
 func AdjustUp[T cmp.Comparable[T]](heap []T, i int) {
 	p := parent(i)
 	for p >= 0 && heap[i].Compare(heap[p]) > 0 {
@@ -86,12 +86,12 @@ func AdjustUp[T cmp.Comparable[T]](heap []T, i int) {
 	}
 }
 
-// parent ...
+// parent returns the result.
 func parent(i int) int {
 	return (i - 1) / 2
 }
 
-// leftChild ...
+// leftChild returns the result.
 func leftChild(i int) int {
 	return i*2 + 1
 }

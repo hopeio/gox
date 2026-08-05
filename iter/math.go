@@ -15,7 +15,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// SumComparable ...
+// SumComparable returns the result.
 func SumComparable[T constraints.Ordered](seq iter.Seq[T]) T {
 	var result T
 	for v := range seq {

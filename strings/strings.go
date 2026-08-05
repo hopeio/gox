@@ -19,7 +19,7 @@ import (
 	"github.com/hopeio/gox/text/encoding/ascii"
 )
 
-// FormatLen ...
+// FormatLen formats or converts the value.
 func FormatLen(s string, length int) string {
 	if len(s) < length {
 		return s + strings.Repeat(" ", length-len(s))
@@ -35,7 +35,7 @@ func IsQuoted[T ~string | ~[]byte](s T) bool {
 	return (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'')
 }
 
-// CamelToSnake ...
+// CamelToSnake returns the result.
 func CamelToSnake(name string) string {
 	var ret bytes.Buffer
 
@@ -81,7 +81,7 @@ func CamelToSnake(name string) string {
 	return string(ret.Bytes())
 }
 
-// LowerCaseFirst ...
+// LowerCaseFirst returns the result.
 func LowerCaseFirst(t string) string {
 	if t == "" {
 		return ""
@@ -92,7 +92,7 @@ func LowerCaseFirst(t string) string {
 	//return string(LowerCase(t[0])) + t[1:]
 }
 
-// LowerCase ...
+// LowerCase returns the result.
 func LowerCase(c byte) byte {
 	if 'A' <= c && c <= 'Z' {
 		return c ^ ' '
@@ -100,7 +100,7 @@ func LowerCase(c byte) byte {
 	return c
 }
 
-// UpperCaseFirst ...
+// UpperCaseFirst returns the result.
 func UpperCaseFirst(t string) string {
 	if t == "" {
 		return ""
@@ -111,7 +111,7 @@ func UpperCaseFirst(t string) string {
 	//return string(UpperCase(t[0])) + t[1:]
 }
 
-// UpperCase ...
+// UpperCase returns the result.
 func UpperCase(c byte) byte {
 	if 'a' <= c && c <= 'z' {
 		return c ^ ' '
@@ -128,7 +128,7 @@ func ReplaceRunes(s string, olds []rune, new rune) string {
 	panic("TODO")
 }
 
-// RemoveRunes ...
+// RemoveRunes removes or resets state.
 func RemoveRunes(s string, old ...rune) string {
 	if len(old) == 0 {
 		return s // avoid allocation
@@ -163,7 +163,7 @@ func RemoveRunes(s string, old ...rune) string {
 
 // And now lots of helper functions.
 
-// SnakeToCamel ...
+// SnakeToCamel returns the result.
 func SnakeToCamel[T ~string](s T) string {
 	if s == "" {
 		return ""
@@ -203,17 +203,17 @@ func SnakeToCamel[T ~string](s T) string {
 	return string(t)
 }
 
-// CamelCaseSlice ...
+// CamelCaseSlice returns the result.
 func CamelCaseSlice(elem []string) string { return SnakeToCamel(strings.Join(elem, "_")) }
 
 type NumLetterSlice[T any] ['z' - '0' + 1]T
 
-// Set ...
+// Set updates or inserts a value.
 func (n *NumLetterSlice[T]) Set(b byte, v T) {
 	n[b-'0'] = v
 }
 
-// ReplaceBytes ...
+// ReplaceBytes returns the result.
 func ReplaceBytes(s string, olds []byte, new byte) string {
 	if len(olds) == 0 || (len(olds) == 1 && olds[0] == new) {
 		return s // avoid allocation
@@ -238,7 +238,7 @@ func ReplaceBytes(s string, olds []byte, new byte) string {
 	return string(t)
 }
 
-// ReplaceBytesEmpty ...
+// ReplaceBytesEmpty returns the result.
 func ReplaceBytesEmpty(s string, old ...byte) string {
 	if len(old) == 0 {
 		return s // avoid allocation
@@ -276,7 +276,7 @@ func ReplaceBytesEmpty(s string, old ...byte) string {
 	return string(t[0:w])
 }
 
-// Rand ...
+// Rand returns the result.
 func Rand(length int) string {
 	randId := make([]byte, length)
 	for i := range randId {
@@ -295,7 +295,7 @@ func Rand(length int) string {
 	return FromBytes(randId)
 }
 
-// ReverseCutPart ...
+// ReverseCutPart returns the result.
 func ReverseCutPart(s, key string) string {
 	keyLen := len(key)
 	sEndIndex := len(s) - 1
@@ -311,7 +311,7 @@ func ReverseCutPart(s, key string) string {
 	return s
 }
 
-// CutPart ...
+// CutPart returns the result.
 func CutPart(s, sep string) string {
 	sepLen := len(sep)
 	sEndIndex := len(s) - 1
@@ -324,7 +324,7 @@ func CutPart(s, sep string) string {
 	return s
 }
 
-// CutPartContain ...
+// CutPartContain returns the result.
 func CutPartContain(s, sep string) string {
 	sepLen := len(sep)
 	sEndIndex := len(s) - 1
@@ -337,7 +337,7 @@ func CutPartContain(s, sep string) string {
 	return s
 }
 
-// Cut ...
+// Cut performs the operation.
 func Cut(s, sep string) (string, string, bool) {
 	if i := strings.Index(s, sep); i >= 0 {
 		return s[:i], s[i+len(sep):], true
@@ -345,7 +345,7 @@ func Cut(s, sep string) (string, string, bool) {
 	return s, "", false
 }
 
-// ReverseCut ...
+// ReverseCut performs the operation.
 func ReverseCut(s, sep string) (string, string, bool) {
 	if i := strings.LastIndex(s, sep); i >= 0 {
 		return s[:i], s[i+len(sep):], true
@@ -353,25 +353,25 @@ func ReverseCut(s, sep string) (string, string, bool) {
 	return s, "", false
 }
 
-// BracketsIntervals ...
+// BracketsIntervals performs the operation.
 func BracketsIntervals(s string, tokenBegin, tokenEnd rune) (string, bool) {
-	var level int // 当前嵌套层级
-	begin := -1   // 记录开始符号的索引
+	var level int // current nesting level
+	begin := -1   // index of the opening delimiter
 	for i, r := range s {
 		if r == tokenBegin {
 			if begin == -1 {
-				begin = i // 首次遇到开始符号，记录其索引
+				begin = i // first opening delimiter; record its index
 			}
-			level++ // 嵌套层级加一
+			level++ // increase nesting level
 		} else if r == tokenEnd {
-			level-- // 遇到结束符号，嵌套层级减一
+			level-- // closing delimiter; decrease nesting level
 			if level == 0 {
-				// 当层级归零时，表示找到了匹配的区间，返回该区间
+				// level back to zero means a matched span was found; return it
 				return s[begin : i+1], true
 			}
 		}
 	}
-	// 若遍历结束仍未找到匹配的区间，返回空字符串和false
+	// if no matched span is found, return empty string and false
 	return "", false
 }
 
@@ -551,7 +551,7 @@ func IsNumber(str string) bool {
 	return true
 }
 
-// DJB33 ...
+// DJB33 returns the result.
 func DJB33(seed uint32, k string) uint32 {
 	var (
 		l = uint32(len(k))
@@ -582,7 +582,7 @@ func DJB33(seed uint32, k string) uint32 {
 	return d ^ (d >> 16)
 }
 
-// RemoveSymbol ...
+// RemoveSymbol removes or resets state.
 func RemoveSymbol(s string) string {
 	return CommonRuneHandler(s, func(r rune) bool {
 		return !(unicode.IsLetter(r) || unicode.IsNumber(r))
@@ -591,26 +591,26 @@ func RemoveSymbol(s string) string {
 
 var emojiReg = regexp.MustCompile(`[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]`)
 
-// RemoveEmoji ...
+// RemoveEmoji removes or resets state.
 func RemoveEmoji(s string) string {
 	return emojiReg.ReplaceAllString(s, "")
 }
 
-// RetainHanAndASCIIGt32 ...
+// RetainHanAndASCIIGt32 returns the result.
 func RetainHanAndASCIIGt32(s string) string {
 	return CommonRuneHandler(s, func(r rune) bool {
 		return !(unicode.Is(unicode.Han, r) || (r > 32 && r < 127))
 	})
 }
 
-// RetainHanAndASCII ...
+// RetainHanAndASCII returns the result.
 func RetainHanAndASCII(s string) string {
 	return CommonRuneHandler(s, func(r rune) bool {
 		return !(unicode.Is(unicode.Han, r) || (r < 127))
 	})
 }
 
-// CommonRuneHandler ...
+// CommonRuneHandler returns the result.
 func CommonRuneHandler(s string, rm func(r rune) bool) string {
 	if len(s) == 0 {
 		return s // avoid allocation
@@ -643,7 +643,7 @@ func CommonRuneHandler(s string, rm func(r rune) bool) string {
 	return FromBytes(t[0:w])
 }
 
-// CommonRuneReplace ...
+// CommonRuneReplace returns the result.
 func CommonRuneReplace(s string, f func(r rune) rune) string {
 	if len(s) == 0 {
 		return s // avoid allocation
@@ -662,7 +662,7 @@ func IsEmpty(str string) bool {
 	return len(strings.TrimSpace(str)) == 0
 }
 
-// JoinIndexFunc ...
+// JoinIndexFunc returns the result.
 func JoinIndexFunc[S ~[]T, T any](s S, toString func(i int) string, sep string) string {
 	switch len(s) {
 	case 0:
@@ -685,7 +685,7 @@ func JoinIndexFunc[S ~[]T, T any](s S, toString func(i int) string, sep string) 
 	return b.String()
 }
 
-// JoinValueFunc ...
+// JoinValueFunc returns the result.
 func JoinValueFunc[S ~[]T, T any](s S, toString func(v T) string, sep string) string {
 	switch len(s) {
 	case 0:
@@ -710,7 +710,7 @@ func JoinValueFunc[S ~[]T, T any](s S, toString func(v T) string, sep string) st
 	return b.String()
 }
 
-// JoinFunc ...
+// JoinFunc returns the result.
 func JoinFunc[S ~[]T, T any](s S, toString func(idx int, v T) string, sep string) string {
 	switch len(s) {
 	case 0:
@@ -735,7 +735,7 @@ func JoinFunc[S ~[]T, T any](s S, toString func(idx int, v T) string, sep string
 	return b.String()
 }
 
-// Join ...
+// Join returns the result.
 func Join[S ~[]T, T fmt.Stringer](s S, sep string) string {
 	switch len(s) {
 	case 0:

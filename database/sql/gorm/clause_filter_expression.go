@@ -10,7 +10,7 @@ import (
 
 type FilterExpr sqlx.FilterExpr
 
-// Condition ...
+// Condition returns the result.
 func (f *FilterExpr) Condition() clause.Expression {
 	f.Field = strings.TrimSpace(f.Field)
 	return NewCondition(f.Field, f.Operation, f.Value)
@@ -18,7 +18,7 @@ func (f *FilterExpr) Condition() clause.Expression {
 
 type FilterExprs sqlx.FilterExprs
 
-// Conditions ...
+// Conditions returns the result.
 func (f FilterExprs) Conditions() []clause.Expression {
 	var exprs []clause.Expression
 	for _, filter := range f {
@@ -36,7 +36,7 @@ func (f FilterExprs) Conditions() []clause.Expression {
 	return nil
 }
 
-// Condition ...
+// Condition returns the result.
 func (f FilterExprs) Condition() clause.Expression {
 	exprs := f.Conditions()
 	if len(exprs) > 0 {
@@ -45,7 +45,7 @@ func (f FilterExprs) Condition() clause.Expression {
 	return nil
 }
 
-// Apply ...
+// Apply returns the result.
 func (f FilterExprs) Apply(db *gorm.DB) *gorm.DB {
 	for _, filter := range f {
 		filter.Field = strings.TrimSpace(filter.Field)

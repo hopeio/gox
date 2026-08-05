@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-// FormatRelativeTime ...
+// FormatRelativeTime formats the time difference from fromTime to now.
 func FormatRelativeTime(fromTime time.Time) string {
 	now := time.Now()
 	duration := now.Sub(fromTime)
 
 	days := int(duration.Hours() / 24)
 	weeks := days / 7
-	months := int(duration.Hours() / (24 * 30)) // 简化计算，实际月份天数有变化
+	months := int(duration.Hours() / (24 * 30)) // simplified; real month lengths vary
 	years := months / 12
 
 	switch {
@@ -39,17 +39,17 @@ func FormatRelativeTime(fromTime time.Time) string {
 	}
 }
 
-// ParseTime ...
+// ParseTime parses a time-only string.
 func ParseTime(t string) (time.Time, error) {
 	return time.Parse(time.TimeOnly, t)
 }
 
-// ParseDateTime ...
+// ParseDateTime parses a full date-time string.
 func ParseDateTime(t string) (time.Time, error) {
 	return time.Parse(time.DateTime, t)
 }
 
-// ParseDate ...
+// ParseDate parses a date-only string.
 func ParseDate(t string) (time.Time, error) {
 	return time.Parse(time.DateOnly, t)
 }

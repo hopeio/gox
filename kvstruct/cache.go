@@ -211,7 +211,7 @@ type structInfo struct {
 	fields []*fieldInfo
 }
 
-// get ...
+// get returns the result.
 func (i *structInfo) get(alias string) *fieldInfo {
 	for _, field := range i.fields {
 		if strings.EqualFold(field.alias, alias) {
@@ -252,7 +252,7 @@ type fieldInfo struct {
 	isRequired  bool
 }
 
-// paths ...
+// paths returns the result.
 func (f *fieldInfo) paths(prefix string) []string {
 	if f.alias == f.canonicalAlias {
 		return []string{prefix + f.alias}
@@ -268,7 +268,7 @@ type pathPart struct {
 
 // ----------------------------------------------------------------------------
 
-// indirectType ...
+// indirectType returns the result.
 func indirectType(typ reflect.Type) reflect.Type {
 	if typ.Kind() == reflect.Ptr {
 		return typ.Elem()

@@ -1,6 +1,6 @@
 package gox
 
-// TernaryOperator ...
+// TernaryOperator returns a if v is true; otherwise it returns b.
 func TernaryOperator[T any](v bool, a, b T) T {
 	if v {
 		return a
@@ -8,7 +8,7 @@ func TernaryOperator[T any](v bool, a, b T) T {
 	return b
 }
 
-// Match ...
+// Match returns a if yes is true; otherwise it returns b.
 func Match[T any](yes bool, a, b T) T {
 	if yes {
 		return a
@@ -16,25 +16,25 @@ func Match[T any](yes bool, a, b T) T {
 	return b
 }
 
-// Pointer ...
+// Pointer returns a pointer to t.
 func Pointer[T any](t T) *T {
 	return &t
 }
 
-// Zero ...
+// Zero returns the zero value for T.
 func Zero[T any]() T {
 	var zero T
 	return zero
 }
 
-// Nil ...
+// Nil returns a nil pointer of type *T.
 func Nil[T any]() *T {
 	return (*T)(nil)
 }
 
-// zero ...
+// zero returns the zero value for T (unexported helper).
 func zero[T any]() T {
 	return *new(T)
 }
 
-// 两种转换,any(i).(T), T(any(i))
+// Two conversion forms: any(i).(T) and T(any(i)).

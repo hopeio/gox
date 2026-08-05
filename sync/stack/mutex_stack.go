@@ -12,14 +12,14 @@ func NewMutexStack[T any]() *MutexStack[T] {
 	return &MutexStack[T]{v: make([]T, 0)}
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (s *MutexStack[T]) Push(v T) {
 	s.mu.Lock()
 	s.v = append(s.v, v)
 	s.mu.Unlock()
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (s *MutexStack[T]) Pop() (T, bool) {
 	s.mu.Lock()
 	if len(s.v) == 0 {

@@ -6,7 +6,7 @@
 
 package types
 
-// PairOf ...
+// PairOf returns the result.
 func PairOf[T1 any, T2 any](f T1, s T2) Pair[T1, T2] {
 	return Pair[T1, T2]{f, s}
 }
@@ -16,17 +16,17 @@ type Pair[T1 any, T2 any] struct {
 	Second T2
 }
 
-// Val ...
+// Val returns the value.
 func (a *Pair[T1, T2]) Val() (T1, T2) {
 	return a.First, a.Second
 }
 
-// PairPtrOf ...
+// PairPtrOf returns the result.
 func PairPtrOf[T1 any, T2 any](f T1, s T2) *Pair[T1, T2] {
 	return &Pair[T1, T2]{f, s}
 }
 
-// TupleOf ...
+// TupleOf returns the result.
 func TupleOf[T1 any, T2 any, T3 any](f T1, s T2, t T3) *Tuple[T1, T2, T3] {
 	return &Tuple[T1, T2, T3]{f, s, t}
 }
@@ -37,7 +37,7 @@ type Tuple[T1 any, T2 any, T3 any] struct {
 	Third  T3
 }
 
-// Val ...
+// Val returns the value.
 func (a *Tuple[T1, T2, T3]) Val() (T1, T2, T3) {
 	return a.First, a.Second, a.Third
 }

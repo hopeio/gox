@@ -21,22 +21,22 @@ type BGR struct {
 	Rect image.Rectangle
 }
 
-// ColorModel ...
+// ColorModel returns the result.
 func (raw *BGR) ColorModel() color.Model {
 	return colori.RGBModel
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (raw *BGR) Bounds() image.Rectangle {
 	return raw.Rect
 }
 
-// PixOffset ...
+// PixOffset returns the result.
 func (raw *BGR) PixOffset(x, y int) int {
 	return (y-raw.Rect.Min.Y)*raw.Stride + (x-raw.Rect.Min.X)*3
 }
 
-// At ...
+// At returns the result.
 func (raw *BGR) At(x, y int) color.Color {
 	if !(image.Point{X: x, Y: y}.In(raw.Rect)) {
 		return colori.RGB{}
@@ -46,7 +46,7 @@ func (raw *BGR) At(x, y int) color.Color {
 	return colori.RGB{R: r, G: g, B: b}
 }
 
-// Set ...
+// Set updates or inserts a value.
 func (raw *BGR) Set(x, y int, c color.Color) {
 	if !(image.Point{X: x, Y: y}.In(raw.Rect)) {
 		return

@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-// ReadLines ...
+// ReadLines performs the operation.
 func ReadLines(reader io.Reader, f func(line string) bool) error {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
@@ -26,7 +26,7 @@ type ReadCloserWrapper struct {
 	io.ReadCloser
 }
 
-// WriteTo ...
+// WriteTo performs the operation.
 func (r ReadCloserWrapper) WriteTo(w io.Writer) (int64, error) {
 	return io.Copy(w, r.ReadCloser)
 }
@@ -37,7 +37,7 @@ type RawByter interface {
 
 type RawBytes []byte
 
-// WriteTo ...
+// WriteTo performs the operation.
 func (res RawBytes) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(res)
 	return int64(n), err
@@ -48,20 +48,20 @@ func (res RawBytes) Close() error {
 	return nil
 }
 
-// Write ...
+// Write performs the operation.
 func (res *RawBytes) Write(p []byte) (int, error) {
 	*res = append(*res, p...)
 	return len(p), nil
 }
 
-// Read ...
+// Read performs the operation.
 func (res RawBytes) Read(p []byte) (int, error) {
 	n := copy(p, res)
 	res = (res)[n:]
 	return n, nil
 }
 
-// Raw ...
+// Raw returns the result.
 func (res RawBytes) Raw() []byte {
 	return res
 }
@@ -71,7 +71,7 @@ type ReadWrapper struct {
 	close func() error
 }
 
-// WriteTo ...
+// WriteTo performs the operation.
 func (r *ReadWrapper) WriteTo(w1 io.Writer) (int64, error) {
 	return io.Copy(w1, r.Reader)
 }
@@ -84,7 +84,7 @@ func (r *ReadWrapper) Close() error {
 	return r.close()
 }
 
-// WrapReader ...
+// WrapReader returns the result.
 func WrapReader(r io.Reader, close func() error) *ReadWrapper {
 	return &ReadWrapper{
 		Reader: r,

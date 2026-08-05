@@ -56,7 +56,7 @@ func New[T any](cmp cmp.CompareFunc[T]) *BTree[T] {
 	return tr
 }
 
-// find ...
+// find returns the result.
 func (n *node[T]) find(key T, cmp cmp.CompareFunc[T],
 	hint *PathHint, depth int,
 ) (index int16, found bool) {
@@ -135,7 +135,7 @@ func (tr *BTree[T]) Set(item T) (prev T, ok bool) {
 	return tr.SetHint(item, nil)
 }
 
-// split ...
+// split performs the operation.
 func (n *node[T]) split() (right *node[T], median T) {
 	right = newNode[T](n.leaf)
 	median = n.items[maxItems/2]
@@ -156,7 +156,7 @@ func (n *node[T]) split() (right *node[T], median T) {
 	return right, median
 }
 
-// set ...
+// set returns the result.
 func (n *node[T]) set(item T, cmp cmp.CompareFunc[T],
 	hint *PathHint, depth int,
 ) (prev T, ok bool) {
@@ -187,7 +187,7 @@ func (n *node[T]) set(item T, cmp cmp.CompareFunc[T],
 	return prev, ok
 }
 
-// scan ...
+// scan reports whether the condition holds.
 func (n *node[T]) scan(iter func(item T) bool) bool {
 	if n.leaf {
 		for i := int16(0); i < n.numItems; i++ {
@@ -263,7 +263,7 @@ func (tr *BTree[T]) DeleteHint(key T, hint *PathHint) (T, bool) {
 	return prev, ok
 }
 
-// delete ...
+// delete returns the result.
 func (n *node[T]) delete(max bool, key T,
 	cmp cmp.CompareFunc[T], hint *PathHint, depth int,
 ) (T, bool) {
@@ -378,7 +378,7 @@ func (tr *BTree[T]) Ascend(pivot *T, iter func(item T) bool) {
 	}
 }
 
-// ascend ...
+// ascend returns the result.
 func (n *node[T]) ascend(pivot T, cmp cmp.CompareFunc[T],
 	hint *PathHint, depth int, iter func(item T) bool,
 ) bool {
@@ -403,7 +403,7 @@ func (n *node[T]) ascend(pivot T, cmp cmp.CompareFunc[T],
 	return true
 }
 
-// reverse ...
+// reverse reports whether the condition holds.
 func (n *node[T]) reverse(iter func(item T) bool) bool {
 	if n.leaf {
 		for i := n.numItems - 1; i >= 0; i-- {
@@ -441,7 +441,7 @@ func (tr *BTree[T]) Descend(pivot *T, iter func(item T) bool) {
 	}
 }
 
-// descend ...
+// descend returns the result.
 func (n *node[T]) descend(pivot T, cmp cmp.CompareFunc[T],
 	hint *PathHint, depth int, iter func(item T) bool,
 ) bool {
@@ -594,7 +594,7 @@ func (tr *BTree[T]) Walk(iter func(item []T)) {
 	}
 }
 
-// walk ...
+// walk performs the operation.
 func (n *node[T]) walk(iter func(item []T)) {
 	if n.leaf {
 		iter(n.items[:n.numItems])

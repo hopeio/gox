@@ -31,7 +31,7 @@ func (c ContentType) String() string {
 	}
 }
 
-// Decode ...
+// Decode formats or converts the value.
 func (c *ContentType) Decode(contentType string) {
 	if strings.HasPrefix(contentType, http.ContentTypeJson) {
 		*c = ContentTypeJson

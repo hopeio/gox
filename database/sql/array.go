@@ -26,7 +26,7 @@ import (
 // adpter postgres
 type IntArray[T constraints.Integer] []T
 
-// Scan ...
+// Scan performs the operation.
 func (d *IntArray[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -49,7 +49,7 @@ func (d *IntArray[T]) Scan(value any) error {
 	return nil
 }
 
-// Value ...
+// Value returns the value.
 func (d IntArray[T]) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -68,7 +68,7 @@ func (d IntArray[T]) Value() (driver.Value, error) {
 
 type FloatArray[T constraints.Float] []T
 
-// Scan ...
+// Scan performs the operation.
 func (d *FloatArray[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -91,7 +91,7 @@ func (d *FloatArray[T]) Scan(value any) error {
 	return nil
 }
 
-// Value ...
+// Value returns the value.
 func (d FloatArray[T]) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -110,7 +110,7 @@ func (d FloatArray[T]) Value() (driver.Value, error) {
 
 type StringArray []string
 
-// Scan ...
+// Scan performs the operation.
 func (d *StringArray) Scan(value any) error {
 	if value == nil {
 		return nil
@@ -135,7 +135,7 @@ func (d *StringArray) Scan(value any) error {
 	return nil
 }
 
-// Value ...
+// Value returns the value.
 func (d StringArray) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -160,7 +160,7 @@ func (d StringArray) Value() (driver.Value, error) {
 // only support number
 type Array[T any] []T
 
-// Scan ...
+// Scan performs the operation.
 func (d *Array[T]) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -203,7 +203,7 @@ func (d *Array[T]) Scan(value any) error {
 	return nil
 }
 
-// Value ...
+// Value returns the value.
 func (d Array[T]) Value() (driver.Value, error) {
 	if len(d) == 0 {
 		return nil, nil
@@ -247,7 +247,7 @@ func (d Array[T]) Value() (driver.Value, error) {
 
 type TimeArray []time.Time
 
-// Scan ...
+// Scan performs the operation.
 func (d *TimeArray) Scan(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -270,7 +270,7 @@ func (d *TimeArray) Scan(value any) error {
 	return nil
 }
 
-// Value ...
+// Value returns the value.
 func (d TimeArray) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
@@ -290,11 +290,11 @@ func (d TimeArray) Value() (driver.Value, error) {
 	return buf.String(), nil
 }
 
-// 不要用这个类型，下面这些都合法，直接用jsonb
+// Do not use this type; the forms below are valid — use jsonb directly
 // {[],[]} {"{}","{}"} {"{}",[]}
 type jsonArray []map[string]any
 
-// Scan ...
+// Scan performs the operation.
 func (j *jsonArray) Scan(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
@@ -333,7 +333,7 @@ func (j *jsonArray) Scan(value interface{}) error {
 	return nil
 }
 
-// Value ...
+// Value returns the value.
 func (j jsonArray) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
@@ -358,7 +358,7 @@ func (j jsonArray) Value() (driver.Value, error) {
 	return buf.String(), nil
 }
 
-// GormDataType ...
+// GormDataType returns the result.
 func (*jsonArray) GormDataType() string {
 	return "jsonb[]"
 }

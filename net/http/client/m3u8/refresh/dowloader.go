@@ -63,7 +63,7 @@ func NewTask(filePath, tsFolder string, url string) (*Downloader, error) {
 	return d, nil
 }
 
-// SegLen ...
+// SegLen returns the result.
 func (d *Downloader) SegLen() int {
 	return d.segLen
 }
@@ -122,7 +122,7 @@ func (d *Downloader) Download() error {
 	return nil
 }
 
-// Downloadts ...
+// Downloadts executes the operation.
 func (d *Downloader) Downloadts(segIndex int) error {
 	tsFilename := tsFilename(segIndex)
 
@@ -143,14 +143,14 @@ func (d *Downloader) Downloadts(segIndex int) error {
 			return err
 		}
 	}
-	// Maybe it will be safer in this way...
+	// Maybe it will be safer in this way.
 	atomic.AddInt32(&d.finish, 1)
 	//tool.DrawProgressBar("Downloading", float32(d.finish)/float32(d.segLen), progressWidth)
 	fmt.Printf("[download %6.2f%%] %s\r", float32(d.finish)/float32(d.segLen)*100, d.url)
 	return nil
 }
 
-// Merge ...
+// Merge performs the operation.
 func (d *Downloader) Merge() error {
 	// In fact, the number of downloaded segments should be equal to number of m3u8 segments
 	missingCount := 0
@@ -199,12 +199,12 @@ func (d *Downloader) Merge() error {
 	return nil
 }
 
-// tsFilename ...
+// tsFilename returns the result.
 func tsFilename(ts int) string {
 	return strconv.Itoa(ts) + tsExt
 }
 
-// FfmpegConcatFile ...
+// FfmpegConcatFile performs the operation.
 func (d *Downloader) FfmpegConcatFile() (string, error) {
 	var data bytes.Buffer
 	for i := range d.segLen {
@@ -226,12 +226,12 @@ func (d *Downloader) FfmpegConcatFile() (string, error) {
 	return ffmpegFilePath, nil
 }
 
-// Finished ...
+// Finished reports whether the condition holds.
 func (d *Downloader) Finished() bool {
 	return d.finish == int32(d.segLen)
 }
 
-// RemoveTmp ...
+// RemoveTmp removes or resets state.
 func (d *Downloader) RemoveTmp() error {
 	return os.RemoveAll(d.tsDir)
 }

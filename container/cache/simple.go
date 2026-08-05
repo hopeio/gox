@@ -11,13 +11,13 @@ type Simple struct {
 	// If this is confusing, see the comment at the bottom of New()
 }
 
-// init ...
+// init initializes package state.
 func (c *Simple) init(bc *baseCache) {
 	c.baseCache = bc
 	c.items = make(map[any]*item, bc.size)
 }
 
-// set ...
+// set performs the operation.
 func (c *Simple) set(k any, x any, expiration *time.Time) (*item, error) {
 	if (len(c.items)) >= c.size {
 		c.exvict(1)
@@ -34,7 +34,7 @@ func (c *Simple) set(k any, x any, expiration *time.Time) (*item, error) {
 	return item, nil
 }
 
-// get ...
+// get performs the operation.
 func (c *Simple) get(k any, onLoad bool) (*item, error) {
 	item, found := c.items[k]
 	if found {
@@ -55,19 +55,19 @@ func (c *Simple) get(k any, onLoad bool) (*item, error) {
 	return nil, KeyNotFoundError
 }
 
-// length ...
+// length returns the result.
 func (c *Simple) length() int {
 	return len(c.items)
 }
 
-// foreach ...
+// foreach performs the operation.
 func (c *Simple) foreach(f func(*item)) {
 	for _, item := range c.items {
 		f(item)
 	}
 }
 
-// remove ...
+// remove reports whether the condition holds.
 func (c *Simple) remove(k any) bool {
 	if it, found := c.items[k]; found {
 		delete(c.items, it.key)
@@ -79,7 +79,7 @@ func (c *Simple) remove(k any) bool {
 	return false
 }
 
-// exvict ...
+// exvict performs the operation.
 func (c *Simple) exvict(count int) {
 	for k, item := range c.items {
 		if item.Expired(nil) {

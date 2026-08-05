@@ -21,7 +21,7 @@ type GoIter[T any] interface {
 	Stop()
 }
 
-// SeqIter ...
+// SeqIter returns the result.
 func SeqIter[T any](seq iter.Seq[T]) Iterator[T] {
 	next, stop := iter.Pull(seq)
 	return seqIter[T]{next, stop}
@@ -32,7 +32,7 @@ type seqIter[T any] struct {
 	stop func()
 }
 
-// Next ...
+// Next performs the operation.
 func (a seqIter[T]) Next() (T, bool) {
 	return a.next()
 }
@@ -42,7 +42,7 @@ func (a seqIter[T]) Stop() {
 	a.stop()
 }
 
-// IterSeq ...
+// IterSeq returns the result.
 func IterSeq[T any](iter Iterator[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for {

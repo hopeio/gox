@@ -43,32 +43,32 @@ const (
 
 type zlentry struct {
 	prelen uint32
-	// 编码方式，可以是ZIPLIST_ENCODING_RAW或ZIPLIST_ENCODING_INT
+	// encoding: ZIPLIST_ENCODING_RAW or ZIPLIST_ENCODING_INT
 	encoding byte
-	// 数据长度，如果是int类型则为8，否则为实际数据长度
+	// data length: 8 for int, otherwise the actual length
 	length uint32
 }
 
-// 底层是一个环形数组，
+// backed by a ring buffer,
 type Ziplist struct {
-	// 内存池，用于分配和释放内存
+	// memory pool for alloc/free
 	bytes []byte
-	// 元素数量
+	// element count
 	length uint32
-	// 尾节点偏移量
+	// tail node offset
 	tail uint32
-	// 尾节点偏移量
+	// tail node offset
 	head uint32
 }
 
-// New ...
+// New creates a new instance.
 func New() *Ziplist {
 	z := &Ziplist{}
 	z.bytes = make([]byte, 0, 1024)
 	return z
 }
 
-// push ...
+// push performs the operation.
 func (z *Ziplist) push(value []byte) error {
 	var prelen uint32
 	if z.tail != 0 && z.length > 0 {
@@ -79,29 +79,29 @@ func (z *Ziplist) push(value []byte) error {
 		}
 	}
 
-	// 写入数据
+	// write data
 	binary.LittleEndian.AppendUint32(z.bytes, prelen)
 	z.bytes = append(z.bytes, ZIPLIST_ENCODING_RAW)
 	binary.LittleEndian.AppendUint32(z.bytes, uint32(len(value)))
 	copy(z.bytes[5:], value)
 
-	// 更新tail指针
+	// update the tail pointer
 	if z.tail != 0 && z.length > 0 {
 		z.tail += prelen
 	}
 
-	// 更新head指针
+	// update the head pointer
 	if z.length == 0 && z.head == 0 {
 		z.head = 0
 	}
 
-	// 更新元素数量
+	// update the element count
 	z.length++
 
 	return nil
 }
 
-// pushInt ...
+// pushInt performs the operation.
 func (z *Ziplist) pushInt(value int64) error {
 
 	var prelen uint32
@@ -113,22 +113,22 @@ func (z *Ziplist) pushInt(value int64) error {
 		}
 	}
 
-	// 写入数据
+	// write data
 	binary.LittleEndian.AppendUint32(z.bytes, prelen)
 	z.bytes = append(z.bytes, ZIPLIST_ENCODING_INT)
 	binary.LittleEndian.AppendUint64(z.bytes, uint64(value))
 
-	// 更新tail指针
+	// update the tail pointer
 	if z.tail != 0 && z.length > 0 {
 		z.tail += prelen
 	}
 
-	// 更新head指针
+	// update the head pointer
 	if z.length == 0 && z.head == 0 {
 		z.head = 0
 	}
 
-	// 更新元素数量
+	// update the element count
 	z.length++
 
 	return nil

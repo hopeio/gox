@@ -17,7 +17,7 @@ import (
 	"net/smtp"
 )
 
-// 550,Mailbox not found or access denied.是因为收件邮箱不存在
+// 550 Mailbox not found or access denied usually means the recipient mailbox does not exist
 type Mail struct {
 	Addr                                          string
 	FromName, From, Subject, ContentType, Content string
@@ -33,12 +33,12 @@ Content-Type: {{if .ContentType}}{{.ContentType}}{{- else}}text/html; charset=UT
 {{.Content}}{{end}}
 `
 
-// init ...
+// init initializes package state.
 func init() {
 	template.Parse(msg)
 }
 
-// GenMsg ...
+// GenMsg performs the operation.
 func (m *Mail) GenMsg() ([]byte, error) {
 	var buf = new(bytes.Buffer)
 	err := template.Execute(buf, "mail", m)
@@ -48,7 +48,7 @@ func (m *Mail) GenMsg() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// SendMail ...
+// SendMail performs the operation.
 func (m *Mail) SendMail() error {
 	msg, err := m.GenMsg()
 	if err != nil {
@@ -57,7 +57,7 @@ func (m *Mail) SendMail() error {
 	return smtp.SendMail(m.Addr, m.Auth, m.From, m.To, msg)
 }
 
-// SendMailTLS ...
+// SendMailTLS performs the operation.
 func (m *Mail) SendMailTLS() error {
 	client, err := createSMTPClient(m.Addr)
 	if err != nil {

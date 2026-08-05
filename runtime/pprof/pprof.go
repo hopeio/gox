@@ -19,18 +19,18 @@ func StartCPUProfile(filename string) func() {
 	if err != nil {
 		log.Fatal("could not create file: ", err)
 	}
-	// StartCPUProfile为当前进程开启CPU profile。
+	// StartCPUProfile starts CPU profiling for the current process.
 	if err := pprof.StartCPUProfile(f); err != nil {
 		log.Fatal("could not start CPU profile: ", err)
 	}
-	// StopCPUProfile会停止当前的CPU profile（如果有）
+	// StopCPUProfile stops the current CPU profile if any
 	return func() {
 		pprof.StopCPUProfile()
 		f.Close()
 	}
 }
 
-// WriteHeapProfile ...
+// WriteHeapProfile performs the operation.
 func WriteHeapProfile(filename string) {
 	f, err := os.Create(filename)
 	if err != nil {
@@ -43,7 +43,7 @@ func WriteHeapProfile(filename string) {
 	f.Close()
 }
 
-// WriteProfile ...
+// WriteProfile performs the operation.
 func WriteProfile(filename, pname string) {
 	f, err := os.Create(filename)
 	if err != nil {

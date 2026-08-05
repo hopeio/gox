@@ -10,33 +10,33 @@ import (
 	jsonx "github.com/hopeio/gox/encoding/json"
 )
 
-// 返回option 返回时会有两次复制value,后续使用还有可能更多次,自行选择用不用
+// Returning an Option can copy the value multiple times; decide whether you need it.
 type Option[T any] struct {
 	value T
 	ok    bool
 }
 
-// Some ...
+// Some creates an Option containing v.
 func Some[T any](v T) Option[T] {
 	return Option[T]{value: v, ok: true}
 }
 
-// None ...
+// None creates an empty Option.
 func None[T any]() Option[T] {
 	return Option[T]{ok: false}
 }
 
-// Nil ...
+// Nil creates an empty Option.
 func Nil[T any]() Option[T] {
 	return Option[T]{ok: false}
 }
 
-// Val ...
+// Val returns the value and whether it is present.
 func (opt *Option[T]) Val() (T, bool) {
 	return opt.value, opt.ok
 }
 
-// Get ...
+// Get returns the value and whether it is present.
 func (opt *Option[T]) Get() (T, bool) {
 	return opt.value, opt.ok
 }
@@ -51,7 +51,7 @@ func (opt *Option[T]) IsSome() bool {
 	return opt.ok
 }
 
-// Unwrap ...
+// Unwrap returns the value or panics if the Option is empty.
 func (opt *Option[T]) Unwrap() T {
 	if opt.IsNone() {
 		panic("Attempted to unwrap an empty Option.")
@@ -59,7 +59,7 @@ func (opt *Option[T]) Unwrap() T {
 	return opt.value
 }
 
-// UnwrapOr ...
+// UnwrapOr returns the value or def if the Option is empty.
 func (opt *Option[T]) UnwrapOr(def T) T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -67,7 +67,7 @@ func (opt *Option[T]) UnwrapOr(def T) T {
 	return def
 }
 
-// UnwrapOrElse ...
+// UnwrapOrElse returns the value or calls fn if the Option is empty.
 func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -75,7 +75,7 @@ func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	return fn()
 }
 
-// MapOption ...
+// MapOption maps the contained value to another type.
 func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
 	if !opt.IsSome() {
 		return None[R]()
@@ -83,21 +83,21 @@ func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
 	return Some(fn(opt.Unwrap()))
 }
 
-// IfSome ...
+// IfSome runs action if the Option contains a value.
 func (opt *Option[T]) IfSome(action func(value T)) {
 	if opt.ok {
 		action(opt.value)
 	}
 }
 
-// IfNone ...
+// IfNone runs action if the Option is empty.
 func (opt *Option[T]) IfNone(action func()) {
 	if !opt.ok {
 		action()
 	}
 }
 
-// MarshalJSON ...
+// MarshalJSON encodes the value, or null if the Option is empty.
 func (opt *Option[T]) MarshalJSON() ([]byte, error) {
 	if opt.ok {
 		return jsonx.Marshal(opt.value)
@@ -105,7 +105,7 @@ func (opt *Option[T]) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON decodes the value, or leaves the Option empty for null.
 func (opt *Option[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		opt.ok = false
@@ -119,22 +119,22 @@ type OptionPtr[T any] struct {
 	value *T
 }
 
-// SomePtr ...
+// SomePtr creates an OptionPtr containing v.
 func SomePtr[T any](v *T) OptionPtr[T] {
 	return OptionPtr[T]{value: v}
 }
 
-// NonePtr ...
+// NonePtr creates an empty OptionPtr.
 func NonePtr[T any]() OptionPtr[T] {
 	return OptionPtr[T]{}
 }
 
-// NilPtr ...
+// NilPtr creates an empty OptionPtr.
 func NilPtr[T any]() OptionPtr[T] {
 	return OptionPtr[T]{}
 }
 
-// Val ...
+// Val returns the value and whether it is present.
 func (opt OptionPtr[T]) Val() (*T, bool) {
 	if opt.value == nil {
 		return nil, false
@@ -142,7 +142,7 @@ func (opt OptionPtr[T]) Val() (*T, bool) {
 	return opt.value, true
 }
 
-// Get ...
+// Get returns the value and whether it is present.
 func (opt OptionPtr[T]) Get() (*T, bool) {
 	if opt.value == nil {
 		return nil, false
@@ -160,7 +160,7 @@ func (opt OptionPtr[T]) IsSome() bool {
 	return opt.value != nil
 }
 
-// Unwrap ...
+// Unwrap returns the value or panics if the OptionPtr is empty.
 func (opt OptionPtr[T]) Unwrap() *T {
 	if opt.IsNone() {
 		panic("Attempted to unwrap an empty OptionPtr.")
@@ -168,7 +168,7 @@ func (opt OptionPtr[T]) Unwrap() *T {
 	return opt.value
 }
 
-// UnwrapOr ...
+// UnwrapOr returns the value or def if the OptionPtr is empty.
 func (opt OptionPtr[T]) UnwrapOr(def *T) *T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -176,7 +176,7 @@ func (opt OptionPtr[T]) UnwrapOr(def *T) *T {
 	return def
 }
 
-// UnwrapOrElse ...
+// UnwrapOrElse returns the value or calls fn if the OptionPtr is empty.
 func (opt OptionPtr[T]) UnwrapOrElse(fn func() *T) *T {
 	if opt.IsSome() {
 		return opt.Unwrap()
@@ -184,7 +184,7 @@ func (opt OptionPtr[T]) UnwrapOrElse(fn func() *T) *T {
 	return fn()
 }
 
-// MapOptionPtr ...
+// MapOptionPtr maps the contained value to another pointer type.
 func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
 	if !opt.IsSome() {
 		return NonePtr[R]()
@@ -192,21 +192,21 @@ func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
 	return SomePtr(fn(opt.Unwrap()))
 }
 
-// IfSome ...
+// IfSome runs action if the OptionPtr contains a value.
 func (opt OptionPtr[T]) IfSome(action func(value *T)) {
 	if opt.IsSome() {
 		action(opt.value)
 	}
 }
 
-// IfNone ...
+// IfNone runs action if the OptionPtr is empty.
 func (opt OptionPtr[T]) IfNone(action func()) {
 	if opt.IsNone() {
 		action()
 	}
 }
 
-// MarshalJSON ...
+// MarshalJSON encodes the value, or null if the OptionPtr is empty.
 func (opt OptionPtr[T]) MarshalJSON() ([]byte, error) {
 	if opt.IsSome() {
 		return jsonx.Marshal(opt.value)
@@ -214,7 +214,7 @@ func (opt OptionPtr[T]) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON decodes the value, or leaves the OptionPtr empty for null.
 func (opt *OptionPtr[T]) UnmarshalJSON(data []byte) error {
 	if len(data) < 5 && string(data) == "null" {
 		return nil

@@ -10,7 +10,7 @@ const base58Alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWX
 var decodeBase58Map [256]byte
 var ErrInvalidBase58 = errors.New("invalid base58")
 
-// init ...
+// init initializes package state.
 func init() {
 	for i := 0; i < len(base58Alphabet); i++ {
 		decodeBase58Map[i] = 0xFF
@@ -21,36 +21,36 @@ func init() {
 	}
 }
 
-// EncodeToString ...
+// EncodeToString formats or converts the value.
 func EncodeToString(data []byte) string {
 	if len(data) == 0 {
 		return ""
 	}
 
-	// 计算前导零的数量
+	// Count leading zeros
 	leadingZeros := 0
 	for leadingZeros < len(data) && data[leadingZeros] == 0 {
 		leadingZeros++
 	}
 
-	// 将字节转换为大整数
+	// Convert bytes to a big integer
 	bigNum := new(big.Int).SetBytes(data)
 	base := big.NewInt(58)
 	var result []byte
 
-	// 进行进制转换
+	// Perform radix conversion
 	for bigNum.Sign() > 0 {
 		remainder := new(big.Int)
 		bigNum.DivMod(bigNum, base, remainder)
 		result = append(result, base58Alphabet[remainder.Int64()])
 	}
 
-	// 添加前导零对应的字符（Base58中用'1'表示前导零）
+	// Append chars for leading zeros (Base58 uses '1')
 	for i := 0; i < leadingZeros; i++ {
 		result = append(result, '1')
 	}
 
-	// 反转结果，因为我们是从低位开始计算的
+	// Reverse the result because digits were computed from low to high
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
 		result[i], result[j] = result[j], result[i]
 	}
@@ -58,13 +58,13 @@ func EncodeToString(data []byte) string {
 	return string(result)
 }
 
-// DecodeString ...
+// DecodeString formats or converts the value.
 func DecodeString(s string) ([]byte, error) {
 	if s == "" {
 		return []byte{}, nil
 	}
 
-	// 计算前导 '1' 的数量（对应原始数据的前导零字节）
+	// Count leading '1's (matching leading zero bytes in the input)
 	leadingOnes := 0
 	for i := 0; i < len(s); i++ {
 		if s[i] == '1' {
@@ -74,21 +74,21 @@ func DecodeString(s string) ([]byte, error) {
 		}
 	}
 
-	// 跳过前导 '1'，处理剩余字符
+	// Skip leading '1's and process the rest
 	remaining := s[leadingOnes:]
 	if remaining == "" {
-		// 如果全是 '1'，返回相应数量的零字节
+		// If all '1's, return that many zero bytes
 		return make([]byte, leadingOnes), nil
 	}
 
-	// 将 Base58 字符串转换为大整数
+	// Convert a Base58 string to a big integer
 	bigNum := new(big.Int)
 	base := big.NewInt(58)
 
 	for i := 0; i < len(remaining); i++ {
 		char := remaining[i]
 
-		// 查找字符在 Base58 字符集中的索引
+		// Find the character index in the Base58 alphabet
 		index := int(decodeBase58Map[char])
 		if index == 0xFF {
 			return nil, ErrInvalidBase58
@@ -99,10 +99,10 @@ func DecodeString(s string) ([]byte, error) {
 		bigNum.Add(bigNum, big.NewInt(int64(index)))
 	}
 
-	// 转换为字节数组
+	// Convert to a byte slice
 	byteArray := bigNum.Bytes()
 
-	// 添加前导零字节
+	// Append leading zero bytes
 	if leadingOnes > 0 {
 		result := make([]byte, leadingOnes+len(byteArray))
 		copy(result[leadingOnes:], byteArray)

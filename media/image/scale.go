@@ -18,17 +18,17 @@ type AveragePoolImage struct {
 	reductionFactor   int
 }
 
-// ColorModel ...
+// ColorModel returns the result.
 func (img *AveragePoolImage) ColorModel() color.Model {
 	return img.img.ColorModel()
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (img *AveragePoolImage) Bounds() image.Rectangle {
 	return img.Rect
 }
 
-// At ...
+// At returns the result.
 func (img *AveragePoolImage) At(x, y int) color.Color {
 	var r, b, g, a uint32
 	reductionFactor := uint32(img.reductionFactor)

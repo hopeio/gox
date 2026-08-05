@@ -44,12 +44,12 @@ func (self *Type) IsNamed() bool {
 	return (self.Flags & tflagNamed) != 0
 }
 
-// Kind ...
+// Kind returns the result.
 func (self *Type) Kind() reflect.Kind {
 	return reflect.Kind(self.KindFlags & F_kind_mask)
 }
 
-// Pack ...
+// Pack performs the operation.
 func (self *Type) Pack() (t reflect.Type) {
 	(*Iface)(unsafe.Pointer(&t)).Itab = reflectRtypeItab
 	(*Iface)(unsafe.Pointer(&t)).Value = unsafe.Pointer(self)
@@ -61,7 +61,7 @@ func (self *Type) String() string {
 	return self.Pack().String()
 }
 
-// Indirect ...
+// Indirect reports whether the condition holds.
 func (self *Type) Indirect() bool {
 	return self.KindFlags&F_direct == 0
 }
@@ -96,13 +96,13 @@ type MapIterator struct {
 	CheckBucket uintptr
 }
 
-// Pack ...
+// Pack performs the operation.
 func (self Eface) Pack() (v any) {
 	*(*Eface)(unsafe.Pointer(&v)) = self
 	return
 }
 
-// IndirectElem ...
+// IndirectElem reports whether the condition holds.
 func (self *MapType) IndirectElem() bool {
 	return self.Flags&2 != 0
 }
@@ -118,43 +118,43 @@ type String struct {
 	Len int
 }
 
-// PtrElem ...
+// PtrElem returns the result.
 func PtrElem(t *Type) *Type {
 	return (*PtrType)(unsafe.Pointer(t)).Elem
 }
 
-// ToMapType ...
+// ToMapType converts the value.
 func ToMapType(t *Type) *MapType {
 	return (*MapType)(unsafe.Pointer(t))
 }
 
-// IfaceType ...
+// IfaceType returns the result.
 func IfaceType(t *Type) *InterfaceType {
 	return (*InterfaceType)(unsafe.Pointer(t))
 }
 
-// UnpackType ...
+// UnpackType returns the result.
 func UnpackType(t reflect.Type) *Type {
 	return (*Type)((*Iface)(unsafe.Pointer(&t)).Value)
 }
 
-// UnpackEface ...
+// UnpackEface returns the result.
 func UnpackEface(v interface{}) Eface {
 	return *(*Eface)(unsafe.Pointer(&v))
 }
 
-// UnpackIface ...
+// UnpackIface returns the result.
 func UnpackIface(v interface{}) Iface {
 	return *(*Iface)(unsafe.Pointer(&v))
 }
 
-// findReflectRtypeItab ...
+// findReflectRtypeItab returns the result.
 func findReflectRtypeItab() *Itab {
 	v := reflect.TypeOf(struct{}{})
 	return (*Iface)(unsafe.Pointer(&v)).Itab
 }
 
-// AssertI2I ...
+// AssertI2I performs the operation.
 func AssertI2I(t *Type, i Iface) (r Iface) {
 	inter := IfaceType(t)
 	tab := i.Itab
@@ -176,7 +176,7 @@ func AssertI2I(t *Type, i Iface) (r Iface) {
 //go:linkname GetItab runtime.getitab
 func GetItab(inter *InterfaceType, typ *Type, canfail bool) *Itab
 
-// GetFuncPC ...
+// GetFuncPC returns the value.
 func GetFuncPC(fn any) uintptr {
 	ft := UnpackEface(fn)
 	if ft.Type.Kind() != reflect.Func {
@@ -185,7 +185,7 @@ func GetFuncPC(fn any) uintptr {
 	return *(*uintptr)(ft.Value)
 }
 
-// FuncAddr ...
+// FuncAddr returns the result.
 func FuncAddr(f any) unsafe.Pointer {
 	if vv := UnpackEface(f); vv.Type.Kind() != reflect.Func {
 		panic("f is not a function")
@@ -194,7 +194,7 @@ func FuncAddr(f any) unsafe.Pointer {
 	}
 }
 
-// BytesFrom ...
+// BytesFrom performs the operation.
 func BytesFrom(p unsafe.Pointer, n int, c int) (r []byte) {
 	(*Slice)(unsafe.Pointer(&r)).Ptr = p
 	(*Slice)(unsafe.Pointer(&r)).Len = n

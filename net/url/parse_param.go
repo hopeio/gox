@@ -19,12 +19,12 @@ import (
 
 var tag = "json"
 
-// SetTag ...
+// SetTag updates or inserts a value.
 func SetTag(t string) {
 	tag = t
 }
 
-// ResolveURL ...
+// ResolveURL returns the result.
 func ResolveURL(u *stdurl.URL, p string) string {
 	if strings.HasPrefix(p, "https://") || strings.HasPrefix(p, "http://") {
 		return p
@@ -39,12 +39,12 @@ func ResolveURL(u *stdurl.URL, p string) string {
 	return baseURL + path.Join("/", p)
 }
 
-// QueryParam ...
+// QueryParam returns the result.
 func QueryParam(param any) string {
 	return QueryParamByTag(param, tag)
 }
 
-// QueryParamByTag ...
+// QueryParamByTag returns the result.
 func QueryParamByTag(param any, tag string) string {
 	if param == nil {
 		return ""
@@ -57,7 +57,7 @@ func QueryParamByTag(param any, tag string) string {
 	return query.Encode()
 }
 
-// parseParamByTag ...
+// parseParamByTag performs the operation.
 func parseParamByTag(param any, query stdurl.Values, tag string) {
 	v := reflect.ValueOf(param)
 	kind := v.Kind()
@@ -76,12 +76,12 @@ func parseParamByTag(param any, query stdurl.Values, tag string) {
 				if t.Field(i).Anonymous {
 					parseParamByTag(filed.Interface(), query, tag)
 				} else {
-					//TODO: 处理对象
+					//TODO: handle object
 				}
 				continue
 			}
 			if fieldKind == reflect.Map {
-				//TODO: 处理map
+				//TODO: handle map
 				continue
 			}
 			if fieldKind == reflect.Slice || fieldKind == reflect.Array {
@@ -107,7 +107,7 @@ func parseParamByTag(param any, query stdurl.Values, tag string) {
 	}
 }
 
-// getFieldValue ...
+// getFieldValue returns the result.
 func getFieldValue(v reflect.Value) string {
 	switch v.Kind() {
 	case reflect.Bool,
@@ -125,7 +125,7 @@ func getFieldValue(v reflect.Value) string {
 	}
 }
 
-// AppendQueryParamByTag ...
+// AppendQueryParamByTag updates or inserts a value.
 func AppendQueryParamByTag(url string, param interface{}, tag string) string {
 	if param == nil {
 		return url
@@ -148,7 +148,7 @@ func AppendQueryParamByTag(url string, param interface{}, tag string) string {
 	return url
 }
 
-// AppendQueryParam ...
+// AppendQueryParam updates or inserts a value.
 func AppendQueryParam(url string, param interface{}) string {
 	return AppendQueryParamByTag(url, param, tag)
 }

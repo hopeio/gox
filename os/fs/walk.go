@@ -16,7 +16,7 @@ import (
 
 type WalkCallback = func(dir string, entry os.DirEntry) error
 
-// Walk ...
+// Walk performs the operation.
 func Walk(dir string, callback WalkCallback) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -40,7 +40,7 @@ func Walk(dir string, callback WalkCallback) error {
 	return err
 }
 
-// WalkFile ...
+// WalkFile performs the operation.
 func WalkFile(dir string, callback WalkCallback) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -61,7 +61,7 @@ func WalkFile(dir string, callback WalkCallback) error {
 	return err
 }
 
-// WalkDir ...
+// WalkDir performs the operation.
 func WalkDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os.DirEntry, error)) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -83,7 +83,7 @@ func WalkDir(dir string, callback func(dir string, entries []os.DirEntry) ([]os.
 	return err
 }
 
-// All ...
+// All performs the operation.
 func All(path string) (iter.Seq[os.DirEntry], error) {
 	dirs, err := os.ReadDir(path)
 	if err != nil {

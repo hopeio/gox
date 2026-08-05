@@ -23,7 +23,7 @@ import (
 	"gocv.io/x/gocv"
 )
 
-// main ...
+// main processes a Gerber file and performs image analysis.
 func main() {
 	path := `D:\Gerber_TopLayer.GTL`
 	maxWidth := 100.0
@@ -75,7 +75,7 @@ func main() {
 			maxCountRadius = d / 2
 		}
 	}
-	// 1mm mark更常见
+	// 1mm marks are more common.
 	if dcountMap[1] >= 4 {
 		maxCount = dcountMap[1]
 		maxCountRadius = 0.5
@@ -133,7 +133,7 @@ type RotatedRect struct {
 	Angle        float64
 }
 
-// CvGerber ...
+// CvGerber extracts rotated rectangles and circles from an image.
 func CvGerber(path string, radius int, maxWidth, maxHeight int) ([]*RotatedRect, []*imagex.Circle, image.Rectangle) {
 	var rects []*RotatedRect
 	img := gocv.IMRead(path, gocv.IMReadUnchanged)

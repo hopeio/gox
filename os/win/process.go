@@ -38,21 +38,21 @@ const (
 	GENERIC_ALL_ACCESS      = 0x10000000
 )
 
-// 先来两个API,这个貌似使用syscall也可以.
-// 刚刚开始写,不知道syscall已经实现了一部分API,就自己动手写了
+// Two APIs first; syscall might also work.
+// Early draft before realizing syscall already covers some of these APIs
 
-// Win32进程结构体
+// Win32 process structure
 type PROCESSENTRY32 struct {
-	dwSize              uint32    // 结构大小
-	cntUsage            uint32    // 此进程的引用计数
-	th32ProcessID       uint32    // 进程id
-	th32DefaultHeapID   uintptr   // 进程默认堆id
-	th32ModuleID        uint32    // 进程模块id
-	cntThreads          uint32    // 进程的线程数
-	th32ParentProcessID uint32    // 父进程id
-	pcPriClassBase      uint32    // 线程优先权
-	dwFlags             uint32    // 保留
-	szExeFile           [260]byte // 进程全名
+	dwSize              uint32    // structure size
+	cntUsage            uint32    // reference count for this process
+	th32ProcessID       uint32    // process id
+	th32DefaultHeapID   uintptr   // default heap id
+	th32ModuleID        uint32    // process module id
+	cntThreads          uint32    // thread count
+	th32ParentProcessID uint32    // parent process id
+	pcPriClassBase      uint32    // thread priority base
+	dwFlags             uint32    // reserved
+	szExeFile           [260]byte // full process name
 }
 
 type SW struct {
@@ -93,7 +93,7 @@ var (
 	}
 )
 
-// Name ...
+// Name returns the result.
 func (p *PROCESSENTRY32) Name() string {
 	// string(process.szExeFile[0:]
 	name, _, _ := transform.String(GBKDecoder, string(p.szExeFile[0:])) //string(p.szExeFile[0:])
@@ -101,17 +101,17 @@ func (p *PROCESSENTRY32) Name() string {
 	return name
 }
 
-// ModuleID ...
+// ModuleID returns the result.
 func (p *PROCESSENTRY32) ModuleID() string {
 	return strconv.Itoa(int(p.th32ModuleID))
 }
 
-// PID ...
+// PID returns the result.
 func (p *PROCESSENTRY32) PID() uint32 {
 	return p.th32ProcessID
 }
 
-// GetProcessByName ...
+// GetProcessByName returns the value.
 func GetProcessByName(name string) (PROCESSENTRY32, error) {
 	var targetProcess PROCESSENTRY32
 	targetProcess = PROCESSENTRY32{
@@ -142,15 +142,15 @@ func GetProcessByName(name string) (PROCESSENTRY32, error) {
 	return targetProcess, fmt.Errorf("error:Can not find any proess.")
 }
 
-// StartProcessByPassUAC ...
+// StartProcessByPassUAC executes the operation.
 func StartProcessByPassUAC(applicationCmd string) error {
 	winlogonEntry, err := GetProcessByName("winlogon.exe")
 	if err != nil {
 		return err
 	}
-	// 获取winlogon 进程的句柄
+	// Get a handle to the winlogon process
 	winlogonProcess, err := windows.OpenProcess(MAXIMUM_ALLOWED, false, winlogonEntry.PID())
-	// 此处可能会返回异常,但是不用担心,只要成功获取到进程就可以
+	// May return an error here; ignore if the process handle was obtained
 	// if err != nil { // The operation completed successfully
 	//  Ilog.DebugHandler("OpenProcess:", err)
 	//  return err

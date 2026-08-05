@@ -8,7 +8,7 @@ package rand
 
 import "math/rand"
 
-// Intn ...
+// Intn returns the result.
 func Intn(min, max int) int {
 	return rand.Intn(max-min) + min
 }

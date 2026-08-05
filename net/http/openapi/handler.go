@@ -21,8 +21,8 @@ import (
 	"github.com/hopeio/gox/os/fs"
 )
 
-// 目录结构 ./api/mod/mod.openapi.json
-// 请求路由 /openapi /openapi/mod.openapi.json
+// Directory layout: ./api/mod/mod.openapi.json
+// Routes: /openapi /openapi/mod.openapi.json
 var UriPrefix = "/openapi"
 var DocDir = "./apidoc/"
 
@@ -53,7 +53,7 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
 
-// DocList ...
+// DocList executes the operation.
 func DocList(w http.ResponseWriter, r *http.Request) {
 	fileInfos, err := os.ReadDir(DocDir)
 	if err != nil {
@@ -86,7 +86,7 @@ func Openapi(mux *http.ServeMux, uriPrefix, dir string) {
 	mux.HandleFunc(UriPrefix+"/{file...}", OpenApi)
 }
 
-// WriteToFile ...
+// WriteToFile performs the operation.
 func WriteToFile(docDir, modName string, doc *openapi3.T) error {
 	if doc == nil {
 		return errors.New("doc is nil")

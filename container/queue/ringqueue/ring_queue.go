@@ -13,7 +13,7 @@ type RingQueue[T any] struct {
 	zero       T
 }
 
-// New ...
+// New creates a new instance.
 func New[T any](capacity int) *RingQueue[T] {
 	nodes := make([]T, capacity)
 	return &RingQueue[T]{
@@ -23,17 +23,17 @@ func New[T any](capacity int) *RingQueue[T] {
 	}
 }
 
-// Length ...
+// Length returns the result.
 func (q *RingQueue[T]) Length() int {
 	return q.len
 }
 
-// Capacity ...
+// Capacity returns the result.
 func (q *RingQueue[T]) Capacity() int {
 	return len(q.buf)
 }
 
-// Front ...
+// Front performs the operation.
 func (q *RingQueue[T]) Front() (T, bool) {
 	if q.len == 0 {
 		return q.zero, false
@@ -42,7 +42,7 @@ func (q *RingQueue[T]) Front() (T, bool) {
 	return q.buf[q.head], true
 }
 
-// Tail ...
+// Tail performs the operation.
 func (q *RingQueue[T]) Tail() (T, bool) {
 	if q.len == 0 {
 		return q.zero, false
@@ -51,7 +51,7 @@ func (q *RingQueue[T]) Tail() (T, bool) {
 	return q.buf[q.tail], true
 }
 
-// Enqueue ...
+// Enqueue updates or inserts a value.
 func (q *RingQueue[T]) Enqueue(value T) bool {
 	if q.IsFull() {
 		return false
@@ -71,7 +71,7 @@ func (q *RingQueue[T]) Enqueue(value T) bool {
 	return true
 }
 
-// Dequeue ...
+// Dequeue removes or resets state.
 func (q *RingQueue[T]) Dequeue() (T, bool) {
 	if q.len == 0 {
 		return q.zero, false

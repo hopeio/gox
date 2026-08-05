@@ -130,7 +130,7 @@ func Parse(tag string) (*Tags, error) {
 	}, nil
 }
 
-// MustParse ...
+// MustParse returns the value.
 func MustParse(tag string) *Tags {
 	tags, err := Parse(tag)
 	if err != nil {
@@ -153,7 +153,7 @@ func (t *Tags) Get(key string) (*Tag, bool) {
 	return nil, false
 }
 
-// TryGet ...
+// TryGet returns the result.
 func (t *Tags) TryGet(key string) *Tag {
 	for _, tag := range t.tags {
 		if tag.Key == key {
@@ -164,7 +164,7 @@ func (t *Tags) TryGet(key string) *Tag {
 	return &Tag{}
 }
 
-// MustGet ...
+// MustGet returns the value.
 func (t *Tags) MustGet(key string) *Tag {
 	for _, tag := range t.tags {
 		if tag.Key == key {
@@ -200,7 +200,7 @@ func (t *Tags) Set(key, value string, options ...string) {
 	}
 }
 
-// Iter ...
+// Iter returns the result.
 func (t *Tags) Iter() iter.Seq[*Tag] {
 	return func(yield func(*Tag) bool) {
 		for _, tag := range t.tags {
@@ -326,12 +326,12 @@ func (t *Tags) Len() int {
 	return len(t.tags)
 }
 
-// Less ...
+// Less compares values.
 func (t *Tags) Less(i int, j int) bool {
 	return t.tags[i].Key < t.tags[j].Key
 }
 
-// Swap ...
+// Swap performs the operation.
 func (t *Tags) Swap(i int, j int) {
 	t.tags[i], t.tags[j] = t.tags[j], t.tags[i]
 }

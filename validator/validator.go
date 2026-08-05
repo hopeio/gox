@@ -24,7 +24,7 @@ var (
 	uni             *ut.UniversalTranslator
 )
 
-// init ...
+// init initializes the universal translator and registers default translations.
 func init() {
 	uni = ut.New(en.New(), zh.New())
 
@@ -46,7 +46,7 @@ func init() {
 	})
 }
 
-// TransError ...
+// TransError translates validator errors into the requested locale.
 func TransError(err error, locale string) string {
 	if err == nil {
 		return ""
@@ -64,7 +64,7 @@ func TransError(err error, locale string) string {
 	return strings.Join(msg, ",")
 }
 
-// translateFunc ...
+// translateFunc translates a single field error.
 func translateFunc(ut ut.Translator, fe validator.FieldError) string {
 	t, err := ut.T(fe.Tag(), fe.Field())
 	if err != nil {

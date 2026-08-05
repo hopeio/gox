@@ -32,7 +32,7 @@ type FileInfo struct {
 	Body    io.ReadCloser
 }
 
-// Name ...
+// Name returns the result.
 func (f *FileInfo) Name() string {
 	return f.name
 }
@@ -42,12 +42,12 @@ func (f *FileInfo) Size() int64 {
 	return f.size
 }
 
-// Mode ...
+// Mode returns the result.
 func (f *FileInfo) Mode() fs.FileMode {
 	return f.mode
 }
 
-// ModTime ...
+// ModTime returns the result.
 func (f *FileInfo) ModTime() time.Time {
 	return f.modTime
 }
@@ -57,12 +57,12 @@ func (f *FileInfo) IsDir() bool {
 	return false
 }
 
-// Sys ...
+// Sys returns the result.
 func (f *FileInfo) Sys() any {
 	return nil
 }
 
-// GetFileExt ...
+// GetFileExt returns the value.
 func GetFileExt(file *multipart.FileHeader) (string, error) {
 	var ext string
 	var index = strings.LastIndex(file.Filename, ".")
@@ -87,7 +87,7 @@ func CheckFileSize(f multipart.File, uploadMaxSize int) bool {
 	return size <= uploadMaxSize
 }
 
-// GetFileSize ...
+// GetFileSize returns the value.
 func GetFileSize(f multipart.File) int {
 	content, err := io.ReadAll(f)
 	if err != nil {
@@ -96,7 +96,7 @@ func GetFileSize(f multipart.File) int {
 	return len(content)
 }
 
-// FetchFile ...
+// FetchFile performs the operation.
 func FetchFile(url string, options ...func(r *http.Request)) (*FileInfo, error) {
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
 	for _, option := range options {
@@ -105,7 +105,7 @@ func FetchFile(url string, options ...func(r *http.Request)) (*FileInfo, error) 
 	return FetchFileByRequest(req)
 }
 
-// FetchFileByRequest ...
+// FetchFileByRequest performs the operation.
 func FetchFileByRequest(r *http.Request) (*FileInfo, error) {
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {

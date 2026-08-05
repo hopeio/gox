@@ -17,7 +17,7 @@ type ValidatorAll interface {
 	Validate(all bool) error
 }
 
-// ValidateStruct ...
+// ValidateStruct validates a value implementing Validator or ValidatorAll.
 func ValidateStruct(o any) error {
 	switch validator := o.(type) {
 	case ValidatorAll:

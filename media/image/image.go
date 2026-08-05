@@ -13,7 +13,7 @@ import (
 	"math"
 )
 
-// CalculateOverlap ...
+// CalculateOverlap returns the result.
 func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap int) int {
 	bounds1, bounds2 := img1.Bounds(), img2.Bounds()
 	dx1, dy1 := bounds1.Dx(), bounds1.Dy()
@@ -32,7 +32,7 @@ func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap i
 		dy = dx
 	}
 	data1 := make([]uint8, maxOverlap*dy)
-	// 遍历原始图像的每个像素并转换为灰度值
+	// Iterate pixels of the source image and convert to grayscale
 	var i int
 	var c color.Color
 	for x := maxX1 - maxOverlap; x < maxX1; x++ {
@@ -42,7 +42,7 @@ func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap i
 			} else {
 				c = img1.At(x, y)
 			}
-			// 使用加权平均公式计算灰度值
+			// Compute grayscale with a weighted average
 			gray := colori.ColorToGray(c)
 			data1[i] = gray.Y
 			i++
@@ -57,7 +57,7 @@ func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap i
 			} else {
 				c = img2.At(x, y)
 			}
-			// 使用加权平均公式计算灰度值
+			// Compute grayscale with a weighted average
 			gray := colori.ColorToGray(c)
 			data2[j] = gray.Y
 			j++
@@ -86,7 +86,7 @@ func CalculateOverlap(img1, img2 image.Image, col bool, minOverlap, maxOverlap i
 	return overlap
 }
 
-// CalculateOverlapReuseMemory ...
+// CalculateOverlapReuseMemory returns the result.
 func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, maxOverlap int, gary1, gary2 []uint8) int {
 	bounds1, bounds2 := img1.Bounds(), img2.Bounds()
 	dx1, dy1 := bounds1.Dx(), bounds1.Dy()
@@ -107,7 +107,7 @@ func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, m
 	if len(gary1) == 0 {
 		gary1 = make([]uint8, maxOverlap*dy)
 	}
-	// 遍历原始图像的每个像素并转换为灰度值
+	// Iterate pixels of the source image and convert to grayscale
 	var i int
 	var c color.Color
 	for x := maxX1 - maxOverlap; x < maxX1; x++ {
@@ -118,7 +118,7 @@ func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, m
 				c = img1.At(x, y)
 			}
 			r, g, b, _ := c.RGBA()
-			// 使用加权平均公式计算灰度值
+			// Compute grayscale with a weighted average
 			gary1[i] = uint8((19595*r + 38470*g + 7471*b + 1<<15) >> 24)
 			i++
 		}
@@ -135,7 +135,7 @@ func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, m
 				c = img2.At(x, y)
 			}
 			r, g, b, _ := c.RGBA()
-			// 使用加权平均公式计算灰度值
+			// Compute grayscale with a weighted average
 			gary2[j] = uint8((19595*r + 38470*g + 7471*b + 1<<15) >> 24)
 			j++
 		}
@@ -163,7 +163,7 @@ func CalculateOverlapReuseMemory(img1, img2 image.Image, col bool, minOverlap, m
 	return overlap
 }
 
-// RectRotateByCenter ...
+// RectRotateByCenter returns the result.
 func RectRotateByCenter(x, y, l, w int, angle float64) []image.Point {
 	rad := angle / 180 * math.Pi
 	lSinYAxis := int(float64(l) / 2 * math.Sin(rad))
@@ -178,7 +178,7 @@ func RectRotateByCenter(x, y, l, w int, angle float64) []image.Point {
 	}
 }
 
-// ToGary ...
+// ToGary converts the value.
 func ToGary(img image.Image) *image.Gray {
 	bounds := img.Bounds()
 	gary := image.NewGray(bounds)
@@ -192,7 +192,7 @@ func ToGary(img image.Image) *image.Gray {
 	return gary
 }
 
-// ToGaryReuseMemory ...
+// ToGaryReuseMemory converts the value.
 func ToGaryReuseMemory(img image.Image, gary *image.Gray) {
 	bounds := img.Bounds()
 	for x := bounds.Min.X; x < bounds.Max.X; x++ {

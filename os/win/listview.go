@@ -15,7 +15,7 @@ import (
 	"unsafe"
 )
 
-// ListViews ...
+// ListViews returns the result.
 func ListViews(hwnd w32.HWND) []w32.HWND {
 	var listViewHwnds []w32.HWND
 	fnOfEnumListView := func(childHwnd w32.HWND) bool {
@@ -32,13 +32,13 @@ func ListViews(hwnd w32.HWND) []w32.HWND {
 	return listViewHwnds
 }
 
-// GetLVItemRowCount ...
+// GetLVItemRowCount returns the value.
 func GetLVItemRowCount(hwnd w32.HWND) int {
 	rowCount := w32.SendMessage(hwnd, w32.LVM_GETITEMCOUNT, 0, 0)
 	return int(rowCount)
 }
 
-// GetLVItem ...
+// GetLVItem returns the value.
 func GetLVItem(hwnd w32.HWND, row, col int) string {
 
 	/*	rowCount := w32.SendMessage(hwnd, w32.LVM_GETITEMCOUNT, 0, 0)
@@ -103,7 +103,7 @@ func GetLVItem(hwnd w32.HWND, row, col int) string {
 	return ""
 }
 
-// GetList ...
+// GetList returns the value.
 func GetList(hwnd w32.HWND, columns []int) [][]string {
 
 	rowCount := w32.SendMessage(hwnd, w32.LVM_GETITEMCOUNT, 0, 0)

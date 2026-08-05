@@ -31,7 +31,7 @@ func (p *panicError) Error() string {
 	return fmt.Sprintf("%v\n\n%s", p.value, p.stack)
 }
 
-// Unwrap ...
+// Unwrap returns the value.
 func (p *panicError) Unwrap() error {
 	err, ok := p.value.(error)
 	if !ok {

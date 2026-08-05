@@ -8,8 +8,8 @@ package sync
 
 type noCopy struct{}
 
-// Lock ...
+// Lock provides mutual exclusion.
 func (*noCopy) Lock() {}
 
-// Unlock ...
+// Unlock provides mutual exclusion.
 func (*noCopy) Unlock() {}

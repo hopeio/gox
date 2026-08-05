@@ -18,7 +18,7 @@ import (
 
 type Json[T any] sqlx.Json[T]
 
-// GormDBDataType ...
+// GormDBDataType returns the result.
 func (*Json[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	switch db.Dialector.Name() {
 	case sqlx.Sqlite, sqlx.Mysql:
@@ -29,7 +29,7 @@ func (*Json[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	return ""
 }
 
-// GormValue ...
+// GormValue returns the result.
 func (j *Json[T]) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	v, _ := (*sqlx.Json[T])(j).Value()
 	return clause.Expr{
@@ -38,13 +38,13 @@ func (j *Json[T]) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	}
 }
 
-// Value ...
+// Value returns the value.
 func (j *Json[T]) Value() (driver.Value, error) {
 	// Scan a value into struct from database driver
 	return (*sqlx.Json[T])(j).Value()
 }
 
-// Scan ...
+// Scan performs the operation.
 func (j *Json[T]) Scan(v any) error {
 	// Scan a value into struct from database driver
 	return (*sqlx.Json[T])(j).Scan(v)

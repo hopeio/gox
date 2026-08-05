@@ -27,7 +27,7 @@ func NewOTelCollector(db *sql.DB, meter metric.Meter) *OTelCollector {
 	return &OTelCollector{db: db, meter: meter}
 }
 
-// Init ...
+// Init performs the operation.
 func (c *OTelCollector) Init() error {
 	if err := c.initInstruments(); err != nil {
 		return err
@@ -40,7 +40,7 @@ func (c *OTelCollector) Init() error {
 	return nil
 }
 
-// initInstruments ...
+// initInstruments performs the operation.
 func (c *OTelCollector) initInstruments() error {
 	var err error
 	c.lagGauge, err = c.meter.Float64ObservableGauge("db.postgres.replication_lag_seconds")
@@ -69,7 +69,7 @@ func (c *OTelCollector) Close(context.Context) error {
 	return nil
 }
 
-// observe ...
+// observe performs the operation.
 func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	o.ObserveFloat64(c.lagGauge, c.queryLag())
 	o.ObserveFloat64(c.startGauge, c.queryStartTime())
@@ -83,7 +83,7 @@ func (c *OTelCollector) observe(_ context.Context, o metric.Observer) error {
 	return nil
 }
 
-// queryLag ...
+// queryLag returns the result.
 func (c *OTelCollector) queryLag() float64 {
 	rows, err := c.db.Query("SELECT CASE WHEN NOT pg_is_in_recovery() THEN 0 ELSE GREATEST(0, EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp()))) END")
 	if err != nil {
@@ -97,7 +97,7 @@ func (c *OTelCollector) queryLag() float64 {
 	return lag
 }
 
-// queryStartTime ...
+// queryStartTime returns the result.
 func (c *OTelCollector) queryStartTime() float64 {
 	rows, err := c.db.Query("SELECT EXTRACT(EPOCH FROM pg_postmaster_start_time())")
 	if err != nil {
@@ -111,7 +111,7 @@ func (c *OTelCollector) queryStartTime() float64 {
 	return start
 }
 
-// queryDatabaseSize ...
+// queryDatabaseSize returns the result.
 func (c *OTelCollector) queryDatabaseSize() map[string]float64 {
 	rows, err := c.db.Query("SELECT datname, pg_database_size(datname) AS size_bytes FROM pg_database")
 	if err != nil {
@@ -129,7 +129,7 @@ func (c *OTelCollector) queryDatabaseSize() map[string]float64 {
 	return out
 }
 
-// queryTableRows ...
+// queryTableRows returns the result.
 func (c *OTelCollector) queryTableRows() map[string]float64 {
 	rows, err := c.db.Query("SELECT schemaname, relname, COALESCE(n_live_tup,0) FROM pg_stat_user_tables")
 	if err != nil {
@@ -147,7 +147,7 @@ func (c *OTelCollector) queryTableRows() map[string]float64 {
 	return out
 }
 
-// splitTableKey ...
+// splitTableKey performs the operation.
 func splitTableKey(key string) (string, string) {
 	for i := 0; i < len(key); i++ {
 		if key[i] == '.' {

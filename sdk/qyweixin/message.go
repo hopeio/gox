@@ -60,7 +60,7 @@ type Markdown struct {
 	Content string `json:"content"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*Markdown) MessageType() MsgType {
 	return MsgTypeMarkdown
 }
@@ -71,7 +71,7 @@ type Text struct {
 	MentionedMobileList []string `json:"mentioned_mobile_list"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*Text) MessageType() MsgType {
 	return MsgTypeText
 }
@@ -81,7 +81,7 @@ type Image struct {
 	Md5    string `json:"md5"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (Image) MessageType() MsgType {
 	return MsgTypeImage
 }
@@ -95,7 +95,7 @@ type News struct {
 	} `json:"articles"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*News) MessageType() MsgType {
 	return MsgTypeNews
 }
@@ -104,7 +104,7 @@ type File struct {
 	MediaId string `json:"media_id"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (File) MessageType() MsgType {
 	return MsgTypeFile
 }
@@ -113,7 +113,7 @@ type Voice struct {
 	MediaId string `json:"media_id"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (Voice) MessageType() MsgType {
 	return MsgTypeVoice
 }
@@ -177,12 +177,12 @@ type CardAction struct {
 	Pagepath string `json:"pagepath"`
 }
 
-// MessageType ...
+// MessageType returns the result.
 func (*TemplateCard) MessageType() MsgType {
 	return MsgTypeTemplateCard
 }
 
-// MarkdownMessage ...
+// MarkdownMessage returns the result.
 func MarkdownMessage(text string) string {
 	buf := strings.Builder{}
 	buf.WriteString(`{"msgtype":"markdown","markdown":{"content":`)
@@ -191,7 +191,7 @@ func MarkdownMessage(text string) string {
 	return buf.String()
 }
 
-// Format ...
+// Format formats or converts the value.
 func Format(msg MessageType) string {
 	msgType := msg.MessageType()
 	buf := strings.Builder{}
@@ -206,9 +206,9 @@ func Format(msg MessageType) string {
 	return buf.String()
 }
 
-// Upload ...
+// Upload performs the operation.
 func Upload() {
-	// 文件类型，分别有语音(voice)和普通文件(file)
+	// file types: voice or ordinary file
 	const api = "https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key=KEY&type=TYPE"
 }
 

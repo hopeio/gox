@@ -65,7 +65,7 @@ func (limit Limit) MergeClause(clause *clause.Clause) {
 
 type Sort sqlx.Sort
 
-// Clause ...
+// Clause returns the result.
 func (o *Sort) Clause() clause.Expression {
 	if o.Field == "" {
 		return nil
@@ -73,14 +73,14 @@ func (o *Sort) Clause() clause.Expression {
 	return SingleSortExpr(o.Field, o.Type)
 }
 
-// SingleSortExpr ...
+// SingleSortExpr returns the result.
 func SingleSortExpr(field string, sortType sqlx.SortType) clause.Expression {
 	return clause.OrderBy{Columns: []clause.OrderByColumn{{Column: clause.Column{Name: field}, Desc: sortType == sqlx.SortTypeDesc}}}
 }
 
 type Sorts []sqlx.Sort
 
-// Clause ...
+// Clause returns the result.
 func (o Sorts) Clause() clause.Expression {
 	if len(o) == 0 {
 		return nil
@@ -88,7 +88,7 @@ func (o Sorts) Clause() clause.Expression {
 	return SortExpr(nil, o...)
 }
 
-// SortExpr ...
+// SortExpr returns the result.
 func SortExpr(expr clause.Expression, sorts ...sqlx.Sort) clause.Expression {
 	if expr == nil && len(sorts) == 0 {
 		return nil
@@ -108,7 +108,7 @@ func SortExpr(expr clause.Expression, sorts ...sqlx.Sort) clause.Expression {
 
 type Pagination sqlx.Pagination
 
-// Clause ...
+// Clause returns the result.
 func (req *Pagination) Clause() clause.Expression {
 	if req.No == 0 && req.Size == 0 {
 		return nil
@@ -116,12 +116,12 @@ func (req *Pagination) Clause() clause.Expression {
 	return PaginationExpr(req.No, req.Size)
 }
 
-// Apply ...
+// Apply returns the result.
 func (req *Pagination) Apply(db *gorm.DB) *gorm.DB {
 	return db.Clauses(req.Clause())
 }
 
-// PaginationExpr ...
+// PaginationExpr returns the result.
 func PaginationExpr(pageNo, pageSize uint32) clause.Expression {
 	if pageNo == 0 || pageSize == 0 {
 		return nil
@@ -134,7 +134,7 @@ func PaginationExpr(pageNo, pageSize uint32) clause.Expression {
 	return limit
 }
 
-// FindList ...
+// FindList performs the operation.
 func FindList[T any](db *gorm.DB, list *sqlx.List) ([]T, int64, error) {
 	var models []T
 
@@ -161,7 +161,7 @@ func FindList[T any](db *gorm.DB, list *sqlx.List) ([]T, int64, error) {
 
 type PaginationEmbedded sqlx.PaginationEmbedded
 
-// ToPagination ...
+// ToPagination converts the value.
 func (req *PaginationEmbedded) ToPagination() *Pagination {
 	return (*Pagination)(unsafe.Pointer(req))
 }

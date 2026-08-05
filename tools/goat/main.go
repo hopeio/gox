@@ -102,7 +102,7 @@ func (t *TranslateUnit) parseSource() ([]Function, error) {
 	return functions, nil
 }
 
-// generateGoStubs ...
+// generateGoStubs performs the operation.
 func (t *TranslateUnit) generateGoStubs(functions []Function) error {
 	// generate code
 	var builder strings.Builder
@@ -131,7 +131,7 @@ func (t *TranslateUnit) generateGoStubs(functions []Function) error {
 	return err
 }
 
-// compile ...
+// compile performs the operation.
 func (t *TranslateUnit) compile(args ...string) error {
 	args = append(args, "-mno-red-zone", "-mstackrealign", "-mllvm", "-inline-threshold=1000",
 		"-fno-asynchronous-unwind-tables", "-fno-exceptions", "-fno-rtti")
@@ -143,7 +143,7 @@ func (t *TranslateUnit) compile(args ...string) error {
 	return err
 }
 
-// Translate ...
+// Translate performs the operation.
 func (t *TranslateUnit) Translate() error {
 	functions := []Function{{
 		Name:       "avx2_ssd_int16",
@@ -327,7 +327,7 @@ var command = &cobra.Command{
 	},
 }
 
-// init ...
+// init initializes package state.
 func init() {
 	command.PersistentFlags().StringP("output", "o", "", "output directory of generated files")
 	command.PersistentFlags().StringSliceP("machine-option", "m", nil, "machine option for clang")
@@ -336,7 +336,7 @@ func init() {
 	command.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "if set, increase verbosity level")
 }
 
-// main ...
+// main is the program entry point.
 func main() {
 	if err := command.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)

@@ -21,12 +21,12 @@ const color256WithResetFormat = color256Format + reset
 const bgColor256Format = "\x1b[48;5;%dm%s"
 const bgColor256WithResetFormat = bgColor256Format + reset
 
-// colorize ...
+// colorize returns the result.
 func colorize(colorCode Style, s string) string {
 	return fmt.Sprintf(styleFormat+reset, colorCode.String(), s)
 }
 
-// Styles ...
+// Styles returns the result.
 func Styles(s string, styles ...Style) string {
 	if len(styles) == 0 {
 		return s
@@ -113,57 +113,57 @@ const (
 	HLBgColorGray
 )
 
-// Blue ...
+// Blue returns the result.
 func Blue(s string) string {
 	return colorize(ColorBlue, s)
 }
 
-// Cyan ...
+// Cyan returns the result.
 func Cyan(s string) string {
 	return colorize(ColorCyan, s)
 }
 
-// Magenta ...
+// Magenta returns the result.
 func Magenta(s string) string {
 	return colorize(ColorMagenta, s)
 }
 
-// Gray ...
+// Gray returns the result.
 func Gray(s string) string {
 	return colorize(ColorGray, s)
 }
 
-// Red ...
+// Red returns the result.
 func Red(s string) string {
 	return colorize(ColorRed, s)
 }
 
-// BgRed ...
+// BgRed returns the result.
 func BgRed(s string) string {
 	return colorize(BgColorRed, s)
 }
 
-// Green ...
+// Green returns the result.
 func Green(s string) string {
 	return colorize(ColorGreen, s)
 }
 
-// Yellow ...
+// Yellow returns the result.
 func Yellow(s string) string {
 	return colorize(ColorYellow, s)
 }
 
-// Custom ...
+// Custom returns the result.
 func Custom(s string, begin, end any) string {
 	return fmt.Sprintf("\x1b[%vm%s\x1b[%vm", begin, s, end)
 }
 
-// Color256 ...
+// Color256 returns the result.
 func Color256(s string, c byte) string {
 	return fmt.Sprintf(color256WithResetFormat, c, s)
 }
 
-// BgColor256 ...
+// BgColor256 returns the result.
 func BgColor256(s string, c byte) string {
 	return fmt.Sprintf(bgColor256WithResetFormat, c, s)
 }

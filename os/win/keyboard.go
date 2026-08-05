@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// TapKey ...
+// TapKey performs the operation.
 func TapKey(keys ...uint16) {
 	var onInput []w32.INPUT
 

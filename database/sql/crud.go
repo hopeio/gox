@@ -14,7 +14,7 @@ const (
 	deleteSQL         = `Update %s SET deleted_at = now() WHERE %s = ?` + WithNotDeleted
 )
 
-// ExistsSQL ...
+// ExistsSQL returns the result.
 func ExistsSQL(tableName, column string, withDeletedAt bool) string {
 	sql := `SELECT EXISTS(SELECT * FROM ` + tableName + ` WHERE ` + column + ` = ?`
 	if withDeletedAt {
@@ -24,27 +24,27 @@ func ExistsSQL(tableName, column string, withDeletedAt bool) string {
 	return sql
 }
 
-// DeleteSQL ...
+// DeleteSQL removes or resets state.
 func DeleteSQL(tableName, column string) string {
 	return `Update ` + tableName + ` SET deleted_at = now() WHERE ` + column + ` = ?` + WithNotDeleted
 }
 
-// DeleteByIdSQL ...
+// DeleteByIdSQL removes or resets state.
 func DeleteByIdSQL(tableName string) string {
 	return `Update ` + tableName + ` SET deleted_at = now() WHERE id = ?`
 }
 
-// ExistsByQuerySQL ...
+// ExistsByQuerySQL returns the result.
 func ExistsByQuerySQL(qsql string) string {
 	return `SELECT EXISTS(` + qsql + ` LIMIT 1)`
 }
 
-// ExistsByFilterExprsSQL ...
+// ExistsByFilterExprsSQL returns the result.
 func ExistsByFilterExprsSQL(tableName string, filters FilterExprs) string {
 	return `SELECT EXISTS(SELECT * FROM ` + tableName + ` WHERE ` + filters.Build() + ` LIMIT 1)`
 }
 
-// ExistsByFilterExprs ...
+// ExistsByFilterExprs performs the operation.
 func ExistsByFilterExprs(db *sql.DB, tableName string, filters FilterExprs) (bool, error) {
 	result := db.QueryRow(`SELECT EXISTS(SELECT * FROM ` + tableName + `WHERE ` + filters.Build() + ` LIMIT 1)`)
 	if err := result.Err(); err != nil {

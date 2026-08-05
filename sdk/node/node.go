@@ -21,12 +21,12 @@ var (
 	cmdMutex   sync.Mutex
 )
 
-// runNodeScript ...
+// runNodeScript performs the operation.
 func runNodeScript(script string) {
 	cmdMutex.Lock()
 	defer cmdMutex.Unlock()
 
-	// 如果有正在运行的命令，终止它
+	// If a command is running, terminate it
 	if currentCmd != nil {
 		if err := currentCmd.Process.Signal(syscall.SIGINT); err != nil {
 			log.Printf("Error stopping previous process: %v", err)
@@ -34,7 +34,7 @@ func runNodeScript(script string) {
 		currentCmd.Wait()
 	}
 
-	// 启动新命令
+	// Start a new command
 	cmd := exec.Command("node", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -46,7 +46,7 @@ func runNodeScript(script string) {
 	currentCmd = cmd
 }
 
-// WatchRun ...
+// WatchRun performs the operation.
 func WatchRun(scriptFile string) {
 
 	watcher, err := fsnotify.NewWatcher()

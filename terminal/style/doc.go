@@ -6,48 +6,48 @@
 
 package style
 
-// 转义序列以控制字ESC开头，该字符的ASCII码十进制表示为27，十六进制为0x1B，八进制表示为033.多数的转义序列超过两个字符，所以通常以ESC和左括号[开头。
-// 该起始序列称为控制序列引导符（CSI,Control Sequence Intro），通常由\033[或者\e[代替。
+// Escape sequences start with ESC (ASCII 27 / 0x1B / 033). Most are longer than two chars and start with ESC+[.
+// That prefix is the Control Sequence Introducer (CSI), usually written \033[ or \e[.
 
 /*
-\033[0m 关闭所有属性
-      \033[1m 设置高亮度
-      \033[4m 下划线
-      \033[5m 闪烁
-      \033[7m 反显
-      \033[8m 消隐
-      \033[30m 至 \33[37m 设置前景色
-      \033[40m 至 \33[47m 设置背景色
-      \033[nA 光标上移n行
-      \033[nB 光标下移n行
-      \033[nC 光标右移n行
-      \033[nD 光标左移n行
-      \033[y;xH设置光标位置
-      \033[2J 清屏
-      \033[K 清除从光标到行尾的内容
-      \033[s 保存光标位置
-      \033[u 恢复光标位置
-      \033[?25l 隐藏光标
-      \033[?25h 显示光标
+\033[0m reset all attributes
+      \033[1m bold / high intensity
+      \033[4m underline
+      \033[5m blink
+      \033[7m reverse video
+      \033[8m conceal
+      \033[30m to \33[37m set foreground color
+      \033[40m to \33[47m set background color
+      \033[nA move cursor up n lines
+      \033[nB move cursor down n lines
+      \033[nC move cursor right n columns
+      \033[nD move cursor left n columns
+      \033[y;xH set cursor position
+      \033[2J clear screen
+      \033[K clear from cursor to end of line
+      \033[s save cursor position
+      \033[u restore cursor position
+      \033[?25l hide cursor
+      \033[?25h show cursor
 */
 /*
-字背景颜色范围:40----49
-      40:黑
-      41:深红
-      42:绿
-      43:黄色
-      44:蓝色
-      45:紫色
-      46:深绿
-      47:白色
+Background color range: 40----49
+      40: black
+      41: dark red
+      42: green
+      43: yellow
+      44: blue
+      45: purple
+      46: dark green
+      47: white
 
-      字颜色:30-----------39
-      30:黑
-      31:红
-      32:绿
-      33:黄
-      34:蓝色
-      35:紫色
-      36:深绿
-      37:白色
+      Foreground color: 30-----------39
+      30: black
+      31: red
+      32: green
+      33: yellow
+      34: blue
+      35: purple
+      36: dark green
+      37: white
 */

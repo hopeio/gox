@@ -6,7 +6,7 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 )
 
-// StringConvertFor ...
+// StringConvertFor performs the operation.
 func StringConvertFor[T any](str string) (T, error) {
 	var t T
 	a, ap := any(t), any(&t)

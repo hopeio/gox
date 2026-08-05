@@ -17,7 +17,7 @@ import (
 const ImgToJxlCmd = `cjxl %s %s.jxl -q %d --lossless_jpeg=0`
 const JxlImgToOtherCmd = `djxl %s %s`
 
-// ImgToJxl ...
+// ImgToJxl performs the operation.
 func ImgToJxl(filePath, dst string, quality int) error {
 	if strings.HasSuffix(dst, ".jxl") {
 		dst = dst[:len(dst)-4]

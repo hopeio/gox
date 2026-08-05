@@ -12,7 +12,7 @@ import (
 	"crypto/cipher"
 )
 
-// CBCEncrypt ...
+// CBCEncrypt performs the operation.
 func CBCEncrypt(origData, key, iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
 		iv = key
@@ -29,7 +29,7 @@ func CBCEncrypt(origData, key, iv []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-// CBCDecrypt ...
+// CBCDecrypt performs the operation.
 func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
 		iv = key
@@ -47,34 +47,34 @@ func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 	return origData, nil
 }
 
-// Pkcs7Padding ...
+// Pkcs7Padding returns the result.
 func Pkcs7Padding(cipherText []byte, blockSize int) []byte {
 	padding := blockSize - len(cipherText)%blockSize
 	padText := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(cipherText, padText...)
 }
 
-// UnPadding ...
+// UnPadding returns the result.
 func UnPadding(origData []byte) []byte {
 	length := len(origData)
 	if length == 0 {
 		return origData
 	}
-	// 去掉最后一个字节 unpadding 次
+	// Remove the last byte unpadding times
 	unPadding := int(origData[length-1])
-	//解密去补码时需取最后一个字节，值为m，则从数据尾部删除m个字节，剩余数据即为加密前的原文
+	//On decrypt unpadding, read the last byte as m and drop m trailing bytes to recover the plaintext
 	if unPadding > length || unPadding == 0 {
 		return nil
 	}
 	return origData[:length-unPadding]
 }
 
-// Pkcs5Padding ...
+// Pkcs5Padding returns the result.
 func Pkcs5Padding(cipherText []byte, blockSize int) []byte {
 	return Pkcs7Padding(cipherText, 8)
 }
 
-// ECBEncrypt ...
+// ECBEncrypt performs the operation.
 func ECBEncrypt(data, key []byte) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
@@ -88,7 +88,7 @@ func ECBEncrypt(data, key []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-// ECBDecrypt ...
+// ECBDecrypt performs the operation.
 func ECBDecrypt(crypted, key []byte) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
@@ -122,10 +122,10 @@ func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbEncrypter)(newECB(b))
 }
 
-// BlockSize ...
+// BlockSize returns the result.
 func (x *ecbEncrypter) BlockSize() int { return x.blockSize }
 
-// CryptBlocks ...
+// CryptBlocks performs the operation.
 func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		panic("crypto/cipher: input not full blocks")
@@ -148,10 +148,10 @@ func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbDecrypter)(newECB(b))
 }
 
-// BlockSize ...
+// BlockSize returns the result.
 func (x *ecbDecrypter) BlockSize() int { return x.blockSize }
 
-// CryptBlocks ...
+// CryptBlocks performs the operation.
 func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
 	/*	if len(src)%x.blockSize != 0 {
 			panic("crypto/cipher: input not full blocks")

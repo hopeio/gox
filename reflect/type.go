@@ -66,12 +66,12 @@ type NameOff int32 // offset to a name
 type TypeOff int32 // offset to an *Rtype
 type TextOff int32 // offset from top of text section
 
-// TypeByOff ...
+// TypeByOff returns the result.
 func TypeByOff(section unsafe.Pointer, off int32) *Type {
 	return (*Type)(add(section, uintptr(off)))
 }
 
-// add ...
+// add returns the result.
 func add(p unsafe.Pointer, x uintptr) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(p) + x)
 }
@@ -181,12 +181,12 @@ type Value struct {
 	Flag
 }
 
-// RuntimeTypeID ...
+// RuntimeTypeID executes the operation.
 func RuntimeTypeID(t reflect.Type) uintptr {
 	return uintptrElem(uintptr(unsafe.Pointer(&t)) + PtrOffset)
 }
 
-// DerefType ...
+// DerefType returns the result.
 func DerefType(typ reflect.Type) reflect.Type {
 	for {
 		kind := typ.Kind()

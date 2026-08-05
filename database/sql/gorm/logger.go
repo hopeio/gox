@@ -30,7 +30,7 @@ type Config struct {
 	LogLevel      zapcore.Level
 }
 
-// New ...
+// New creates a new instance.
 func New(loger *zap.Logger, conf *logger.Config) logger.Interface {
 	if conf == nil {
 		conf = &logger.Config{LogLevel: logger.Warn}
@@ -61,7 +61,7 @@ func (l *Logger) Error(ctx context.Context, msg string, data ...interface{}) {
 	l.Logger.Error(fmt.Sprintf(strings.TrimRight(msg, "\n"), data...), logx.Context(ctx))
 }
 
-// Trace ...
+// Trace performs the operation.
 func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	if l.LogLevel == logger.Silent {
 		return
@@ -93,6 +93,6 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (string, 
 	caller := zap.String("caller", utils.FileWithLineNum())
 	fields := []zap.Field{elapsedms, sqlField, rowsField, caller, logx.Context(ctx)}
 	entry := l.Check(zapcore.Level(4-level), msg)
-	// entry.Caller = zapcore.NewEntryCaller(0, "", 0, false) utils.FileWithLineNum() or 获取到gorm的gormSourceDir
+	// entry.Caller = zapcore.NewEntryCaller(0, "", 0, false) utils.FileWithLineNum() or resolve gormSourceDir
 	entry.Write(fields...)
 }

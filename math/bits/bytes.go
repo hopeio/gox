@@ -16,7 +16,7 @@ import (
 	"github.com/hopeio/gox/types/constraints"
 )
 
-// ViewBin ...
+// ViewBin performs the operation.
 func ViewBin(v any) {
 	vv := reflect.ValueOf(v)
 	var binary string
@@ -42,13 +42,13 @@ func ViewBin(v any) {
 	fmt.Println(strings.Join(out, " "), " ", v)
 }
 
-// ToBytes ...
+// ToBytes converts the value.
 func ToBytes[T constraints.Number](t T) []byte {
 	size := unsafe.Sizeof(t)
 	return unsafe.Slice((*byte)(unsafe.Pointer(&t)), size)
 }
 
-// FromBytes ...
+// FromBytes returns the result.
 func FromBytes[T constraints.Number](bytes []byte) T {
 	return *(*T)(unsafe.Pointer(unsafe.SliceData(bytes)))
 }

@@ -53,14 +53,14 @@ func GetQrCodeFullUrl(name string) string {
 	return initialize.Config.Server.PrefixUrl + "/" + GetQrCodePath() + name
 }*/
 
-// GetQrCodeFileName ...
+// GetQrCodeFileName returns the value.
 func GetQrCodeFileName(value string) string {
 	m := md5.New()
 	m.Write([]byte(value))
 	return hex.EncodeToString(m.Sum(nil))
 }
 
-// GetQrCodeExt ...
+// GetQrCodeExt returns the value.
 func (q *QrCode) GetQrCodeExt() string {
 	return q.Ext
 }
@@ -73,7 +73,7 @@ func (q *QrCode) CheckEncode(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-// Encode ...
+// Encode formats or converts the value.
 func (q *QrCode) Encode(path string) (string, string, error) {
 	name := GetQrCodeFileName(q.URL) + q.GetQrCodeExt()
 	src := path + name

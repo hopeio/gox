@@ -29,42 +29,42 @@ type Engine[KEY Key] struct {
 	workerCount, currentWorkerCount, workingWorkerCount uint64
 	waitTaskCount                                       uint64
 	workers                                             []*Worker[KEY]
-	// workerGroup [][]*Worker[KEY] //TODO 工作组概念
+	// workerGroup [][]*Worker[KEY] // TODO: worker groups
 	taskChanConsumer chan *Task[KEY]
 	errTaskChan      chan *Task[KEY]
 	readyTaskHeap    heap.Heap[*Task[KEY]]
 	ctx              context.Context
-	cancel           context.CancelFunc // 手动停止执行
-	wg               sync.WaitGroup     // 控制确保所有任务执行完
+	cancel           context.CancelFunc // manual stop
+	wg               sync.WaitGroup     // ensures all tasks finish
 	mu               sync.RWMutex
-	workersMu        sync.Mutex // 保护 workers 切片,与 mu 分离避免重入死锁
+	workersMu        sync.Mutex // protects workers slice; separate from mu to avoid reentrant deadlock
 	speedLimit       timex.Ticker
 	rateLimiter      *rate.Limiter
 	//TODO
-	monitorInterval      time.Duration // 全局检测定时器间隔时间，任务的卡住检测，worker panic recover都可以用这个检测
+	monitorInterval      time.Duration // global monitor interval for stuck tasks and worker panic recovery
 	workerFactoryRunning atomic.Bool
 	errHandlerRunning    atomic.Bool
 	isRunning, isStopped bool
 	enableTelemetry      bool
 	EngineStatistics
-	seen         map[KEY]struct{} // 去重:记录已入堆的 key,由 e.mu 保护
+	seen         map[KEY]struct{} // dedup: keys already in the heap, guarded by e.mu
 	kindHandlers []*KindHandler[KEY]
-	// 有界 pending:限制"已加入未结束"的任务总数,防止 readyTaskHeap 无界膨胀
-	// 背压只作用在 ingest 协程/外部调用者上,绝不阻塞 worker
+	// bounded pending: cap in-flight tasks so readyTaskHeap cannot grow unboundedly
+	// backpressure only affects ingest/external callers, never workers
 	maxPending uint64
 	pendingSem chan struct{}
-	submitCh   chan *Task[KEY] // worker -> ingest 的子任务提交缓冲
-	wakeup     chan struct{}   // 通知 dispatcher 有新任务入堆
+	submitCh   chan *Task[KEY] // buffer for worker -> ingest subtask submit
+	wakeup     chan struct{}   // wake dispatcher when new tasks enter the heap
 	errHandler func(task *Task[KEY])
 	onStop     []func(context.Context)
-	zeroKey    KEY // 泛型不够强大,又为了性能妥协的字段
+	zeroKey    KEY // field kept for performance where generics are not flexible enough
 }
 
 type KindHandler[KEY Key] struct {
 	Skip        bool
 	speedLimit  timex.Ticker
 	rateLimiter *rate.Limiter
-	// TODO 指定Kind的Handler
+	// TODO: handlers keyed by Kind
 	Handler TaskFunc[KEY]
 }
 
@@ -88,12 +88,12 @@ func NewEngine[KEY Key](workerCount uint64, opts ...Option[KEY]) *Engine[KEY] {
 
 	if engine.maxPending > 0 {
 		engine.pendingSem = make(chan struct{}, engine.maxPending)
-		// 初始填满额度:pendingSem 是"剩余可加入名额"的信号量,必须从满开始。
-		// 否则 addTasks 的首个任务就会因无人归还额度而永久阻塞。
+		// Fill quota initially: pendingSem is remaining slots and must start full.
+		// Otherwise the first addTasks call blocks forever waiting for a return that never comes.
 		for i := uint64(0); i < engine.maxPending; i++ {
 			engine.pendingSem <- struct{}{}
 		}
-		// 提交缓冲足以吸收突发,避免 worker 在递交子任务时频繁被背压
+		// Submit buffer absorbs bursts so workers are not constantly backpressured
 		buf := int(engine.maxPending)
 		if buf > 4096 {
 			buf = 4096
@@ -107,7 +107,7 @@ func NewEngine[KEY Key](workerCount uint64, opts ...Option[KEY]) *Engine[KEY] {
 	return engine
 }
 
-// SkipKind ...
+// SkipKind returns the result.
 func (e *Engine[KEY]) SkipKind(kinds ...Kind) *Engine[KEY] {
 	length := slices.Max(kinds) + 1
 	if e.kindHandlers == nil {
@@ -127,7 +127,7 @@ func (e *Engine[KEY]) SkipKind(kinds ...Kind) *Engine[KEY] {
 	return e
 }
 
-// MonitorInterval ...
+// MonitorInterval performs the operation.
 func (e *Engine[KEY]) MonitorInterval(interval time.Duration) {
 	if interval < time.Second {
 		log.Warn("monitor interval min one second")
@@ -137,13 +137,13 @@ func (e *Engine[KEY]) MonitorInterval(interval time.Duration) {
 	e.monitorInterval = interval
 }
 
-// ErrHandler ...
+// ErrHandler returns the result.
 func (e *Engine[KEY]) ErrHandler(errHandler func(task *Task[KEY])) *Engine[KEY] {
 	e.errHandler = errHandler
 	return e
 }
 
-// ErrHandlerUtilSuccess ...
+// ErrHandlerUtilSuccess returns the result.
 func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
 	log.Warn("ErrHandlerUtilSuccess will clear history exec log contains err")
 	return e.ErrHandler(func(task *Task[KEY]) {
@@ -153,7 +153,7 @@ func (e *Engine[KEY]) ErrHandlerUtilSuccess() *Engine[KEY] {
 	})
 }
 
-// ErrHandlerRetryTimes ...
+// ErrHandlerRetryTimes returns the result.
 func (e *Engine[KEY]) ErrHandlerRetryTimes(times int) *Engine[KEY] {
 	return e.ErrHandler(func(task *Task[KEY]) {
 		if task.reExecTimes < times {
@@ -167,7 +167,7 @@ func (e *Engine[KEY]) ErrHandlerRetryTimes(times int) *Engine[KEY] {
 	})
 }
 
-// ErrHandlerWriteToFile ...
+// ErrHandlerWriteToFile returns the result.
 func (e *Engine[KEY]) ErrHandlerWriteToFile(path string) *Engine[KEY] {
 	file, err := fs.Create(path)
 	if err != nil {
@@ -181,39 +181,39 @@ func (e *Engine[KEY]) ErrHandlerWriteToFile(path string) *Engine[KEY] {
 	})
 }
 
-// OnStop ...
+// OnStop returns the result.
 func (e *Engine[KEY]) OnStop(callBack func(context.Context)) *Engine[KEY] {
 	e.onStop = append(e.onStop, callBack)
 	return e
 }
 
-// SpeedLimited ...
+// SpeedLimited returns the result.
 func (e *Engine[KEY]) SpeedLimited(interval time.Duration) *Engine[KEY] {
 	e.speedLimit = timex.NewTicker(interval)
 	return e
 }
 
-// RandSpeedLimited ...
+// RandSpeedLimited returns the result.
 func (e *Engine[KEY]) RandSpeedLimited(minInterval, maxInterval time.Duration) *Engine[KEY] {
 	e.speedLimit = timex.NewRandTicker(minInterval, maxInterval)
 	return e
 }
 
-// KindSpeedLimit ...
+// KindSpeedLimit returns the result.
 func (e *Engine[KEY]) KindSpeedLimit(kind Kind, interval time.Duration) *Engine[KEY] {
 	limiter := timex.NewRandTicker(interval, interval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
-// KindRandSpeedLimit ...
+// KindRandSpeedLimit returns the result.
 func (e *Engine[KEY]) KindRandSpeedLimit(kind Kind, minInterval, maxInterval time.Duration) *Engine[KEY] {
 	limiter := timex.NewRandTicker(minInterval, maxInterval)
 	e.kindSpeedLimit(kind, limiter)
 	return e
 }
 
-// kindSpeedLimit ...
+// kindSpeedLimit returns the result.
 func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timex.Ticker) *Engine[KEY] {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
@@ -229,7 +229,7 @@ func (e *Engine[KEY]) kindSpeedLimit(kind Kind, limiter timex.Ticker) *Engine[KE
 	return e
 }
 
-// KindGroupSpeedLimit ...
+// KindGroupSpeedLimit returns the result.
 func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind) *Engine[KEY] {
 	limiter := timex.NewRandTicker(interval, interval)
 	for _, kind := range kinds {
@@ -238,7 +238,7 @@ func (e *Engine[KEY]) KindGroupSpeedLimit(interval time.Duration, kinds ...Kind)
 	return e
 }
 
-// KindGroupRandSpeedLimit ...
+// KindGroupRandSpeedLimit returns the result.
 func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Duration, kinds ...Kind) *Engine[KEY] {
 	limiter := timex.NewRandTicker(minInterval, maxInterval)
 	for _, kind := range kinds {
@@ -247,19 +247,19 @@ func (e *Engine[KEY]) KindGroupRandSpeedLimit(minInterval, maxInterval time.Dura
 	return e
 }
 
-// Limiter ...
+// Limiter returns the result.
 func (e *Engine[KEY]) Limiter(r rate.Limit, b int) *Engine[KEY] {
 	e.rateLimiter = rate.NewLimiter(r, b)
 	return e
 }
 
-// KindLimiter ...
+// KindLimiter returns the result.
 func (e *Engine[KEY]) KindLimiter(kind Kind, r rate.Limit, b int) *Engine[KEY] {
 	e.kindLimiter(kind, r, b)
 	return e
 }
 
-// kindLimiter ...
+// kindLimiter performs the operation.
 func (e *Engine[KEY]) kindLimiter(kind Kind, r rate.Limit, b int) {
 	if e.kindHandlers == nil {
 		e.kindHandlers = make([]*KindHandler[KEY], int(kind)+1)
@@ -276,7 +276,7 @@ func (e *Engine[KEY]) kindLimiter(kind Kind, r rate.Limit, b int) {
 
 type AddTask[KEY Key] func(ctx context.Context, priority int, task ...*Task[KEY])
 
-// TaskSource ...
+// TaskSource performs the operation.
 func (e *Engine[KEY]) TaskSource(taskSource func(addTask *Engine[KEY])) {
 	e.wg.Add(1)
 	go func() {
@@ -287,12 +287,12 @@ func (e *Engine[KEY]) TaskSource(taskSource func(addTask *Engine[KEY])) {
 
 type Option[KEY Key] func(engine *Engine[KEY])
 
-// WithMaxPending ...
+// WithMaxPending updates or inserts a value.
 func WithMaxPending[KEY Key](n uint64) Option[KEY] {
 	return func(c *Engine[KEY]) { c.maxPending = n }
 }
 
-// WithContext ...
+// WithContext updates or inserts a value.
 func WithContext[KEY Key](ctx context.Context) Option[KEY] {
 	return func(c *Engine[KEY]) { c.ctx = ctx }
 }

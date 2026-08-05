@@ -6,16 +6,16 @@
 
 package structtag
 
-// SubTag 适用于子tag形式等同于struct tag,区别是struct tag使用 " 而SubTag使用 '
+// SubTag is like a struct tag for nested tags, but uses ' instead of "
 // e.g. `key:"example:'1' type:'\\w' test:'\"'"`
 type SubTag string
 
-// SubTagLookup ...
+// SubTagLookup performs the operation.
 func SubTagLookup(subTag, key string) (value string, ok bool) {
 	return SubTag(subTag).Lookup(key)
 }
 
-// Lookup ...
+// Lookup performs the operation.
 func (tag SubTag) Lookup(key string) (value string, ok bool) {
 
 	for tag != "" {

@@ -27,14 +27,14 @@ type Worker[KEY Key] struct {
 	isExecuting, canExecute bool
 }
 
-// workStatistics worker统计数据
+// workStatistics holds worker stats
 type workStatistics struct {
 	timeCost                                                                          time.Duration
 	taskTotalCount, taskDoneCount, taskSkipCount, taskErrHandleCount, taskFailedCount uint64
 	taskRepeatTimes, taskErrorTimes, taskTimeoutTimes                                 uint64
 }
 
-// EngineStatistics 基本引擎统计数据
+// EngineStatistics holds basic engine stats
 type EngineStatistics struct {
 	workStatistics
 }

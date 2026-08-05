@@ -185,27 +185,27 @@ func isPowerOfTwo(x int) bool {
 	return x&(x-1) == 0
 }
 
-// cloneString ...
+// cloneString returns the result.
 func cloneString(x string) string { return string([]byte(x)) }
 
-// syntaxError ...
+// syntaxError returns the result.
 func syntaxError(fn, str string) *strconv.NumError {
 	return &strconv.NumError{Func: fn, Num: cloneString(str), Err: strconv.ErrSyntax}
 }
 
-// rangeError ...
+// rangeError returns the result.
 func rangeError(fn, str string) *strconv.NumError {
 	return &strconv.NumError{Func: fn, Num: cloneString(str), Err: strconv.ErrRange}
 }
 
-// bitSizeError ...
+// bitSizeError returns the result.
 func bitSizeError(fn, str string, bitSize int) *strconv.NumError {
 	return &strconv.NumError{Func: fn, Num: cloneString(str), Err: errors.New("invalid bit size " + strconv.Itoa(bitSize))}
 }
 
 const maxUint64 = 1<<64 - 1
 
-// ParseUint ...
+// ParseUint parses the input.
 func ParseUint(s string, base int, bitSize int) (uint64, error) {
 	if base < 37 {
 		return strconv.ParseUint(s, base, bitSize)

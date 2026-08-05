@@ -13,7 +13,7 @@ func NewOtelLogger(name string, opts ...otelzap.Option) *Logger {
 	return &Logger{zap.New(otelzap.NewCore(name, opts...), zap.AddCallerSkip(1))}
 }
 
-// WithContext ...
+// WithContext updates or inserts a value.
 func (l *Logger) WithContext(ctx context.Context) *Logger {
 	if ctx == nil {
 		return l
@@ -28,7 +28,7 @@ func (l *Logger) WithContext(ctx context.Context) *Logger {
 	})
 }
 
-// Context ...
+// Context returns the result.
 func Context(ctx context.Context) zapcore.Field {
 	return zapcore.Field{
 		Type: zapcore.InlineMarshalerType,
@@ -42,7 +42,7 @@ type contextObjectMarshaler struct {
 	context.Context
 }
 
-// MarshalLogObject ...
+// MarshalLogObject performs the operation.
 func (m contextObjectMarshaler) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	spanContext := trace.SpanContextFromContext(m.Context)
 	if spanContext.IsValid() {

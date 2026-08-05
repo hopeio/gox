@@ -19,19 +19,19 @@ import (
 	"github.com/hopeio/gox/slices"
 )
 
-// Exist ...
+// Exist reports whether the condition holds.
 func Exist(filepath string) bool {
 	_, err := os.Stat(filepath)
 	return err == nil
 }
 
-// NotExist ...
+// NotExist reports whether the condition holds.
 func NotExist(filepath string) bool {
 	_, err := os.Stat(filepath)
 	return os.IsNotExist(err)
 }
 
-// Md5 ...
+// Md5 performs the operation.
 func Md5(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -51,7 +51,7 @@ func Md5(path string) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
-// Md5Equal ...
+// Md5Equal performs the operation.
 func Md5Equal(path1, path2 string) (bool, error) {
 	md51, err := Md5(path1)
 	if err != nil {
@@ -64,7 +64,7 @@ func Md5Equal(path1, path2 string) (bool, error) {
 	return md51 == md52, nil
 }
 
-// GetMd5Name ...
+// GetMd5Name returns the value.
 func GetMd5Name(name string) string {
 	ext := stdpath.Ext(name)
 	fileName := strings.TrimSuffix(name, ext)
@@ -77,7 +77,7 @@ type duplicateFile struct {
 	md5  string
 }
 
-// DirsDeDuplicate ...
+// DirsDeDuplicate performs the operation.
 func DirsDeDuplicate(dirs ...string) error {
 	return DirsDuplicateHandle(func(path1, path2 string) error {
 		log.Debugf("exists: %s,remove:%s", path1, path2)
@@ -85,7 +85,7 @@ func DirsDeDuplicate(dirs ...string) error {
 	}, dirs...)
 }
 
-// DirsDuplicateHandle ...
+// DirsDuplicateHandle performs the operation.
 func DirsDuplicateHandle(callback func(path1, path2 string) error, dirs ...string) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	for _, tmpDir := range dirs {
@@ -122,7 +122,7 @@ func DirsDuplicateHandle(callback func(path1, path2 string) error, dirs ...strin
 	return nil
 }
 
-// DirsRangeDuplicateHandle ...
+// DirsRangeDuplicateHandle performs the operation.
 func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) (error, bool), duplicateCallback func(path1, path2 string) error, dirs ...string) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	for _, tmpDir := range dirs {
@@ -163,7 +163,7 @@ func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) 
 	return nil
 }
 
-// TwoDirDuplicateHandle ...
+// TwoDirDuplicateHandle performs the operation.
 func TwoDirDuplicateHandle(dir1, dir2 string, callback func(path1, path2 string) error) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	err := WalkFile(dir1, func(dir string, entry os.DirEntry) error {
@@ -200,7 +200,7 @@ func TwoDirDuplicateHandle(dir1, dir2 string, callback func(path1, path2 string)
 	})
 }
 
-// TwoDirDeDuplicate ...
+// TwoDirDeDuplicate performs the operation.
 func TwoDirDeDuplicate(dir1, dir2 string) error {
 	return TwoDirDuplicateHandle(dir1, dir2, func(path1, path2 string) error {
 		log.Debug("remove:", path2)
@@ -208,7 +208,7 @@ func TwoDirDeDuplicate(dir1, dir2 string) error {
 	})
 }
 
-// Sync ...
+// Sync performs the operation.
 func Sync(slaveDir, mainDir string) error {
 	mainDirEntries, err := os.ReadDir(mainDir)
 	if err == nil {

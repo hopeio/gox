@@ -28,7 +28,7 @@ const (
 
 type Dir string
 
-// Open ...
+// Open performs the operation.
 func (d Dir) Open(name string) (*os.File, error) {
 	dir := string(d)
 	if dir == "" {
@@ -42,7 +42,7 @@ func (d Dir) Open(name string) (*os.File, error) {
 	return f, nil
 }
 
-// Find ...
+// Find performs the operation.
 func Find(src, dst string) (string, error) {
 	files, err := FindFiles(src, dst, 8, 1)
 	if err != nil {
@@ -51,7 +51,7 @@ func Find(src, dst string) (string, error) {
 	return files[0], nil
 }
 
-// FindFiles ...
+// FindFiles performs the operation.
 func FindFiles(src, dst string, deep int8, num int) ([]string, error) {
 	if src == "" {
 		wd, err := os.Getwd()
@@ -78,7 +78,7 @@ func FindFiles(src, dst string, deep int8, num int) ([]string, error) {
 	return files, nil
 }
 
-// subDirFiles ...
+// subDirFiles performs the operation.
 func subDirFiles(dir, path, exclude string, files *[]string, deep, step int8, num int) {
 	step += 1
 	if step-1 == deep {
@@ -105,7 +105,7 @@ func subDirFiles(dir, path, exclude string, files *[]string, deep, step int8, nu
 	}
 }
 
-// supDirFiles ...
+// supDirFiles performs the operation.
 func supDirFiles(dir, path string, files *[]string, deep, step int8, num int) {
 	step += 1
 	if step-1 == deep {
@@ -126,7 +126,7 @@ func supDirFiles(dir, path string, files *[]string, deep, step int8, num int) {
 	supDirFiles(dir, path, files, deep, step, num)
 }
 
-// FindFilesParallel ...
+// FindFilesParallel performs the operation.
 func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 	if src == "" {
 		wd, err := os.Getwd()
@@ -142,13 +142,13 @@ func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 	file := make(chan string, num+1)
 	var wg sync.WaitGroup
 
-	// 当前目录下先找
+	// Search the current directory first
 	filepath1 := filepath.Join(src, dst)
 	if _, err := os.Stat(filepath1); !os.IsNotExist(err) {
 		file <- filepath1
 	}
 
-	// 并行搜索子目录和父目录
+	// Search subdirs and parents in parallel
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
@@ -159,7 +159,7 @@ func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 		supDirFilesParallel(ctx, src+PathSeparator, dst, file, deep, 0)
 	}()
 
-	// 所有搜索完成后关闭 channel
+	// Close the channel after all searches finish
 	go func() {
 		wg.Wait()
 		close(file)
@@ -169,7 +169,7 @@ func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 	for fp := range file {
 		files = append(files, fp)
 		if len(files) == num {
-			cancel() // 停止剩余搜索
+			cancel() // Cancel remaining searches
 			break
 		}
 	}
@@ -179,7 +179,7 @@ func FindFilesParallel(src, dst string, deep int8, num int) ([]string, error) {
 	return files, nil
 }
 
-// subDirFilesParallel ...
+// subDirFilesParallel performs the operation.
 func subDirFilesParallel(ctx context.Context, dir, path, exclude string, file chan<- string, deep, step int8) {
 	if step >= deep || ctx.Err() != nil {
 		return
@@ -216,7 +216,7 @@ func subDirFilesParallel(ctx context.Context, dir, path, exclude string, file ch
 	wg.Wait()
 }
 
-// supDirFilesParallel ...
+// supDirFilesParallel performs the operation.
 func supDirFilesParallel(ctx context.Context, dir, path string, file chan<- string, deep, step int8) {
 	if step >= deep || ctx.Err() != nil {
 		return
@@ -247,7 +247,7 @@ func supDirFilesParallel(ctx context.Context, dir, path string, file chan<- stri
 	wg.Wait()
 }
 
-// Mkdir ...
+// Mkdir performs the operation.
 func Mkdir(src string) error {
 	_, err := os.Stat(src)
 	if os.IsNotExist(err) {
@@ -259,7 +259,7 @@ func Mkdir(src string) error {
 	return err
 }
 
-// MkdirAll ...
+// MkdirAll performs the operation.
 func MkdirAll(src string) error {
 	return os.MkdirAll(src, ModeDir)
 }
@@ -282,7 +282,7 @@ func IsPermission(src string) bool {
 	return os.IsPermission(err)
 }
 
-// MustOpen ...
+// MustOpen returns the value.
 func MustOpen(filePath string) (*os.File, error) {
 	perm := IsPermission(filePath)
 	if !perm {
@@ -298,12 +298,12 @@ func MustOpen(filePath string) (*os.File, error) {
 	return Create(src)
 }
 
-// Create ...
+// Create performs the operation.
 func Create(filepath string) (*os.File, error) {
 	return OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, ModeFile)
 }
 
-// Open ...
+// Open performs the operation.
 func Open(filepath string) (*os.File, error) {
 	return OpenFile(filepath, os.O_RDWR, ModeFile)
 }
@@ -321,7 +321,7 @@ func OpenFile(path string, flag int, perm os.FileMode) (*os.File, error) {
 	return os.OpenFile(path, flag, perm)
 }
 
-// LastFile ...
+// LastFile performs the operation.
 func LastFile(dir string) (os.FileInfo, map[string]os.FileInfo, error) {
 	entries, err := os.ReadDir(dir)
 	if len(entries) == 0 {
@@ -343,7 +343,7 @@ func LastFile(dir string) (os.FileInfo, map[string]os.FileInfo, error) {
 	return lastFile, m, nil
 }
 
-// Move ...
+// Move performs the operation.
 func Move(src, dst string) error {
 	dir := filepath.Clean(filepath.Dir(dst))
 	err := os.MkdirAll(dir, os.ModePerm)

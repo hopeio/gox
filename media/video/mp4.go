@@ -12,14 +12,14 @@ import (
 	"os"
 )
 
-// BoxHeader 信息头
+// BoxHeader is the box header
 type BoxHeader struct {
 	Size       uint32
 	FourccType [4]byte
 	Size64     uint64
 }
 
-// GetMP4Duration ...
+// GetMP4Duration returns the value.
 func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 	reader, err := os.Open(filepath)
 	if err != nil {
@@ -28,7 +28,7 @@ func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 	var info = make([]byte, 0x10)
 	var boxHeader BoxHeader
 	var offset int64 = 0
-	// 获取moov结构偏移
+	// Get the moov box offset
 	for {
 		_, err = reader.ReadAt(info, offset)
 		if err != nil {
@@ -39,7 +39,7 @@ func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 		if fourccType == "moov" {
 			break
 		}
-		// 有一部分mp4 mdat尺寸过大需要特殊处理
+		// Some MP4 mdat sizes are oversized and need special handling
 		if fourccType == "mdat" {
 			if boxHeader.Size == 1 {
 				offset += int64(boxHeader.Size64)
@@ -48,13 +48,13 @@ func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 		}
 		offset += int64(boxHeader.Size)
 	}
-	// 获取moov结构开头一部分
+	// Read the beginning of the moov box
 	moovStartBytes := make([]byte, 0x100)
 	_, err = reader.ReadAt(moovStartBytes, offset)
 	if err != nil {
 		return
 	}
-	// 定义timeScale与Duration偏移
+	// Define timeScale and Duration offsets
 	timeScaleOffset := 0x1C
 	durationOffest := 0x20
 	timeScale := binary.BigEndian.Uint32(moovStartBytes[timeScaleOffset : timeScaleOffset+4])
@@ -63,14 +63,14 @@ func GetMP4Duration(filepath string) (lengthOfTime uint32, err error) {
 	return
 }
 
-// getHeaderBoxInfo ...
+// getHeaderBoxInfo performs the operation.
 func getHeaderBoxInfo(data []byte) (boxHeader BoxHeader) {
 	buf := bytes.NewBuffer(data)
 	binary.Read(buf, binary.BigEndian, &boxHeader)
 	return
 }
 
-// getFourccType ...
+// getFourccType performs the operation.
 func getFourccType(boxHeader BoxHeader) (fourccType string) {
 	fourccType = string(boxHeader.FourccType[:])
 	return

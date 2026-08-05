@@ -14,7 +14,7 @@ import (
 	"github.com/rs/cors"
 )
 
-// Director ...
+// Director returns the result.
 func Director() *httputil.ReverseProxy {
 	proxy := &httputil.ReverseProxy{
 		Director: func(r *http.Request) {
@@ -32,7 +32,7 @@ func Director() *httputil.ReverseProxy {
 			r.Header["Origin"] = r.Header["Target-Origin"]
 		},
 		Transport: &http.Transport{
-			Proxy:             http.ProxyFromEnvironment, // 代理使用
+			Proxy:             http.ProxyFromEnvironment, // use proxy
 			ForceAttemptHTTP2: true,
 		},
 		ModifyResponse: func(resp *http.Response) error {
@@ -43,7 +43,7 @@ func Director() *httputil.ReverseProxy {
 	return proxy
 }
 
-// DirectorServer ...
+// DirectorServer performs the operation.
 func DirectorServer(addr string) error {
 	server := cors.AllowAll()
 	return http.ListenAndServe(addr, server.Handler(Director()))

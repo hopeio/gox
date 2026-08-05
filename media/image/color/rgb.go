@@ -12,7 +12,7 @@ type RGBu16 struct {
 	R, G, B uint16
 }
 
-// RGBA ...
+// RGBA performs the operation.
 func (c RGBu16) RGBA() (r, g, b, a uint32) {
 	r = uint32(c.R)
 	r |= r << 8
@@ -33,7 +33,7 @@ type RGB struct {
 	R, G, B uint8
 }
 
-// RGBA ...
+// RGBA performs the operation.
 func (c RGB) RGBA() (r, g, b, a uint32) {
 	r = uint32(c.R)
 	r |= r << 8
@@ -50,7 +50,7 @@ func NewRGB(r, g, b uint8) RGB {
 	return RGB{R: r, G: g, B: b}
 }
 
-// rgbModel ...
+// rgbModel returns the result.
 func rgbModel(c color.Color) color.Color {
 	if _, ok := c.(RGB); ok {
 		return c
@@ -63,7 +63,7 @@ var (
 	RGBModel = color.ModelFunc(rgbModel)
 )
 
-// ColorRGBAu8 ...
+// ColorRGBAu8 performs the operation.
 func ColorRGBAu8(c color.Color) (r, g, b, a uint8) {
 	r32, g32, b32, a32 := c.RGBA()
 	return uint8(r32), uint8(g32), uint8(b32), uint8(a32)

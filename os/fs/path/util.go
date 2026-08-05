@@ -6,7 +6,7 @@
 
 package path
 
-// 该文件仅供示例
+// This file is for illustration only
 
 import (
 	stringsx "github.com/hopeio/gox/strings"
@@ -34,7 +34,7 @@ type ByUId struct {
 	FileName  string    `json:"fileName"`
 }
 
-// PreHandle ...
+// PreHandle performs the operation.
 func (d *ByUId) PreHandle() {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
@@ -48,7 +48,7 @@ func (d *ByUId) PreHandle() {
 	d.TimeStr = stringsx.RemoveRunes(d.TimeStr, '-', ' ', ':')
 }
 
-// Path ...
+// Path returns the result.
 func (d *ByUId) Path() string {
 	d.PreHandle()
 	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, PathSeparator)
@@ -65,7 +65,7 @@ type ById struct {
 	FileName string `json:"fileName"`
 }
 
-// Path ...
+// Path returns the result.
 func (d *ById) Path() string {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
@@ -77,7 +77,7 @@ func (d *ById) Path() string {
 // path
 type ByPath string
 
-// Path ...
+// Path returns the result.
 func (d ByPath) Path() string {
 	return string(d)
 }
@@ -89,7 +89,7 @@ type ByUIdTitle struct {
 	//PrePath   string    `json:"prePath" comment:""`
 }
 
-// Path ...
+// Path returns the result.
 func (d *ByUIdTitle) Path() string {
 	d.PreHandle()
 	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr + "_" + d.Title + "_" + d.IdStr, strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, "/")

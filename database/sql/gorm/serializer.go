@@ -21,7 +21,7 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-// init ...
+// init initializes package state.
 func init() {
 	schema.RegisterSerializer("json", JSONSerializer{})
 	schema.RegisterSerializer("string_array", StringArraySerializer{})
@@ -29,11 +29,11 @@ func init() {
 	schema.RegisterSerializer("date", DateSerializer{})
 }
 
-// JSONSerializer json序列化器
+// JSONSerializer is a JSON serializer
 type JSONSerializer struct {
 }
 
-// Scan ...
+// Scan performs the operation.
 func (JSONSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value, dbValue interface{}) (err error) {
 	fieldValue := reflect.New(field.FieldType)
 
@@ -55,16 +55,16 @@ func (JSONSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect
 	return
 }
 
-// Value ...
+// Value returns the value.
 func (JSONSerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue interface{}) (interface{}, error) {
 	return jsonx.Marshal(fieldValue)
 }
 
-// StringArraySerializer array序列化器
+// StringArraySerializer is an array serializer
 type StringArraySerializer struct {
 }
 
-// Scan ...
+// Scan returns the result.
 func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value,
 	dbValue any) (err error) {
 	if dbValue != nil {
@@ -79,7 +79,7 @@ func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst 
 	return
 }
 
-// Value ...
+// Value returns the value.
 func (StringArraySerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue any) (any, error) {
 	arr := (*sqlx.StringArray)(unsafe.Pointer((*reflectx.Eface)(unsafe.Pointer(&fieldValue)).Value))
 	return (*arr).Value()

@@ -37,12 +37,12 @@ func NewCircularArc2(center, start, end Point) *CircularArc2 {
 	}
 }
 
-// ToCircularArc ...
+// ToCircularArc converts the value.
 func (a *CircularArc2) ToCircularArc() *CircularArc {
 	return CircularArcFromPoints(a.Center, a.Start, a.End)
 }
 
-// CircularArcFromPoints ...
+// CircularArcFromPoints returns the result.
 func CircularArcFromPoints(center, start, end Point) *CircularArc {
 	r := math.Hypot(start.X-center.X, start.Y-center.Y)
 	thetaStart := math.Atan2(start.Y-center.Y, start.X-center.X)
@@ -66,7 +66,7 @@ func CircularArcFromPoints(center, start, end Point) *CircularArc {
 	}
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (a *CircularArc) Bounds() *Bounds {
 	r := a.Circle.Diameter / 2
 	startAngle, endAngle := a.StartAngle*math.Pi/180, a.EndAngle*math.Pi/180
@@ -99,7 +99,7 @@ func (a *CircularArc) Bounds() *Bounds {
 	return NewBounds(minX, minY, maxX, maxY)
 }
 
-// Sample ...
+// Sample returns the result.
 func (a *CircularArc) Sample(samples int) []Point {
 	r := a.Circle.Diameter / 2
 	startAngle, endAngle := a.StartAngle*math.Pi/180, a.EndAngle*math.Pi/180
@@ -214,7 +214,7 @@ type CircularArcInt[T constraints.Integer] struct {
 	EndAngle   float64
 }
 
-// ToFloat64 ...
+// ToFloat64 converts the value.
 func (e *CircularArcInt[T]) ToFloat64(factor float64) *CircularArc {
 	if factor == 0 {
 		factor = 1
@@ -226,7 +226,7 @@ func (e *CircularArcInt[T]) ToFloat64(factor float64) *CircularArc {
 	}
 }
 
-// ArcIntFromFloat64 ...
+// ArcIntFromFloat64 returns the result.
 func ArcIntFromFloat64[T constraints.Integer](e *CircularArc, factor float64) *CircularArcInt[T] {
 	if factor == 0 {
 		factor = 1

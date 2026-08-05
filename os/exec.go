@@ -4,7 +4,7 @@ import "os"
 
 type ProcAttrOption func(attr *os.ProcAttr)
 
-// StartProcess ...
+// StartProcess executes the operation.
 func StartProcess(cmd string, opts ...ProcAttrOption) (*os.Process, error) {
 	attr := &os.ProcAttr{Files: []*os.File{os.Stdin, os.Stdout, os.Stderr}}
 	for _, opt := range opts {

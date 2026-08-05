@@ -7,7 +7,7 @@ import (
 	reflectx "github.com/hopeio/gox/reflect"
 )
 
-// export ...
+// export performs the operation.
 func export[T any](list []T, filename string) error {
 	// TODO
 	return nil

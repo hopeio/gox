@@ -11,7 +11,7 @@ import (
 	"reflect"
 )
 
-// SetValue ...
+// SetValue updates or inserts a value.
 func SetValue(fieldValue reflect.Value, value any) error {
 	if !fieldValue.IsValid() {
 		return fmt.Errorf("field value invalid")
@@ -78,7 +78,7 @@ func CanCast(t1, t2 reflect.Type, strict bool) bool {
 	return true
 }
 
-// InitValue ...
+// InitValue performs the operation.
 func InitValue(v reflect.Value) {
 	v = InitPtr(v)
 	switch v.Kind() {

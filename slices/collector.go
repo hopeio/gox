@@ -15,12 +15,12 @@ func (c Collector[S, T]) Builder() *S {
 	return &s
 }
 
-// Append ...
+// Append updates or inserts a value.
 func (c Collector[S, T]) Append(builder *S, element T) {
 	*builder = append(*builder, element)
 }
 
-// Finish ...
+// Finish returns the result.
 func (c Collector[S, T]) Finish(builder *S) S {
 	return *builder
 }

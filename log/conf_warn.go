@@ -12,14 +12,14 @@ import (
 	constraintsx "github.com/hopeio/gox/types/constraints"
 )
 
-// ValueRangeNotify ...
+// ValueRangeNotify performs the operation.
 func ValueRangeNotify[T cmp.Ordered](msg string, v, rangeMin, rangeMax T) {
 	if v > rangeMax || v < rangeMin {
 		CallerSkipLogger(1).Warnf("%s except: %v - %v, but got %v", msg, rangeMin, rangeMax, v)
 	}
 }
 
-// ValueLevelNotify ...
+// ValueLevelNotify performs the operation.
 func ValueLevelNotify[T constraintsx.Number](msg string, v, std T) {
 	if v > 0 && v < std {
 		CallerSkipLogger(1).Warnf("%s except: %v level, but got %v", msg, std, v)

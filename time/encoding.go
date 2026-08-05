@@ -39,22 +39,22 @@ var (
 	}
 )
 
-// MarshalJSON ...
+// MarshalJSON encodes the value.
 func MarshalJSON(t time.Time) ([]byte, error) {
 	return DefaultEncoding.marshalJSON(t)
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON decodes into the value.
 func UnmarshalJSON(t *time.Time, data []byte) error {
 	return DefaultEncoding.unmarshalJSON(t, data)
 }
 
-// MarshalText ...
+// MarshalText encodes the value.
 func MarshalText(t time.Time) ([]byte, error) {
 	return DefaultEncoding.marshalText(t)
 }
 
-// UnmarshalText ...
+// UnmarshalText decodes into the value.
 func UnmarshalText(t *time.Time, data []byte) error {
 	return DefaultEncoding.unmarshalText(t, data)
 }
@@ -71,7 +71,7 @@ func NewLayOutEncoding(layout string) *Encoding {
 	}
 }
 
-// marshalText ...
+// marshalText performs the operation.
 func (u *Encoding) marshalText(t time.Time) ([]byte, error) {
 	switch u.encodeType {
 	case encodeTypeLayout:
@@ -91,7 +91,7 @@ func (u *Encoding) marshalText(t time.Time) ([]byte, error) {
 	return t.MarshalText()
 }
 
-// unmarshalText ...
+// unmarshalText performs the operation.
 func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 	tstr := string(data)
 	if tstr == "" {
@@ -130,7 +130,7 @@ func (u *Encoding) unmarshalText(t *time.Time, data []byte) error {
 	return t.UnmarshalText(data)
 }
 
-// marshalJSON ...
+// marshalJSON performs the operation.
 func (u *Encoding) marshalJSON(t time.Time) ([]byte, error) {
 	if u.encodeType == encodeTypeLayout {
 		if u.Layout == "" || u.Layout == time.RFC3339Nano {
@@ -153,7 +153,7 @@ func (u *Encoding) marshalJSON(t time.Time) ([]byte, error) {
 	return t.MarshalJSON()
 }
 
-// unmarshalJSON ...
+// unmarshalJSON performs the operation.
 func (u *Encoding) unmarshalJSON(t *time.Time, data []byte) error {
 	tstr := string(data)
 	if tstr == "null" {

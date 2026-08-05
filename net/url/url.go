@@ -154,17 +154,17 @@ func bufApp(buf *[]byte, s string, w int, c byte) {
 	b[w] = c
 }
 
-// Base ...
+// Base returns the result.
 func Base(url string) string {
 	return stringsx.CutPart(stringsx.CutPart(url, "#"), "?")
 }
 
-// URIBase ...
+// URIBase returns the result.
 func URIBase(url string) string {
 	return stringsx.ReverseCutPart(Base(url), "/")
 }
 
-// RelativeURLToAbsoluteURL ...
+// RelativeURLToAbsoluteURL performs the operation.
 func RelativeURLToAbsoluteURL(curURL string, baseURL string) (string, error) {
 	curURLData, err := url.Parse(curURL)
 	if err != nil {
@@ -179,7 +179,7 @@ func RelativeURLToAbsoluteURL(curURL string, baseURL string) (string, error) {
 }
 
 /*
-空格 - %20
+space - %20
 " - %22
 # - %23
 % - %25

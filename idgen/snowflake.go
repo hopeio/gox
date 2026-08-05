@@ -68,7 +68,7 @@ func NewSnowflake(node uint16, nodeBits uint8) *Snowflake {
 	return &n
 }
 
-// Epoch ...
+// Epoch returns the result.
 func (n *Snowflake) Epoch(t time.Time) *Snowflake {
 	n.epoch = t
 	return n
@@ -106,7 +106,7 @@ func (n *Snowflake) Generate() uint64 {
 	return r
 }
 
-// Decompose ...
+// Decompose performs the operation.
 func (n *Snowflake) Decompose(id uint64) (timestamp int64, nodeId uint16, step uint16) {
 	timestamp = int64(id>>n.timeShift) + n.epoch.UnixNano()/1000000
 	nodeId = uint16(id>>n.nodeShift) & n.nodeMask

@@ -23,7 +23,7 @@ var (
 	errUnknownField = errors.New("unknown field")
 )
 
-// ParseStringSetReflectValue ...
+// ParseStringSetReflectValue parses the input.
 func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.StructField) error {
 	if val == "" {
 		return nil
@@ -103,7 +103,7 @@ func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.
 	return nil
 }
 
-// ParseStringsSetReflectValue ...
+// ParseStringsSetReflectValue parses the input.
 func ParseStringsSetReflectValue(value reflect.Value, vals []string, field *reflect.StructField) error {
 	if len(vals) == 0 {
 		return nil
@@ -121,7 +121,7 @@ func ParseStringsSetReflectValue(value reflect.Value, vals []string, field *refl
 	}
 }
 
-// setIntField ...
+// setIntField performs the operation.
 func setIntField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -133,7 +133,7 @@ func setIntField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-// setUintField ...
+// setUintField performs the operation.
 func setUintField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -145,7 +145,7 @@ func setUintField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-// setBoolField ...
+// setBoolField performs the operation.
 func setBoolField(val string, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -157,7 +157,7 @@ func setBoolField(val string, field reflect.Value) error {
 	return err
 }
 
-// setFloatField ...
+// setFloatField performs the operation.
 func setFloatField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
 		return nil
@@ -169,7 +169,7 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-// setTimeField ...
+// setTimeField performs the operation.
 func setTimeField(val string, structField *reflect.StructField, value reflect.Value) error {
 	timeFormat := time.RFC3339
 	l := time.Local
@@ -220,7 +220,7 @@ func setTimeField(val string, structField *reflect.StructField, value reflect.Va
 	return nil
 }
 
-// setArray ...
+// setArray performs the operation.
 func setArray(vals []string, value reflect.Value, field *reflect.StructField) error {
 	for i, s := range vals {
 		err := ParseStringSetReflectValue(value.Index(i), s, field)
@@ -231,7 +231,7 @@ func setArray(vals []string, value reflect.Value, field *reflect.StructField) er
 	return nil
 }
 
-// setSlice ...
+// setSlice performs the operation.
 func setSlice(vals []string, value reflect.Value, field *reflect.StructField) error {
 	slice := reflect.MakeSlice(value.Type(), len(vals), len(vals))
 	err := setArray(vals, slice, field)
@@ -242,7 +242,7 @@ func setSlice(vals []string, value reflect.Value, field *reflect.StructField) er
 	return nil
 }
 
-// setTimeDuration ...
+// setTimeDuration performs the operation.
 func setTimeDuration(val string, value reflect.Value) error {
 	d, err := time.ParseDuration(val)
 	if err != nil {

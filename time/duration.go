@@ -25,7 +25,7 @@ func (d *Duration) UnmarshalText(text []byte) error {
 	return err
 }
 
-// MarshalText ...
+// MarshalText encodes the duration as a string.
 func (d Duration) MarshalText() ([]byte, error) {
 	return []byte(time.Duration(d).String()), nil
 }
@@ -43,19 +43,19 @@ func (d Duration) Shrink(c context.Context) (Duration, context.Context, context.
 	return d, ctx, cancel
 }
 
-// NormalizeDuration ...
+// NormalizeDuration scales td relative to stdTd when td is given without an explicit unit.
 func NormalizeDuration(td time.Duration, stdTd time.Duration) time.Duration {
 	if td == 0 {
 		return td
 	}
-	// 如果传入的值非常小，那么很可能是没带单位的数值（如 5），将其作为倍数处理
+	// If td is very small, it likely has no unit (e.g. 5); treat it as a multiplier.
 	if td < stdTd {
 		return td * stdTd
 	}
 	return td
 }
 
-// MarshalJSON ...
+// MarshalJSON encodes the duration as a JSON string.
 func (t Duration) MarshalJSON() ([]byte, error) {
 	return strings.ToBytes(time.Duration(t).String()), nil
 }

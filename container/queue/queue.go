@@ -4,30 +4,30 @@ import (
 	"container/list"
 )
 
-// Queue 基于 container/list 实现的队列
+// Queue is a queue backed by container/list
 type Queue struct {
 	list *list.List
 }
 
-// New ...
+// New creates a new instance.
 func New() *Queue {
 	return &Queue{
 		list: list.New(),
 	}
 }
 
-// Enqueue ...
+// Enqueue updates or inserts a value.
 func (q *Queue) Enqueue(item any) {
 	q.list.PushBack(item)
 }
 
-// Peek ...
+// Peek returns the result.
 func (q *Queue) Peek() any {
 	front := q.list.Front()
 	return front.Value
 }
 
-// Dequeue ...
+// Dequeue removes or resets state.
 func (q *Queue) Dequeue() any {
 	front := q.list.Front()
 	if front == nil {

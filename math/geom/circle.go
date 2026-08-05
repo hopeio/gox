@@ -10,7 +10,7 @@ type Circle struct {
 	Diameter float64
 }
 
-// Bounds ...
+// Bounds returns the result.
 func (c *Circle) Bounds() *Bounds {
 	return NewBounds(c.Centre.X, c.Centre.Y, c.Diameter, c.Diameter)
 }
@@ -20,7 +20,7 @@ type CircleInt[T constraints.Integer] struct {
 	Diameter T
 }
 
-// ToFloat64 ...
+// ToFloat64 converts the value.
 func (e *CircleInt[T]) ToFloat64(factor float64) *Circle {
 	if factor == 0 {
 		factor = 1
@@ -31,11 +31,11 @@ func (e *CircleInt[T]) ToFloat64(factor float64) *Circle {
 	}
 }
 
-// Overlap ...
+// Overlap reports whether the condition holds.
 func (c *Circle) Overlap(c2 Circle) bool {
-	// 计算两个圆心之间的距离
+	// Compute the distance between circle centers
 	distance := math.Sqrt(math.Pow(c2.Centre.X-c.Centre.X, 2) + math.Pow(c2.Centre.Y-c.Centre.Y, 2))
 
-	// 判断距离是否小于等于两个圆的半径之和
+	// Check whether distance <= sum of radii
 	return distance <= (c.Diameter/2 + c2.Diameter/2)
 }

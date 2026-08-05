@@ -27,8 +27,8 @@ func (r *Path) String() string {
 }
 
 type PathArcA struct {
-	XRadius  float64 // x轴半径
-	YRadius  float64 // y轴半径
+	XRadius  float64 // x-axis radius
+	YRadius  float64 // y-axis radius
 	Angle    float64
 	LargeArc float64
 	Sweep    float64
@@ -201,7 +201,7 @@ func (r *Rectangle) String() string {
 		r.X, r.Y, r.Width, r.Height, r.RX, r.RY, r.Fill, FormatAttr(r.Attr))
 }
 
-// FormatAttr ...
+// FormatAttr formats or converts the value.
 func FormatAttr(m map[string]string) string {
 	if len(m) == 0 {
 		return ""

@@ -18,7 +18,7 @@ import (
 
 type RawJson []byte
 
-// Scan ...
+// Scan performs the operation.
 func (j *RawJson) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
@@ -33,7 +33,7 @@ func (j *RawJson) Scan(value interface{}) error {
 
 }
 
-// Value ...
+// Value returns the value.
 func (j RawJson) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
@@ -41,7 +41,7 @@ func (j RawJson) Value() (driver.Value, error) {
 	return j, nil
 }
 
-// GormDataType ...
+// GormDataType returns the result.
 func (*RawJson) GormDataType() string {
 	return "jsonb"
 }
@@ -51,7 +51,7 @@ type NullJson[T any] struct {
 	Valid bool
 }
 
-// Scan ...
+// Scan performs the operation.
 func (j *NullJson[T]) Scan(value interface{}) error {
 	j.Valid = true
 	switch bytes := value.(type) {
@@ -64,7 +64,7 @@ func (j *NullJson[T]) Scan(value interface{}) error {
 	}
 }
 
-// Value ...
+// Value returns the value.
 func (j *NullJson[T]) Value() (driver.Value, error) {
 	if !j.Valid {
 		return nil, nil
@@ -72,7 +72,7 @@ func (j *NullJson[T]) Value() (driver.Value, error) {
 	return jsonx.Marshal(&j.V)
 }
 
-// GormDataType ...
+// GormDataType returns the result.
 func (*NullJson[T]) GormDataType() string {
 	return "jsonb"
 }
@@ -81,7 +81,7 @@ type Json[T any] struct {
 	V T
 }
 
-// Scan ...
+// Scan performs the operation.
 func (j *Json[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
@@ -93,14 +93,14 @@ func (j *Json[T]) Scan(value interface{}) error {
 	}
 }
 
-// Value ...
+// Value returns the value.
 func (j *Json[T]) Value() (driver.Value, error) {
 	return jsonx.Marshal(&j.V)
 }
 
 type MapJson[T any] map[string]T
 
-// Scan ...
+// Scan performs the operation.
 func (j *MapJson[T]) Scan(value interface{}) error {
 	switch bytes := value.(type) {
 	case []byte:
@@ -112,7 +112,7 @@ func (j *MapJson[T]) Scan(value interface{}) error {
 	}
 }
 
-// Value ...
+// Value returns the value.
 func (j MapJson[T]) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil

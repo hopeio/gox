@@ -39,7 +39,7 @@ type Processor interface {
 	SetViewBox(*ViewBox)
 }
 
-// parseApertureID ...
+// parseApertureID performs the operation.
 func parseApertureID(word string) (string, error) {
 	if len(word) < 3 {
 		return "", fmt.Errorf("%d", len(word))
@@ -70,7 +70,7 @@ type circlePrimitive struct {
 
 type circlePrimitiveTemplate []primitiveValue
 
-// Primitive ...
+// Primitive returns the result.
 func (o circlePrimitiveTemplate) Primitive() circlePrimitive {
 	return circlePrimitive{
 		Exposure: o[0].value == 1,
@@ -92,7 +92,7 @@ type rectPrimitive struct {
 
 type rectPrimitiveTemplate []primitiveValue
 
-// Primitive ...
+// Primitive returns the result.
 func (o rectPrimitiveTemplate) Primitive() rectPrimitive {
 	return rectPrimitive{
 		Exposure: o[0].value == 1,
@@ -105,19 +105,19 @@ func (o rectPrimitiveTemplate) Primitive() rectPrimitive {
 }
 
 // *1,1,$1,$2,$3*1,1,$1,$4,$5*20,1,$1,$2,$3,$4,$5,0*
-// 斜焊盘的特殊处理，由两端圆+连线组成
+// Special handling for oblique pads: two end circles plus a connecting line
 type ovalPrimitive struct {
 	Exposure bool
-	Width    float64 // 线宽也是直径
-	StartX   float64 // 第一个圆x
+	Width    float64 // line width is also the diameter
+	StartX   float64 // first circle x
 	StartY   float64
-	EndX     float64 // 第二个圆x
+	EndX     float64 // second circle x
 	EndY     float64
 	Rotation float64
 }
 type ovalPrimitiveTemplate []primitiveValue
 
-// Primitive ...
+// Primitive returns the result.
 func (o ovalPrimitiveTemplate) Primitive() obroundPrimitive {
 	dx, dy := o[4].value-o[2].value, o[5].value-o[3].value
 	rotation := math.Atan2(dy, dx) * (180.0 / math.Pi)
@@ -149,7 +149,7 @@ type vectorLinePrimitive struct {
 
 type vectorLinePrimitiveTemplate []primitiveValue
 
-// Primitive ...
+// Primitive returns the result.
 func (o vectorLinePrimitiveTemplate) Primitive() vectorLinePrimitive {
 
 	return vectorLinePrimitive{
@@ -163,7 +163,7 @@ func (o vectorLinePrimitiveTemplate) Primitive() vectorLinePrimitive {
 	}
 }
 
-// *4,$1,...,$9*
+// Outline primitive parameters: *4,$1 to $9*
 type outlinePrimitive struct {
 	Exposure bool
 	PointNum int
@@ -173,7 +173,7 @@ type outlinePrimitive struct {
 
 type outlinePrimitiveTemplate []primitiveValue
 
-// Primitive ...
+// Primitive returns the result.
 func (o outlinePrimitiveTemplate) Primitive() outlinePrimitive {
 	var points [][2]float64
 	for i := 0; i < int(o[1].value)+1; i++ {
@@ -199,7 +199,7 @@ type lowerLeftLinePrimitive struct {
 
 type lowerLeftLinePrimitiveTemplate []primitiveValue
 
-// Primitive ...
+// Primitive returns the result.
 func (o lowerLeftLinePrimitiveTemplate) Primitive() lowerLeftLinePrimitive {
 	if len(o) != 6 {
 		panic("lowerLeftLinePrimitiveTemplate.Primitive()")
@@ -224,7 +224,7 @@ type primitiveValue struct {
 	varIndex int
 }
 
-// SetParams ...
+// SetParams updates or inserts a value.
 func (p primitive) SetParams(params []float64) {
 	for i := 0; i < len(p.value); i++ {
 		if p.value[i].varIndex > -1 {
@@ -233,7 +233,7 @@ func (p primitive) SetParams(params []float64) {
 	}
 }
 
-// Parse ...
+// Parse parses the input.
 func (p primitive) Parse() any {
 	switch p.code {
 	case primitiveCodeCircle:
@@ -271,7 +271,7 @@ func (err LinePrimitiveNotClosedError) Error() string {
 	return fmt.Sprintf("line primitive not closed %d %#v %#v", err.Line, err.First, err.Last)
 }
 
-// parsePrimitive ...
+// parsePrimitive performs the operation.
 func parsePrimitive(lineIdx int, word string) (primitive, error) {
 	var p primitive
 	splitted := strings.Split(word, primitiveDelimiter)
@@ -367,7 +367,7 @@ func newRegionParser(cp *commandProcessor, lineIdx int) *regionParser {
 	return p
 }
 
-// process ...
+// process performs the operation.
 func (p *regionParser) process(lineIdx int, word string) error {
 	switch {
 	case strings.HasPrefix(word, commandG01):
@@ -399,7 +399,7 @@ func (p *regionParser) process(lineIdx int, word string) error {
 	}
 }
 
-// processModalD01 ...
+// processModalD01 performs the operation.
 func (p *regionParser) processModalD01(lineIdx int, word string) error {
 	if !p.cp.modalD01 {
 		return fmt.Errorf("not in modal D01 mode")
@@ -407,7 +407,7 @@ func (p *regionParser) processModalD01(lineIdx int, word string) error {
 	return p.processD01(lineIdx, word)
 }
 
-// processD01 ...
+// processD01 performs the operation.
 func (p *regionParser) processD01(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -433,7 +433,7 @@ func (p *regionParser) processD01(lineIdx int, word string) error {
 	return nil
 }
 
-// processD02 ...
+// processD02 performs the operation.
 func (p *regionParser) processD02(lineIdx int, word string) error {
 	if p.gotCommand {
 		p.cp.pc.Contour(&p.contour)
@@ -488,7 +488,7 @@ const (
 	primitiveCodeOutline       = 4
 	primitiveCodeLowerLeftLine = 22
 
-	primitiveCodeOval = 1122 // 非标准，自定义
+	primitiveCodeOval = 1122 // non-standard / custom
 
 	primitiveDelimiter = ","
 
@@ -567,7 +567,7 @@ func newCommandProcessor(pc Processor) *commandProcessor {
 	return p
 }
 
-// processWord ...
+// processWord performs the operation.
 func (p *commandProcessor) processWord(lineIdx int, word string) error {
 	switch {
 	case p.rp != nil:
@@ -628,7 +628,7 @@ func (p *commandProcessor) processWord(lineIdx int, word string) error {
 	case strings.HasPrefix(word, "X"):
 		return p.processModalD01(lineIdx, word)
 	case strings.HasPrefix(word, commandAM):
-		// 特殊处理
+		// special handling
 		if word == "AMOval*1,1,$1,$2,$3*1,1,$1,$4,$5*20,1,$1,$2,$3,$4,$5,0" {
 			return p.Oval(lineIdx, word)
 		}
@@ -642,13 +642,13 @@ func (p *commandProcessor) processWord(lineIdx int, word string) error {
 	}
 }
 
-// setXY ...
+// setXY performs the operation.
 func (p *commandProcessor) setXY(x, y float64) {
 	p.x = x / p.decimal
 	p.y = y / p.decimal
 }
 
-// bounds ...
+// bounds performs the operation.
 func (p *commandProcessor) bounds(bounds *geom.Bounds) {
 	if p.Min.X > bounds.Min.X {
 		p.Min.X = bounds.Min.X
@@ -664,7 +664,7 @@ func (p *commandProcessor) bounds(bounds *geom.Bounds) {
 	}
 }
 
-// processModalD01 ...
+// processModalD01 performs the operation.
 func (p *commandProcessor) processModalD01(lineIdx int, word string) error {
 	if !p.modalD01 {
 		return fmt.Errorf("not in modal D01 mode")
@@ -672,7 +672,7 @@ func (p *commandProcessor) processModalD01(lineIdx int, word string) error {
 	return p.processD01(lineIdx, word)
 }
 
-// processD01 ...
+// processD01 performs the operation.
 func (p *commandProcessor) processD01(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -714,7 +714,7 @@ func (p *commandProcessor) processD01(lineIdx int, word string) error {
 	return nil
 }
 
-// processD02 ...
+// processD02 performs the operation.
 func (p *commandProcessor) processD02(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -726,7 +726,7 @@ func (p *commandProcessor) processD02(lineIdx int, word string) error {
 	return nil
 }
 
-// processD03 ...
+// processD03 performs the operation.
 func (p *commandProcessor) processD03(lineIdx int, word string) error {
 	coords, err := parseCoord(word)
 	if err != nil {
@@ -742,7 +742,7 @@ func (p *commandProcessor) processD03(lineIdx int, word string) error {
 	return nil
 }
 
-// flash ...
+// flash performs the operation.
 func (p *commandProcessor) flash(lineIdx int) error {
 	params := p.ap.Params
 	switch p.ap.Template.Name {
@@ -764,7 +764,7 @@ func (p *commandProcessor) flash(lineIdx int) error {
 	return nil
 }
 
-// flashUserDefinedTmpl ...
+// flashUserDefinedTmpl performs the operation.
 func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 	if !p.polarity {
 		return fmt.Errorf("%v", p.polarity)
@@ -834,7 +834,7 @@ func (p *commandProcessor) flashUserDefinedTmpl(lineIdx int) error {
 	return nil
 }
 
-// contourFromOutline ...
+// contourFromOutline performs the operation.
 func (p *commandProcessor) contourFromOutline(lineIdx int, outline outlinePrimitive) (Contour, error) {
 	contour := Contour{Line: lineIdx, Polarity: p.polarity}
 	if len(outline.Points) < 3 {
@@ -855,7 +855,7 @@ type coord struct {
 	I float64
 }
 
-// parseCoord ...
+// parseCoord performs the operation.
 func parseCoord(word string) ([]coord, error) {
 	if word == "" {
 		return nil, nil
@@ -892,7 +892,7 @@ func parseCoord(word string) ([]coord, error) {
 	return coords, nil
 }
 
-// findXY ...
+// findXY performs the operation.
 func (p *commandProcessor) findXY(coords []coord) (float64, float64) {
 	x := p.x
 	for _, c := range coords {
@@ -913,7 +913,7 @@ func (p *commandProcessor) findXY(coords []coord) (float64, float64) {
 	return x, y
 }
 
-// findIJ ...
+// findIJ performs the operation.
 func (p *commandProcessor) findIJ(coords []coord) (float64, float64, error) {
 	var i float64
 	var got bool
@@ -944,7 +944,7 @@ func (p *commandProcessor) findIJ(coords []coord) (float64, float64, error) {
 	return i, j, nil
 }
 
-// parseAD ...
+// parseAD performs the operation.
 func (p *commandProcessor) parseAD(lineIdx int, word string) error {
 	aperture := aperture{Line: lineIdx}
 	var err error
@@ -1015,7 +1015,7 @@ func (p *commandProcessor) parseAD(lineIdx int, word string) error {
 	return nil
 }
 
-// processFS ...
+// processFS performs the operation.
 func (p *commandProcessor) processFS(lineIdx int, word string) error {
 	if len(word) < 7 {
 		return fmt.Errorf("%d", len(word))
@@ -1028,7 +1028,7 @@ func (p *commandProcessor) processFS(lineIdx int, word string) error {
 	return nil
 }
 
-// processMO ...
+// processMO performs the operation.
 func (p *commandProcessor) processMO(lineIdx int, word string) error {
 	if len(word) != 4 {
 		return fmt.Errorf("%d", len(word))
@@ -1046,7 +1046,7 @@ func (p *commandProcessor) processMO(lineIdx int, word string) error {
 	}
 }
 
-// processSR ...
+// processSR performs the operation.
 func (p *commandProcessor) processSR(lineIdx int, word string) error {
 	if word != "SRX1Y1I0J0" {
 		return fmt.Errorf("unsupported SR")
@@ -1054,7 +1054,7 @@ func (p *commandProcessor) processSR(lineIdx int, word string) error {
 	return nil
 }
 
-// processLP ...
+// processLP performs the operation.
 func (p *commandProcessor) processLP(lineIdx int, word string) error {
 	if len(word) != 3 {
 		return fmt.Errorf("%d", len(word))
@@ -1070,7 +1070,7 @@ func (p *commandProcessor) processLP(lineIdx int, word string) error {
 	return nil
 }
 
-// processDnn ...
+// processDnn performs the operation.
 func (p *commandProcessor) processDnn(lineIdx int, word string) error {
 	var ok bool
 	p.ap, ok = p.apertures[word]
@@ -1085,7 +1085,7 @@ func (p *commandProcessor) processDnn(lineIdx int, word string) error {
 	return nil
 }
 
-// processExtended ...
+// processExtended performs the operation.
 func (p *commandProcessor) processExtended(lineIdx int, words []string) error {
 	if len(words) == 0 {
 		return fmt.Errorf("no words")
@@ -1132,7 +1132,7 @@ func NewParser(pc Processor) *Parser {
 	return p
 }
 
-// parse ...
+// parse performs the operation.
 func (p *Parser) parse(lineIdx int, line string) error {
 	if p.cmdStart != wordCommand {
 		if !strings.HasSuffix(line, extendedCommandDelimiter) {
@@ -1211,7 +1211,7 @@ func (parser *Parser) Parse(r io.Reader) error {
 	return nil
 }
 
-// parsePrimitiveValue ...
+// parsePrimitiveValue performs the operation.
 func parsePrimitiveValue(s string) (primitiveValue, error) {
 	if strings.HasPrefix(s, variableKey) {
 		if len(s) == 2 {
@@ -1228,23 +1228,23 @@ func parsePrimitiveValue(s string) (primitiveValue, error) {
 type Loayer string
 
 const (
-	GTL Loayer = "GTL" //顶层走线
-	GBL Loayer = "GBL" //底层走线
-	GTO Loayer = "GTO" //顶层丝印
-	GBO Loayer = "GBO" //底层丝印
-	GTS Loayer = "GTS" // 顶层阻焊
-	GBS Loayer = "GBS" //底层阻焊
-	GPT Loayer = "GPT" //顶层主焊盘
-	GPB Loayer = "GPB" //底层主焊盘
-	G1  Loayer = "G1"  //内部走线层1
-	G2  Loayer = "G2"  //内部走线层2
-	G3  Loayer = "G3"  //内部走线层3
-	G4  Loayer = "G4"  //内部走线层4
-	GP1 Loayer = "GP1" //内平面1(负片)
-	GP2 Loayer = "GP2" //内平面2(负片)
-	GM1 Loayer = "GM1" //机械层1
-	GM2 Loayer = "GM2" //机械层2
-	GM3 Loayer = "GM3" //机械层3
-	GM4 Loayer = "GM4" //机械层4
-	GKO Loayer = "GKO" //禁止布线层(可做板子外形)
+	GTL Loayer = "GTL" //top copper
+	GBL Loayer = "GBL" //bottom copper
+	GTO Loayer = "GTO" //top silkscreen
+	GBO Loayer = "GBO" //bottom silkscreen
+	GTS Loayer = "GTS" // top solder mask
+	GBS Loayer = "GBS" //bottom solder mask
+	GPT Loayer = "GPT" //top paste
+	GPB Loayer = "GPB" //bottom paste
+	G1  Loayer = "G1"  //inner copper 1
+	G2  Loayer = "G2"  //inner copper 2
+	G3  Loayer = "G3"  //inner copper 3
+	G4  Loayer = "G4"  //inner copper 4
+	GP1 Loayer = "GP1" //inner plane 1 (negative)
+	GP2 Loayer = "GP2" //inner plane 2 (negative)
+	GM1 Loayer = "GM1" //mechanical 1
+	GM2 Loayer = "GM2" //mechanical 2
+	GM3 Loayer = "GM3" //mechanical 3
+	GM4 Loayer = "GM4" //mechanical 4
+	GKO Loayer = "GKO" //keep-out / board outline
 )

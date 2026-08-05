@@ -42,7 +42,7 @@ type Func struct {
 	codePtr uintptr
 }
 
-// aop ...
+// aop performs the operation.
 func aop(before func(), target any, after func()) {
 	v2 := reflect.ValueOf(target)
 	if v2.Kind() != reflect.Func {

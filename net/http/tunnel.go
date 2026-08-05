@@ -15,7 +15,7 @@ import (
 	"github.com/hopeio/gox/log"
 )
 
-// Tunneling ...
+// Tunneling performs the operation.
 func Tunneling(w http.ResponseWriter, r *http.Request) {
 	dest_conn, err := net.DialTimeout("tcp", r.Host, 10*time.Second)
 	if err != nil {
@@ -37,7 +37,7 @@ func Tunneling(w http.ResponseWriter, r *http.Request) {
 	go transfer(client_conn, dest_conn)
 }
 
-// transfer ...
+// transfer performs the operation.
 func transfer(destination io.WriteCloser, source io.ReadCloser) {
 	defer destination.Close()
 	defer source.Close()

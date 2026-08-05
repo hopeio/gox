@@ -7,16 +7,16 @@
 package queue
 
 type IQueue[T any] interface {
-	// 获取当前链表长度。
+	// Return the current list length.
 	Len() int
-	// 获取当前链表容量。
+	// Return the current list capacity.
 	Capacity() int
-	// 获取当前链表头结点。
+	// Return the current list head.
 	Front() (T, bool)
-	// 获取当前链表尾结点。
+	// Return the current list tail.
 	Tail() (T, bool)
-	// 入列。
+	// Enqueue.
 	Enqueue(value T) bool
-	// 出列。
+	// Dequeue.
 	Dequeue() T
 }

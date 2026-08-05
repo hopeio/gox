@@ -16,7 +16,7 @@ type List[T any] struct {
 	zero       T
 }
 
-// New ...
+// New creates a new instance.
 func New[T any]() *List[T] {
 	return &List[T]{}
 }
@@ -26,7 +26,7 @@ func (l *List[T]) Len() uint {
 	return l.size
 }
 
-// Head ...
+// Head returns the result.
 func (l *List[T]) Head() *node.Node[T] {
 	if l.size == 0 {
 		return nil
@@ -34,7 +34,7 @@ func (l *List[T]) Head() *node.Node[T] {
 	return l.head
 }
 
-// Tail ...
+// Tail returns the result.
 func (l *List[T]) Tail() *node.Node[T] {
 	if l.size == 0 {
 		return nil
@@ -42,7 +42,7 @@ func (l *List[T]) Tail() *node.Node[T] {
 	return l.tail
 }
 
-// First ...
+// First performs the operation.
 func (l *List[T]) First() (T, bool) {
 	if l.size == 0 {
 		return l.zero, false
@@ -50,7 +50,7 @@ func (l *List[T]) First() (T, bool) {
 	return l.head.Value, true
 }
 
-// Last ...
+// Last performs the operation.
 func (l *List[T]) Last() (T, bool) {
 	if l.size == 0 {
 		return l.zero, false
@@ -58,7 +58,7 @@ func (l *List[T]) Last() (T, bool) {
 	return l.tail.Value, true
 }
 
-// Pop ...
+// Pop removes or resets state.
 func (l *List[T]) Pop() (T, bool) {
 	if l.size == 0 {
 		return l.zero, false
@@ -73,7 +73,7 @@ func (l *List[T]) Pop() (T, bool) {
 	return p.Value, true
 }
 
-// PushFront ...
+// PushFront updates or inserts a value.
 func (l *List[T]) PushFront(v T) {
 	node := &node.Node[T]{Next: l.head, Value: v}
 	if l.size == 0 {
@@ -86,7 +86,7 @@ func (l *List[T]) PushFront(v T) {
 	l.size++
 }
 
-// Push ...
+// Push updates or inserts a value.
 func (l *List[T]) Push(v T) {
 	node := &node.Node[T]{Next: nil, Value: v}
 	if l.size == 0 {
@@ -100,7 +100,7 @@ func (l *List[T]) Push(v T) {
 	l.size++
 }
 
-// PushAt ...
+// PushAt updates or inserts a value.
 func (l *List[T]) PushAt(idx int, v T) {
 	if idx < 0 || idx > int(l.size) {
 		panic("index out of range")

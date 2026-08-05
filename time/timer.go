@@ -25,18 +25,18 @@ func (t *FixedTicker) Stop() bool {
 	return true
 }
 
-// Reset ...
+// Reset removes or resets state.
 func (t *FixedTicker) Reset(d time.Duration) bool {
 	(*time.Ticker)(t).Reset(d)
 	return true
 }
 
-// Wait ...
+// Wait performs the operation.
 func (t *FixedTicker) Wait() {
 	<-t.C
 }
 
-// Channel ...
+// Channel returns the result.
 func (t *FixedTicker) Channel() <-chan time.Time {
 	return t.C
 }
@@ -53,13 +53,13 @@ type RandTicker struct {
 	limitBase, limitRange time.Duration
 }
 
-// Reset ...
+// Reset removes or resets state.
 func (t *RandTicker) Reset(d time.Duration) bool {
 	t.limitBase = d
 	return t.reset()
 }
 
-// reset ...
+// reset reports whether the condition holds.
 func (t *RandTicker) reset() bool {
 	if t.limitRange == 0 {
 		return t.timer.Reset(t.limitBase)
@@ -67,7 +67,7 @@ func (t *RandTicker) reset() bool {
 	return t.timer.Reset(t.limitBase + time.Duration(rand.Intn(int(t.limitRange))))
 }
 
-// Wait ...
+// Wait performs the operation.
 func (t *RandTicker) Wait() {
 	<-t.timer.C
 	t.reset()

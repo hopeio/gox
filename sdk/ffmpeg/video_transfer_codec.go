@@ -31,7 +31,7 @@ const H264ToH265ByIntelGPUCmd = `ffmpeg -hwaccel qsv -c:v h264_qsv -i %s -c:v he
 
 const cmd1 = `preset=veryslow,profile=main,look_ahead=1,global_quality=18`
 
-// H264ToH265ByIntelGPU ...
+// H264ToH265ByIntelGPU performs the operation.
 func H264ToH265ByIntelGPU(filePath, dst string) error {
 	return Run(fmt.Sprintf(H264ToH265ByIntelGPUCmd, filePath, dst))
 }
@@ -39,7 +39,7 @@ func H264ToH265ByIntelGPU(filePath, dst string) error {
 // libaom-av1
 const ToAv1Libaomav1Cmd = CommonCmd + `-c:v libaom-av1 -crf %d -cpu-used %d -row-mt 1 -y "%s"`
 
-// ToAV1ByLibaomav1 ...
+// ToAV1ByLibaomav1 converts the value.
 func ToAV1ByLibaomav1(filePath, dst string, crf, cpuUsed int) error {
 	return Run(fmt.Sprintf(ToAv1Libaomav1Cmd, filePath, crf, cpuUsed, dst))
 }
@@ -50,7 +50,7 @@ func ToAV1ByLibaomav1(filePath, dst string, crf, cpuUsed int) error {
 // libx264
 const ToH264Cmd = CommonCmd + `-c:v libx264 -profile high -preset %s -crf %d -y "%s"`
 
-// ToH264ByXlib264 ...
+// ToH264ByXlib264 converts the value.
 func ToH264ByXlib264(filePath, dst string, crf int, perset PerSet) error {
 	return Run(fmt.Sprintf(ToH264Cmd, filePath, perset, crf, dst))
 }
@@ -60,7 +60,7 @@ func ToH264ByXlib264(filePath, dst string, crf int, perset PerSet) error {
 // libx265
 const ToH265Cmd = CommonCmd + `-c:v libx265 -preset %s -crf %d -y "%s"`
 
-// ToH265ByXlib265 ...
+// ToH265ByXlib265 converts the value.
 func ToH265ByXlib265(filePath, dst string, crf int, perset PerSet) error {
 	return Run(fmt.Sprintf(ToH265Cmd, filePath, perset, crf, dst))
 }

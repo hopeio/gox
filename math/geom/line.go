@@ -18,12 +18,12 @@ func NewLineSegment(start, end Point) *LineSegment {
 	return &LineSegment{start, end}
 }
 
-// Vector ...
+// Vector returns the result.
 func (l *LineSegment) Vector() Vector {
 	return Vector{l.End.X - l.Start.X, l.End.Y - l.Start.Y}
 }
 
-// ToSlopeInterceptFormLine ...
+// ToSlopeInterceptFormLine converts the value.
 func (l *LineSegment) ToSlopeInterceptFormLine() *SlopeInterceptFormLine {
 	var line SlopeInterceptFormLine
 	if l.Start.X == l.End.X {
@@ -57,100 +57,100 @@ func (l *LineSegment) ContainsPoint(p Point) bool {
 	return false
 }
 
-// IntersectionLineSegment ...
+// IntersectionLineSegment performs the operation.
 func (l *LineSegment) IntersectionLineSegment(l2 *LineSegment) (Point, bool) {
-	// 计算向量
+	// Compute vectors
 	dx1, dy1 := l.End.X-l.Start.X, l.End.Y-l.Start.Y
 	dx2, dy2 := l2.End.X-l2.Start.X, l2.End.Y-l2.Start.Y
 	dx3, dy3 := l.Start.X-l2.Start.X, l.Start.Y-l2.Start.Y
 
-	// 计算行列式，判断是否平行
+	// Compute the determinant to test parallelism
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < tolerance {
-		// 两条线平行或共线
+		// The two lines are parallel or colinear
 		return Point{}, false
 	}
 
-	// 计算参数 t 和 u
+	// Compute parameters t and u
 	t := (dx3*dy2 - dy3*dx2) / denom
 	u := (dx3*dy1 - dy3*dx1) / denom
 
-	// 检查 t 和 u 是否在 [0, 1] 范围内
+	// Check whether t and u are in [0, 1]
 	if t >= 0 && t <= 1 && u >= 0 && u <= 1 {
-		// 计算交点坐标
+		// Compute intersection coordinates
 		intersectionX := l.Start.X + t*dx1
 		intersectionY := l.Start.Y + t*dy1
 		return Point{intersectionX, intersectionY}, true
 	}
 
-	// 交点不在两条线段范围内
+	// Intersection is outside both segments
 	return Point{}, false
 }
 
-// IntersectionRay ...
+// IntersectionRay performs the operation.
 func (l *LineSegment) IntersectionRay(r *Ray) (Point, bool) {
-	// 提取线段和射线参数
+	// Extract segment and ray parameters
 	x1, y1 := l.Start.X, l.Start.Y
 	x2, y2 := l.End.X, l.End.Y
 	x3, y3, theta := r.Point.X, r.Point.Y, r.Angle/180*math.Pi
 
-	// 计算线段和射线的方向向量
-	dx1, dy1 := x2-x1, y2-y1                     // 线段方向
-	dx2, dy2 := math.Cos(theta), math.Sin(theta) // 射线方向
+	// Compute direction vectors of the segment and ray
+	dx1, dy1 := x2-x1, y2-y1                     // segment direction
+	dx2, dy2 := math.Cos(theta), math.Sin(theta) // ray direction
 
-	// 计算行列式，判断是否平行
+	// Compute the determinant to test parallelism
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < tolerance {
-		// 线段与射线平行或共线
+		// Segment and ray are parallel or colinear
 		return Point{}, false
 	}
 
-	// 计算参数 t 和 s
+	// Compute parameters t and s
 	t := ((x3-x1)*dy2 - (y3-y1)*dx2) / denom
 	s := ((x3-x1)*dy1 - (y3-y1)*dx1) / denom
 
-	// 检查 t 和 s 是否在有效范围内
+	// Check whether t and s are in range
 	if t >= 0 && t <= 1 && s >= 0 {
-		// 计算交点坐标
+		// Compute intersection coordinates
 		intersectionX := x1 + t*dx1
 		intersectionY := y1 + t*dy1
 		return Point{intersectionX, intersectionY}, true
 	}
 
-	// 交点不在线段和射线的有效范围内
+	// Intersection is outside the segment/ray ranges
 	return Point{}, false
 }
 
-// IntersectionStraightLine ...
+// IntersectionStraightLine performs the operation.
 func (l *LineSegment) IntersectionStraightLine(sl *StraightLine) (Point, bool) {
-	// 提取线段和直线的参数
+	// Extract segment and line parameters
 	x1, y1 := l.Start.X, l.Start.Y
 	x2, y2 := l.End.X, l.End.Y
 	x3, y3, theta := sl.Point.X, sl.Point.Y, sl.Angle/180*math.Pi
 
-	// 计算线段和直线的方向向量
-	dx1, dy1 := x2-x1, y2-y1                     // 线段方向
-	dx2, dy2 := math.Cos(theta), math.Sin(theta) // 直线方向
+	// Compute direction vectors of the segment and line
+	dx1, dy1 := x2-x1, y2-y1                     // segment direction
+	dx2, dy2 := math.Cos(theta), math.Sin(theta) // line direction
 
-	// 计算行列式，判断是否平行
+	// Compute the determinant to test parallelism
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < 1e-9 {
-		// 线段与直线平行或共线
+		// Segment and line are parallel or colinear
 		return Point{}, false
 	}
 
-	// 计算参数 t 和 s
+	// Compute parameters t and s
 	t := ((x3-x1)*dy2 - (y3-y1)*dx2) / denom
 
-	// 检查 t 是否在有效范围内
+	// Check whether t is in range
 	if t >= 0 && t <= 1 {
-		// 计算交点坐标
+		// Compute intersection coordinates
 		intersectionX := x1 + t*dx1
 		intersectionY := y1 + t*dy1
 		return Point{intersectionX, intersectionY}, true
 	}
 
-	// 交点不在线段上
+	// Intersection is not on the segment
 	return Point{}, false
 }
 
@@ -159,7 +159,7 @@ type LineSegmentInt[T constraints.Integer] struct {
 	End   PointInt[T]
 }
 
-// ToFloat64 ...
+// ToFloat64 converts the value.
 func (l *LineSegmentInt[T]) ToFloat64(factor float64) *LineSegment {
 	return &LineSegment{
 		Start: Point{float64(l.Start.X) / factor, float64(l.Start.Y) / factor},
@@ -167,7 +167,7 @@ func (l *LineSegmentInt[T]) ToFloat64(factor float64) *LineSegment {
 	}
 }
 
-// LineIntFromFloat64 ...
+// LineIntFromFloat64 returns the result.
 func LineIntFromFloat64[T constraints.Integer](e *LineSegment, factor float64) *LineSegmentInt[T] {
 	return &LineSegmentInt[T]{
 		Start: PointInt[T]{T(math.Round(e.Start.X * factor)), T(math.Round(e.Start.Y * factor))},
@@ -186,7 +186,7 @@ func (l *SlopeInterceptFormLine) IsVertical() bool {
 	return math.IsInf(l.Slope, 0)
 }
 
-// ToGeneralFormLine ...
+// ToGeneralFormLine converts the value.
 func (l *SlopeInterceptFormLine) ToGeneralFormLine() *GeneralFormLine {
 	if l.IsVertical() {
 		// For vertical lines: x = k, convert to Ax + By + C = 0 where A = 1, B = 0, C = -k
@@ -197,7 +197,7 @@ func (l *SlopeInterceptFormLine) ToGeneralFormLine() *GeneralFormLine {
 	return &GeneralFormLine{A: l.Slope, B: -1, C: l.Intercept}
 }
 
-// ToStraightLine ...
+// ToStraightLine converts the value.
 func (l *SlopeInterceptFormLine) ToStraightLine() *StraightLine {
 	return &StraightLine{
 		Point: Point{l.Intercept, 0},
@@ -217,7 +217,7 @@ type GeneralFormLine struct {
 	C float64
 }
 
-// ToSlopeInterceptLine ...
+// ToSlopeInterceptLine converts the value.
 func (l *GeneralFormLine) ToSlopeInterceptLine() *SlopeInterceptFormLine {
 	if l.B == 0 {
 		return &SlopeInterceptFormLine{math.Inf(1), -l.C}
@@ -228,7 +228,7 @@ func (l *GeneralFormLine) ToSlopeInterceptLine() *SlopeInterceptFormLine {
 	}
 }
 
-// ToStraightLine ...
+// ToStraightLine converts the value.
 func (l *GeneralFormLine) ToStraightLine() *StraightLine {
 	return &StraightLine{
 		Point: Point{l.C / l.B, 0},
@@ -251,13 +251,13 @@ func NewStraightLine(p Point, angle float64) *StraightLine {
 	return &StraightLine{p, angle}
 }
 
-// ToGeneralFormLine ...
+// ToGeneralFormLine converts the value.
 func (l *StraightLine) ToGeneralFormLine() *GeneralFormLine {
 	angleInRadians := l.Angle / 180 * math.Pi
 	return &GeneralFormLine{math.Cos(angleInRadians), math.Sin(angleInRadians), -l.X*math.Cos(angleInRadians) - l.Y*math.Sin(angleInRadians)}
 }
 
-// ToSlopeInterceptLine ...
+// ToSlopeInterceptLine converts the value.
 func (l *StraightLine) ToSlopeInterceptLine() *SlopeInterceptFormLine {
 	return l.ToGeneralFormLine().ToSlopeInterceptLine()
 }
@@ -281,40 +281,40 @@ func (l *StraightLine) ContainsPoint(p Point) bool {
 	return math.Abs(p.Y-(m*p.X+b)) < tolerance
 }
 
-// IntersectStraightLine ...
+// IntersectStraightLine reports whether the condition holds.
 func (l *StraightLine) IntersectStraightLine(l2 *StraightLine) bool {
 	theta1, theta2 := l.Angle/180*math.Pi, l2.Angle/180*math.Pi
-	// 计算直线方向向量
+	// Compute the line direction vector
 	dx1, dy1 := math.Cos(theta1), math.Sin(theta1)
 	dx2, dy2 := math.Cos(theta2), math.Sin(theta2)
 
-	// 求解方程组的系数
+	// Solve for equation coefficients
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < tolerance {
-		// 两条直线平行或重合
+		// The two lines are parallel or coincident
 		return false
 	}
 	return true
 }
 
-// IntersectionStraightLine ...
+// IntersectionStraightLine performs the operation.
 func (l *StraightLine) IntersectionStraightLine(l2 *StraightLine) (Point, bool) {
-	// 提取直线参数
+	// Extract line parameters
 	x1, y1, theta1 := l.Point.X, l.Point.Y, l.Angle/180*math.Pi
 	x2, y2, theta2 := l2.Point.X, l2.Point.Y, l2.Angle/180*math.Pi
 
-	// 计算直线方向向量
+	// Compute the line direction vector
 	dx1, dy1 := math.Cos(theta1), math.Sin(theta1)
 	dx2, dy2 := math.Cos(theta2), math.Sin(theta2)
 
-	// 求解方程组的系数
+	// Solve for equation coefficients
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < tolerance {
-		// 两条直线平行或重合
+		// The two lines are parallel or coincident
 		return Point{}, false
 	}
 
-	// 计算交点
+	// Compute the intersection
 	t := ((x2-x1)*dy2 - (y2-y1)*dx2) / denom
 	intersectionX := x1 + t*dx1
 	intersectionY := y1 + t*dy1
@@ -332,35 +332,35 @@ func NewRay(p Point, angle float64) *Ray {
 	return &Ray{p, angle}
 }
 
-// IntersectRay ...
+// IntersectRay reports whether the condition holds.
 func (l *Ray) IntersectRay(l2 *Ray) bool {
 	panic("todo")
 }
 
-// IntersectionRay ...
+// IntersectionRay performs the operation.
 func (r *Ray) IntersectionRay(r2 *Ray) (Point, bool) {
-	// 提取射线参数
+	// Extract ray parameters
 	x1, y1, theta1 := r.Point.X, r.Point.Y, r.Angle/180*math.Pi
 	x2, y2, theta2 := r2.Point.X, r2.Point.Y, r2.Angle/180*math.Pi
 
-	// 计算射线的方向向量
+	// Compute the ray direction vector
 	dx1, dy1 := math.Cos(theta1), math.Sin(theta1)
 	dx2, dy2 := math.Cos(theta2), math.Sin(theta2)
 
-	// 计算行列式，判断是否平行
+	// Compute the determinant to test parallelism
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < tolerance {
-		// 射线平行或共线
+		// Rays are parallel or colinear
 		return Point{}, false
 	}
 
-	// 计算交点（假设是无限延伸的直线）
+	// Compute intersection (treat as infinite lines)
 	t1 := ((x2-x1)*dy2 - (y2-y1)*dx2) / denom
 	intersectionX := x1 + t1*dx1
 	intersectionY := y1 + t1*dy1
 	intersection := Point{X: intersectionX, Y: intersectionY}
 
-	// 检查交点是否在两条射线的正向范围内
+	// Check whether the intersection lies on both ray forward halves
 	if r.IsOnForwardRange(intersection) && r2.IsOnForwardRange(intersection) {
 		return intersection, true
 	}
@@ -373,32 +373,32 @@ func (r *Ray) IsOnForwardRange(p Point) bool {
 	dx, dy := p.X-r.Point.X, p.Y-r.Point.Y
 	angle := r.Angle / 180 * math.Pi
 	dirX, dirY := math.Cos(angle), math.Sin(angle)
-	// 判断点是否在射线方向上
+	// Test whether the point lies along the ray direction
 	dotProduct := dx*dirX + dy*dirY
-	return dotProduct > 0 // 点与射线的方向一致
+	return dotProduct > 0 // Point is consistent with the ray direction
 }
 
-// IntersectionStraightLine ...
+// IntersectionStraightLine performs the operation.
 func (r *Ray) IntersectionStraightLine(l *StraightLine) (Point, bool) {
-	// 提取射线和直线参数
+	// Extract ray and line parameters
 	x1, y1, theta := r.Point.X, r.Point.Y, r.Angle/180*math.Pi
 	x2, y2, phi := l.Point.X, l.Point.Y, l.Angle/180*math.Pi
 
-	// 计算射线和直线的方向向量
-	dx1, dy1 := math.Cos(theta), math.Sin(theta) // 射线方向
-	dx2, dy2 := math.Cos(phi), math.Sin(phi)     // 直线方向
+	// Compute direction vectors of the ray and line
+	dx1, dy1 := math.Cos(theta), math.Sin(theta) // ray direction
+	dx2, dy2 := math.Cos(phi), math.Sin(phi)     // line direction
 
-	// 计算行列式，判断是否平行
+	// Compute the determinant to test parallelism
 	denom := dx1*dy2 - dy1*dx2
 	if math.Abs(denom) < tolerance {
-		// 射线和平行或共线
+		// Ray and line are parallel or colinear
 		return Point{}, false
 	}
 
-	// 计算参数 t 和 s
+	// Compute parameters t and s
 	t := ((x2-x1)*dy2 - (y2-y1)*dx2) / denom
 
-	// 检查 t 是否满足射线的范围条件 (t >= 0)
+	// Check whether t satisfies the ray range (t >= 0)
 	if t >= 0 {
 		intersectionX := x1 + t*dx1
 		intersectionY := y1 + t*dy1

@@ -17,7 +17,7 @@ import (
 func NewFile(sheet string, header []string) (*excelize.File, error) {
 	endColumn := ColumnLetter[len(header)-1]
 	f := excelize.NewFile()
-	//单元格样式
+	//cell style
 	style, err := f.NewStyle(Style)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func NewFile(sheet string, header []string) (*excelize.File, error) {
 // NewSheet creates and returns a new instance.
 func NewSheet(f *excelize.File, sheet string, header []string) error {
 	endColumn := ColumnLetter[len(header)-1]
-	//单元格样式
+	//cell style
 	style, _ := f.NewStyle(Style)
 	headerStyle, _ := f.NewStyle(HeaderStyle)
 	f.NewSheet(sheet)
@@ -53,7 +53,7 @@ func NewSheet(f *excelize.File, sheet string, header []string) error {
 	return nil
 }
 
-// SetNoteRow ...
+// SetNoteRow updates or inserts a value.
 func SetNoteRow(sw *excelize.StreamWriter, f *excelize.File, rowNum, maxCol int, rowHeight float64, note string) error {
 	styleId, _ := f.NewStyle(noteCellStyle)
 	rowNumStr := strconv.Itoa(rowNum)
@@ -64,7 +64,7 @@ func SetNoteRow(sw *excelize.StreamWriter, f *excelize.File, rowNum, maxCol int,
 	return nil
 }
 
-// SetHeaderRow ...
+// SetHeaderRow updates or inserts a value.
 func SetHeaderRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, colWith float64, headers []string) {
 	styleId, _ := f.NewStyle(headerCellStyle)
 	cell := make([]interface{}, 0, len(headers))
@@ -78,7 +78,7 @@ func SetHeaderRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, colWi
 	_ = sw.SetRow(ColumnLetter[0]+rowNumStr, cell)
 }
 
-// SetBodyRow ...
+// SetBodyRow updates or inserts a value.
 func SetBodyRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVal []any) {
 	styleId, _ := f.NewStyle(bodyCellStyle)
 	cell := make([]interface{}, 0, len(cellVal))
@@ -89,7 +89,7 @@ func SetBodyRow(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVal
 	_ = sw.SetRow(ColumnLetter[0]+rowNumStr, cell)
 }
 
-// SetCellDropListStyle ...
+// SetCellDropListStyle updates or inserts a value.
 func SetCellDropListStyle(sw *excelize.StreamWriter, f *excelize.File, hiddenSheetName string, dropListSize int, effectCellStart, effectCellEnd string) {
 	definedName := &excelize.DefinedName{
 		Name:     hiddenSheetName,
@@ -106,7 +106,7 @@ func SetCellDropListStyle(sw *excelize.StreamWriter, f *excelize.File, hiddenShe
 	_ = f.AddDataValidation(sw.Sheet, validation)
 }
 
-// SetBodyRow2 ...
+// SetBodyRow2 updates or inserts a value.
 func SetBodyRow2(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVal []string, errStyleLoc map[int]byte) {
 	styleId, _ := f.NewStyle(bodyCellStyle)
 	errStyleId, _ := f.NewStyle(errorBodyCellStyle)
@@ -122,7 +122,7 @@ func SetBodyRow2(sw *excelize.StreamWriter, f *excelize.File, rowNum int, cellVa
 	_ = sw.SetRow(ColumnLetter[0]+rowNumStr, cell)
 }
 
-// MergeCell ...
+// MergeCell performs the operation.
 func MergeCell(sw *excelize.StreamWriter, startRowNum, endRowNum int, cells []string) {
 	for _, cell := range cells {
 		startRowNumStr := fmt.Sprintf("%s%d", cell, startRowNum)

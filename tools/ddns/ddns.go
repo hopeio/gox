@@ -34,12 +34,12 @@ func main() {
 		log.Fatal("names is empty")
 	}
 	log.Infof("names: %v", names)
-	// 初始化 Cloudflare API 客户端
+	// Initialize the Cloudflare API client
 	api, err := cloudflare.NewWithAPIToken(token)
 	if err != nil {
 		log.Fatalf("failed to initialize Cloudflare API: %v", err)
 	}
-	// 获取 Zone ID
+	// Fetch the Zone ID
 	zoneID, err := api.ZoneIDByName(domain)
 	if err != nil {
 		log.Fatalf("failed to get Zone ID: %v", err)
@@ -51,7 +51,7 @@ func main() {
 	lastIP := ipv6s[0].String()
 	log.Infof("ipv6: %v", lastIP)
 	needUpdateRecord := make([]cloudflare.UpdateDNSRecordParams, 0, 2)
-	// 获取 DNS 记录
+	// Fetch DNS records
 	ctx := context.Background()
 	resourceContainer := cloudflare.ResourceContainer{Type: cloudflare.ZoneType, Identifier: zoneID, Level: cloudflare.ZoneRouteLevel}
 	records, _, err := api.ListDNSRecords(ctx, &resourceContainer, cloudflare.ListDNSRecordsParams{})
