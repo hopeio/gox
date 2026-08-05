@@ -39,9 +39,9 @@ func NewProductionConfig(appName string) *Config {
 		Config: zap.Config{
 			Level:             zap.NewAtomicLevelAt(zapcore.InfoLevel),
 			OutputPaths:       []string{stdout},
-			EncoderConfig:     NewProductionEncoderConfig(),
 			DisableCaller:     true,
 			DisableStacktrace: true,
+			EncoderConfig:     NewProductionEncoderConfig(),
 			Sampling: &zap.SamplingConfig{
 				Initial:    100,
 				Thereafter: 100,
@@ -71,11 +71,11 @@ func NewDevelopmentConfig(appName string) *Config {
 	return &Config{
 		Name: appName,
 		Config: zap.Config{
-			Development: true,
-			Level:       zap.NewAtomicLevelAt(zapcore.DebugLevel),
-			OutputPaths: []string{stdout},
+			Development:   true,
+			EncoderConfig: NewDevelopmentEncoderConfig(),
+			Level:         zap.NewAtomicLevelAt(zapcore.DebugLevel),
+			OutputPaths:   []string{stdout},
 		},
-		EncoderConfig:   NewDevelopmentEncoderConfig(),
 		EncodeLevelType: EncodeLevelTypeCapitalColor,
 	}
 }
@@ -107,7 +107,6 @@ type Config struct {
 	EnableOtel bool
 	Otel       OtelConfig `json:"otel,omitempty"`
 	zap.Config
-	zapcore.EncoderConfig
 	EncodeLevelType string `json:"encodeLevelType,omitempty" comment:"capital;capitalColor;color"`
 	TimeLayout      string
 	Encoder         zapcore.Encoder
