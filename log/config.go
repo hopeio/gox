@@ -7,6 +7,7 @@
 package log
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -297,7 +298,14 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	}
 
 	if lc.EnableOtel {
-		cores = append(cores, otelzap.NewCore(lc.Name, otelzap.WithLoggerProvider(lc.Otel.LoggerProvider), otelzap.WithVersion(lc.Otel.Version), otelzap.WithSchemaURL(lc.Otel.SchemaURL), otelzap.WithAttributes(lc.Otel.Attributes...)))
+		attrs := append([]attribute.KeyValue{}, lc.Otel.Attributes...)
+		attrs = append(attrs, initialFieldsToAttributes(lc.InitialFields)...)
+		cores = append(cores, otelzap.NewCore(lc.Name,
+			otelzap.WithLoggerProvider(lc.Otel.LoggerProvider),
+			otelzap.WithVersion(lc.Otel.Version),
+			otelzap.WithSchemaURL(lc.Otel.SchemaURL),
+			otelzap.WithAttributes(attrs...),
+		))
 	}
 
 	//If no output is set, default to the console
@@ -368,4 +376,72 @@ func (lc *Config) hook() []zap.Option {
 	}
 
 	return hooks
+}
+
+// initialFieldsToAttributes converts zap.Config.InitialFields into OTel attributes.
+// Keys are sorted for stable attribute order.
+func initialFieldsToAttributes(fields map[string]any) []attribute.KeyValue {
+	if len(fields) == 0 {
+		return nil
+	}
+	keys := make([]string, 0, len(fields))
+	for k := range fields {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	attrs := make([]attribute.KeyValue, 0, len(keys))
+	for _, k := range keys {
+		attrs = append(attrs, anyToAttribute(k, fields[k]))
+	}
+	return attrs
+}
+
+func anyToAttribute(key string, v any) attribute.KeyValue {
+	k := attribute.Key(key)
+	switch x := v.(type) {
+	case nil:
+		return k.String("")
+	case bool:
+		return k.Bool(x)
+	case string:
+		return k.String(x)
+	case int:
+		return k.Int(x)
+	case int8:
+		return k.Int(int(x))
+	case int16:
+		return k.Int(int(x))
+	case int32:
+		return k.Int64(int64(x))
+	case int64:
+		return k.Int64(x)
+	case uint:
+		return k.Int64(int64(x))
+	case uint8:
+		return k.Int64(int64(x))
+	case uint16:
+		return k.Int64(int64(x))
+	case uint32:
+		return k.Int64(int64(x))
+	case uint64:
+		return k.Int64(int64(x))
+	case float32:
+		return k.Float64(float64(x))
+	case float64:
+		return k.Float64(x)
+	case []string:
+		return k.StringSlice(x)
+	case []bool:
+		return k.BoolSlice(x)
+	case []int:
+		return k.IntSlice(x)
+	case []int64:
+		return k.Int64Slice(x)
+	case []float64:
+		return k.Float64Slice(x)
+	case fmt.Stringer:
+		return k.String(x.String())
+	default:
+		return k.String(fmt.Sprint(x))
+	}
 }
