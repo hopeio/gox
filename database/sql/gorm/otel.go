@@ -521,22 +521,51 @@ func dbOperation(query string) string {
 }
 
 // collectionName returns the physical table for db.collection.name / span summary.
-// GORM's Table("users AS u") stores the alias in Statement.Table; prefer Schema.Table,
-// then parse the base name from TableExpr / Table.
+//
+// Prefer the SQL FROM clause (TableExpr / parsed SQL) over Schema.Table: GORM sets
+// Schema from the Dest model (e.g. ContentTagRel → content_tag_rel) which often is
+// not a real table when using Table("tag a").Joins(...).Find(&dto).
 func collectionName(tx *gorm.DB) string {
 	if tx == nil || tx.Statement == nil {
 		return ""
 	}
 	stmt := tx.Statement
-	if stmt.Schema != nil && stmt.Schema.Table != "" {
-		return stmt.Schema.Table
-	}
 	if stmt.TableExpr != nil {
 		if name := baseTableName(stmt.TableExpr.SQL); name != "" {
 			return name
 		}
 	}
-	return baseTableName(stmt.Table)
+	// Model-based query: Table and Schema.Table match (both the real table).
+	if stmt.Schema != nil && stmt.Schema.Table != "" &&
+		(stmt.Table == "" || stmt.Table == stmt.Schema.Table) {
+		return stmt.Schema.Table
+	}
+	if sql := stmt.SQL.String(); sql != "" {
+		if name := tableFromSQL(sql); name != "" {
+			return name
+		}
+	}
+	if name := baseTableName(stmt.Table); name != "" {
+		return name
+	}
+	if stmt.Schema != nil {
+		return stmt.Schema.Table
+	}
+	return ""
+}
+
+// fromTableRegexp captures the first identifier after FROM.
+var fromTableRegexp = regexp.MustCompile(`(?i)\bFROM\s+(?:(?:\w+|["\x60][^"\x60]+["\x60])\.)?(?:(\w+)|["\x60]([^"\x60]+)["\x60])`)
+
+func tableFromSQL(sql string) string {
+	m := fromTableRegexp.FindStringSubmatch(sql)
+	if len(m) < 3 {
+		return ""
+	}
+	if m[1] != "" {
+		return m[1]
+	}
+	return m[2]
 }
 
 // baseTableName strips SQL aliases and quoting: "users AS u", "users u", `users`, schema.users.
