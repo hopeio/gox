@@ -208,20 +208,3 @@ func TestStdOutStdErrLevel(t *testing.T) {
 		}
 	}
 }
-
-func TestNewProductionEncoderConfig(t *testing.T) {
-	enc := NewProductionEncoderConfig()
-	if enc.TimeKey != FieldTime || enc.LevelKey != FieldLevel || enc.MessageKey != FieldMsg {
-		t.Fatalf("unexpected encoder config: %#v", enc)
-	}
-	if enc.FunctionKey != zapcore.OmitKey {
-		t.Fatalf("FunctionKey = %q", enc.FunctionKey)
-	}
-}
-
-func TestNewDevelopmentEncoderConfig(t *testing.T) {
-	enc := NewDevelopmentEncoderConfig()
-	if enc.TimeKey != "T" || enc.LevelKey != "L" || enc.MessageKey != "M" {
-		t.Fatalf("unexpected dev encoder config: %#v", enc)
-	}
-}

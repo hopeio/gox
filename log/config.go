@@ -7,7 +7,6 @@
 package log
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -38,70 +37,21 @@ const (
 func NewProductionConfig(appName string) *Config {
 	return &Config{
 		Name: appName,
-		Config: zap.Config{
-			Level:             zap.NewAtomicLevelAt(zapcore.InfoLevel),
-			OutputPaths:       []string{stdout},
-			DisableCaller:     true,
-			DisableStacktrace: true,
-			EncoderConfig:     NewProductionEncoderConfig(),
-			Sampling: &zap.SamplingConfig{
-				Initial:    100,
-				Thereafter: 100,
-			},
-		},
+		Config: zap.NewProductionConfig(),
 	}
 }
 
-// NewProductionEncoderConfig creates and returns a new instance.
-func NewProductionEncoderConfig() zapcore.EncoderConfig {
-	return zapcore.EncoderConfig{
-		TimeKey:        FieldTime,
-		LevelKey:       FieldLevel,
-		NameKey:        FieldApp,
-		CallerKey:      FieldCaller,
-		FunctionKey:    zapcore.OmitKey,
-		MessageKey:     FieldMsg,
-		StacktraceKey:  FieldStack,
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeTime:     zapcore.RFC3339TimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-	}
-}
+
 
 // NewDevelopmentConfig creates and returns a new instance.
 func NewDevelopmentConfig(appName string) *Config {
 	return &Config{
 		Name: appName,
-		Config: zap.Config{
-			Development:   true,
-			EncoderConfig: NewDevelopmentEncoderConfig(),
-			Level:         zap.NewAtomicLevelAt(zapcore.DebugLevel),
-			OutputPaths:   []string{stdout},
-		},
+		Config: zap.NewDevelopmentConfig(),
 		EncodeLevelType: EncodeLevelTypeCapitalColor,
 	}
 }
 
-// NewDevelopmentEncoderConfig creates and returns a new instance.
-func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
-	return zapcore.EncoderConfig{
-		// Keys can be anything except the empty string.
-		TimeKey:        "T",
-		LevelKey:       "L",
-		CallerKey:      "C",
-		FunctionKey:    zapcore.OmitKey,
-		MessageKey:     "M",
-		StacktraceKey:  "S",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.CapitalLevelEncoder,
-		EncodeTime:     zapcore.RFC3339TimeEncoder,
-		EncodeDuration: zapcore.StringDurationEncoder,
-		EncodeCaller:   zapcore.FullCallerEncoder,
-		EncodeName:     zapcore.FullNameEncoder,
-	}
-}
 
 type ZipConfig = zap.Config
 
@@ -298,14 +248,18 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 	}
 
 	if lc.EnableOtel {
-		attrs := append([]attribute.KeyValue{}, lc.Otel.Attributes...)
-		attrs = append(attrs, initialFieldsToAttributes(lc.InitialFields)...)
-		cores = append(cores, otelzap.NewCore(lc.Name,
+		core := otelzap.NewCore(lc.Name,
 			otelzap.WithLoggerProvider(lc.Otel.LoggerProvider),
 			otelzap.WithVersion(lc.Otel.Version),
 			otelzap.WithSchemaURL(lc.Otel.SchemaURL),
-			otelzap.WithAttributes(attrs...),
-		))
+			otelzap.WithAttributes(lc.Otel.Attributes...),
+		)
+		if len(lc.InitialFields) > 0 {
+			cores = append(cores, core.With(initialFields(lc.InitialFields)))
+		}else{
+			cores = append(cores, core)
+		}
+
 	}
 
 	//If no output is set, default to the console
@@ -339,6 +293,7 @@ func (lc *Config) hook() []zap.Option {
 	if !lc.DisableCaller {
 		hooks = append(hooks, zap.AddCaller(), zap.AddCallerSkip(1))
 	}
+	
 	if !lc.DisableStacktrace {
 		if lc.Development {
 			hooks = append(hooks, zap.AddStacktrace(zapcore.DPanicLevel))
@@ -363,85 +318,21 @@ func (lc *Config) hook() []zap.Option {
 	}
 
 	if len(lc.InitialFields) > 0 {
-		fs := make([]zap.Field, 0, len(lc.InitialFields))
-		keys := make([]string, 0, len(lc.InitialFields))
-		for k := range lc.InitialFields {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			fs = append(fs, zap.Any(k, lc.InitialFields[k]))
-		}
-		hooks = append(hooks, zap.Fields(fs...))
+		hooks = append(hooks, zap.Fields(initialFields(lc.InitialFields)...))
 	}
 
 	return hooks
 }
 
-// initialFieldsToAttributes converts zap.Config.InitialFields into OTel attributes.
-// Keys are sorted for stable attribute order.
-func initialFieldsToAttributes(fields map[string]any) []attribute.KeyValue {
-	if len(fields) == 0 {
-		return nil
-	}
+func initialFields(fields map[string]any) []zapcore.Field {
+	fs := make([]zapcore.Field, 0, len(fields))
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	attrs := make([]attribute.KeyValue, 0, len(keys))
 	for _, k := range keys {
-		attrs = append(attrs, anyToAttribute(k, fields[k]))
+		fs = append(fs, zap.Any(k, fields[k]))
 	}
-	return attrs
-}
-
-func anyToAttribute(key string, v any) attribute.KeyValue {
-	k := attribute.Key(key)
-	switch x := v.(type) {
-	case nil:
-		return k.String("")
-	case bool:
-		return k.Bool(x)
-	case string:
-		return k.String(x)
-	case int:
-		return k.Int(x)
-	case int8:
-		return k.Int(int(x))
-	case int16:
-		return k.Int(int(x))
-	case int32:
-		return k.Int64(int64(x))
-	case int64:
-		return k.Int64(x)
-	case uint:
-		return k.Int64(int64(x))
-	case uint8:
-		return k.Int64(int64(x))
-	case uint16:
-		return k.Int64(int64(x))
-	case uint32:
-		return k.Int64(int64(x))
-	case uint64:
-		return k.Int64(int64(x))
-	case float32:
-		return k.Float64(float64(x))
-	case float64:
-		return k.Float64(x)
-	case []string:
-		return k.StringSlice(x)
-	case []bool:
-		return k.BoolSlice(x)
-	case []int:
-		return k.IntSlice(x)
-	case []int64:
-		return k.Int64Slice(x)
-	case []float64:
-		return k.Float64Slice(x)
-	case fmt.Stringer:
-		return k.String(x.String())
-	default:
-		return k.String(fmt.Sprint(x))
-	}
+	return fs
 }
