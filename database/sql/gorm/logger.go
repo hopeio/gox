@@ -24,18 +24,13 @@ type Logger struct {
 	*logger.Config
 }
 
-type Config struct {
-	SlowThreshold time.Duration
-	Colorful      bool
-	LogLevel      zapcore.Level
-}
-
 // New creates a new instance.
 func New(loger *zap.Logger, conf *logger.Config) logger.Interface {
 	if conf == nil {
 		conf = &logger.Config{LogLevel: logger.Warn}
 	}
-	loger.Core().With([]zap.Field{zap.String("comment", "gorm")}).Enabled(zapcore.Level(4 - conf.LogLevel))
+	// component marks the log source; avoid "system" (OTel db.system means postgres/mysql/...).
+	loger = loger.With(zap.String("component", "gorm"))
 	return &Logger{Logger: loger, Config: conf}
 }
 
