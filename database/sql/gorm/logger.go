@@ -34,14 +34,17 @@ func NewLogger(logcfg *logx.Config, conf *logger.Config) logger.Interface {
 	return &Logger{Logger: loger, Config: conf}
 }
 
-// LogMode returns a clone with the given gorm log level (same as gorm default logger).
-// Zap cannot safely remap level here: IncreaseLevel only raises the threshold and
-// WithOptions must not mutate the shared parent logger.
+// LogMode returns a clone and raises the logx.Logger level to match gorm LogLevel.
 func (l *Logger) LogMode(level logger.LogLevel) logger.Interface {
 	nl := *l
 	cfg := *l.Config
 	cfg.LogLevel = level
 	nl.Config = &cfg
+	zapLevel := zapcore.InvalidLevel
+	if level > logger.Silent {
+		zapLevel = zapcore.Level(4 - level)
+	}
+	nl.Logger = l.Logger.WithOptions(zap.IncreaseLevel(zapLevel))
 	return &nl
 }
 
