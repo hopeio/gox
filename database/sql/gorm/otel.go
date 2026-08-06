@@ -385,9 +385,9 @@ func (p *OTelPlugin) after(op string) func(*gorm.DB) {
 			spanAttrs = append(spanAttrs, semconv.DBQueryText(formatQuery))
 		}
 		spanAttrs = append(spanAttrs, semconv.DBOperationName(operation))
-		if tx.Statement != nil && tx.Statement.Table != "" {
-			spanAttrs = append(spanAttrs, semconv.DBCollectionName(tx.Statement.Table))
-			summary := operation + " " + tx.Statement.Table
+		if table := collectionName(tx); table != "" {
+			spanAttrs = append(spanAttrs, semconv.DBCollectionName(table))
+			summary := operation + " " + table
 			spanAttrs = append(spanAttrs, semconv.DBQuerySummary(summary))
 			span.SetName(summary)
 		}
@@ -441,8 +441,8 @@ func (p *OTelPlugin) metricBaseAttrs(op string, tx *gorm.DB) []attribute.KeyValu
 	if sys := dbSystem(tx); sys.Valid() {
 		attrs = append(attrs, sys)
 	}
-	if tx != nil && tx.Statement != nil && tx.Statement.Table != "" {
-		attrs = append(attrs, semconv.DBCollectionName(tx.Statement.Table))
+	if table := collectionName(tx); table != "" {
+		attrs = append(attrs, semconv.DBCollectionName(table))
 	}
 	return attrs
 }
@@ -518,6 +518,57 @@ func dbOperation(query string) string {
 	s = lineCommentRegex.ReplaceAllString(s, "")
 	s = sqlPrefixRegex.ReplaceAllString(s, "")
 	return strings.ToLower(firstWordRegex.FindString(s))
+}
+
+// collectionName returns the physical table for db.collection.name / span summary.
+// GORM's Table("users AS u") stores the alias in Statement.Table; prefer Schema.Table,
+// then parse the base name from TableExpr / Table.
+func collectionName(tx *gorm.DB) string {
+	if tx == nil || tx.Statement == nil {
+		return ""
+	}
+	stmt := tx.Statement
+	if stmt.Schema != nil && stmt.Schema.Table != "" {
+		return stmt.Schema.Table
+	}
+	if stmt.TableExpr != nil {
+		if name := baseTableName(stmt.TableExpr.SQL); name != "" {
+			return name
+		}
+	}
+	return baseTableName(stmt.Table)
+}
+
+// baseTableName strips SQL aliases and quoting: "users AS u", "users u", `users`, schema.users.
+func baseTableName(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return ""
+	}
+	lower := strings.ToLower(name)
+	if i := strings.LastIndex(lower, " as "); i >= 0 {
+		return unquoteIdent(strings.TrimSpace(name[:i]))
+	}
+	if fields := strings.Fields(name); len(fields) >= 2 {
+		return unquoteIdent(fields[0])
+	}
+	return unquoteIdent(name)
+}
+
+func unquoteIdent(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	if i := strings.LastIndexByte(s, '.'); i >= 0 {
+		s = s[i+1:]
+	}
+	if n := len(s); n >= 2 {
+		if (s[0] == '`' && s[n-1] == '`') || (s[0] == '"' && s[n-1] == '"') {
+			return s[1 : n-1]
+		}
+	}
+	return s
 }
 
 // getContext returns the result.
