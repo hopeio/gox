@@ -6,234 +6,158 @@
 
 [中文文档](README.zh-CN.md)
 
-**Batteries for Go’s standard library** — concurrency engine, IDs, pluggable JSON, zero-copy strings, HTTP client, caches, streams, GORM helpers, and more. Import only the packages you use.
-
 ```bash
 go get github.com/hopeio/gox@latest
 ```
 
-## What is gox?
+A modular Go library of production-ready building blocks. Every top-level folder is its own package — pull in a task engine, an ID generator, an HTTP client, or a zero-copy string helper without dragging the rest.
 
-**gox** is a large, modular utility library for production Go services. It is **not** an application framework: there is no single entrypoint. Each top-level directory is an independent package with stdlib-shaped APIs.
+## Why it exists
 
-Typical use cases:
+The Go standard library is excellent and incomplete for day-to-day services. Teams re-implement the same pieces: worker pools with backpressure, Snowflake IDs, JSON that can swap backends, LRU caches, GORM pagination, fluent HTTP clients, zap logging, flag+env binding.
 
-| Area | What you get |
-|------|----------------|
-| Workloads | Priority task engine with retry, child tasks, rate limits, pending backpressure |
-| Identity | Configurable Snowflake, crypto UniqueID, Base32/58/62/64 encodings |
-| Encoding | JSON (stdlib / sonic / go-json via build tags), Excel, msgpack, binary, base58/62 |
-| Performance | Zero-copy `string`↔`[]byte`, unsafe casts, sync pools, atomic helpers |
-| Networking | Fluent HTTP client (retry, marshal, download/upload), header/content-type constants |
-| Data | GORM pagination & reflective filters, Redis / Elasticsearch helpers |
-| Collections | LRU / LFU / ARC caches, heaps, sets, bitmap, consistent hash, queues |
-| Streams | Chainable operators on Go 1.23 `iter.Seq`, generic slice Map/Filter/Reduce |
-| Ops | zap logging (+ OTel bridge), struct-tag flags/env, validators, timers, media SDKs |
+**gox** collects those pieces as independent packages with familiar, stdlib-like APIs.
 
-## Highlights
+## What you can do
 
-- **`scheduler`** — generic `Engine[KEY]`: worker pool, priority heap, subtasks, `Limiter` / `KindLimiter`, `WithMaxPending` backpressure, error handlers
-- **`idgen`** — `NewSnowflake(node, nodeBits)`, `UniqueID()`, multi-radix string forms
-- **`encoding/json`** — drop-in `Marshal` / `Unmarshal` / `MarshalToString`; `-tags sonic` or `-tags go_json`
-- **`strings` / `unsafe`** — allocation-free conversions when lifetimes allow
-- **`net/http/client`** — fluent `Client` / `Request`, auto (un)marshal, retries, upload & download
-- **`container/cache`** — builder API: `.LRU()` / `.LFU()` / `.ARC()` with TTL
-- **`iter` + `slices`** — Stream pipeline over `iter.Seq`; predicate-first `Filter`
-- **`database/sql/gorm`** — `FindList[T]`, `ConditionsBy` reflective clauses
-- **`flag` / `log` / `types`** — tag-driven CLI+env, zap wrapper, `Option` / `Result`
+| Need | Package | Capability |
+|------|---------|------------|
+| Run many jobs safely | `scheduler` | Generic `Engine[KEY]`: workers, priority, child tasks, rate limits, pending queue backpressure |
+| Generate IDs | `idgen` | Snowflake (`Generate`), UniqueID, Base32/58/62/64 |
+| Faster / swap JSON | `encoding/json` | Same API; `-tags sonic` or `-tags go_json` |
+| Avoid copies | `strings`, `unsafe` | `ToBytes` / `FromBytes`, `Cast` / `CastSlice` |
+| Call HTTP APIs | `net/http/client` | Fluent client: timeout, retry, JSON body, upload/download |
+| In-process cache | `container/cache` | Builder → LRU / LFU / ARC + TTL |
+| Process sequences | `iter`, `slices` | Stream on `iter.Seq`; Map / Filter / Reduce |
+| Page GORM queries | `database/sql/gorm` | `FindList[T]`, reflective `ConditionsBy` |
+| Configure a process | `flag`, `log` | Struct tags → pflag+env; zap logger |
 
-## Examples
+Plus: Redis/ES helpers, heaps/sets/bitmap/consistent-hash, crypto, time/math/media, sync primitives, validators, thin SDKs, and more — see the package table below.
 
-### Concurrent task engine (`scheduler`)
+## Code samples
+
+### Task engine
 
 ```go
-package main
+eng := scheduler.NewEngine[string](16, scheduler.WithMaxPending[string](2048))
+eng.ErrHandlerUtilSuccess()
+eng.Limiter(rate.Limit(100), 100)
 
-import (
-	"context"
-	"fmt"
-
-	"github.com/hopeio/gox/scheduler"
-	"golang.org/x/time/rate"
-)
-
-func main() {
-	eng := scheduler.NewEngine[int](12, scheduler.WithMaxPending[int](1024))
-	eng.ErrHandlerUtilSuccess()
-	eng.Limiter(rate.Limit(50), 50)
-
-	eng.AddTasks(&scheduler.Task[int]{
-		Key: 1,
-		Run: func(ctx context.Context) ([]*scheduler.Task[int], error) {
-			fmt.Println("parent")
-			// return child tasks to fan out work
-			return []*scheduler.Task[int]{{
-				Key: 2,
-				Run: func(ctx context.Context) ([]*scheduler.Task[int], error) {
-					fmt.Println("child")
-					return nil, nil
-				},
-			}}, nil
-		},
-	})
-	eng.Run()
-}
+eng.AddTasks(&scheduler.Task[string]{
+	Key: "crawl:home",
+	Run: func(ctx context.Context) ([]*scheduler.Task[string], error) {
+		// return more tasks to fan out
+		return nil, nil
+	},
+})
+eng.Run()
 ```
 
-### IDs (`idgen`)
+### Snowflake & UniqueID
 
 ```go
-import "github.com/hopeio/gox/idgen"
+node := idgen.NewSnowflake(1, 10) // node id, node bit width
+snow := node.Generate()
 
-sf := idgen.NewSnowflake(1, 10) // node, nodeBits (stepBits = 22 - nodeBits)
-id := sf.Generate()
-
-u := idgen.UniqueID()
-_ = u.Base58() // also Hex / Base32 / Base62 / Base64
+uid := idgen.UniqueID()
+short := uid.Base58()
 ```
 
-### Fluent HTTP client (`net/http/client`)
+### HTTP client
 
 ```go
-import (
-	"time"
+cli := client.New().
+	Timeout(5 * time.Second).
+	RetryTimes(3).
+	DisableLog()
 
-	"github.com/hopeio/gox/net/http/client"
-)
+var body map[string]any
+err := cli.Get("https://example.com/api", nil, &body)
 
-c := client.New().Timeout(5 * time.Second).RetryTimes(2).DisableLog()
-
-var out map[string]any
-_ = c.Get("https://httpbin.org/get", nil, &out)
-
-_ = client.PostRequest("https://httpbin.org/post").
+err = client.PostRequest("https://example.com/api").
 	ContentType(client.ContentTypeJson).
-	Do(map[string]string{"hello": "gox"}, &out)
+	Do(map[string]string{"k": "v"}, &body)
 ```
 
-### Stream over `iter.Seq` (`iter`)
+### `iter.Seq` stream
 
 ```go
-import (
-	"slices"
-
-	"github.com/hopeio/gox/iter"
-)
-
-out := iter.StreamOf(slices.Values([]int{1, 2, 3, 4, 5})).
-	Filter(func(n int) bool { return n%2 == 0 }).
-	Map(func(n int) int { return n * 10 }).
-	Collect() // [20, 40]
+result := iter.StreamOf(slices.Values([]int{1, 2, 3, 4, 5, 6})).
+	Filter(func(n int) bool { return n > 2 }).
+	Map(func(n int) int { return n * n }).
+	Collect()
 ```
 
-### Pluggable JSON (`encoding/json`)
+### JSON (backend selectable)
 
 ```go
-import jsonx "github.com/hopeio/gox/encoding/json"
+s, err := jsonx.MarshalToString(payload)
+err = jsonx.UnmarshalFromString(s, &payload)
 
-s, _ := jsonx.MarshalToString(map[string]int{"a": 1})
-var m map[string]int
-_ = jsonx.UnmarshalFromString(s, &m)
-
-// Faster backends (same API):
-//   go build -tags sonic     # amd64 + bytedance/sonic
-//   go build -tags go_json   # goccy/go-json
+// go build -tags sonic    # bytedance/sonic on amd64
+// go build -tags go_json  # goccy/go-json
 ```
 
-### Cache (`container/cache`)
+### Cache
 
 ```go
-import (
-	"time"
-
-	"github.com/hopeio/gox/container/cache"
-)
-
-c := cache.New(1024).Expiration(5 * time.Minute).LRU() // or .LFU() / .ARC()
-_ = c.Set("user:1", profile, cache.DefaultExpiration)
-v, err := c.Get("user:1")
-_, _ = v, err
+store := cache.New(4096).Expiration(10 * time.Minute).LRU()
+_ = store.Set("sess:"+id, sess, cache.DefaultExpiration)
+val, err := store.Get("sess:" + id)
 ```
 
-### Zero-copy strings (`strings`)
+### Zero-copy bytes view
 
 ```go
-import "github.com/hopeio/gox/strings"
-
-b := strings.ToBytes("payload") // shares backing store; do not mutate
-s := strings.FromBytes(b)
-_, _ = b, s
+raw := stringsx.ToBytes(msg)  // no allocation; do not mutate
+msg2 := stringsx.FromBytes(raw)
 ```
 
-### GORM list query (`database/sql/gorm`)
+### GORM paging
 
 ```go
-import (
-	sqlx "github.com/hopeio/gox/database/sql"
-	gormx "github.com/hopeio/gox/database/sql/gorm"
-)
-
-list := &sqlx.List{Pagination: sqlx.Pagination{No: 1, Size: 20}}
-rows, total, err := gormx.FindList[User](db, list)
-// reflective filters: db.Clauses(gormx.ConditionsBy(&filter)...).Find(...)
-_, _, _ = rows, total, err
+page := &sqlx.List{Pagination: sqlx.Pagination{No: 1, Size: 50}}
+items, total, err := gormx.FindList[Order](db, page)
 ```
 
-### Flags + env (`flag`) & logging (`log`)
+### Flags, env, logs
 
 ```go
-import (
-	"os"
-
-	"github.com/hopeio/gox/flag"
-	"github.com/hopeio/gox/log"
-	"go.uber.org/zap"
-)
-
-type Cfg struct {
-	Port int    `flag:"name:port;short:p;env:PORT;usage:listen port"`
-	Host string `flag:"name:host;env:HOST;usage:bind host"`
+type Options struct {
+	Addr string `flag:"name:addr;short:a;env:ADDR;usage:listen address"`
 }
+var opt Options
+_ = flag.Bind(os.Args, &opt)
 
-var cfg Cfg
-_ = flag.Bind(os.Args, &cfg)
-
-log.SetDefaultLogger(log.NewProductionConfig("myapp").NewLogger())
-log.Infow("listening", zap.Int("port", cfg.Port))
+log.SetDefaultLogger(log.NewProductionConfig("svc").NewLogger())
+log.Infow("up", zap.String("addr", opt.Addr))
 ```
 
-## Package map
+*(Imports omitted for brevity — use `github.com/hopeio/gox/<package>` paths.)*
 
-| Package | Purpose |
-|---------|---------|
-| `scheduler` | Concurrent task engine (priority, retry, subtasks, rate limit, backpressure) |
-| `idgen` | Snowflake, UniqueID / OrderedID / RandomID, radix encodings |
-| `encoding` | JSON (pluggable), Excel, binary, base58/62, msgpack, protobuf helpers, … |
-| `strings` / `unsafe` | Zero-copy conversions, `Cast` / `CastSlice` |
-| `net` | HTTP constants, fluent client, URL/IP/mail helpers |
-| `container` | Cache (LRU/LFU/ARC), heap, set, bitmap, consistent hash, list/queue/stack/tree |
-| `iter` / `slices` / `maps` | Stream operators; generic Map/Filter/Reduce; map helpers |
-| `database` | SQL/GORM pagination & conditions; Redis; Elasticsearch |
-| `log` | zap-based logger with OTel / slog bridges |
-| `flag` | Struct-tag binding to pflag + environment variables |
-| `types` | `Option[T]`, `Result[T]`, enums, constraints, request/response shapes |
-| `sync` | Singleflight, locked containers, pools, atomic floats |
-| `crypto` | AES, MD5, TLS helpers |
-| `time` / `math` / `io` / `text` | Parsing, timers, decimal/geom, readers, encoding & templates |
-| `reflect` / `runtime` / `structtag` / `kvstruct` | Fast reflection, goid/pprof, tag parsing, map↔struct |
-| `media` / `sdk` / `mock` / `validator` / `terminal` | Image/video, third-party thin SDKs, fakes, validation, progress UI |
-| `os` / `archive` / `cmp` / `tools` | Filesystem/exec, zip, comparators, small CLIs (ddns, proxy, …) |
-| root `gox` | Tiny generics (`TernaryOperator`, `Pointer`, `Zero`) |
+## All top-level packages
 
-Always import a **subpackage path** (e.g. `github.com/hopeio/gox/scheduler`) so unused trees stay out of your module graph.
+| Path | Role |
+|------|------|
+| `scheduler` | Concurrent task engine |
+| `idgen` | Distributed / unique IDs |
+| `encoding` | JSON, Excel, binary, msgpack, base58/62, … |
+| `strings` / `unsafe` | Zero-copy and unsafe views |
+| `net` | HTTP constants & client, URL/IP/mail |
+| `container` | Caches and classic data structures |
+| `iter` / `slices` / `maps` | Streams and generic collection helpers |
+| `database` | GORM/SQL, Redis, Elasticsearch |
+| `log` | zap wrapper |
+| `flag` | Struct → CLI flags + env |
+| `types` | `Option` / `Result` and shared shapes |
+| `sync` / `crypto` / `time` / `math` / `io` / `text` | Concurrency, crypto, time, numerics, I/O, text |
+| `reflect` / `runtime` / `structtag` / `kvstruct` | Reflection and conversion utilities |
+| `media` / `sdk` / `mock` / `validator` / `terminal` | Media, integrations, fakes, validation, TTY |
+| `os` / `archive` / `cmp` / `tools` | OS helpers, zip, comparators, small tools |
+| `.` (`gox`) | Tiny generics (`Pointer`, `Zero`, …) |
 
-## Design rules
-
-1. **Opt-in cost** — pay only for packages you import.
-2. **Performance first** — prefer zero-copy and reuse on hot paths.
-3. **Stdlib-shaped** — APIs should feel familiar and replaceable.
-4. **Tests as docs** — see `*_test.go` beside each package for more patterns.
+Import subpackages explicitly, e.g. `github.com/hopeio/gox/scheduler`.
 
 ## License
 
-[MIT](LICENSE). Some vendored/subtree files may carry additional notices (see `LICENSE-Apache` and package-local LICENSE files).
+[MIT](LICENSE). Check subtree LICENSE files where present.
