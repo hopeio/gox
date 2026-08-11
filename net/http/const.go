@@ -60,11 +60,12 @@ const (
 )
 
 const (
-	HeaderDeviceInfo = "Device-Info"
-	HeaderAppInfo    = "App-Info"
-	HeaderLocation   = "Location"
-	HeaderArea       = "Area"
-	HeaderInternal   = "Internal"
+	HeaderDeviceInfo    = "Device-Info"
+	HeaderDeviceInfoMd5 = "Device-Info-Md5"
+	HeaderAppInfo       = "App-Info"
+	HeaderLocation      = "Location"
+	HeaderArea          = "Area"
+	HeaderInternal      = "Internal"
 )
 
 const (
