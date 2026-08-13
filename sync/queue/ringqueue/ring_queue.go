@@ -63,11 +63,7 @@ func (q *RingQueue[T]) Quantity() uint32 {
 	getPos = atomic.LoadUint32(&q.getPos)
 	putPos = atomic.LoadUint32(&q.putPos)
 
-	if putPos >= getPos {
-		quantity = putPos - getPos
-	} else {
-		quantity = q.capMod + (putPos - getPos)
-	}
+	quantity = putPos - getPos
 
 	return quantity
 }
@@ -81,11 +77,8 @@ func (q *RingQueue[T]) Put(val T) (ok bool, quantity uint32) {
 	getPos = atomic.LoadUint32(&q.getPos)
 	putPos = atomic.LoadUint32(&q.putPos)
 
-	if putPos >= getPos {
-		posCnt = putPos - getPos
-	} else {
-		posCnt = capMod + (putPos - getPos)
-	}
+	// putPos/getPos 单调递增，无符号差对回绕天然正确；分支补偿 capMod 在真回绕时反而算错
+	posCnt = putPos - getPos
 
 	if posCnt >= capMod-1 {
 		runtime.Gosched()
@@ -121,18 +114,17 @@ func (q *RingQueue[T]) Puts(values []T) (puts, quantity uint32) {
 	getPos = atomic.LoadUint32(&q.getPos)
 	putPos = atomic.LoadUint32(&q.putPos)
 
-	if putPos >= getPos {
-		posCnt = putPos - getPos
-	} else {
-		posCnt = capMod + (putPos - getPos)
-	}
+	// putPos/getPos 单调递增，无符号差对回绕天然正确；分支补偿 capMod 在真回绕时反而算错
+	posCnt = putPos - getPos
 
 	if posCnt >= capMod-1 {
 		runtime.Gosched()
 		return 0, posCnt
 	}
 
-	if capPuts, size := q.capacity-posCnt, uint32(len(values)); capPuts >= size {
+	// 与 Put 的满队列约定一致（写入后 posCnt 不超过 capMod-1）：
+	// 旧上限 capacity-posCnt 多出两个槽位，会把 putPos 推到与 getPos 撞环
+	if capPuts, size := capMod-1-posCnt, uint32(len(values)); capPuts >= size {
 		putCnt = size
 	} else {
 		putCnt = capPuts
@@ -170,11 +162,8 @@ func (q *RingQueue[T]) Get() (val T, ok bool, quantity uint32) {
 	putPos = atomic.LoadUint32(&q.putPos)
 	getPos = atomic.LoadUint32(&q.getPos)
 
-	if putPos >= getPos {
-		posCnt = putPos - getPos
-	} else {
-		posCnt = capMod + (putPos - getPos)
-	}
+	// putPos/getPos 单调递增，无符号差对回绕天然正确；分支补偿 capMod 在真回绕时反而算错
+	posCnt = putPos - getPos
 
 	if posCnt < 1 {
 		runtime.Gosched()
@@ -211,11 +200,8 @@ func (q *RingQueue[T]) Gets(values []T) (gets, quantity uint32) {
 	putPos = atomic.LoadUint32(&q.putPos)
 	getPos = atomic.LoadUint32(&q.getPos)
 
-	if putPos >= getPos {
-		posCnt = putPos - getPos
-	} else {
-		posCnt = capMod + (putPos - getPos)
-	}
+	// putPos/getPos 单调递增，无符号差对回绕天然正确；分支补偿 capMod 在真回绕时反而算错
+	posCnt = putPos - getPos
 
 	if posCnt < 1 {
 		runtime.Gosched()

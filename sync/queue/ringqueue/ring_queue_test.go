@@ -106,3 +106,37 @@ func TestRingQueue_String(t *testing.T) {
 		t.Error("String() should not be empty")
 	}
 }
+
+// TestRingQueue_CounterWraparound 白盒验证 putPos/getPos 在 uint32 回绕处仍正确计数。
+func TestRingQueue_CounterWraparound(t *testing.T) {
+	q := New[int](8)
+	// 手动把位置计数推到回绕边界（保持 putPos == getPos 即空队列）
+	start := ^uint32(0) - 2 // MaxUint32 - 2
+	q.putPos, q.getPos = start, start
+	for i := range q.cache {
+		// 槽位序号 = 下一个会命中该槽的 pos（可能已回绕），与 New 中槽 0 的特殊处理同理
+		no := start&^q.capMod + uint32(i)
+		if no <= start {
+			no += q.capacity
+		}
+		q.cache[i].putNo = no
+		q.cache[i].getNo = no
+	}
+	for i := 0; i < 6; i++ {
+		if ok, _ := q.Put(i); !ok {
+			t.Fatalf("Put %d failed near wraparound", i)
+		}
+		if got := q.Quantity(); got != uint32(i+1) {
+			t.Fatalf("Quantity after put %d = %d, want %d", i, got, i+1)
+		}
+	}
+	for i := 0; i < 6; i++ {
+		v, ok, _ := q.Get()
+		if !ok || v != i {
+			t.Fatalf("Get %d = (%v,%v)", i, v, ok)
+		}
+	}
+	if q.Quantity() != 0 {
+		t.Fatalf("Quantity = %d, want 0", q.Quantity())
+	}
+}

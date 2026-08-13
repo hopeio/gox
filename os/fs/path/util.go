@@ -51,7 +51,8 @@ func (d *ByUId) PreHandle() {
 // Path returns the result.
 func (d *ByUId) Path() string {
 	d.PreHandle()
-	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, PathSeparator)
+	// 存储 key/URL 风格路径统一用 "/"（与 ById/ByUIdTitle 一致）；os.PathSeparator 在 Windows 是 '\'
+	filepath := strings.Join([]string{d.UserIdStr, d.TimeStr[:4], strings.Join([]string{d.TimeStr, d.UserIdStr, d.IdStr, d.FileName}, "_")}, "/")
 	return filepath
 }
 
@@ -70,7 +71,11 @@ func (d *ById) Path() string {
 	if d.IdStr == "" {
 		d.IdStr = strconv.Itoa(d.Id)
 	}
-	filepath := strings.Join([]string{d.TimeStr[:4], d.IdStr + "_" + d.TimeStr + "_" + d.Title, d.FileName}, "/")
+	year := d.TimeStr
+	if len(year) > 4 {
+		year = year[:4]
+	}
+	filepath := strings.Join([]string{year, d.IdStr + "_" + d.TimeStr + "_" + d.Title, d.FileName}, "/")
 	return filepath
 }
 

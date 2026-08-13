@@ -19,7 +19,16 @@ func (c *Simple) init(bc *baseCache) {
 
 // set performs the operation.
 func (c *Simple) set(k any, x any, expiration *time.Time) (*item, error) {
-	if (len(c.items)) >= c.size {
+	// 更新已有 key 不增加条目数，不应驱逐其它条目（与 LRU/LFU/ARC 语义一致）
+	if it, ok := c.items[k]; ok {
+		it.value = x
+		it.expiration = expiration
+		if c.addedFunc != nil {
+			c.addedFunc(k, x)
+		}
+		return it, nil
+	}
+	if len(c.items) >= c.size {
 		c.exvict(1)
 	}
 	item := &item{

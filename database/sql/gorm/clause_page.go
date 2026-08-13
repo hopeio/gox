@@ -55,8 +55,6 @@ func (limit Limit) MergeClause(clause *clause.Clause) {
 
 		if limit.Offset == 0 && v.Offset > 0 {
 			limit.Offset = v.Offset
-		} else if limit.Offset < 0 {
-			limit.Offset = 0
 		}
 	}
 
@@ -143,7 +141,8 @@ func FindList[T any](db *gorm.DB, list *sqlx.List) ([]T, int64, error) {
 	}
 	var count int64
 	var t T
-	err := db.Model(&t).Count(&count).Error
+	// Count 在独立 Session 上执行，避免聚合语句残留污染后面的 Find
+	err := db.Session(&gorm.Session{}).Model(&t).Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}

@@ -280,6 +280,45 @@ func task_fail_once(id int) bool {
 	return !loaded // first store returns true (fail); later calls return false (success)
 }
 
+// TestEngineMaxPendingDedupRefund verifies pending quota taken at produce is refunded when
+// ingest's pushTasks dedups the subtask; without the refund the producer stalls forever.
+func TestEngineMaxPendingDedupRefund(t *testing.T) {
+	const children = 100 // all share one key; quota (8) < children would deadlock without refund
+	var executed atomic.Int64
+	engine := NewEngine(4, WithMaxPending[int](8))
+	engine.ErrHandlerUtilSuccess()
+	engine.AddTasks(&Task[int]{
+		Key: 1,
+		Run: func(ctx context.Context) ([]*Task[int], error) {
+			var tasks []*Task[int]
+			for i := 0; i < children; i++ {
+				tasks = append(tasks, &Task[int]{
+					Key: 777,
+					Run: func(ctx context.Context) ([]*Task[int], error) {
+						executed.Add(1)
+						return nil, nil
+					},
+				})
+			}
+			return tasks, nil
+		},
+	})
+	done := make(chan struct{})
+	go func() {
+		engine.Run()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		t.Fatal("Run stalled: pending quota for deduped subtasks not refunded")
+	}
+	if executed.Load() < 1 {
+		t.Fatal("deduped child never executed")
+	}
+	t.Logf("dedup refund: %d/%d executed", executed.Load(), children)
+}
+
 // TestEngineKeyDedup verifies tasks with the same Key are heavily deduped (done cache checked at run time)
 func TestEngineKeyDedup(t *testing.T) {
 	var executed atomic.Int64

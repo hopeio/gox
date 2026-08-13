@@ -87,13 +87,21 @@ func CheckFileSize(f multipart.File, uploadMaxSize int) bool {
 	return size <= uploadMaxSize
 }
 
-// GetFileSize returns the value.
+// GetFileSize 返回从当前位置到 EOF 的字节数。
+// 用 Seek 测量而非 ReadAll：不把整个文件读进内存，也不消耗内容（读取位置会复原）。
 func GetFileSize(f multipart.File) int {
-	content, err := io.ReadAll(f)
+	cur, err := f.Seek(0, io.SeekCurrent)
 	if err != nil {
 		return 0
 	}
-	return len(content)
+	end, err := f.Seek(0, io.SeekEnd)
+	if err != nil {
+		return 0
+	}
+	if _, err = f.Seek(cur, io.SeekStart); err != nil {
+		return 0
+	}
+	return int(end - cur)
 }
 
 // FetchFile performs the operation.

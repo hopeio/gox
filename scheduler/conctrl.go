@@ -123,8 +123,9 @@ func (e *Engine[KEY]) Run(tasks ...*Task[KEY]) {
 						e.taskDone()
 						readyTask = nil
 					}
-					e.mu.Unlock()
+					// isRunning is guarded by e.mu everywhere else; writing it after Unlock races with Run's check
 					e.isRunning = false
+					e.mu.Unlock()
 					close(e.taskChanConsumer)
 					break loop
 				}
@@ -292,10 +293,13 @@ func (e *Engine[KEY]) ingest() {
 	for {
 		select {
 		case <-e.ctx.Done():
-			// Drain leftover tasks then exit
+			// Drain leftover tasks then exit; producers already took pending quota, return it to keep accounting 1:1
 			for {
 				select {
 				case <-e.submitCh:
+					if e.maxPending > 0 && e.pendingSem != nil {
+						e.pendingSem <- struct{}{}
+					}
 				default:
 					return
 				}
@@ -303,6 +307,10 @@ func (e *Engine[KEY]) ingest() {
 		case task := <-e.submitCh:
 			// Worker already took pending quota at produce; here only push + wg.Add.
 			n := e.pushTasks(task.ctx, task.Priority, task)
+			if n == 0 && e.maxPending > 0 && e.pendingSem != nil {
+				// Dedup skipped the task: return the quota taken at produce, or it leaks and eventually stalls producers
+				e.pendingSem <- struct{}{}
+			}
 			e.wg.Add(n)
 		}
 	}

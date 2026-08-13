@@ -44,6 +44,10 @@ func apiTransport() *http.Transport {
 		MaxIdleConnsPerHost: 10,
 		IdleConnTimeout:     90 * time.Second,
 		TLSHandshakeTimeout: timeout,
+		// 只限制等响应头阶段，body 流式读取不受影响，长下载安全；
+		// 不用 http.Client.Timeout（整请求超时会杀长下载）
+		ResponseHeaderTimeout: timeout,
+		ExpectContinueTimeout: time.Second,
 	}
 }
 

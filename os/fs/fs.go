@@ -16,7 +16,6 @@ import (
 
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"sync"
 )
@@ -327,20 +326,24 @@ func LastFile(dir string) (os.FileInfo, map[string]os.FileInfo, error) {
 	if len(entries) == 0 {
 		return nil, nil, err
 	}
-	slices.SortFunc(entries, func(a, b os.DirEntry) int {
-		filei, _ := a.Info()
-		filej, _ := b.Info()
-		return filei.ModTime().Compare(filej.ModTime())
-	})
-	lastFile, err := entries[0].Info()
-	if err != nil {
-		return nil, nil, err
+	// O(n) 找最新修改的文件即可，无需排序；旧实现升序取 [0] 返回的是最旧的，
+	// 且忽略 Info() 错误会在文件被并发删除时 nil panic
+	m := make(map[string]os.FileInfo, len(entries))
+	var last os.FileInfo
+	for _, entry := range entries {
+		info, ierr := entry.Info()
+		if ierr != nil {
+			continue // 条目可能在 ReadDir 后被删除
+		}
+		m[entry.Name()] = info
+		if last == nil || info.ModTime().After(last.ModTime()) {
+			last = info
+		}
 	}
-	m := make(map[string]os.FileInfo)
-	for _, entity := range entries {
-		m[entity.Name()], _ = entity.Info()
+	if last == nil {
+		return nil, nil, fmt.Errorf("no readable entries in %s", dir)
 	}
-	return lastFile, m, nil
+	return last, m, nil
 }
 
 // Move performs the operation.

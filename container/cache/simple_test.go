@@ -1376,3 +1376,27 @@ func TestGetWithExpiration(t *testing.T) {
 		t.Error("expiration for e is in the past")
 	}
 }
+
+// TestSimpleUpdateExistingKeyAtCapacity 满容时更新已有 key 不应驱逐其它条目。
+func TestSimpleUpdateExistingKeyAtCapacity(t *testing.T) {
+	var evicted []any
+	gc := New(2).EvictedFunc(func(k, v any) { evicted = append(evicted, k) }).Simple()
+	if err := gc.Set("a", 1, 0); err != nil {
+		t.Fatal(err)
+	}
+	if err := gc.Set("b", 2, 0); err != nil {
+		t.Fatal(err)
+	}
+	if err := gc.Set("a", 10, 0); err != nil {
+		t.Fatal(err)
+	}
+	if len(evicted) != 0 {
+		t.Fatalf("update existing key evicted %v", evicted)
+	}
+	if v, _ := gc.Get("a"); v != 10 {
+		t.Fatalf("a = %v, want 10", v)
+	}
+	if v, _ := gc.Get("b"); v != 2 {
+		t.Fatalf("b = %v, want 2", v)
+	}
+}
