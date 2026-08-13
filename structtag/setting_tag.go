@@ -30,25 +30,20 @@ func ParseSettingTagToMap(tag, sep, assignSep string) map[string]string {
 	if sep == "" {
 		sep = ";"
 	}
+	if assignSep == "" {
+		assignSep = ":"
+	}
 
 	settings := map[string]string{}
 	names := strings.Split(tag, sep)
 
 	for i := 0; i < len(names); i++ {
 		j := i
-		if len(names[j]) > 0 {
-			for {
-				if names[j][len(names[j])-1] == '\\' {
-					i++
-					names[j] = names[j][0:len(names[j])-1] + sep + names[i]
-					names[i] = ""
-				} else {
-					break
-				}
-			}
-		}
-		if assignSep == "" {
-			sep = "="
+		// 以 \ 结尾表示分隔符被转义，与下一段拼接；i+1 越界时按字面保留
+		for len(names[j]) > 0 && names[j][len(names[j])-1] == '\\' && i+1 < len(names) {
+			i++
+			names[j] = names[j][:len(names[j])-1] + sep + names[i]
+			names[i] = ""
 		}
 
 		values := strings.Split(names[j], assignSep)

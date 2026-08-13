@@ -46,6 +46,9 @@ func Uint32ToIPv4(ipInt uint32) net.IP {
 // ExternalIPStr returns the result.
 func ExternalIPStr() string {
 	ip, _ := ExternalIP()
+	if ip == nil {
+		return ""
+	}
 	return ip.String()
 }
 

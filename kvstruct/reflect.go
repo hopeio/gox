@@ -28,13 +28,19 @@ func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.
 	if val == "" {
 		return nil
 	}
-	anyV := value.Interface()
-	tuV, ok := anyV.(encoding.TextUnmarshaler)
-	if !ok {
-		tuV, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
+	if !value.CanInterface() {
+		return errUnknownField
 	}
-	if ok {
-		return tuV.UnmarshalText(stringsx.ToBytes(val))
+	// 优先经指针断言 TextUnmarshaler：指针方法集含值方法，且修改能落到原值上；
+	// 值断言只对指针类型的 value 有意义（值接收者实现改的是装箱副本，改动会丢失）
+	if value.CanAddr() {
+		if tuV, ok := value.Addr().Interface().(encoding.TextUnmarshaler); ok {
+			return tuV.UnmarshalText(stringsx.ToBytes(val))
+		}
+	} else if value.Kind() == reflect.Pointer && !value.IsNil() {
+		if tuV, ok := value.Interface().(encoding.TextUnmarshaler); ok {
+			return tuV.UnmarshalText(stringsx.ToBytes(val))
+		}
 	}
 	switch kind := value.Kind(); kind {
 	case reflect.Int:
@@ -46,8 +52,7 @@ func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.
 	case reflect.Int32:
 		return setIntField(val, 32, value)
 	case reflect.Int64:
-		switch anyV.(type) {
-		case time.Duration:
+		if _, ok := value.Interface().(time.Duration); ok {
 			return setTimeDuration(val, value)
 		}
 		return setIntField(val, 64, value)
@@ -92,11 +97,11 @@ func ParseStringSetReflectValue(value reflect.Value, val string, field *reflect.
 		}
 		return nil
 	case reflect.Struct:
-		switch anyV.(type) {
-		case time.Time:
+		if _, ok := value.Interface().(time.Time); ok {
 			return setTimeField(val, field, value)
 		}
-		return setIntField(val, 64, value)
+		// SetInt 对 struct Value 会 panic，未知结构体直接报不支持
+		return errUnknownType
 	default:
 		return errUnknownType
 	}
@@ -174,7 +179,10 @@ func setTimeField(val string, structField *reflect.StructField, value reflect.Va
 	timeFormat := time.RFC3339
 	l := time.Local
 	if structField != nil {
-		timeFormat = structField.Tag.Get("format")
+		// tag 缺失时保持 RFC3339 默认值，不能被空串覆盖
+		if tf := structField.Tag.Get("format"); tf != "" {
+			timeFormat = tf
+		}
 		switch tf := strings.ToLower(timeFormat); tf {
 		case "unix", "unixnano":
 			tv, err := strconv.ParseInt(val, 10, 0)
@@ -191,11 +199,6 @@ func setTimeField(val string, structField *reflect.StructField, value reflect.Va
 			value.Set(reflect.ValueOf(t))
 			return nil
 
-		}
-
-		if val == "" {
-			value.Set(reflect.ValueOf(time.Time{}))
-			return nil
 		}
 
 		if isUTC, _ := strconv.ParseBool(structField.Tag.Get("time_utc")); isUTC {

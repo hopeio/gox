@@ -16,24 +16,36 @@ func Format(t any) string {
 
 // FormatReflectValue formats or converts the value.
 func FormatReflectValue(value reflect.Value) string {
-	v := value.Interface()
-	if t, ok := v.(encoding.TextMarshaler); ok {
-		s, _ := t.MarshalText()
-		return string(s)
+	if !value.IsValid() {
+		return ""
+	}
+	if value.CanInterface() {
+		if t, ok := value.Interface().(encoding.TextMarshaler); ok {
+			s, _ := t.MarshalText()
+			return string(s)
+		}
 	}
 
 	kind := value.Kind()
 	switch kind {
-	case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64, reflect.Pointer, reflect.UnsafePointer:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return strconv.FormatInt(value.Int(), 10)
+	case reflect.Pointer:
+		// value.Int() 对指针 kind 会 panic；格式化其指向的值
+		if value.IsNil() {
+			return ""
+		}
+		return FormatReflectValue(value.Elem())
 	case reflect.String:
 		return value.String()
 	case reflect.Bool:
 		return strconv.FormatBool(value.Bool())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return strconv.FormatUint(value.Uint(), 10)
-	case reflect.Float64, reflect.Float32:
+	case reflect.Float64:
 		return strconv.FormatFloat(value.Float(), 'g', -1, 64)
+	case reflect.Float32:
+		return strconv.FormatFloat(value.Float(), 'g', -1, 32)
 	case reflect.Array, reflect.Slice:
 		var strs []string
 		for i := 0; i < value.Len(); i++ {

@@ -20,17 +20,20 @@ type MutexHeap[T cmp.Comparable[T]] struct {
 }
 
 // New creates a new instance.
-func New[T cmp.Comparable[T]](l int) MutexHeap[T] {
-	return MutexHeap[T]{
+// 返回指针：MutexHeap 含锁，按值返回会引导调用方拷贝锁。
+func New[T cmp.Comparable[T]](l int) *MutexHeap[T] {
+	return &MutexHeap[T]{
 		data: make([]T, 0, l),
 	}
 }
 
-// NewFromArray creates and returns a new instance.
-func NewFromArray[T cmp.Comparable[T]](arr []T) MutexHeap[T] {
-	return MutexHeap[T]{
+// NewFromArray creates a heap that takes ownership of arr and heapifies it.
+func NewFromArray[T cmp.Comparable[T]](arr []T) *MutexHeap[T] {
+	h := &MutexHeap[T]{
 		data: arr,
 	}
+	heap.Init(h.data)
+	return h
 }
 
 // First performs the operation.
@@ -85,13 +88,13 @@ func (h *MutexHeap[T]) Last() (T, bool) {
 	}
 	last := h.data[len(h.data)-1]
 	h.mu.Unlock()
-	return last, false
+	return last, true
 }
 
 // Remove removes or resets state.
 func (h *MutexHeap[T]) Remove(i int) (T, bool) {
 	h.mu.Lock()
-	if len(h.data) == 0 {
+	if i < 0 || i >= len(h.data) {
 		h.mu.Unlock()
 		return h.zero, false
 	}

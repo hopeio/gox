@@ -34,24 +34,32 @@ const (
 )
 
 // NewProductionConfig creates and returns a new instance.
+// 生产配置为性能禁用 caller/stacktrace，输出到 stdout。
 func NewProductionConfig(appName string) *Config {
-	return &Config{
-		Name: appName,
+	c := &Config{
+		Name:   appName,
 		Config: zap.NewProductionConfig(),
 	}
+	c.DisableCaller = true
+	c.DisableStacktrace = true
+	c.OutputPaths = []string{stdout}
+	// zap 生产默认 TimeKey 为 "ts"，统一为本库的字段名
+	c.EncoderConfig.TimeKey = FieldTime
+	c.Init()
+	return c
 }
-
-
 
 // NewDevelopmentConfig creates and returns a new instance.
 func NewDevelopmentConfig(appName string) *Config {
-	return &Config{
-		Name: appName,
-		Config: zap.NewDevelopmentConfig(),
+	c := &Config{
+		Name:            appName,
+		Config:          zap.NewDevelopmentConfig(),
 		EncodeLevelType: EncodeLevelTypeCapitalColor,
 	}
+	c.OutputPaths = []string{stdout}
+	c.Init()
+	return c
 }
-
 
 type ZipConfig = zap.Config
 
@@ -228,8 +236,9 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 			}
 		})
 		if ustdout && ustderr {
-			cores = append(cores, zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stdout), StdOutLevel(lc.Config.Level.Level())),
-				zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stderr), StdErrLevel(lc.Config.Level.Level())))
+			// 传 AtomicLevel（而非 Level() 静态快照），保证运行期 SetLevel 动态调级生效
+			cores = append(cores, zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stdout), splitLevel{base: lc.Level, err: false}),
+				zapcore.NewCore(lc.Encoder, zapcore.AddSync(os.Stderr), splitLevel{base: lc.Level, err: true}))
 		} else {
 			if ustdout {
 				consolePaths = append(consolePaths, stdout)
@@ -243,7 +252,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 			if err != nil {
 				log.Fatal(err)
 			}
-			cores = append(cores, zapcore.NewCore(lc.Encoder, sink, lc.Config.Level.Level()))
+			cores = append(cores, zapcore.NewCore(lc.Encoder, sink, lc.Level))
 		}
 	}
 
@@ -256,7 +265,7 @@ func (lc *Config) initLogger(cores ...zapcore.Core) *zap.Logger {
 		)
 		if len(lc.InitialFields) > 0 {
 			cores = append(cores, core.With(initialFields(lc.InitialFields)))
-		}else{
+		} else {
 			cores = append(cores, core)
 		}
 
@@ -293,7 +302,7 @@ func (lc *Config) hook() []zap.Option {
 	if !lc.DisableCaller {
 		hooks = append(hooks, zap.AddCaller(), zap.AddCallerSkip(1))
 	}
-	
+
 	if !lc.DisableStacktrace {
 		if lc.Development {
 			hooks = append(hooks, zap.AddStacktrace(zapcore.DPanicLevel))
@@ -322,6 +331,21 @@ func (lc *Config) hook() []zap.Option {
 	}
 
 	return hooks
+}
+
+// splitLevel 组合动态 LevelEnabler（如 zap.AtomicLevel）做 stdout/stderr 分流：
+// err=false 放行 [base, Error)，err=true 放行 [Error, ∞) ∩ [base, ∞)。
+type splitLevel struct {
+	base zapcore.LevelEnabler
+	err  bool
+}
+
+// Enabled reports whether the given level should be logged by this side of the split.
+func (s splitLevel) Enabled(lvl zapcore.Level) bool {
+	if s.err {
+		return lvl >= zapcore.ErrorLevel && s.base.Enabled(lvl)
+	}
+	return lvl < zapcore.ErrorLevel && s.base.Enabled(lvl)
 }
 
 func initialFields(fields map[string]any) []zapcore.Field {

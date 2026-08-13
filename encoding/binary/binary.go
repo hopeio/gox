@@ -32,39 +32,41 @@ func FromInt64(i int64) []byte {
 	}
 }
 
-// Integer returns the result.
+// Integer decodes b using the machine's NATIVE endianness (zero-copy cast).
+// Only pair it with FromInteger within the same process; for cross-machine or
+// persisted data use the big-endian Int64/FromInt64 instead.
+// Panics if b is shorter than the size of T, like encoding/binary does.
 func Integer[T constraints.Integer](b []byte) T {
-	return *(*T)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b))))
+	var v T
+	if uintptr(len(b)) < unsafe.Sizeof(v) {
+		panic("binary: buffer too small")
+	}
+	return *(*T)(unsafe.Pointer(unsafe.SliceData(b)))
 }
 
-// FromInteger returns the result.
+// FromInteger encodes v using the machine's NATIVE endianness. See Integer.
 func FromInteger[T constraints.Integer](v T) []byte {
-	byteNum := unsafe.Sizeof(v)
-	b := make([]byte, byteNum)
-	*(*T)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b)))) = v
+	b := make([]byte, unsafe.Sizeof(v))
+	*(*T)(unsafe.Pointer(unsafe.SliceData(b))) = v
 	return b
 }
 
-// Int returns the result.
+// Int decodes a native-endian int. See Integer.
 func Int(b []byte) int {
-	return *(*int)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b))))
+	return Integer[int](b)
 }
 
-// FromInt returns the result.
+// FromInt encodes a native-endian int. See Integer.
 func FromInt(i int) []byte {
-	b := make([]byte, 8)
-	*(*int)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b)))) = i
-	return b
+	return FromInteger(i)
 }
 
-// Uint returns the result.
+// Uint decodes a native-endian uint64. See Integer.
 func Uint(b []byte) uint64 {
-	return *(*uint64)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b))))
+	return Integer[uint64](b)
 }
 
-// binary.LittleEndian.PutUint64(b)
+// FromUint encodes a native-endian uint64. See Integer.
 func FromUint(i uint64) []byte {
-	b := make([]byte, 8)
-	*(*uint64)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(&b)))) = i
-	return b
+	return FromInteger(i)
 }

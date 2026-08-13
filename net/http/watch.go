@@ -18,10 +18,12 @@ import (
 )
 
 type FileWatcher struct {
-	interval time.Duration
-	timer    *time.Ticker
-	handlers FileWatchInfos
-	mu       sync.Mutex
+	interval  time.Duration
+	timer     *time.Ticker
+	handlers  FileWatchInfos
+	done      chan struct{}
+	closeOnce sync.Once
+	mu        sync.Mutex
 }
 
 type FileWatchInfo struct {
@@ -37,12 +39,9 @@ type FileWatchInfos map[string]*FileWatchInfo
 func NewFileWatcher(interval time.Duration) *FileWatcher {
 	w := &FileWatcher{
 		interval: interval,
-		//1. trade-off between map and slice
 		handlers: make(map[string]*FileWatchInfo),
 		timer:    time.NewTicker(interval),
-		//handlers:  make(map[string]map[fsnotify.Operate]func()),
-		//2. use event as key (higher time cost) and look up on each event loop
-		//handlers:  make(map[fsnotify.Event]func()),
+		done:     make(chan struct{}),
 	}
 
 	go w.run()
@@ -50,10 +49,9 @@ func NewFileWatcher(interval time.Duration) *FileWatcher {
 	return w
 }
 
-// Add updates or inserts a value.
+// Add registers url and fetches it once immediately.
+// The map key is the caller-provided url, matching Remove.
 func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...func(r *http.Request)) error {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -66,8 +64,11 @@ func (w *FileWatcher) Add(url string, callback func(file *FileInfo), opts ...fun
 		callback: callback,
 	}
 
+	// 首次拉取放在锁外，网络 IO 不阻塞其它 Add/tick
 	c.Do()
-	w.handlers[req.RequestURI] = c
+	w.mu.Lock()
+	w.handlers[url] = c
+	w.mu.Unlock()
 	return nil
 }
 
@@ -81,18 +82,31 @@ func (w *FileWatcher) Remove(url string) error {
 
 // run performs the operation.
 func (w *FileWatcher) run() {
-	for range w.timer.C {
-		w.mu.Lock()
-		for _, callback := range w.handlers {
-			callback.Do()
+	for {
+		select {
+		case <-w.done:
+			return
+		case <-w.timer.C:
+			// 锁内取快照，锁外做网络 IO
+			w.mu.Lock()
+			infos := make([]*FileWatchInfo, 0, len(w.handlers))
+			for _, c := range w.handlers {
+				infos = append(infos, c)
+			}
+			w.mu.Unlock()
+			for _, c := range infos {
+				c.Do()
+			}
 		}
-		w.mu.Unlock()
 	}
 }
 
-// Close closes and releases resources.
+// Close stops the ticker and terminates the watch goroutine. Safe to call multiple times.
 func (w *FileWatcher) Close() {
-	w.timer.Stop()
+	w.closeOnce.Do(func() {
+		w.timer.Stop()
+		close(w.done)
+	})
 }
 
 // Do executes the operation.
@@ -106,15 +120,18 @@ func (c *FileWatchInfo) Do() {
 		if file.ModTime().After(c.lastModTime) {
 			c.lastModTime = file.ModTime()
 			c.callback(file)
+		} else {
+			// 未变化也必须关闭响应体，否则每个 tick 泄漏一个连接
+			file.Body.Close()
 		}
 		return
 	}
 	data, err := io.ReadAll(file.Body)
+	file.Body.Close()
 	if err != nil {
 		log.Error(err)
 		return
 	}
-	file.Body.Close()
 	md5value := md5.Sum(data)
 	if md5value != c.md5value {
 		c.md5value = md5value
@@ -124,9 +141,10 @@ func (c *FileWatchInfo) Do() {
 	}
 }
 
-// Update updates or inserts a value.
+// Update resets the polling interval. It must not spawn another run goroutine.
 func (w *FileWatcher) Update(interval time.Duration) {
+	w.mu.Lock()
 	w.interval = interval
+	w.mu.Unlock()
 	w.timer.Reset(interval)
-	go w.run()
 }
