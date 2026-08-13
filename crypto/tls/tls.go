@@ -11,7 +11,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"github.com/hopeio/gox/log"
 	"os"
 )
 
@@ -27,23 +26,27 @@ func NewServerTLSConfig(certFile, keyFile string, clients ...string) (*tls.Confi
 		return nil, err
 	}
 	var certPool *x509.CertPool
+	clientAuth := tls.NoClientCert
 	if len(clients) > 0 {
+		clientAuth = tls.RequireAndVerifyClientCert
 		certPool = x509.NewCertPool()
 		for _, client := range clients {
 			ca, err := os.ReadFile(client)
 			if err != nil {
-				log.Fatalf("ioutil.ReadFile err: %v", err)
+				// 库函数不应 Fatal 杀进程，交由调用方处理
+				return nil, fmt.Errorf("read client ca %s: %w", client, err)
 			}
 			if ok := certPool.AppendCertsFromPEM(ca); !ok {
-				log.Fatalf("certPool.AppendCertsFromPEM err")
+				return nil, fmt.Errorf("append client ca %s: invalid PEM", client)
 			}
 		}
 	}
 
 	return &tls.Config{
 		Certificates: certs,
-		ClientAuth:   tls.RequireAndVerifyClientCert,
-		ClientCAs:    certPool,
+		// 未提供客户端 CA 时不能开启 RequireAndVerifyClientCert，否则所有连接都被拒绝
+		ClientAuth: clientAuth,
+		ClientCAs:  certPool,
 	}, nil
 }
 

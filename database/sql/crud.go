@@ -46,7 +46,7 @@ func ExistsByFilterExprsSQL(tableName string, filters FilterExprs) string {
 
 // ExistsByFilterExprs performs the operation.
 func ExistsByFilterExprs(db *sql.DB, tableName string, filters FilterExprs) (bool, error) {
-	result := db.QueryRow(`SELECT EXISTS(SELECT * FROM ` + tableName + `WHERE ` + filters.Build() + ` LIMIT 1)`)
+	result := db.QueryRow(`SELECT EXISTS(SELECT * FROM ` + tableName + ` WHERE ` + filters.Build() + ` LIMIT 1)`)
 	if err := result.Err(); err != nil {
 		return false, err
 	}

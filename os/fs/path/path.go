@@ -15,23 +15,22 @@ import (
 	stringsx "github.com/hopeio/gox/strings"
 )
 
-// FileRewrite returns the result.
+// FileRewrite 删除文件名中的非法字符（/ \ * |），并把 < > ? : 替换为全角对应符号。
+// 旧实现丢弃所有普通字符、replace 表只填了一个元素（idx≥1 时越界 panic）。
 func FileRewrite(filename string) string {
-	var result []rune
-	var empty = []rune{'/', '\\', '*', '|'}
+	empty := []rune{'/', '\\', '*', '|'}
 	origin := []rune{'<', '>', '?', ':'}
-	var replace []rune
-	for _, char := range "《》？：" {
-		replace = append(result, char)
-	}
-
+	replace := []rune{'《', '》', '？', '：'}
+	result := make([]rune, 0, len(filename))
 	for _, char := range filename {
 		if slices.Contains(empty, char) {
 			continue
 		}
 		if idx := slices.Index(origin, char); idx >= 0 {
 			result = append(result, replace[idx])
+			continue
 		}
+		result = append(result, char)
 	}
 	return string(result)
 }
@@ -63,16 +62,18 @@ func DirCleanse(dir string) string { // will be used when save the dir or the pa
 }
 
 // Cleanse returns the result.
+// 旧实现两个空值分支互相拿错参数，且用 path[len(dir)-1-len(file)]（常为负索引）取分隔符。
 func Cleanse(path string) string { // will be used when save the dir or the part
 	dir, file := filepath.Split(path)
 	if dir == "" {
-		return DirCleanse(dir)
-	}
-	if file == "" {
 		return FileCleanse(file)
 	}
-	// remove special symbol
-	return DirCleanse(dir) + string(path[len(dir)-1-len(file)]) + FileCleanse(file)
+	if file == "" {
+		return DirCleanse(dir)
+	}
+	// filepath.Split 的 dir 带尾分隔符：去掉后分别清洗，再用原分隔符拼回
+	sep := dir[len(dir)-1]
+	return DirCleanse(dir[:len(dir)-1]) + string(sep) + FileCleanse(file)
 }
 
 // FileNoExt returns the result.

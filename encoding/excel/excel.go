@@ -10,11 +10,16 @@ import (
 	"fmt"
 	"strconv"
 
+	"errors"
+
 	"github.com/xuri/excelize/v2"
 )
 
 // NewFile creates and returns a new instance.
 func NewFile(sheet string, header []string) (*excelize.File, error) {
+	if len(header) == 0 {
+		return nil, errors.New("excel: header must not be empty")
+	}
 	endColumn := ColumnLetter[len(header)-1]
 	f := excelize.NewFile()
 	//cell style

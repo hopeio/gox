@@ -85,8 +85,10 @@ func parseParamByTag(param any, query stdurl.Values, tag string) {
 				continue
 			}
 			if fieldKind == reflect.Slice || fieldKind == reflect.Array {
-				for i := range filed.Len() {
-					query.Add(t.Field(i).Tag.Get(tag), getFieldValue(filed.Index(i)))
+				// 内层循环变量曾遮蔽外层字段下标：用元素下标取字段 tag，元素多于字段数时越界
+				fieldTag := t.Field(i).Tag.Get(tag)
+				for j := range filed.Len() {
+					query.Add(fieldTag, getFieldValue(filed.Index(j)))
 				}
 				continue
 			}
@@ -110,10 +112,13 @@ func parseParamByTag(param any, query stdurl.Values, tag string) {
 // getFieldValue returns the result.
 func getFieldValue(v reflect.Value) string {
 	switch v.Kind() {
-	case reflect.Bool,
-		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return strconv.Itoa(int(v.Int()))
+	case reflect.Bool:
+		return strconv.FormatBool(v.Bool())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return strconv.FormatInt(v.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		// v.Int() 对 Bool/Uint kind 直接 panic，必须分开处理
+		return strconv.FormatUint(v.Uint(), 10)
 	case reflect.Float32, reflect.Float64:
 		return math.FormatFloat(v.Float())
 	case reflect.String:

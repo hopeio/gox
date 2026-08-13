@@ -212,10 +212,9 @@ func ConvertParams(v any, escaper string) string {
 		reflectValue := reflect.ValueOf(v)
 		if v != nil && reflectValue.IsValid() && ((reflectValue.Kind() == reflect.Ptr && !reflectValue.IsNil()) || reflectValue.Kind() != reflect.Ptr) {
 			r, _ := v.Value()
-			ConvertParams(r, escaper)
-		} else {
-			return NullStr
+			return ConvertParams(r, escaper)
 		}
+		return NullStr
 	case fmt.Stringer:
 		reflectValue := reflect.ValueOf(v)
 		if v != nil && reflectValue.IsValid() && ((reflectValue.Kind() == reflect.Ptr && !reflectValue.IsNil()) || reflectValue.Kind() != reflect.Ptr) {
@@ -240,9 +239,9 @@ func ConvertParams(v any, escaper string) string {
 			return NullStr
 		} else if valuer, ok := v.(driver.Valuer); ok {
 			v, _ = valuer.Value()
-			ConvertParams(v, escaper)
+			return ConvertParams(v, escaper)
 		} else if rv.Kind() == reflect.Ptr && !rv.IsZero() {
-			ConvertParams(reflect.Indirect(rv).Interface(), escaper)
+			return ConvertParams(reflect.Indirect(rv).Interface(), escaper)
 		} else {
 			for _, t := range convertableTypes {
 				if rv.Type().ConvertibleTo(t) {
@@ -252,7 +251,6 @@ func ConvertParams(v any, escaper string) string {
 			return escaper + strings.ReplaceAll(fmt.Sprint(v), escaper, "\\"+escaper) + escaper
 		}
 	}
-	return ""
 }
 
 var convertableTypes = []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(false), reflect.TypeOf([]byte{})}
@@ -271,23 +269,24 @@ func isPrintable(s []byte) bool {
 func (f FilterExprs) BuildSQL() (string, []any) {
 	var builder strings.Builder
 	var vars []any
-	for i, filter := range f {
+	for _, filter := range f {
 		if filter.Field == "" || filter.Operation == 0 || filter.Value == nil {
 			continue
+		}
+		// 连接符按「已有内容」判断而不是下标：跳过的条目会让下标判断多写尾部 AND
+		if builder.Len() > 0 {
+			builder.WriteString(" AND ")
 		}
 		builder.WriteString(filter.Field)
 		builder.WriteByte(' ')
 		builder.WriteString(filter.Operation.SQL())
-		if i < len(f) {
-			builder.WriteString(" AND")
-		}
 		if values, ok := filter.Value.([]any); ok {
 			vars = append(vars, values...)
 		} else {
 			vars = append(vars, filter.Value)
 		}
 	}
-	return "", nil
+	return builder.String(), vars
 }
 
 // AnyToAnys returns the result.

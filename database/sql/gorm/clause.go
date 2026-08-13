@@ -57,6 +57,9 @@ func NewCondition(field string, op sqlx.ConditionOperation, args any) clause.Exp
 			}}
 	case sqlx.Between:
 		args := sqlx.AnyToAnys(args)
+		if len(args) < 2 {
+			return nil
+		}
 		return Between{
 			Column: field,
 			Begin:  args[0],

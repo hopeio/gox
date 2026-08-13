@@ -211,7 +211,7 @@ func TwoDirDeDuplicate(dir1, dir2 string) error {
 // Sync performs the operation.
 func Sync(slaveDir, mainDir string) error {
 	mainDirEntries, err := os.ReadDir(mainDir)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	if len(mainDirEntries) == 0 {
@@ -223,7 +223,7 @@ func Sync(slaveDir, mainDir string) error {
 	}
 
 	slaveDirEntries, err := os.ReadDir(slaveDir)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 

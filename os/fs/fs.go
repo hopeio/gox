@@ -405,9 +405,16 @@ func (f *FileSize) UnmarshalText(text []byte) error {
 		if err != nil {
 			return err
 		}
-		*f = FileSize(size * 1024)
+		// 内部单位为比特，与 G/M 分支及 MarshalText 保持一致（曾漏乘 8 导致往返不一致）
+		*f = FileSize(size * 1024 * 8)
 	default:
-		unitLen = 1
+		if unit >= '0' && unit <= '9' {
+			// 纯数字（含 "100B"）不能按单位字符砍位
+			unitLen = 0
+			if text[len(text)-1] == 'B' || text[len(text)-1] == 'b' {
+				unitLen = 1
+			}
+		}
 		size, err := strconv.Atoi(string(text[:len(text)-unitLen]))
 		if err != nil {
 			return err

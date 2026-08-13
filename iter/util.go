@@ -294,8 +294,10 @@ func Operator[T any](seq iter.Seq[T], add types.BinaryOperator[T]) T {
 	var result T
 	var idx int
 	for v := range seq {
+		// idx 必须无条件递增：曾在首元素分支 continue 跳过递增，归约从不执行
 		if idx == 0 {
 			result = v
+			idx++
 			continue
 		}
 		result = add(result, v)
@@ -354,14 +356,14 @@ func Last[T any](it iter.Seq[T]) (T, bool) {
 // Return the element at index.
 func At[T any](it iter.Seq[T], index int) (T, bool) {
 	var zero T
-	var ok bool
 	var i int
 	for v := range it {
 		if i == index {
 			return v, true
 		}
+		i++
 	}
-	return zero, ok
+	return zero, false
 }
 
 // Splitting an iterator whose elements are pair into two lists.

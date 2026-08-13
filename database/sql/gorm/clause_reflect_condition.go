@@ -123,6 +123,10 @@ func conditionsBy(param reflect.Value) []clause.Expression {
 		field := vi.Field(i)
 		fieldKind := field.Kind()
 		structField := ti.Field(i)
+		// 未导出字段 Interface() 会 panic
+		if !structField.IsExported() {
+			continue
+		}
 		empty := field.IsZero()
 		tag, ok := structField.Tag.Lookup(sql.CondiTagName)
 		if tag == "-" || fieldKind == reflect.Interface {

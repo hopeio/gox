@@ -28,6 +28,7 @@ func Upload(dir string) http.HandlerFunc {
 			http.Error(w, "failed to get file", http.StatusInternalServerError)
 			return
 		}
+		defer bodyfile.Close()
 		if fs.Exist(dir + fileHeader.Filename) {
 			fmt.Fprintf(w, "ok:%d", http.StatusOK)
 			return
@@ -45,8 +46,8 @@ func Upload(dir string) http.HandlerFunc {
 			return
 		}
 
-		// Open the file for writing with O_RDWR|O_CREATE|O_APPEND
-		file, err := os.OpenFile(dir+fileHeader.Filename+".uploading", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		// O_APPEND 会让写入永远落到文件末尾（Seek 无效），乱序/重传分片会损坏文件
+		file, err := os.OpenFile(dir+fileHeader.Filename+".uploading", os.O_RDWR|os.O_CREATE, 0666)
 		if err != nil {
 			http.Error(w, "failed to open file", http.StatusInternalServerError)
 			return

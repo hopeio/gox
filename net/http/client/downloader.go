@@ -44,8 +44,8 @@ func (d *Downloader) Download(filepath string, r *DownloadReq) error {
 }
 
 // DownloadAttachment executes the operation.
-func (d *Downloader) DownloadAttachment(dir string, r *DownloadReq) {
-	r.Downloader(d).DownloadAttachment(dir)
+func (d *Downloader) DownloadAttachment(dir string, r *DownloadReq) error {
+	return r.Downloader(d).DownloadAttachment(dir)
 }
 
 // DownloadReq executes the operation.

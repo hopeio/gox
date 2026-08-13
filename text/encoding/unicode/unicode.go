@@ -69,12 +69,17 @@ func ToUtf8(s []byte) string {
 			}
 			i += 6
 			if utf16.IsSurrogate(rr) {
-				rr1 := Getu4(s[i:])
-				if dec := utf16.DecodeRune(rr, rr1); dec != unicode.ReplacementChar {
-					// A valid pair; consume.
-					i += 6
-					bbegin += utf8.EncodeRune(b[bbegin:], dec)
-					break
+				if i+6 <= len(s) {
+					rr1 := Getu4(s[i:])
+					if dec := utf16.DecodeRune(rr, rr1); dec != unicode.ReplacementChar {
+						// A valid pair; consume and keep scanning.
+						// 曾在此 break 跳出整个循环且不推进 begin，
+						// 后续 \uXXXX 不再解码、已解码片段又被原文重复拷贝
+						i += 6
+						begin = i
+						bbegin += utf8.EncodeRune(b[bbegin:], dec)
+						continue
+					}
 				}
 				// Invalid surrogate; fall back to replacement rune.
 				rr = unicode.ReplacementChar
@@ -90,9 +95,11 @@ func ToUtf8(s []byte) string {
 }
 
 // ToLowerFirst converts the value.
+// 按 rune 解码首字符：s[0] 只取首字节，非 ASCII 首字符会被截断损坏。
 func ToLowerFirst(s string) string {
-	if len(s) > 0 {
-		return string(unicode.ToLower(rune(s[0]))) + s[1:]
+	if s == "" {
+		return ""
 	}
-	return ""
+	r, size := utf8.DecodeRuneInString(s)
+	return string(unicode.ToLower(r)) + s[size:]
 }

@@ -7,15 +7,17 @@
 package scheduler
 
 import (
+	"sync"
 	"time"
 
 	timex "github.com/hopeio/gox/time"
 )
 
 type Poller struct {
-	times uint
-	limit time.Duration
-	ch    chan struct{}
+	times    uint
+	limit    time.Duration
+	ch       chan struct{}
+	stopOnce sync.Once
 }
 
 // NewPoller creates and returns a new instance.
@@ -68,7 +70,9 @@ func (p *Poller) RandRun(minInterval, maxInterval time.Duration, do func()) {
 	}
 }
 
-// Stop closes and releases resources.
+// Stop closes and releases resources. Safe to call multiple times.
 func (p *Poller) Stop() {
-	close(p.ch)
+	p.stopOnce.Do(func() {
+		close(p.ch)
+	})
 }

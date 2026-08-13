@@ -152,7 +152,22 @@ func GzipBody(r *http.Request) (io.ReadCloser, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gzip reader %w", err)
 		}
-		return reader, nil
+		// gzip.Reader.Close 不会关闭底层 Body，组合关闭避免调用方泄漏连接
+		return &gzipReadCloser{Reader: reader, body: r.Body}, nil
 	}
 	return r.Body, nil
+}
+
+type gzipReadCloser struct {
+	*gzip.Reader
+	body io.ReadCloser
+}
+
+// Close closes both the gzip reader and the underlying body.
+func (g *gzipReadCloser) Close() error {
+	err := g.Reader.Close()
+	if berr := g.body.Close(); err == nil {
+		err = berr
+	}
+	return err
 }

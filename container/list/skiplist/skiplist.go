@@ -38,7 +38,8 @@ func (s *SkipList[K, V]) Set(k K, v V) {
 	update := make([]*skiplistitem[K, V], s.level()+1, s.effectiveMaxLevel()+1) // make(type, len, cap)
 
 	x := s.path(s.header, update, k)
-	if x != nil && (s.compare(x.k, k) || s.compare(x.k, k)) { // if key Exist, update
+	// path 返回第一个 >= k 的节点，已知 !less(x.k, k)，相等 ⇔ !less(k, x.k)
+	if x != nil && !s.compare(k, x.k) { // if key Exist, update
 		x.v = v
 		return
 	}
@@ -88,25 +89,22 @@ func (s *SkipList[K, V]) randomLevel() (n int) {
 // Get returns corresponding v with given k.
 func (s *SkipList[K, V]) Get(k K) (v V, ok bool) {
 	x := s.path(s.header, nil, k)
-	if x == nil || (s.compare(x.k, k) || s.compare(x.k, k)) {
+	if x == nil || s.compare(k, x.k) {
 		return s.zero, false
 	}
 	return x.v, true
 }
 
 // Search returns true if k is founded in the skiplist.
+// 必须校验 key 相等：path 返回的是第一个 >= k 的节点，非 nil 不代表命中。
 func (s *SkipList[K, V]) Search(k K) (ok bool) {
 	x := s.path(s.header, nil, k)
-	if x != nil {
-		ok = true
-		return
-	}
-	return
+	return x != nil && !s.compare(k, x.k)
 }
 
 // Range interates `from` to `to` with `op`.
 func (s *SkipList[K, V]) Range(from, to K, op func(v V)) {
-	for start := s.path(s.header, nil, from); start.next() != nil; start = start.next() {
+	for start := s.path(s.header, nil, from); start != nil; start = start.next() {
 		if !s.compare(start.k, to) {
 			return
 		}
@@ -120,7 +118,7 @@ func (s *SkipList[K, V]) Del(k K) (v V, ok bool) {
 	update := make([]*skiplistitem[K, V], s.level()+1, s.effectiveMaxLevel())
 
 	x := s.path(s.header, update, k)
-	if x == nil || (s.compare(x.k, k) || s.compare(x.k, k)) {
+	if x == nil || s.compare(k, x.k) {
 		ok = false
 		return
 	}

@@ -23,7 +23,11 @@ func Director() *httputil.ReverseProxy {
 				return
 			}
 			target := targets[0]
-			targetUrl, _ := url.Parse(target)
+			targetUrl, err := url.Parse(target)
+			if err != nil {
+				// 解析失败时保持原请求，避免对 nil URL 解引用
+				return
+			}
 			r.Host = targetUrl.Host
 			r.URL.Host = targetUrl.Host
 			r.URL.Scheme = targetUrl.Scheme

@@ -142,7 +142,8 @@ func TestSkipList_Range(t *testing.T) {
 		}
 		current++
 	})
-	if current != 99 {
-		t.Fatalf("range out of bound, want %v, got %v", 99, current)
+	// [90, 120) 与数据 0..99 的交集是 90..99 共 10 个；旧实现会漏掉最后一个节点
+	if current != 100 {
+		t.Fatalf("range out of bound, want %v, got %v", 100, current)
 	}
 }

@@ -147,19 +147,19 @@ func (DateSerializer) Value(ctx context.Context, field *schema.Field, dst reflec
 	rv := reflect.ValueOf(fieldValue)
 	switch fieldValue.(type) {
 	case int, int32, int64:
-		result = time.Unix(rv.Int()*int64(time.Hour)*24, 0).Format("2006-01-02")
+		result = time.Unix(rv.Int()*86400, 0).Format("2006-01-02")
 	case uint, uint32, uint64:
-		result = time.Unix(int64(rv.Uint())*int64(time.Hour)*24, 0).Format("2006-01-02")
+		result = time.Unix(int64(rv.Uint())*86400, 0).Format("2006-01-02")
 	case *int, *int32, *int64:
 		if rv.IsZero() {
 			return nil, nil
 		}
-		result = time.Unix(rv.Elem().Int()*int64(time.Hour)*24, 0).Format("2006-01-02")
+		result = time.Unix(rv.Elem().Int()*86400, 0).Format("2006-01-02")
 	case *uint, *uint32, *uint64:
 		if rv.IsZero() {
 			return nil, nil
 		}
-		result = time.Unix(int64(rv.Elem().Uint())*int64(time.Hour)*24, 0).Format("2006-01-02")
+		result = time.Unix(int64(rv.Elem().Uint())*86400, 0).Format("2006-01-02")
 	default:
 		err = fmt.Errorf("invalid field type %#v for DateSerializer, only int, uint supported", fieldValue)
 	}

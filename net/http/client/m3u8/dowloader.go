@@ -74,13 +74,18 @@ func (d *Downloader) Start(concurrency int) error {
 	var wg sync.WaitGroup
 	wg.Add(d.segLen)
 	idxCh := make(chan int, concurrency)
-	for _ = range concurrency {
+	for range concurrency {
 		go func() {
 			for idx := range idxCh {
-				if err := d.Downloadts(idx); err != nil {
-					// Back into the queue, retry request
-					fmt.Printf("[failed] %s\n", err.Error())
-					<-idxCh
+				// 内联有限重试：旧实现失败时 <-idxCh 偷走并丢弃他人任务，
+				// 被偷任务的 wg.Done 永不执行，wg.Wait 永久阻塞
+				err := d.Downloadts(idx)
+				for retry := 1; err != nil && retry <= 2; retry++ {
+					fmt.Printf("[retry %d] segment %d: %s\n", retry, idx, err.Error())
+					err = d.Downloadts(idx)
+				}
+				if err != nil {
+					fmt.Printf("[failed] segment %d: %s\n", idx, err.Error())
 				}
 				wg.Done()
 			}
@@ -170,8 +175,11 @@ func (d *Downloader) Merge() error {
 	for segIndex := 0; segIndex < d.segLen; segIndex++ {
 		tsFilename := tsFilename(segIndex)
 		bytes, err := os.ReadFile(filepath.Join(d.tsDir, tsFilename))
-		_, err = writer.Write(bytes)
 		if err != nil {
+			// 旧实现读失败的 err 被 Write(nil) 的 nil 覆盖，丢段却计入成功
+			continue
+		}
+		if _, err = writer.Write(bytes); err != nil {
 			continue
 		}
 		mergedCount++

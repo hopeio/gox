@@ -374,10 +374,18 @@ func (c *Cache) GetIFPresent(key any) (any, error) {
 	c.mu.Lock()
 	v, err := c.store.get(key, false)
 	c.mu.Unlock()
-	if err == KeyNotFoundError {
-		return c.getWithLoader(key, false)
+	if err == nil {
+		// 与 Get 一致返回 value 本身，曾直接返回内部 item 包装对象
+		return v.value, nil
 	}
-	return v, err
+	if err == KeyNotFoundError {
+		v, err = c.getWithLoader(key, false)
+		if err != nil {
+			return nil, err
+		}
+		return v.value, nil
+	}
+	return nil, err
 }
 
 // Keys returns a slice of the keys in the cache.

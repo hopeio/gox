@@ -97,14 +97,15 @@ func (l *LinkedList[T]) InsertHead(e T) {
 func (l *LinkedList[T]) InsertAfterNode(pre *Node[T], e T) error {
 	//Insert only if the node exists in the list
 	if l.Exist(pre) {
+		if pre.next == nil {
+			// Append 内部已递增 size，不能再计一次
+			l.Append(e)
+			return nil
+		}
 		newNode := Node[T]{}
 		newNode.data = e
-		if pre.next == nil {
-			l.Append(e)
-		} else {
-			newNode.next = pre.next
-			pre.next = &newNode
-		}
+		newNode.next = pre.next
+		pre.next = &newNode
 		l.size++
 		return nil
 	}
@@ -169,6 +170,7 @@ func (l *LinkedList[T]) DeleteNode(node *Node[T]) {
 			} else {
 				l.head = l.head.next
 			}
+			l.size--
 			return
 			//If it is the tail node
 		} else if node == l.tail {

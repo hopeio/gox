@@ -30,22 +30,21 @@ func LimitReader(r io.Reader, ctx context.Context, limiter *rate.Limiter) io.Rea
 	}
 }
 
-// Read performs the operation.
+// Read reads at most one burst worth of bytes and waits for tokens matching
+// the bytes actually read (short reads don't overpay the limiter).
+// 旧实现的 for 循环 end 从不更新且内层 n 遮蔽外层，读偏移错位、短 buf 直接返回 (0,nil)。
 func (r *limitReader) Read(buf []byte) (int, error) {
-	burst := r.limiter.Burst()
-	l := len(buf)
-	var n int
-	for end := n + burst; end <= l; n = end {
-		err := r.limiter.WaitN(r.ctx, burst)
-		if err != nil {
-			return n, err
-		}
-		n, err := r.r.Read(buf[n:end])
-		if n <= 0 {
-			return n, err
+	if len(buf) == 0 {
+		return 0, nil
+	}
+	chunk := min(len(buf), r.limiter.Burst())
+	n, err := r.r.Read(buf[:chunk])
+	if n > 0 {
+		if werr := r.limiter.WaitN(r.ctx, n); werr != nil {
+			return n, werr
 		}
 	}
-	return n, nil
+	return n, err
 }
 
 type limitWriter struct {
@@ -65,18 +64,19 @@ func LimitWriter(w io.Writer, ctx context.Context, limiter *rate.Limiter) io.Wri
 	}
 }
 
-// Write performs the operation.
+// Write writes buf in burst-sized chunks, waiting for tokens before each chunk.
+// io.Writer 契约要求全量写出，因此循环推进直到写完或出错。
 func (w *limitWriter) Write(buf []byte) (int, error) {
 	burst := w.limiter.Burst()
-	l := len(buf)
 	var n int
-	for end := n + burst; end <= l; n = end {
-		err := w.limiter.WaitN(w.ctx, burst)
-		if err != nil {
+	for n < len(buf) {
+		chunk := min(len(buf)-n, burst)
+		if err := w.limiter.WaitN(w.ctx, chunk); err != nil {
 			return n, err
 		}
-		n, err := w.w.Write(buf[n:end])
-		if n <= 0 {
+		m, err := w.w.Write(buf[n : n+chunk])
+		n += m
+		if err != nil {
 			return n, err
 		}
 	}

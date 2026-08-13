@@ -48,9 +48,8 @@ func (heap *Heap[E, I]) Put(val E) {
 	h := *heap
 	if len(h) < cap(h) {
 		*heap = append(h, val)
-		for i := 1; i < len(h); i++ {
-			heap.up(i)
-		}
+		// 只需上滤新元素（下标为旧 len(h)）；曾遍历到旧长度为止，新元素从未被 up
+		heap.up(len(h))
 		return
 	}
 	temp := I{h[0], val}

@@ -22,16 +22,20 @@ func Tunneling(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, "HTTP/1.1 200 Connection Established\r\n\r\n")
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {
+		dest_conn.Close()
 		http.Error(w, "Hijacking not supported", http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, "HTTP/1.1 200 Connection Established\r\n\r\n")
 	client_conn, _, err := hijacker.Hijack()
 	if err != nil {
+		// Hijack 失败必须 return：继续走 transfer 会对 nil conn 解引用
+		dest_conn.Close()
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
 	}
 	go transfer(dest_conn, client_conn)
 	go transfer(client_conn, dest_conn)

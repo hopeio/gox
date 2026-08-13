@@ -125,6 +125,10 @@ func Parse(body []byte) (*M3u8, error) {
 				return nil, err
 			}
 			i++
+			// 截断/恶意的播放列表可能以 STREAM-INF 结尾，越界前显式报错
+			if i >= len(lines) {
+				return nil, fmt.Errorf("EXT-X-STREAM-INF without URI at end of playlist")
+			}
 			mp.URI = lines[i]
 			if mp.URI == "" || strings.HasPrefix(mp.URI, "#") {
 				return nil, fmt.Errorf("invalid EXT-X-STREAM-INF URI, line: %d", i+1)
@@ -212,7 +216,8 @@ func Parse(body []byte) (*M3u8, error) {
 			key.URI = params["URI"]
 			key.IV = params["IV"]
 			m3u8.Keys[keyIndex] = key
-		case line == "#EndList":
+		case line == "#EXT-X-ENDLIST":
+			// 标准标签为 #EXT-X-ENDLIST，旧写法 #EndList 永远匹配不到
 			m3u8.EndList = true
 		default:
 			continue

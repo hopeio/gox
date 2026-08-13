@@ -54,7 +54,7 @@ func (f FilterExprs) Apply(db *gorm.DB) *gorm.DB {
 			continue
 		}
 
-		db = db.Where(filter.Field+" "+filter.Operation.SQL(), sqlx.AnyToAnys(filter.Value))
+		db = db.Where(filter.Field+" "+filter.Operation.SQL(), sqlx.AnyToAnys(filter.Value)...)
 	}
 	return db
 }

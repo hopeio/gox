@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"errors"
 )
 
 // CBCEncrypt performs the operation.
@@ -40,10 +41,18 @@ func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 		return nil, err
 	}
 	blockSize := block.BlockSize()
+	// CryptBlocks 对非块对齐输入会 panic，先做显式校验
+	if len(crypted) == 0 || len(crypted)%blockSize != 0 {
+		return nil, errors.New("aes: ciphertext is not a multiple of the block size")
+	}
 	blockMode := cipher.NewCBCDecrypter(block, iv[:blockSize])
 	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
 	origData = UnPadding(origData)
+	if origData == nil {
+		// 填充非法不能静默返回空明文
+		return nil, errors.New("aes: invalid padding")
+	}
 	return origData, nil
 }
 
@@ -51,7 +60,8 @@ func CBCDecrypt(crypted, key, iv []byte) ([]byte, error) {
 func Pkcs7Padding(cipherText []byte, blockSize int) []byte {
 	padding := blockSize - len(cipherText)%blockSize
 	padText := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(cipherText, padText...)
+	// full slice expression 防止 cap>len 时 append 写穿调用方的底层数组
+	return append(cipherText[:len(cipherText):len(cipherText)], padText...)
 }
 
 // UnPadding returns the result.
@@ -69,8 +79,8 @@ func UnPadding(origData []byte) []byte {
 	return origData[:length-unPadding]
 }
 
-// Pkcs5Padding returns the result.
-func Pkcs5Padding(cipherText []byte, blockSize int) []byte {
+// Pkcs5Padding returns the result. PKCS#5 is PKCS#7 with a fixed 8-byte block.
+func Pkcs5Padding(cipherText []byte) []byte {
 	return Pkcs7Padding(cipherText, 8)
 }
 
@@ -94,10 +104,16 @@ func ECBDecrypt(crypted, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(crypted) == 0 || len(crypted)%cipher.BlockSize() != 0 {
+		return nil, errors.New("aes: ciphertext is not a multiple of the block size")
+	}
 	blockMode := NewECBDecrypter(cipher)
-	origData := make([]byte, len(crypted)-len(crypted)%cipher.BlockSize())
+	origData := make([]byte, len(crypted))
 	blockMode.CryptBlocks(origData, crypted)
 	origData = UnPadding(origData)
+	if origData == nil {
+		return nil, errors.New("aes: invalid padding")
+	}
 	return origData, nil
 }
 

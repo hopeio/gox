@@ -33,5 +33,9 @@ func (n *Null[T]) UnmarshalJSON(data []byte) error {
 		n.Valid = false
 		return nil
 	}
-	return jsonx.Unmarshal(data, &n.V)
+	if err := jsonx.Unmarshal(data, &n.V); err != nil {
+		return err
+	}
+	n.Valid = true
+	return nil
 }

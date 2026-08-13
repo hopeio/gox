@@ -106,7 +106,7 @@ func (j *MapJson[T]) Scan(value interface{}) error {
 	case []byte:
 		return jsonx.Unmarshal(bytes, j)
 	case string:
-		return jsonx.Unmarshal(strings.ToBytes(bytes), &j)
+		return jsonx.Unmarshal(strings.ToBytes(bytes), j)
 	default:
 		return errors.New(fmt.Sprint("failed to scan MapJson value:", value))
 	}

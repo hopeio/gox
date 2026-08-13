@@ -13,14 +13,19 @@ func CMD(s string, opts ...Option) *exec.Cmd {
 	var cmd *exec.Cmd
 	if strings.Contains(s, "\"") {
 		exe := s
-		for i, c := range s {
-			if c == ' ' {
-				exe = s[:i]
-				break
+		rest := ""
+		if s[0] == '"' {
+			// 带引号的可执行路径（如 "C:\Program Files\x.exe"）不能按第一个空格切
+			if end := strings.IndexByte(s[1:], '"'); end >= 0 {
+				exe = s[1 : 1+end]
+				rest = s[2+end:]
 			}
+		} else if i := strings.IndexByte(s, ' '); i >= 0 {
+			exe = s[:i]
+			rest = s[i:]
 		}
 		cmd = exec.Command(exe)
-		cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: s[len(exe):], HideWindow: true}
+		cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: rest, HideWindow: true}
 	} else {
 		words := osx.Split(s)
 		cmd = exec.Command(words[0], words[1:]...)

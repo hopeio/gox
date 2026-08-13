@@ -11,7 +11,7 @@ func TestParse_SimpleMediaPlaylist(t *testing.T) {
 http://example.com/segment1.ts
 #EXTINF:10.0,
 http://example.com/segment2.ts
-#EndList
+#EXT-X-ENDLIST
 `)
 
 	m, err := Parse(body)

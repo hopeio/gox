@@ -29,7 +29,7 @@ func (t testValueUnmarshaler) UnmarshalText(text []byte) error {
 
 func TestUnmarshalTextFor_ValueReceiver(t *testing.T) {
 	// Test with a type whose value receiver implements TextUnmarshaler
-	err := UnmarshalTextFor[testValueUnmarshaler]([]byte("hello"))
+	_, err := UnmarshalTextFor[testValueUnmarshaler]([]byte("hello"))
 	if err != nil {
 		t.Errorf("UnmarshalTextFor() error: %v", err)
 	}
@@ -37,9 +37,12 @@ func TestUnmarshalTextFor_ValueReceiver(t *testing.T) {
 
 func TestUnmarshalTextFor_PointerReceiver(t *testing.T) {
 	// Test with a type whose pointer receiver implements TextUnmarshaler
-	err := UnmarshalTextFor[testTextUnmarshaler]([]byte("hello"))
+	v, err := UnmarshalTextFor[testTextUnmarshaler]([]byte("hello"))
 	if err != nil {
 		t.Errorf("UnmarshalTextFor() error: %v", err)
+	}
+	if v.value != "hello" {
+		t.Errorf("UnmarshalTextFor() = %q, want hello", v.value)
 	}
 }
 

@@ -71,11 +71,9 @@ func RunGetOutWithLog(s string, opts ...Option) (string, error) {
 // Shell run shell
 // e.g. Shell("bash", "echo hello world")
 func Shell(interpreter, shell string, opts ...Option) error {
-	cmd := CMD(fmt.Sprintf(`%s -c "%s"`, interpreter, strconv.Quote(shell)), opts...)
+	// strconv.Quote 已含引号，再包一层 "..." 会把命令行打坏；opts 由 CMD 应用一次即可
+	cmd := CMD(fmt.Sprintf(`%s -c %s`, interpreter, strconv.Quote(shell)), opts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	for _, opt := range opts {
-		opt(cmd)
-	}
 	return cmd.Run()
 }

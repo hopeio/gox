@@ -9,7 +9,6 @@ package slices
 import (
 	"slices"
 
-	"github.com/hopeio/gox"
 	"github.com/hopeio/gox/cmp"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
@@ -30,18 +29,14 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 			}
 		}
 	}
-	// scan both in one pass
-	n, m := len(s1), len(s2)
-	tmpMap := make(map[T]struct{})
-	l := gox.TernaryOperator(n > m, n, m)
-	for i := range l {
-		if i < n {
-			tmpMap[s1[i]] = struct{}{}
-		}
-		if i < m {
-			if _, ok := tmpMap[s2[i]]; ok {
-				return true
-			}
+	// 交错单遍会漏检（公共元素在 s1 中的下标大于在 s2 中时尚未入 map），必须先建全量集合
+	tmpMap := make(map[T]struct{}, len(s1))
+	for _, v := range s1 {
+		tmpMap[v] = struct{}{}
+	}
+	for _, v := range s2 {
+		if _, ok := tmpMap[v]; ok {
+			return true
 		}
 	}
 
@@ -64,18 +59,14 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 		}
 	}
 
-	// scan both in one pass
-	n, m := len(s1), len(s2)
-	tmpMap := make(map[T]struct{})
-	l := gox.TernaryOperator(n > m, n, m)
-	for i := range l {
-		if i < n {
-			tmpMap[s1[i].EqualKey()] = struct{}{}
-		}
-		if i < m {
-			if _, ok := tmpMap[s2[i].EqualKey()]; ok {
-				return true
-			}
+	// 交错单遍会漏检（公共元素在 s1 中的下标大于在 s2 中时尚未入 map），必须先建全量集合
+	tmpMap := make(map[T]struct{}, len(s1))
+	for _, v := range s1 {
+		tmpMap[v.EqualKey()] = struct{}{}
+	}
+	for _, v := range s2 {
+		if _, ok := tmpMap[v.EqualKey()]; ok {
+			return true
 		}
 	}
 	return false
@@ -480,6 +471,8 @@ func DifferenceByKey[S ~[]E, E cmp.EqualKey[T], T comparable](a, b S) (S, S) {
 				diff2 = append(diff2, i)
 			}
 		}
+		// 小数组分支必须返回：曾掉入下方 map 分支把结果重复 append 一遍
+		return diff1, diff2
 	}
 	aMap, bMap := make(map[T]struct{}), make(map[T]struct{})
 	for _, v := range a {

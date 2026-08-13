@@ -183,14 +183,17 @@ func ParseContentRange(rangeHeader string) (start int64, end int64, total int64,
 }
 
 // FormatContentRange formats or converts the value.
+// Content-Range 标准格式是 "bytes 0-1/2"（空格分隔）；旧实现输出 "bytes=..."
+// 连本包的 ParseContentRange 都解析不了。end=0 是合法值（首字节），按 <0 判缺省。
 func FormatContentRange(start, end, total int64) string {
-	if end <= 0 {
-		return fmt.Sprintf("bytes=%d-", start)
+	totalStr := "*"
+	if total > 0 {
+		totalStr = strconv.FormatInt(total, 10)
 	}
-	if total <= 0 {
-		return fmt.Sprintf("bytes=%d-%d/*", start, end)
+	if end < 0 {
+		return fmt.Sprintf("bytes %d-/%s", start, totalStr)
 	}
-	return fmt.Sprintf("bytes=%d-%d/%d", start, end, total)
+	return fmt.Sprintf("bytes %d-%d/%s", start, end, totalStr)
 }
 
 // ParseRange parses the input.
@@ -226,11 +229,11 @@ func FormatRange(start, end int64) string {
 
 // ParseContentDisposition parses the input.
 func ParseContentDisposition(header string) (string, error) {
-	if len(header) < len("attachment; filename=") {
+	if len(header) <= len("attachment; filename=") {
 		return "", fmt.Errorf("invalid Content-Disposition header")
 	}
 	header = header[len("attachment; filename="):]
-	if header[0] == '"' && header[len(header)-1] == '"' {
+	if len(header) >= 2 && header[0] == '"' && header[len(header)-1] == '"' {
 		header = header[1 : len(header)-1]
 	}
 	return url.QueryUnescape(header)

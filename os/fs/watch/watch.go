@@ -8,6 +8,7 @@ package fsnotify
 
 import (
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -23,6 +24,7 @@ type Handlers map[string]*Callback
 type Watch struct {
 	*fsnotify.Watcher
 	interval   time.Duration
+	mu         sync.Mutex // 保护 handlers：Add 与 run goroutine 并发访问
 	handlers   Handlers
 	errHandler func(error)
 }
@@ -75,6 +77,8 @@ func New(opts ...Option) (*Watch, error) {
 // Add updates or inserts a value.
 func (w *Watch) Add(path string, callback func(fsnotify.Event)) error {
 	path = filepath.Clean(path)
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	handler, ok := w.handlers[path]
 	if !ok {
 		err := w.Watcher.Add(path)
@@ -96,13 +100,19 @@ func (w *Watch) run() {
 			if !ok {
 				return
 			}
+			var cb func(fsnotify.Event)
+			w.mu.Lock()
 			if handle, ok := w.handlers[event.Name]; ok {
 				now := time.Now()
-				if now.Sub(handle.LastModTime) < w.interval {
-					continue
+				if now.Sub(handle.LastModTime) >= w.interval {
+					handle.LastModTime = now
+					cb = handle.Callback
 				}
-				handle.LastModTime = now
-				handle.Callback(event)
+			}
+			w.mu.Unlock()
+			// 回调在锁外执行，避免回调内 Add/Remove 自死锁
+			if cb != nil {
+				cb(event)
 			}
 		case err, ok := <-w.Watcher.Errors:
 			if !ok {
@@ -116,8 +126,8 @@ func (w *Watch) run() {
 }
 
 // Close closes and releases resources.
+// Events/Errors 归 fsnotify.Watcher 所有，由它的 Close 负责关闭；
+// 在这里 close 会与其内部 goroutine 形成 double-close panic。
 func (w *Watch) Close() error {
-	close(w.Events)
-	close(w.Errors)
 	return w.Watcher.Close()
 }

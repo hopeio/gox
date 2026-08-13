@@ -106,11 +106,11 @@ func CommonIPV4() (string, error) {
 	if err != nil {
 		return "", errors.New("network error")
 	}
+	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
-	defer res.Body.Close()
 	reg := regexp.MustCompile(`\d+.\d+.\d+.\d+`)
 	return string(reg.Find(body)), nil
 }

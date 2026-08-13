@@ -63,6 +63,9 @@ func (m *MiddlewareContext) Next() {
 
 // ServeHTTP executes the operation.
 func (m *MiddlewareContext) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if len(m.handlers) == 0 {
+		return
+	}
 	m.Request = r
 	m.ResponseWriter = w
 	m.handlers[0](m)

@@ -21,16 +21,18 @@ import (
 
 // getSize returns the result.
 func getSize(t any) int {
-	size := reflect.TypeOf(t).Elem().Size()
-	return (int)(size)
+	typ := reflect.TypeOf(t)
+	if typ.Kind() == reflect.Pointer {
+		typ = typ.Elem()
+	}
+	return int(typ.Size())
 }
 
 // FromAny returns the result.
+// 用 unsafe.Slice 构造以保持指针存活：经 reflect.SliceHeader 的 uintptr Data
+// 字段绕行时 GC 不会把它当作存活引用，返回的 slice 可能悬垂。
 func FromAny(s any) []byte {
 	sizeOfStruct := getSize(s)
-	var x reflect.SliceHeader
-	x.Len = sizeOfStruct
-	x.Cap = sizeOfStruct
-	x.Data = uintptr((*reflectx.Eface)(unsafe.Pointer(&s)).Value)
-	return *(*[]byte)(unsafe.Pointer(&x))
+	data := (*reflectx.Eface)(unsafe.Pointer(&s)).Value
+	return unsafe.Slice((*byte)(data), sizeOfStruct)
 }

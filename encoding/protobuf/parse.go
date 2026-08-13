@@ -38,8 +38,18 @@ type Field struct {
 	Value  any
 }
 
+// maxDecodeDepth 限制嵌套消息/组的递归深度，防止恶意构造的深层嵌套导致栈溢出。
+const maxDecodeDepth = 256
+
 // DecodeMessage formats or converts the value.
 func DecodeMessage(b []byte) ([]Field, error) {
+	return decodeMessage(b, 0)
+}
+
+func decodeMessage(b []byte, depth int) ([]Field, error) {
+	if depth > maxDecodeDepth {
+		return nil, fmt.Errorf("protobuf: nesting exceeds max depth %d", maxDecodeDepth)
+	}
 	var fields []Field
 	for len(b) > 0 {
 		num, wt, n := protowire.ConsumeTag(b)
@@ -82,14 +92,14 @@ func DecodeMessage(b []byte) ([]Field, error) {
 			}
 			b = b[m:]
 			f.Kind = KindBytes
-			f = classifyLengthDelimited(num, v)
+			f = classifyLengthDelimited(num, v, depth)
 		case protowire.StartGroupType:
 			v, m := protowire.ConsumeGroup(num, b)
 			if m < 0 {
 				return nil, fmt.Errorf("consume group: %d", m)
 			}
 			b = b[m:]
-			msg, err := DecodeMessage(v)
+			msg, err := decodeMessage(v, depth+1)
 			if err != nil {
 				return nil, err
 			}
@@ -104,9 +114,9 @@ func DecodeMessage(b []byte) ([]Field, error) {
 }
 
 // classifyLengthDelimited returns the result.
-func classifyLengthDelimited(num protowire.Number, v []byte) Field {
+func classifyLengthDelimited(num protowire.Number, v []byte, depth int) Field {
 
-	if msg, err := DecodeMessage(v); err == nil && len(msg) > 0 {
+	if msg, err := decodeMessage(v, depth+1); err == nil && len(msg) > 0 {
 		return Field{Number: num, Wire: protowire.BytesType, Kind: KindMessage, Value: msg}
 	}
 

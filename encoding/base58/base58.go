@@ -12,7 +12,9 @@ var ErrInvalidBase58 = errors.New("invalid base58")
 
 // init initializes package state.
 func init() {
-	for i := 0; i < len(base58Alphabet); i++ {
+	// 必须初始化全部 256 个槽位：只初始化前 58 个会让 ASCII≥58 的非法字符
+	// 命中零值 0 被当成合法索引，非法输入被静默解码
+	for i := range decodeBase58Map {
 		decodeBase58Map[i] = 0xFF
 	}
 

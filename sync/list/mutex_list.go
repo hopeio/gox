@@ -2,7 +2,6 @@ package list
 
 import (
 	"sync"
-	"sync/atomic"
 )
 
 type Node[T any] struct {
@@ -57,6 +56,9 @@ func (l *MutexList[T]) Pop() (v T, ok bool) {
 }
 
 // Len returns the number of elements.
+// size 的写方在锁内非原子更新，读方必须同样走锁，混用原子读是数据竞争。
 func (l *MutexList[T]) Len() uint64 {
-	return atomic.LoadUint64(&l.size)
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.size
 }

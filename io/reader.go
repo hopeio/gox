@@ -54,10 +54,14 @@ func (res *RawBytes) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// Read performs the operation.
-func (res RawBytes) Read(p []byte) (int, error) {
-	n := copy(p, res)
-	res = (res)[n:]
+// Read consumes the buffer. 值接收者版本对切片头的推进不生效，
+// 会永远从头读且不返回 EOF，导致 io.Copy 死循环。
+func (res *RawBytes) Read(p []byte) (int, error) {
+	if len(*res) == 0 {
+		return 0, io.EOF
+	}
+	n := copy(p, *res)
+	*res = (*res)[n:]
 	return n, nil
 }
 

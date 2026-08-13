@@ -24,5 +24,5 @@ const (
 
 const (
 	WithNotDeletedUCT = ` AND ` + NotDeletedUCT
-	WithNotDeletedCST = ` AND ` + NotDeletedUCT
+	WithNotDeletedCST = ` AND ` + NotDeletedCST
 )

@@ -21,9 +21,12 @@ func (q *Queue) Enqueue(item any) {
 	q.list.PushBack(item)
 }
 
-// Peek returns the result.
+// Peek returns the result, or nil when the queue is empty.
 func (q *Queue) Peek() any {
 	front := q.list.Front()
+	if front == nil {
+		return nil
+	}
 	return front.Value
 }
 

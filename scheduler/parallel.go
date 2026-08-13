@@ -21,21 +21,22 @@ type Parallel struct {
 func NewParallel(workNum uint, opts ...ParallelOption) *Parallel {
 	taskCh := make(chan func(), workNum)
 	p := &Parallel{taskCh: taskCh}
-	g := func() {
-		var executing bool
+	for _, opt := range opts {
+		opt(p)
+	}
+	// recover 放在单任务粒度：曾放在 worker 粒度，一个 panic 任务会永久杀死一个 worker
+	runTask := func(task func()) {
 		defer func() {
 			if err := recover(); err != nil {
 				log.StackLogger().Error(err)
 			}
-			if executing {
-				p.wg.Done()
-			}
-		}()
-		for task := range taskCh {
-			executing = true
-			task()
-			executing = false
 			p.wg.Done()
+		}()
+		task()
+	}
+	g := func() {
+		for task := range taskCh {
+			runTask(task)
 		}
 	}
 	for range workNum {

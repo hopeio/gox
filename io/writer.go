@@ -43,7 +43,9 @@ func NewLimitedWriter(max int64) LimitedWriter {
 	return make([]byte, 0, max)
 }
 
-// Write performs the operation.
+// Write appends up to the remaining capacity and reports io.EOF once truncation
+// happens, so io.Copy/WriteTo callers can tell the limit was hit instead of
+// silently believing everything was written.
 func (lw *LimitedWriter) Write(p []byte) (int, error) {
 	b := *lw
 	l, c := len(b), cap(b)
@@ -51,12 +53,14 @@ func (lw *LimitedWriter) Write(p []byte) (int, error) {
 		return 0, io.EOF
 	}
 
+	n := len(p)
 	remaining := c - l
-	if len(p) > remaining {
+	if n > remaining {
 		p = p[:remaining]
 	}
 	*lw = append(b, p...)
-	if len(p) > remaining {
+	if len(p) < n {
+		// 旧实现截断后仍报告全量写入成功，调用方无从得知数据被丢弃
 		return len(p), io.EOF
 	}
 	return len(p), nil

@@ -29,7 +29,10 @@ func Decode(source string) string {
 		}
 		temp, err := strconv.ParseInt(v, 16, 32)
 		if err != nil {
+			// 解析失败保留原文即可；曾继续格式化零值 rune 往结果里塞 NUL 字符
 			context += v
+			context += additional
+			continue
 		}
 		context += fmt.Sprintf("%c", temp)
 		context += additional

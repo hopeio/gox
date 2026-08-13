@@ -279,10 +279,12 @@ func (dReq *DownloadReq) DownloadAttachment(dir string) error {
 		if first {
 			disposition, err := httpx.ParseContentDisposition(resp.Header.Get(httpx.HeaderContentDisposition))
 			if err != nil {
+				reader.Close()
 				return err
 			}
 			filepath = dir + fs.PathSeparator + disposition
 			if dReq.mode&DModeOverwrite == 0 && fs.Exist(filepath) {
+				reader.Close()
 				return nil
 			}
 			if resp.Header.Get(httpx.HeaderAcceptRanges) == "bytes" {
@@ -317,6 +319,7 @@ func (dReq *DownloadReq) continuationDownload(filepath string) error {
 
 	fileinfo, err := f.Stat()
 	if err != nil {
+		f.Close()
 		return err
 	}
 

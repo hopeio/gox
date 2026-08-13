@@ -236,10 +236,7 @@ func (r *UploadReq) UploadReader(reader io.Reader, name string) error {
 
 // UploadReaderChunked performs the operation.
 func (r *UploadReq) UploadReaderChunked(reader io.ReaderAt, name string, total int64) error {
-
 	var start int64
-	var end int64 = r.chunkSize - 1
-
 	u := r.uploader
 
 	req, err := http.NewRequestWithContext(r.ctx, http.MethodPost, r.Url, nil)
@@ -248,20 +245,26 @@ func (r *UploadReq) UploadReaderChunked(reader io.ReaderAt, name string, total i
 	}
 	req.Header.Set(httpx.HeaderContentType, httpx.ContentTypeOctetStream)
 	for start < total {
-		body := io.NewSectionReader(reader, start, r.chunkSize)
+		// 末块长度不足 chunkSize：Content-Length 必须按实际字节数，
+		// 否则服务端会一直等满长度导致挂起
+		chunk := r.chunkSize
+		if start+chunk > total {
+			chunk = total - start
+		}
+		body := io.NewSectionReader(reader, start, chunk)
 		req.Body = io.NopCloser(body)
-		req.Header.Set(httpx.HeaderContentRange, httpx.FormatContentRange(start, end, total))
-		req.Header.Set(httpx.HeaderContentLength, strconv.FormatInt(r.chunkSize, 10))
+		req.ContentLength = chunk
+		req.Header.Set(httpx.HeaderContentRange, httpx.FormatContentRange(start, start+chunk-1, total))
+		req.Header.Set(httpx.HeaderContentLength, strconv.FormatInt(chunk, 10))
 		resp, err := u.httpClient.Do(req)
 		if err != nil {
 			return err
 		}
 		resp.Body.Close()
-		start += r.chunkSize
-		end += r.chunkSize
-		if end >= total {
-			end = total - 1
+		if resp.StatusCode >= 300 {
+			return fmt.Errorf("upload chunk %d-%d failed: %s", start, start+chunk-1, resp.Status)
 		}
+		start += chunk
 	}
 	return nil
 }

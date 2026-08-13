@@ -7,6 +7,7 @@
 package fs
 
 import (
+	"errors"
 	"io"
 	"os"
 	"syscall"
@@ -25,6 +26,8 @@ const (
 )
 
 // handle performs the operation.
+// handle 判断 dst 是否应跳过写入。SameNameAndMd5Skip 需要可 Seek 的 src：
+// 比较会消费流，必须回绕到起点，否则后续写出的是被读空的流（空文件）。
 func (c mode) handle(dst string, src io.Reader) (skip bool, err error) {
 	switch c {
 	case Cover:
@@ -32,20 +35,25 @@ func (c mode) handle(dst string, src io.Reader) (skip bool, err error) {
 	case SameNameSkip:
 		return IsExist(dst), nil
 	case SameNameAndMd5Skip:
-		if IsExist(dst) {
-			md51, err := Md5(dst)
-			if err != nil {
-				return false, err
-			}
-			md52, err := md5.EncodeReaderString(src)
-			if err != nil {
-				return false, err
-			}
-
-			if md51 == md52 {
-				return true, nil
-			}
+		if !IsExist(dst) {
+			return false, nil
 		}
+		seeker, ok := src.(io.Seeker)
+		if !ok {
+			return false, errors.New("fs: SameNameAndMd5Skip requires a seekable reader, the md5 comparison would otherwise consume the stream")
+		}
+		md51, err := Md5(dst)
+		if err != nil {
+			return false, err
+		}
+		md52, err := md5.EncodeReaderString(src)
+		if err != nil {
+			return false, err
+		}
+		if _, err = seeker.Seek(0, io.SeekStart); err != nil {
+			return false, err
+		}
+		return md51 == md52, nil
 	}
 	return false, nil
 }
@@ -192,15 +200,25 @@ func MoveDirByMode(src, dst string, c mode) error {
 				return err
 			}
 		} else {
+			// Move 场景源在磁盘上，直接按路径比较，不能给 handle 传 nil reader
+			srcPath := src + PathSeparator + entityName
+			dstPath := dst + PathSeparator + entityName
 			var skip bool
-			skip, err = c.handle(dst+PathSeparator+entityName, nil)
-			if err != nil {
-				return err
+			switch c {
+			case SameNameSkip:
+				skip = IsExist(dstPath)
+			case SameNameAndMd5Skip:
+				if IsExist(dstPath) {
+					skip, err = Md5Equal(dstPath, srcPath)
+					if err != nil {
+						return err
+					}
+				}
 			}
 			if skip {
 				continue
 			}
-			err = os.Rename(src+PathSeparator+entityName, dst+PathSeparator+entityName)
+			err = os.Rename(srcPath, dstPath)
 			if err != nil {
 				return err
 			}

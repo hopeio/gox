@@ -26,11 +26,14 @@ func Walk(dir string, callback WalkCallback) error {
 	for _, entry := range entries {
 		err1 := callback(dir, entry)
 		if err1 != nil {
-			if err1 == fs.SkipDir || err1 == fs.SkipAll {
+			if err1 == fs.SkipAll {
 				return nil
-			} else {
-				err = multierr.Append(err, err1)
 			}
+			if err1 == fs.SkipDir {
+				// 契约上 SkipDir 只跳过当前目录，不能终止整树遍历
+				continue
+			}
+			err = multierr.Append(err, err1)
 		}
 		if entry.IsDir() {
 			err = multierr.Append(err, Walk(dir+PathSeparator+entry.Name(), callback))

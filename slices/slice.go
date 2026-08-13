@@ -115,8 +115,7 @@ func ForEachIndex[S ~[]T, T any](s S, fn func(i int)) {
 
 // ReverseForEach performs the operation.
 func ReverseForEach[S ~[]T, T any](s S, fn func(idx int, v T)) {
-	l := len(s)
-	for i := l - 1; i > 0; i-- {
+	for i := len(s) - 1; i >= 0; i-- {
 		fn(i, s[i])
 	}
 }
@@ -238,7 +237,7 @@ func TwoDimensionalSlice[S ~[][]T, T any](s S, rowStart, rowEnd, colStart, colEn
 func ThreeDimensionalSlice[S ~[][][]T, T any](s S, rowStart, rowEnd, colStart, colEnd, sliceStart, sliceEnd int) S {
 	ret := make(S, rowEnd-rowStart)
 	for i := range ret {
-		ret[i] = make([][]T, colStart-colEnd)
+		ret[i] = make([][]T, colEnd-colStart)
 		for j := range ret[i] {
 			ret[i][j] = s[rowStart+i][colStart+j][sliceStart:sliceEnd]
 		}

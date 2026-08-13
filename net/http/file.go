@@ -113,6 +113,7 @@ func FetchFileByRequest(r *http.Request) (*FileInfo, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
 		return nil, errors.New(resp.Status)
 	}
 

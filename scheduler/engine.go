@@ -82,6 +82,11 @@ func NewEngine[KEY Key](workerCount uint64, opts ...Option[KEY]) *Engine[KEY] {
 		wakeup:           make(chan struct{}, 1),
 	}
 
+	// opts 必须在使用 maxPending 等字段之前应用，否则 WithMaxPending/WithContext 全部失效
+	for _, opt := range opts {
+		opt(engine)
+	}
+
 	ctx, cancel := context.WithCancel(engine.ctx)
 	engine.ctx = ctx
 	engine.cancel = cancel

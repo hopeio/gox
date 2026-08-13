@@ -3,6 +3,7 @@ package encoding
 import (
 	"encoding"
 	"encoding/json"
+	"errors"
 )
 
 var (
@@ -11,19 +12,16 @@ var (
 	Unmarshal = json.Unmarshal
 )
 
-// UnmarshalTextFor performs the operation.
-func UnmarshalTextFor[T any](text []byte) error {
+// UnmarshalTextFor decodes text into a new T and returns it.
+// 旧版解码进局部变量后丢弃且无返回值，调用方永远拿不到结果。
+func UnmarshalTextFor[T any](text []byte) (T, error) {
 	var t T
-	v, vp := any(t), any(&t)
-	itv, ok := v.(encoding.TextUnmarshaler)
+	itv, ok := any(&t).(encoding.TextUnmarshaler)
 	if !ok {
-		itv, ok = vp.(encoding.TextUnmarshaler)
+		return t, errors.New("encoding: type does not implement encoding.TextUnmarshaler")
 	}
-	if ok {
-		err := itv.UnmarshalText(text)
-		if err != nil {
-			return err
-		}
+	if err := itv.UnmarshalText(text); err != nil {
+		return t, err
 	}
-	return nil
+	return t, nil
 }

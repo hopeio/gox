@@ -45,12 +45,20 @@ func (ms *MinStack[T]) Pop() (T, bool) {
 	return node.value, true
 }
 
-// Top converts the value.
+// Top converts the value; returns the zero value on an empty stack instead of panicking.
 func (ms *MinStack[T]) Top() T {
-	return ms.store.Head().Value.value
+	var zero T
+	if h := ms.store.Head(); h != nil {
+		return h.Value.value
+	}
+	return zero
 }
 
-// GetMin returns the value.
+// GetMin returns the value; returns the zero value on an empty stack instead of panicking.
 func (ms *MinStack[T]) GetMin() T {
-	return ms.store.Head().Value.min
+	var zero T
+	if h := ms.store.Head(); h != nil {
+		return h.Value.min
+	}
+	return zero
 }
