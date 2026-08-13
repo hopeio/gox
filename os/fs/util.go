@@ -85,14 +85,31 @@ func DirsDeDuplicate(dirs ...string) error {
 	}, dirs...)
 }
 
+// dedupSize 返回该 entry 参与去重时使用的大小。
+// ok 为 false 表示应跳过：Info 失败（遍历期间文件被删/替换，继续用 nil info 会 panic），
+// 或空文件（所有空文件 MD5 恒等，会互相判定为重复，而它们多是占位或下载残留，不该被删）。
+func dedupSize(entry os.DirEntry) (int64, bool) {
+	info, err := entry.Info()
+	if err != nil || info == nil {
+		return 0, false
+	}
+	if info.Size() == 0 {
+		return 0, false
+	}
+	return info.Size(), true
+}
+
 // DirsDuplicateHandle performs the operation.
 func DirsDuplicateHandle(callback func(path1, path2 string) error, dirs ...string) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	for _, tmpDir := range dirs {
 		err := WalkFile(tmpDir, func(dir string, entry os.DirEntry) error {
-			info, _ := entry.Info()
+			size, ok := dedupSize(entry)
+			if !ok {
+				return nil
+			}
 			path := dir + PathSeparator + entry.Name()
-			duplicateFiles, ok := fileSizeMap[info.Size()]
+			duplicateFiles, ok := fileSizeMap[size]
 			var entryMd5 string
 			if ok {
 				var err error
@@ -112,7 +129,7 @@ func DirsDuplicateHandle(callback func(path1, path2 string) error, dirs ...strin
 					}
 				}
 			}
-			fileSizeMap[info.Size()] = append(fileSizeMap[info.Size()], &duplicateFile{path: path, md5: entryMd5})
+			fileSizeMap[size] = append(fileSizeMap[size], &duplicateFile{path: path, md5: entryMd5})
 			return nil
 		})
 		if err != nil {
@@ -131,9 +148,12 @@ func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) 
 				return err
 			}
 
-			info, _ := entry.Info()
+			size, ok := dedupSize(entry)
+			if !ok {
+				return nil
+			}
 			path := dir + PathSeparator + entry.Name()
-			duplicateFiles, ok := fileSizeMap[info.Size()]
+			duplicateFiles, ok := fileSizeMap[size]
 			var entryMd5 string
 			if ok {
 				var err error
@@ -153,7 +173,7 @@ func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) 
 					}
 				}
 			}
-			fileSizeMap[info.Size()] = append(fileSizeMap[info.Size()], &duplicateFile{path: path, md5: entryMd5})
+			fileSizeMap[size] = append(fileSizeMap[size], &duplicateFile{path: path, md5: entryMd5})
 			return nil
 		})
 		if err != nil {
@@ -167,8 +187,11 @@ func DirsRangeDuplicateHandle(rangeCallback func(dir string, entry os.DirEntry) 
 func TwoDirDuplicateHandle(dir1, dir2 string, callback func(path1, path2 string) error) error {
 	fileSizeMap := make(map[int64][]*duplicateFile)
 	err := WalkFile(dir1, func(dir string, entry os.DirEntry) error {
-		info, _ := entry.Info()
-		fileSizeMap[info.Size()] = append(fileSizeMap[info.Size()], &duplicateFile{path: dir + PathSeparator + entry.Name()})
+		size, ok := dedupSize(entry)
+		if !ok {
+			return nil
+		}
+		fileSizeMap[size] = append(fileSizeMap[size], &duplicateFile{path: dir + PathSeparator + entry.Name()})
 		return nil
 	})
 
@@ -177,8 +200,11 @@ func TwoDirDuplicateHandle(dir1, dir2 string, callback func(path1, path2 string)
 	}
 
 	return WalkFile(dir2, func(dir string, entry os.DirEntry) error {
-		info, _ := entry.Info()
-		if duplicateFiles, ok := fileSizeMap[info.Size()]; ok {
+		size, ok := dedupSize(entry)
+		if !ok {
+			return nil
+		}
+		if duplicateFiles, ok := fileSizeMap[size]; ok {
 			path := dir + PathSeparator + entry.Name()
 			entryMd5, err := Md5(path)
 			if err != nil {
