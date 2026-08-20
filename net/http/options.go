@@ -50,7 +50,7 @@ type ExcludedPathsRegex []*regexp.Regexp
 
 // NewExcludedPathsRegex creates and returns a new instance.
 func NewExcludedPathsRegex(regexes []string) ExcludedPathsRegex {
-	result := make([]*regexp.Regexp, len(regexes), len(regexes))
+	result := make([]*regexp.Regexp, len(regexes))
 	for i, reg := range regexes {
 		result[i] = regexp.MustCompile(reg)
 	}
