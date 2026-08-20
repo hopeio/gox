@@ -142,6 +142,9 @@ func (req *Request) DoAs[RESP any](param any) (*RESP, error) {
 // Do executes the operation.
 func (req *Request) Do(param, response any) error {
 
+	if req.Method == "" {
+		return errors.New("not set method")
+	}
 	if req.Url == "" {
 		return errors.New("not set url")
 	}
