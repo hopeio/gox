@@ -426,3 +426,222 @@ func JoinBy[T any](it iter.Seq[T], toString func(T) string, sep string) string {
 	}
 	return b.String()[:b.Len()-len(sep)]
 }
+
+// SeqToSeq2 returns the result.
+func SeqToSeq2[T any](seq iter.Seq[T]) iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		var count int
+		for v := range seq {
+			if !yield(count, v) {
+				return
+			}
+			count++
+		}
+	}
+}
+
+// Seq2ToSeq returns the result.
+func Seq2ToSeq[K, V any](s iter.Seq2[K, V]) iter.Seq[types.Pair[K, V]] {
+	return func(yield func(types.Pair[K, V]) bool) {
+		for k, v := range s {
+			if !yield(types.PairOf(k, v)) {
+				return
+			}
+		}
+	}
+}
+
+// Seq2Keys returns the result.
+func Seq2Keys[K, V any](s iter.Seq2[K, V]) iter.Seq[K] {
+	return func(yield func(K) bool) {
+		for k, _ := range s {
+			if !yield(k) {
+				return
+			}
+		}
+	}
+}
+
+// Seq2Values returns the result.
+func Seq2Values[K, V any](s iter.Seq2[K, V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, v := range s {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// Zip pairs elements from two sequences by index. Stops at the shorter one.
+func Zip[A, B any](a iter.Seq[A], b iter.Seq[B]) iter.Seq[types.Pair[A, B]] {
+	return func(yield func(types.Pair[A, B]) bool) {
+		na, sa := iter.Pull(a)
+		defer sa()
+		nb, sb := iter.Pull(b)
+		defer sb()
+		for {
+			va, oka := na()
+			vb, okb := nb()
+			if !oka || !okb {
+				return
+			}
+			if !yield(types.PairOf(va, vb)) {
+				return
+			}
+		}
+	}
+}
+
+// GroupBy groups elements by the key extracted from each element.
+func GroupBy[T any, K comparable](seq iter.Seq[T], key types.UnaryFunction[T, K]) map[K][]T {
+	r := make(map[K][]T)
+	for v := range seq {
+		k := key(v)
+		r[k] = append(r[k], v)
+	}
+	return r
+}
+
+// Partition splits elements into (matched, unmatched) by the predicate.
+func Partition[T any](seq iter.Seq[T], test types.Predicate[T]) ([]T, []T) {
+	var yes, no []T
+	for v := range seq {
+		if test(v) {
+			yes = append(yes, v)
+		} else {
+			no = append(no, v)
+		}
+	}
+	return yes, no
+}
+
+// Chunk splits the sequence into consecutive sub-slices of at most size elements.
+// The last chunk may be shorter. A size <= 0 yields no elements.
+func Chunk[T any](seq iter.Seq[T], size int) iter.Seq[[]T] {
+	return func(yield func([]T) bool) {
+		if size <= 0 {
+			return
+		}
+		buf := make([]T, 0, size)
+		for v := range seq {
+			buf = append(buf, v)
+			if len(buf) == size {
+				out := make([]T, size)
+				copy(out, buf)
+				if !yield(out) {
+					return
+				}
+				buf = buf[:0]
+			}
+		}
+		if len(buf) > 0 {
+			out := make([]T, len(buf))
+			copy(out, buf)
+			yield(out)
+		}
+	}
+}
+
+// Window emits overlapping sliding windows of size elements. A size <= 0 or a
+// sequence shorter than size yields no windows.
+func Window[T any](seq iter.Seq[T], size int) iter.Seq[[]T] {
+	return func(yield func([]T) bool) {
+		if size <= 0 {
+			return
+		}
+		buf := make([]T, 0, size)
+		for v := range seq {
+			buf = append(buf, v)
+			if len(buf) > size {
+				buf = buf[1:]
+			}
+			if len(buf) == size {
+				out := make([]T, size)
+				copy(out, buf)
+				if !yield(out) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// TakeWhile yields elements while the predicate holds, then stops.
+func TakeWhile[T any](seq iter.Seq[T], test types.Predicate[T]) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for v := range seq {
+			if !test(v) {
+				return
+			}
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// DropWhile skips elements while the predicate holds, then yields the rest.
+func DropWhile[T any](seq iter.Seq[T], test types.Predicate[T]) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		drop := true
+		for v := range seq {
+			if drop {
+				if test(v) {
+					continue
+				}
+				drop = false
+			}
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// NoneMatch reports whether no element satisfies the predicate.
+func NoneMatch[T any](seq iter.Seq[T], test types.Predicate[T]) bool {
+	for v := range seq {
+		if test(v) {
+			return false
+		}
+	}
+	return true
+}
+
+// ForEachIndexed consumes each element with its index.
+func ForEachIndexed[T any](seq iter.Seq[T], accept func(int, T)) {
+	var i int
+	for v := range seq {
+		accept(i, v)
+		i++
+	}
+}
+
+// Find returns the first element satisfying the predicate.
+func Find[T any](seq iter.Seq[T], test types.Predicate[T]) (T, bool) {
+	for v := range seq {
+		if test(v) {
+			return v, true
+		}
+	}
+	return *new(T), false
+}
+
+// FindLast returns the last element satisfying the predicate.
+func FindLast[T any](seq iter.Seq[T], test types.Predicate[T]) (T, bool) {
+	var result T
+	var ok bool
+	for v := range seq {
+		if test(v) {
+			result = v
+			ok = true
+		}
+	}
+	return result, ok
+}
+
+// Concat concatenates sequences (alias of Chain for clarity with two inputs).
+func Concat[T any](a, b iter.Seq[T]) iter.Seq[T] {
+	return Chain(a, b)
+}

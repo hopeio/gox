@@ -8,6 +8,8 @@ package iter
 
 import (
 	"iter"
+	"math"
+	"slices"
 
 	"github.com/hopeio/gox/cmp"
 	"github.com/hopeio/gox/types"
@@ -66,13 +68,13 @@ func Max[T constraints.Ordered](it iter.Seq[T]) (T, bool) {
 }
 
 // Return the maximum value of all elements of the iterator.
+// greater reports whether a should be ordered before b (i.e. a < b).
 func MaxBy[T any](it iter.Seq[T], greater cmp.LessFunc[T]) (T, bool) {
 	return Reduce(it, func(a T, b T) T {
 		if greater(a, b) {
-			return a
-		} else {
 			return b
 		}
+		return a
 	})
 }
 
@@ -96,4 +98,65 @@ func Mean[T constraintsx.Number](seq iter.Seq[T]) float64 {
 		count++
 	}
 	return sum / float64(count)
+}
+
+// Return the minimum value of all elements of the iterator by the less function.
+// less reports whether a should be ordered before b (i.e. a < b).
+func MinBy[T any](it iter.Seq[T], less cmp.LessFunc[T]) (T, bool) {
+	return Reduce(it, func(a T, b T) T {
+		if less(a, b) {
+			return a
+		}
+		return b
+	})
+}
+
+// Return the maximum value of all elements of the iterator. Numbers are compared directly.
+func MaxByComparable[T constraints.Ordered](it iter.Seq[T]) (T, bool) {
+	return Max(it)
+}
+
+// Return the minimum value of all elements of the iterator. Numbers are compared directly.
+func MinByComparable[T constraints.Ordered](it iter.Seq[T]) (T, bool) {
+	return Min(it)
+}
+
+// Calculate the Median of a sequence. Materializes the elements.
+func Median[T constraintsx.Number](seq iter.Seq[T]) (T, bool) {
+	var data []T
+	for v := range seq {
+		data = append(data, v)
+	}
+	n := len(data)
+	if n == 0 {
+		return *new(T), false
+	}
+	slices.Sort(data)
+	if n%2 == 1 {
+		return data[n/2], true
+	}
+	return (data[n/2-1] + data[n/2]) / 2, true
+}
+
+// Calculate the Population standard deviation of a sequence.
+func StdDev[T constraintsx.Number](seq iter.Seq[T]) (float64, bool) {
+	var sum float64
+	var count int
+	buf := make([]float64, 0, 16)
+	for v := range seq {
+		f := float64(v)
+		sum += f
+		count++
+		buf = append(buf, f)
+	}
+	if count == 0 {
+		return 0, false
+	}
+	mean := sum / float64(count)
+	var variance float64
+	for _, f := range buf {
+		d := f - mean
+		variance += d * d
+	}
+	return math.Sqrt(variance / float64(count)), true
 }

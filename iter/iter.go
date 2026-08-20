@@ -53,3 +53,59 @@ func IterSeq[T any](iter Iterator[T]) iter.Seq[T] {
 		}
 	}
 }
+
+// Empty returns an iterator that yields no elements.
+func Empty[T any]() iter.Seq[T] {
+	return func(yield func(T) bool) {}
+}
+
+// Once yields a single element.
+func Once[T any](v T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		yield(v)
+	}
+}
+
+// Repeat yields the same value infinitely. Only safe to consume with a bounded
+// operation (Limit/TakeWhile/etc).
+func Repeat[T any](v T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// RepeatN yields the same value n times (n <= 0 yields nothing).
+func RepeatN[T any](v T, n int) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := 0; i < n; i++ {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// Cycle repeats the source sequence infinitely. The source is materialized once
+// into a slice. Only safe to consume with a bounded operation.
+func Cycle[T any](seq iter.Seq[T]) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		var data []T
+		for v := range seq {
+			data = append(data, v)
+		}
+		if len(data) == 0 {
+			return
+		}
+		for {
+			for _, v := range data {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}

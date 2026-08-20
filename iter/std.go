@@ -14,7 +14,7 @@ import (
 )
 
 // SliceAll returns the result.
-func SliceAll[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
+func SliceAll[S ~[]T, T any](input S) Stream[types.Pair[int, T]] {
 	return func(yield func(types.Pair[int, T]) bool) {
 		for i, v := range input {
 			if !yield(types.PairOf(i, v)) {
@@ -25,7 +25,7 @@ func SliceAll[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
 }
 
 // SliceAllValues returns the result.
-func SliceAllValues[S ~[]T, T any](input S) Seq[T] {
+func SliceAllValues[S ~[]T, T any](input S) Stream[T] {
 	return func(yield func(T) bool) {
 		for _, v := range input {
 			if !yield(v) {
@@ -36,10 +36,9 @@ func SliceAllValues[S ~[]T, T any](input S) Seq[T] {
 }
 
 // SliceBackwardValues returns the result.
-func SliceBackwardValues[S ~[]T, T any](input S) Seq[T] {
+func SliceBackwardValues[S ~[]T, T any](input S) Stream[T] {
 	return func(yield func(T) bool) {
-		n := len(input) - 1
-		for i := n; n > 0; n-- {
+		for i := len(input) - 1; i >= 0; i-- {
 			if !yield(input[i]) {
 				return
 			}
@@ -48,10 +47,9 @@ func SliceBackwardValues[S ~[]T, T any](input S) Seq[T] {
 }
 
 // SliceBackward returns the result.
-func SliceBackward[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
+func SliceBackward[S ~[]T, T any](input S) Stream[types.Pair[int, T]] {
 	return func(yield func(types.Pair[int, T]) bool) {
-		n := len(input) - 1
-		for i := n; n > 0; n-- {
+		for i := len(input) - 1; i >= 0; i-- {
 			if !yield(types.PairOf(i, input[i])) {
 				return
 			}
@@ -60,7 +58,7 @@ func SliceBackward[S ~[]T, T any](input S) Seq[types.Pair[int, T]] {
 }
 
 // HashMapAll reports whether the condition holds.
-func HashMapAll[M ~map[K]V, K comparable, V any](m M) Seq[types.Pair[K, V]] {
+func HashMapAll[M ~map[K]V, K comparable, V any](m M) Stream[types.Pair[K, V]] {
 	return func(yield func(types.Pair[K, V]) bool) {
 		for k, v := range m {
 			if !yield(types.PairOf(k, v)) {
@@ -71,7 +69,7 @@ func HashMapAll[M ~map[K]V, K comparable, V any](m M) Seq[types.Pair[K, V]] {
 }
 
 // StringAll returns the result.
-func StringAll[T ~string](input T) Seq[types.Pair[int, rune]] {
+func StringAll[T ~string](input T) Stream[types.Pair[int, rune]] {
 	return func(yield func(types.Pair[int, rune]) bool) {
 		for i, v := range input {
 			if !yield(types.PairOf(i, v)) {
@@ -93,7 +91,7 @@ func StringAll2[T ~string](input T) iter.Seq2[int, rune] {
 }
 
 // StringRunes returns the result.
-func StringRunes[T ~string](input T) Seq[rune] {
+func StringRunes[T ~string](input T) Stream[rune] {
 	return func(yield func(rune) bool) {
 		for _, v := range input {
 			if !yield(v) {
@@ -104,7 +102,7 @@ func StringRunes[T ~string](input T) Seq[rune] {
 }
 
 // ChannelAll returns the result.
-func ChannelAll[C ~chan T, T any](c C) Seq[T] {
+func ChannelAll[C ~chan T, T any](c C) Stream[T] {
 	return func(yield func(T) bool) {
 		for v := range c {
 			if !yield(v) {
@@ -128,7 +126,7 @@ func ChannelAll2[C ~chan T, T any](c C) iter.Seq2[int, T] {
 }
 
 // RangeAll returns the result.
-func RangeAll[T constraintsx.Number](begin, end, step T) Seq[T] {
+func RangeAll[T constraintsx.Number](begin, end, step T) Stream[T] {
 	return func(yield func(T) bool) {
 		for v := begin; v <= end; v += step {
 			if !yield(v) {
