@@ -193,12 +193,6 @@ func (opt OptionPtr[T]) Map[R any](fn func(*T) *R) OptionPtr[R] {
 	return SomePtr(fn(opt.Unwrap()))
 }
 
-// MapOptionPtr maps the contained value to another pointer type.
-// Deprecated: use OptionPtr[T].Map instead.
-func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
-	return opt.Map[R](fn)
-}
-
 // IfSome runs action if the OptionPtr contains a value.
 func (opt OptionPtr[T]) IfSome(action func(value *T)) {
 	if opt.IsSome() {
