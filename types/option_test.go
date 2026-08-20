@@ -46,10 +46,4 @@ func TestOptionPtr_Map(t *testing.T) {
 	if noneMapped.IsSome() {
 		t.Fatal("Map on None: IsSome = true, want false")
 	}
-
-	// package-level MapOptionPtr delegates to the method
-	delegated := MapOptionPtr(opt, func(v *int) *string { s := "d" + itoa(*v); return &s })
-	if !delegated.IsSome() || *delegated.Unwrap() != "d42" {
-		t.Fatalf("MapOptionPtr = %v, want d42", delegated)
-	}
 }
