@@ -184,12 +184,19 @@ func (opt OptionPtr[T]) UnwrapOrElse(fn func() *T) *T {
 	return fn()
 }
 
-// MapOptionPtr maps the contained value to another pointer type.
-func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
+// Map maps the contained pointer value to another pointer type using a
+// method-level generic (Go 1.27): the result type R is independent of T.
+func (opt OptionPtr[T]) Map[R any](fn func(*T) *R) OptionPtr[R] {
 	if !opt.IsSome() {
 		return NonePtr[R]()
 	}
 	return SomePtr(fn(opt.Unwrap()))
+}
+
+// MapOptionPtr maps the contained value to another pointer type.
+// Deprecated: use OptionPtr[T].Map instead.
+func MapOptionPtr[T any, R any](opt OptionPtr[T], fn func(*T) *R) OptionPtr[R] {
+	return opt.Map[R](fn)
 }
 
 // IfSome runs action if the OptionPtr contains a value.
