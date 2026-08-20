@@ -75,8 +75,9 @@ func (opt *Option[T]) UnwrapOrElse(fn func() T) T {
 	return fn()
 }
 
-// MapOption maps the contained value to another type.
-func MapOption[T any, R any](opt Option[T], fn func(T) R) Option[R] {
+// Map maps the contained value to another type using a method-level generic
+// (Go 1.27): the result type R is independent of T.
+func (opt Option[T]) Map[R any](fn func(T) R) Option[R] {
 	if !opt.IsSome() {
 		return None[R]()
 	}

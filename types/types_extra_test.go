@@ -290,15 +290,15 @@ func TestOption_IfNone(t *testing.T) {
 
 func TestMapOption(t *testing.T) {
 	opt := Some(42)
-	mapped := MapOption(opt, func(v int) string {
+	mapped := opt.Map[string](func(v int) string {
 		return "result"
 	})
 	if !mapped.IsSome() || mapped.Unwrap() != "result" {
-		t.Error("MapOption on Some should return Some")
+		t.Error("Map on Some should return Some")
 	}
-	mapped2 := MapOption(None[int](), func(v int) string { return "result" })
+	mapped2 := None[int]().Map[string](func(v int) string { return "result" })
 	if mapped2.IsSome() {
-		t.Error("MapOption on None should return None")
+		t.Error("Map on None should return None")
 	}
 }
 
