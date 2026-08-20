@@ -130,11 +130,17 @@ func (req *Request) DoResponse(param any) (*http.Response, error) {
 	return resp, nil
 }
 
+// DoAs is a method-level generic wrapper around Do: it allocates a new RESP
+// value, performs the request, and returns a pointer to it. Mirrors the former
+// client/v2 Request[RESP].Do behavior.
+func (req *Request) DoAs[RESP any](param any) (*RESP, error) {
+	response := new(RESP)
+	err := req.Do(param, response)
+	return response, err
+}
+
 // Do executes the operation.
 func (req *Request) Do(param, response any) error {
-	if req.Method == "" {
-		return errors.New("not set method")
-	}
 
 	if req.Url == "" {
 		return errors.New("not set url")
