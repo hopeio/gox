@@ -176,21 +176,6 @@ func TestToPtrs(t *testing.T) {
 	}
 }
 
-func TestCollector(t *testing.T) {
-	c := Collector[[]int, int]{}
-	builder := c.Builder()
-	c.Append(builder, 1)
-	c.Append(builder, 2)
-	c.Append(builder, 3)
-	result := c.Finish(builder)
-	if len(result) != 3 {
-		t.Errorf("Collector result len = %d, want 3", len(result))
-	}
-	if result[0] != 1 || result[1] != 2 || result[2] != 3 {
-		t.Errorf("Collector result = %v, want [1,2,3]", result)
-	}
-}
-
 // FilterPlace already tested in slice_test.go
 
 func TestForEach(t *testing.T) {

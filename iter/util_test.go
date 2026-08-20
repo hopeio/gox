@@ -294,7 +294,7 @@ func TestUtil_Seq2Conversions(t *testing.T) {
 func TestUtil_Collect(t *testing.T) {
 	// 用 gox/container.Collector 收集为切片
 	col := sliceCollector[int]{}
-	got := Collect[int, *[]int, []int](seqOf([]int{1, 2, 3}), col)
+	got := Collect(seqOf([]int{1, 2, 3}), col)
 	if !eq(got, []int{1, 2, 3}) {
 		t.Fatalf("Collect = %v, want [1 2 3]", got)
 	}
