@@ -107,6 +107,12 @@ func (rw *ResponseRecorder) Header() http.Header {
 // only when the content type is text-like and the total stays under
 // MaxRecordBodySize.
 func (rw *ResponseRecorder) Write(buf []byte) (int, error) {
+	// 与 net/http 一致：未 WriteHeader 时首次 Write 隐含 200。
+	// 网关 HandleError/HandleResponse 常只 Write，不调 WriteHeader，
+	// 不在这里补记则 access log 的 status 会一直是 0。
+	if rw.StatusCode == 0 {
+		rw.StatusCode = http.StatusOK
+	}
 	if len(buf) == 0 {
 		return 0, nil
 	}

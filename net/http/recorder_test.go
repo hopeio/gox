@@ -76,6 +76,20 @@ func TestRecorder_ResetReturnsState(t *testing.T) {
 	}
 }
 
+func TestResponseRecorder_WriteImpliesOKStatus(t *testing.T) {
+	w := httptest.NewRecorder()
+	rw := &ResponseRecorder{originWriter: w}
+	if rw.StatusCode != 0 {
+		t.Fatalf("fresh StatusCode=%d want 0", rw.StatusCode)
+	}
+	if _, err := rw.Write([]byte("ok")); err != nil {
+		t.Fatal(err)
+	}
+	if rw.StatusCode != 200 {
+		t.Fatalf("StatusCode=%d want 200 after Write without WriteHeader", rw.StatusCode)
+	}
+}
+
 func TestResponseRecorder_FlushAndUnwrap(t *testing.T) {
 	w := httptest.NewRecorder()
 	rw := &ResponseRecorder{originWriter: w}
