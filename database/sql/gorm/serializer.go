@@ -13,11 +13,9 @@ import (
 	"math"
 	"reflect"
 	"time"
-	"unsafe"
 
 	sqlx "github.com/hopeio/gox/database/sql"
 	jsonx "github.com/hopeio/gox/encoding/json"
-	reflectx "github.com/hopeio/gox/reflect"
 	"gorm.io/gorm/schema"
 )
 
@@ -67,22 +65,48 @@ type StringArraySerializer struct {
 // Scan returns the result.
 func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value,
 	dbValue any) (err error) {
-	if dbValue != nil {
-		var arr sqlx.StringArray
-		err = arr.Scan(dbValue)
-		if err != nil {
-			return err
-		}
-		fieldValue := reflect.ValueOf(arr)
-		field.ReflectValueOf(ctx, dst).Set(fieldValue)
+	if dbValue == nil {
+		return nil
 	}
-	return
+	var arr sqlx.StringArray
+	if err = arr.Scan(dbValue); err != nil {
+		return err
+	}
+	field.ReflectValueOf(ctx, dst).Set(reflect.ValueOf([]string(arr)))
+	return nil
 }
 
 // Value returns the value.
 func (StringArraySerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue any) (any, error) {
-	arr := (*sqlx.StringArray)(unsafe.Pointer((*reflectx.Eface)(unsafe.Pointer(&fieldValue)).Value))
-	return (*arr).Value()
+	if fieldValue == nil {
+		return "{}", nil
+	}
+	switch v := fieldValue.(type) {
+	case []string:
+		return sqlx.StringArray(v).Value()
+	case *[]string:
+		if v == nil {
+			return nil, nil
+		}
+		return sqlx.StringArray(*v).Value()
+	case sqlx.StringArray:
+		return v.Value()
+	case *sqlx.StringArray:
+		if v == nil {
+			return nil, nil
+		}
+		return v.Value()
+	default:
+		rv := reflect.ValueOf(fieldValue)
+		if rv.Kind() == reflect.Slice && rv.Type().Elem().Kind() == reflect.String {
+			out := make(sqlx.StringArray, rv.Len())
+			for i := 0; i < rv.Len(); i++ {
+				out[i] = rv.Index(i).String()
+			}
+			return out.Value()
+		}
+		return nil, fmt.Errorf("string_array: unsupported type %T", fieldValue)
+	}
 }
 
 type UnixMilliTimeSerializer struct {

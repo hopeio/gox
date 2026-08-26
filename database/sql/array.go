@@ -110,47 +110,100 @@ func (d FloatArray[T]) Value() (driver.Value, error) {
 
 type StringArray []string
 
-// Scan performs the operation.
+// Scan accepts a PG array literal, []byte, or a native []string from the driver.
 func (d *StringArray) Scan(value any) error {
 	if value == nil {
+		*d = nil
 		return nil
 	}
-	str, ok := value.(string)
-	if !ok {
-		data, ok := value.([]byte)
-		if !ok {
-			return errors.New(fmt.Sprint("failed to scan string array value:", value))
+	switch v := value.(type) {
+	case []string:
+		out := make([]string, len(v))
+		copy(out, v)
+		*d = out
+		return nil
+	case string:
+		return d.parseLiteral(v)
+	case []byte:
+		return d.parseLiteral(stringsx.FromBytes(v))
+	default:
+		return errors.New(fmt.Sprint("failed to scan string array value:", value))
+	}
+}
+
+func (d *StringArray) parseLiteral(str string) error {
+	if str == "" || str == "{}" {
+		*d = StringArray{}
+		return nil
+	}
+	if len(str) < 2 || str[0] != '{' || str[len(str)-1] != '}' {
+		return fmt.Errorf("invalid string array literal: %q", str)
+	}
+	inner := str[1 : len(str)-1]
+	if inner == "" {
+		*d = StringArray{}
+		return nil
+	}
+	var (
+		arr     []string
+		cur     strings.Builder
+		inQuote bool
+		escape  bool
+	)
+	flush := func() {
+		arr = append(arr, cur.String())
+		cur.Reset()
+	}
+	for i := 0; i < len(inner); i++ {
+		c := inner[i]
+		if escape {
+			cur.WriteByte(c)
+			escape = false
+			continue
 		}
-		str = stringsx.FromBytes(data)
+		if c == '\\' && inQuote {
+			escape = true
+			continue
+		}
+		if c == '"' {
+			inQuote = !inQuote
+			continue
+		}
+		if c == ',' && !inQuote {
+			flush()
+			continue
+		}
+		cur.WriteByte(c)
 	}
-	if str == "" {
-		return nil
-	}
-	strs := strings.Split(str[1:len(str)-1], ",")
-	var arr []string
-	for _, elem := range strs {
-		arr = append(arr, elem)
-	}
+	flush()
 	*d = arr
 	return nil
 }
 
-// Value returns the value.
+// Value encodes as a PostgreSQL array literal: {}, {"a"}, {"a","b"}.
 func (d StringArray) Value() (driver.Value, error) {
 	if d == nil {
 		return nil, nil
 	}
+	if len(d) == 0 {
+		return "{}", nil
+	}
 	var buf bytes.Buffer
 	buf.WriteByte('{')
-	buf.WriteByte('"')
 	for i, str := range d {
-		buf.WriteString(str)
-		if i != len(d)-1 {
-			buf.WriteByte('"')
+		if i > 0 {
 			buf.WriteByte(',')
 		}
+		buf.WriteByte('"')
+		for j := 0; j < len(str); j++ {
+			c := str[j]
+			if c == '\\' || c == '"' {
+				buf.WriteByte('\\')
+			}
+			buf.WriteByte(c)
+		}
+		buf.WriteByte('"')
 	}
-	buf.WriteByte('"')
 	buf.WriteByte('}')
 	return buf.String(), nil
 }
