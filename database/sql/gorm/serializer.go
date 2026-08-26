@@ -18,15 +18,12 @@ import (
 	sqlx "github.com/hopeio/gox/database/sql"
 	jsonx "github.com/hopeio/gox/encoding/json"
 	reflectx "github.com/hopeio/gox/reflect"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm/schema"
 )
 
 // init initializes package state.
 func init() {
 	schema.RegisterSerializer("json", JSONSerializer{})
-	schema.RegisterSerializer("protojson", ProtoJSONSerializer{})
 	schema.RegisterSerializer("string_array", StringArraySerializer{})
 	schema.RegisterSerializer("unix_milli_time", UnixMilliTimeSerializer{})
 	schema.RegisterSerializer("date", DateSerializer{})
@@ -61,64 +58,6 @@ func (JSONSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect
 // Value returns the value.
 func (JSONSerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue interface{}) (interface{}, error) {
 	return jsonx.Marshal(fieldValue)
-}
-
-// ProtoJSONSerializer stores proto.Message fields (e.g. google.protobuf.Struct) as JSONB
-// using protojson so the wire shape matches JSON object / array semantics.
-type ProtoJSONSerializer struct{}
-
-// Scan performs the operation.
-func (ProtoJSONSerializer) Scan(ctx context.Context, field *schema.Field, dst reflect.Value, dbValue interface{}) (err error) {
-	if dbValue == nil {
-		return nil
-	}
-	var bytes []byte
-	switch v := dbValue.(type) {
-	case []byte:
-		bytes = v
-	case string:
-		bytes = []byte(v)
-	default:
-		return fmt.Errorf("failed to unmarshal protojson JSONB value: %#v", dbValue)
-	}
-	if len(bytes) == 0 || string(bytes) == "null" {
-		return nil
-	}
-
-	rv := field.ReflectValueOf(ctx, dst)
-	var msg proto.Message
-	switch {
-	case field.FieldType.Kind() == reflect.Ptr:
-		if rv.IsNil() {
-			rv.Set(reflect.New(field.FieldType.Elem()))
-		}
-		msg, _ = rv.Interface().(proto.Message)
-	case rv.CanAddr():
-		msg, _ = rv.Addr().Interface().(proto.Message)
-	}
-	if msg == nil {
-		return fmt.Errorf("protojson serializer requires proto.Message field, got %s", field.FieldType)
-	}
-	return protojson.Unmarshal(bytes, msg)
-}
-
-// Value returns the value.
-func (ProtoJSONSerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue interface{}) (interface{}, error) {
-	if fieldValue == nil {
-		return nil, nil
-	}
-	rv := reflect.ValueOf(fieldValue)
-	if !rv.IsValid() || (rv.Kind() == reflect.Ptr && rv.IsNil()) {
-		return nil, nil
-	}
-	msg, ok := fieldValue.(proto.Message)
-	if !ok {
-		return nil, fmt.Errorf("protojson serializer requires proto.Message value, got %T", fieldValue)
-	}
-	if proto.Size(msg) == 0 {
-		return nil, nil
-	}
-	return protojson.Marshal(msg)
 }
 
 // StringArraySerializer is an array serializer
