@@ -118,9 +118,7 @@ func (d *StringArray) Scan(value any) error {
 	}
 	switch v := value.(type) {
 	case []string:
-		out := make([]string, len(v))
-		copy(out, v)
-		*d = out
+		*d = v
 		return nil
 	case string:
 		return d.parseLiteral(v)
