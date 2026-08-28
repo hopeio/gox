@@ -73,7 +73,7 @@ func recordableContentType(ct string) bool {
 	}
 	switch ct {
 	case "application/json", "application/xml", "application/x-www-form-urlencoded",
-		"application/x-protobuf", "application/protobuf", "application/grpc":
+		"application/protobuf", "application/grpc":
 		return true
 	}
 	return strings.HasSuffix(ct, "+json") || strings.HasSuffix(ct, "+xml")
