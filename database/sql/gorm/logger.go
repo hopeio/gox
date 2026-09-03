@@ -8,6 +8,7 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -75,6 +76,10 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (string, 
 	level := logger.Info
 	var msg string
 	switch {
+	case err != nil && (errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)):
+		// Client disconnect / deadline: not a DB fault; keep at Info to avoid ERROR spam.
+		level = logger.Info
+		msg = err.Error()
 	case err != nil:
 		level = logger.Error
 		msg = err.Error()
