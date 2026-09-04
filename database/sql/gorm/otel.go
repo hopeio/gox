@@ -475,6 +475,8 @@ func errorType(err error) string {
 	switch {
 	case err == nil:
 		return ""
+	case errors.Is(err, context.Canceled):
+		return "canceled"
 	case errors.Is(err, context.DeadlineExceeded):
 		return "deadline_exceeded"
 	case errors.Is(err, gorm.ErrRecordNotFound):
