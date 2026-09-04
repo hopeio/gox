@@ -6,11 +6,7 @@ const (
 	HeaderUserAgent                   = "User-Agent"
 	HeaderXForwardedFor               = "X-Forwarded-For"
 	HeaderXAccelBuffering             = "X-Accel-Buffering"
-	HeaderAuth                        = "Auth"
 	HeaderContentType                 = "Content-Type"
-	HeaderTrace                       = "Tracing"
-	HeaderTraceID                     = "Tracing-ID"
-	HeaderTraceBin                    = "Tracing-Bin"
 	HeaderAuthorization               = "Authorization"
 	HeaderCookie                      = "Cookie"
 	HeaderCookieValueToken            = "token"
@@ -49,23 +45,11 @@ const (
 )
 
 const (
-	HeaderGrpcTraceBin = "Grpc-Trace-Bin"
-	HeaderGrpcInternal = "Grpc-Internal"
-	HeaderGrpcStatus   = "Grpc-Status"
-	HeaderGrpcMsg      = "Grpc-Msg"
-	HeaderGrpcMessage  = "Grpc-Message"
-	HeaderErrorCode    = "Error-Code"
-	HeaderErrorMsg     = "Error-Msg"
-	HeaderErrorMessage = "Error-Message"
-)
-
-const (
 	HeaderDeviceInfo    = "Device-Info"
 	HeaderDeviceInfoMd5 = "Device-Info-Md5"
 	HeaderAppInfo       = "App-Info"
 	HeaderLocation      = "Location"
 	HeaderArea          = "Area"
-	HeaderInternal      = "Internal"
 )
 
 const (
