@@ -90,6 +90,22 @@ func TestResponseRecorder_WriteImpliesOKStatus(t *testing.T) {
 	}
 }
 
+func TestResponseRecorder_WriteHeaderIdempotent(t *testing.T) {
+	w := httptest.NewRecorder()
+	rw := &ResponseRecorder{originWriter: w}
+	if _, err := rw.Write([]byte("ok")); err != nil {
+		t.Fatal(err)
+	}
+	// Second WriteHeader must not change recorded first status (net/http semantics).
+	rw.WriteHeader(500)
+	if rw.StatusCode != 200 {
+		t.Fatalf("StatusCode=%d want first status 200", rw.StatusCode)
+	}
+	if w.Code != 200 {
+		t.Fatalf("origin Code=%d want 200 (no superfluous second header)", w.Code)
+	}
+}
+
 func TestResponseRecorder_FlushAndUnwrap(t *testing.T) {
 	w := httptest.NewRecorder()
 	rw := &ResponseRecorder{originWriter: w}

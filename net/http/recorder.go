@@ -51,6 +51,7 @@ type ResponseRecorder struct {
 	originWriter http.ResponseWriter
 	StatusCode   int
 	skipRecord   bool
+	wroteHeader  bool
 }
 
 // MaxRecordBodySize caps how many response bytes are buffered for access logging.
@@ -107,11 +108,10 @@ func (rw *ResponseRecorder) Header() http.Header {
 // only when the content type is text-like and the total stays under
 // MaxRecordBodySize.
 func (rw *ResponseRecorder) Write(buf []byte) (int, error) {
-	// 与 net/http 一致：未 WriteHeader 时首次 Write 隐含 200。
-	// 网关 HandleError/HandleResponse 常只 Write，不调 WriteHeader，
-	// 不在这里补记则 access log 的 status 会一直是 0。
-	if rw.StatusCode == 0 {
-		rw.StatusCode = http.StatusOK
+	// Match net/http: first Write implies WriteHeader(200) so a later explicit
+	// WriteHeader does not reach otel/net/http a second time (superfluous warning).
+	if !rw.wroteHeader {
+		rw.WriteHeader(http.StatusOK)
 	}
 	if len(buf) == 0 {
 		return 0, nil
@@ -141,6 +141,10 @@ func (rw *ResponseRecorder) Write(buf []byte) (int, error) {
 
 // WriteHeader implements http.ResponseWriter.
 func (rw *ResponseRecorder) WriteHeader(statusCode int) {
+	if rw.wroteHeader {
+		return
+	}
+	rw.wroteHeader = true
 	rw.StatusCode = statusCode
 	rw.originWriter.WriteHeader(statusCode)
 }
@@ -181,6 +185,7 @@ func (rw *RequestRecorder) Close() error {
 // 注意先归还再置 nil：曾因先置 nil 导致缓冲永远不回池，每个请求都重新分配。
 func (rw *Recorder) Reset() {
 	rw.StatusCode = http.StatusOK
+	rw.wroteHeader = false
 	rw.skipRecord = false
 	if rw.RequestRecorder.Body != nil {
 		rw.RequestRecorder.Body.Reset()
