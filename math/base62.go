@@ -232,7 +232,8 @@ func ParseUint(s string, base int, bitSize int) (uint64, error) {
 
 	underscores := false
 	var n uint64
-	for _, c := range []byte(s) {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
 		var d byte
 		switch {
 		case c == '_' && base0:

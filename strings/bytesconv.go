@@ -9,6 +9,12 @@ package strings
 import "unsafe"
 
 //go:nosplit
+//
+// ToBytes returns a []byte that aliases the string's underlying read-only
+// memory. The returned slice MUST NOT be written to: string memory is immutable,
+// and mutating it will cause a segmentation fault. Use it only for read-only
+// operations (e.g. passing a string to an API that requires []byte without
+// copying). If you need a writable copy, use []byte(s) instead.
 func ToBytes(s string) []byte {
 	return unsafe.Slice(unsafe.StringData(s), len(s))
 }

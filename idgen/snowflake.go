@@ -84,6 +84,16 @@ func (n *Snowflake) Generate() uint64 {
 
 	now := time.Since(n.epoch).Nanoseconds() / 1000000
 
+	if now < n.time {
+		// The system clock moved backwards. Wait until it catches up so we never
+		// emit an ID with a timestamp older than a previously issued one (which
+		// would break monotonicity and could collide with an earlier ID).
+		for now < n.time {
+			time.Sleep(time.Duration(n.time-now) * time.Millisecond)
+			now = time.Since(n.epoch).Nanoseconds() / 1000000
+		}
+	}
+
 	if now == n.time {
 		n.step = (n.step + 1) & n.stepMask
 
@@ -109,7 +119,7 @@ func (n *Snowflake) Generate() uint64 {
 // Decompose performs the operation.
 func (n *Snowflake) Decompose(id uint64) (timestamp int64, nodeId uint16, step uint16) {
 	timestamp = int64(id>>n.timeShift) + n.epoch.UnixNano()/1000000
-	nodeId = uint16(id>>n.nodeShift) & n.nodeMask
-	step = uint16(id)
+	nodeId = uint16((id >> n.nodeShift) & uint64(n.nodeMax))
+	step = uint16(id & uint64(n.stepMask))
 	return timestamp, nodeId, step
 }

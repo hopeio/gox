@@ -18,6 +18,10 @@ func NewPool[T any](fn func() T) *Pool[T] {
 }
 
 // Get gets a T from the pool, or creates a new one if the pool is empty.
+//
+// Note: do not Put a nil value of a non-pointer type T into the pool. The
+// underlying sync.Pool returns such a value as a nil interface, and the type
+// assertion below would panic for value types (e.g. Pool[int]).
 func (p *Pool[T]) Get() T {
 	return p.pool.Get().(T)
 }

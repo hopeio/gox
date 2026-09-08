@@ -19,7 +19,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
 	}
-	// small slice
+	// small slice: O(n*m) scan; if no pair matches there is no intersection.
 	if len(s1) < SmallArrayLen && len(s2) < SmallArrayLen {
 		for i := range s1 {
 			for j := range s2 {
@@ -28,6 +28,7 @@ func HasCoincide[S ~[]T, T comparable](s1, s2 S) bool {
 				}
 			}
 		}
+		return false
 	}
 	// 交错单遍会漏检（公共元素在 s1 中的下标大于在 s2 中时尚未入 map），必须先建全量集合
 	tmpMap := make(map[T]struct{}, len(s1))
@@ -48,7 +49,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	if len(s1) == 0 || len(s2) == 0 {
 		return false
 	}
-	// small slice
+	// small slice: O(n*m) scan; if no pair matches there is no intersection.
 	if len(s1) < SmallArrayLen && len(s2) < SmallArrayLen {
 		for i := range s1 {
 			for j := range s2 {
@@ -57,6 +58,7 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 				}
 			}
 		}
+		return false
 	}
 
 	// 交错单遍会漏检（公共元素在 s1 中的下标大于在 s2 中时尚未入 map），必须先建全量集合
@@ -72,16 +74,21 @@ func HasCoincideByKey[S ~[]E, E cmp.EqualKey[T], T comparable](s1, s2 S) bool {
 	return false
 }
 
-// RemoveDuplicates removes or resets state.
+// RemoveDuplicates returns the slice with duplicate elements removed, preserving
+// the order of first appearance.
 func RemoveDuplicates[S ~[]T, T comparable](s S) S {
 	if len(s) == 0 {
 		return s
 	}
-	var m = make(map[T]struct{})
+	seen := make(map[T]struct{}, len(s))
+	r := make(S, 0, len(s))
 	for _, v := range s {
-		m[v] = struct{}{}
+		if _, ok := seen[v]; !ok {
+			seen[v] = struct{}{}
+			r = append(r, v)
+		}
 	}
-	return maps.Keys(m)
+	return r
 }
 
 // RemoveDuplicatesByKey removes or resets state.
@@ -213,9 +220,6 @@ func OrderedArrayIntersection[S ~[]T, T constraints.Ordered](a S, b S) S {
 		return S{}
 	}
 	var ret S
-	if len(a) == 0 || len(b) == 0 {
-		return nil
-	}
 	var idx int
 	for _, x := range a {
 		if x > b[len(b)-1] {

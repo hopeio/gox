@@ -6,8 +6,6 @@
 
 package maps
 
-import "maps"
-
 // Map returns the result.
 func Map[M ~map[K]V, K comparable, V, T any](m M, subValue func(K, V) T) []T {
 	r := make([]T, 0, len(m))
@@ -29,7 +27,7 @@ func Keys[M ~map[K]V, K comparable, V any](m M) []K {
 // KeysMap returns the result.
 func KeysMap[M ~map[K]V, K comparable, V, T any](m M, transform func(K) T) []T {
 	r := make([]T, 0, len(m))
-	for k := range maps.Keys(m) {
+	for k := range m {
 		r = append(r, transform(k))
 	}
 	return r
@@ -47,7 +45,7 @@ func Values[M ~map[K]V, K comparable, V any](m M) []V {
 // ValuesMap returns the result.
 func ValuesMap[M ~map[K]V, K comparable, V, T any](m M, transform func(V) T) []T {
 	r := make([]T, 0, len(m))
-	for v := range maps.Values(m) {
+	for _, v := range m {
 		r = append(r, transform(v))
 	}
 	return r
@@ -76,7 +74,11 @@ func ForEachKey[M ~map[K]V, K comparable, V any](m M, handle func(v K)) {
 
 // MultiKeys returns the result.
 func MultiKeys[M ~map[K]V, K comparable, V any](maps ...M) []K {
-	r := make([]K, 0, len(maps))
+	n := 0
+	for _, m := range maps {
+		n += len(m)
+	}
+	r := make([]K, 0, n)
 	for _, m := range maps {
 		for k := range m {
 			r = append(r, k)
@@ -87,7 +89,11 @@ func MultiKeys[M ~map[K]V, K comparable, V any](maps ...M) []K {
 
 // MultiValues returns the result.
 func MultiValues[M ~map[K]V, K comparable, V any](maps ...M) []V {
-	r := make([]V, 0, len(maps))
+	n := 0
+	for _, m := range maps {
+		n += len(m)
+	}
+	r := make([]V, 0, n)
 	for _, m := range maps {
 		for _, v := range m {
 			r = append(r, v)

@@ -2,37 +2,27 @@ package idgen
 
 import (
 	crand "crypto/rand"
-	"encoding/binary"
 	"math/rand"
 	"sync"
 )
-
-var defaultRandomIDGenerator randomIDGenerator
-
-// init initializes package state.
-func init() {
-	var rngSeed int64
-	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)
-	defaultRandomIDGenerator.randSource = rand.New(rand.NewSource(rngSeed))
-}
 
 type randomIDGenerator struct {
 	sync.Mutex
 	randSource *rand.Rand
 }
 
-// NewRandomIDGenerator creates and returns a new instance.
+// NewRandomIDGenerator creates a generator backed by the given math/rand source.
+// Prefer NewRandomID for security-sensitive identifiers: math/rand is
+// predictable and must not be used where uniqueness/unguessability matters.
 func NewRandomIDGenerator(randSource *rand.Rand) *randomIDGenerator {
 	return &randomIDGenerator{randSource: randSource}
 }
 
-// NewRandomID creates and returns a new instance.
+// NewRandomID creates a cryptographically secure random ID using crypto/rand.
 func NewRandomID() ID {
-	defaultRandomIDGenerator.Lock()
-	defer defaultRandomIDGenerator.Unlock()
 	sid := make(ID, 16)
 	for {
-		_, _ = defaultRandomIDGenerator.randSource.Read(sid[:])
+		_, _ = crand.Read(sid[:])
 		if sid.IsValid() {
 			break
 		}

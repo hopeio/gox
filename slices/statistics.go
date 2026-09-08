@@ -13,18 +13,27 @@ import (
 	"github.com/hopeio/gox/types/constraints"
 )
 
-// Calculate the Median of a slice of floats
+// Calculate the Median of a slice. The input is copied before sorting so the
+// caller's slice is left untouched.
 func Median[S ~[]T, T constraints.Number](data S) T {
-	slices.Sort(data)
-	n := len(data)
-	if n%2 == 0 {
-		return (data[n/2-1] + data[n/2]) / 2
+	if len(data) == 0 {
+		var zero T
+		return zero
 	}
-	return data[n/2]
+	d := Copy(data)
+	slices.Sort(d)
+	n := len(d)
+	if n%2 == 0 {
+		return (d[n/2-1] + d[n/2]) / 2
+	}
+	return d[n/2]
 }
 
 // Calculate the Mean of a slice of floats
 func Mean[S ~[]T, T constraints.Number](data S) float64 {
+	if len(data) == 0 {
+		return 0
+	}
 	var sum float64
 	for _, value := range data {
 		sum += float64(value)
