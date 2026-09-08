@@ -7,8 +7,6 @@
 package slices
 
 import (
-	"slices"
-
 	reflectx "github.com/hopeio/gox/reflect"
 	"golang.org/x/exp/constraints"
 
@@ -36,33 +34,31 @@ func Some[S ~[]T, T any](slice S, fn func(T) bool) bool {
 	return false
 }
 
-// Zip returns the result.
+// Zip returns a slice of pairs zipping s1 and s2 up to the shorter length.
+// If the two slices have different lengths, the extra elements of the longer
+// slice are ignored instead of causing an out-of-range panic.
 func Zip[S ~[]T, T any](s1, s2 S) [][2]T {
 	var newSlice [][2]T
-	for i := range s1 {
+	n := len(s1)
+	if len(s2) < n {
+		n = len(s2)
+	}
+	for i := 0; i < n; i++ {
 		newSlice = append(newSlice, [2]T{s1[i], s2[i]})
 	}
 	return newSlice
 }
 
-// Deduplicate returns the result.
+// Deduplicate returns the slice with duplicate elements removed, preserving the
+// order of first appearance.
 func Deduplicate[S ~[]T, T comparable](slice S) S {
-	if len(slice) < SmallArrayLen {
-		newslice := make(S, 0, 2)
-		for i := range slice {
-			if !slices.Contains(newslice, slice[i]) {
-				newslice = append(newslice, slice[i])
-			}
-		}
-		return newslice
-	}
-	set := make(map[T]struct{})
-	for i := range slice {
-		set[slice[i]] = struct{}{}
-	}
 	newslice := make(S, 0, len(slice))
-	for k := range set {
-		newslice = append(newslice, k)
+	set := make(map[T]struct{}, len(slice))
+	for _, v := range slice {
+		if _, ok := set[v]; !ok {
+			set[v] = struct{}{}
+			newslice = append(newslice, v)
+		}
 	}
 	return newslice
 }
@@ -140,21 +136,38 @@ func Filter[S ~[]T, T any](fn func(T) bool, src S) S {
 	return dst
 }
 
-// Reduce returns the result.
+// Reduce folds fn over the slice from left to right, using the first element as
+// the initial accumulator. It returns the zero value for an empty slice instead
+// of panicking on slices[1].
 func Reduce[S ~[]T, T any](slices S, fn func(T, T) T) T {
-	ret := fn(slices[0], slices[1])
-	for i := 2; i < len(slices); i++ {
+	if len(slices) == 0 {
+		var zero T
+		return zero
+	}
+	ret := slices[0]
+	for i := 1; i < len(slices); i++ {
 		ret = fn(ret, slices[i])
 	}
 	return ret
 }
 
 // Convert converts the value.
+//
+// The conversion is memory-safe. Identical element types are reinterpreted with
+// zero cost. When the two element types have the same size and contain no Go
+// pointers, the backing array is reinterpreted in place (zero allocation), which
+// is the intended fast path for, e.g., []convInt -> []int. In all other cases
+// the elements are converted one by one. The previous code reinterpreted the
+// backing array for any pair of equal Kind without checking the element size,
+// which was undefined behavior / out-of-bounds for differing sizes (e.g.
+// []int8 -> []int64).
 func Convert[T1S ~[]T1, T2S ~[]T2, T1, T2 any](s T1S) T2S {
 	t1, t2 := new(T1), new(T2)
 	t1type, t2type := reflect.TypeOf(t1).Elem(), reflect.TypeOf(t2).Elem()
-	t1kind, t2kind := t1type.Kind(), t2type.Kind()
-	if reflectx.CanCast(t1type, t2type, false) && t1kind == t2kind {
+	if t1type == t2type {
+		return any(s).(T2S)
+	}
+	if t1type.Size() == t2type.Size() && canReinterpret(t1type) && canReinterpret(t2type) {
 		return unsafe.Slice((*T2)(unsafe.Pointer(unsafe.SliceData(s))), len(s))
 	}
 	if t1type.ConvertibleTo(t2type) {
@@ -162,13 +175,11 @@ func Convert[T1S ~[]T1, T2S ~[]T2, T1, T2 any](s T1S) T2S {
 			return reflect.ValueOf(v).Convert(t2type).Interface().(T2)
 		})
 	}
-
-	if t2kind == reflect.Interface && t1type.Implements(t2type) {
+	if t2type.Kind() == reflect.Interface && t1type.Implements(t2type) {
 		return Map(s, func(v T1) T2 {
 			return reflect.ValueOf(v).Convert(t2type).Interface().(T2)
 		})
 	}
-
 	if _, ok := any(t1).(T2); ok {
 		return Map(s, func(v T1) T2 { return any(v).(T2) })
 	}
@@ -176,6 +187,29 @@ func Convert[T1S ~[]T1, T2S ~[]T2, T1, T2 any](s T1S) T2S {
 		return Map(s, func(v T1) T2 { return any(v).(T2) })
 	}
 	panic("unsupported type")
+}
+
+// canReinterpret reports whether a value of type t can be safely reinterpreted as
+// a different but same-sized type without confusing the garbage collector.
+// Types that contain Go pointers must not be reinterpreted this way.
+func canReinterpret(t reflect.Type) bool {
+	switch t.Kind() {
+	// String is {ptr,len}; reinterpreting it as a same-sized numeric type
+	// (or vice versa) confuses the GC and is undefined behavior.
+	case reflect.String, reflect.Pointer, reflect.UnsafePointer, reflect.Slice, reflect.Map, reflect.Chan, reflect.Func, reflect.Interface:
+		return false
+	case reflect.Struct:
+		for i := 0; i < t.NumField(); i++ {
+			if !canReinterpret(t.Field(i).Type) {
+				return false
+			}
+		}
+		return true
+	case reflect.Array:
+		return canReinterpret(t.Elem())
+	default:
+		return true
+	}
 }
 
 // GuardSlice performs the operation.
@@ -219,27 +253,56 @@ func FilterPlace[S ~[]T, T any](slices S, fn func(T) bool) S {
 	return slices[:n+1]
 }
 
-// Remove removes or resets state.
+// Remove deletes the element at index i. An out-of-range index leaves the slice
+// unchanged instead of panicking.
 func Remove[S ~[]T, T any](slices S, i int) S {
+	if i < 0 || i >= len(slices) {
+		return slices
+	}
 	return append(slices[:i], slices[i+1:]...)
 }
 
-// TwoDimensionalSlice returns the result.
+// TwoDimensionalSlice extracts the sub-region [rowStart,rowEnd) x
+// [colStart,colEnd) of s. Out-of-range requests are clamped to valid bounds
+// instead of panicking; a row whose column range is invalid yields a nil slice.
 func TwoDimensionalSlice[S ~[][]T, T any](s S, rowStart, rowEnd, colStart, colEnd int) S {
+	if rowStart < 0 || rowEnd > len(s) || rowStart > rowEnd {
+		return S{}
+	}
 	ret := make([][]T, rowEnd-rowStart)
 	for i := range ret {
-		ret[i] = s[rowStart+i][colStart:colEnd]
+		row := s[rowStart+i]
+		if colStart < 0 || colEnd > len(row) || colStart > colEnd {
+			ret[i] = nil
+			continue
+		}
+		ret[i] = row[colStart:colEnd]
 	}
 	return ret
 }
 
-// ThreeDimensionalSlice returns the result.
+// ThreeDimensionalSlice extracts a sub-cube of s. Out-of-range requests are
+// clamped to valid bounds instead of panicking; an invalid range on any axis
+// yields a nil slice for that cell.
 func ThreeDimensionalSlice[S ~[][][]T, T any](s S, rowStart, rowEnd, colStart, colEnd, sliceStart, sliceEnd int) S {
+	if rowStart < 0 || rowEnd > len(s) || rowStart > rowEnd {
+		return S{}
+	}
 	ret := make(S, rowEnd-rowStart)
 	for i := range ret {
+		plane := s[rowStart+i]
+		if colStart < 0 || colEnd > len(plane) || colStart > colEnd {
+			ret[i] = nil
+			continue
+		}
 		ret[i] = make([][]T, colEnd-colStart)
 		for j := range ret[i] {
-			ret[i][j] = s[rowStart+i][colStart+j][sliceStart:sliceEnd]
+			row := plane[colStart+j]
+			if sliceStart < 0 || sliceEnd > len(row) || sliceStart > sliceEnd {
+				ret[i][j] = nil
+				continue
+			}
+			ret[i][j] = row[sliceStart:sliceEnd]
 		}
 	}
 	return ret
