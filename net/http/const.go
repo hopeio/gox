@@ -45,11 +45,11 @@ const (
 )
 
 const (
-	HeaderDeviceInfo    = "Device-Info"
-	HeaderDeviceInfoMd5 = "Device-Info-Md5"
-	HeaderAppInfo       = "App-Info"
-	HeaderLocation      = "Location"
-	HeaderArea          = "Area"
+	HeaderDeviceInfo     = "Device-Info"
+	HeaderDeviceInfoMd5  = "Device-Info-Md5"
+	HeaderPlatformInfo   = "Platform-Info" // platform;clientKind;version（系统版本）
+	HeaderAppInfo        = "App-Info"      // appCode;appVersion
+	HeaderLocation       = "Location"      // lng;lat;area（请求侧地理；非 HTTP 重定向）
 )
 
 const (
