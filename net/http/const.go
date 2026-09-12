@@ -42,14 +42,7 @@ const (
 	HeaderContentRange                = "Content-Range"
 	HeaderAcceptRanges                = "Accept-Ranges"
 	HeaderXForwardedHost              = "X-Forwarded-Host"
-)
-
-const (
-	HeaderDeviceInfo     = "Device-Info"
-	HeaderDeviceInfoMd5  = "Device-Info-Md5"
-	HeaderPlatformInfo   = "Platform-Info" // platform;clientKind;version（系统版本）
-	HeaderAppInfo        = "App-Info"      // appCode;appVersion
-	HeaderLocation       = "Location"      // lng;lat;area（请求侧地理；非 HTTP 重定向）
+	HeaderLocation                    = "Location" // standard redirect header
 )
 
 const (
