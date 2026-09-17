@@ -77,28 +77,39 @@ func (StringArraySerializer) Scan(ctx context.Context, field *schema.Field, dst 
 }
 
 // Value returns the value.
+// A nil or empty slice is the zero value of an array column and must be
+// serialized as the empty PostgreSQL array '{}', never as SQL NULL.
 func (StringArraySerializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue any) (any, error) {
 	if fieldValue == nil {
 		return "{}", nil
 	}
 	switch v := fieldValue.(type) {
 	case []string:
+		if v == nil {
+			return "{}", nil
+		}
 		return sqlx.StringArray(v).Value()
 	case *[]string:
-		if v == nil {
-			return nil, nil
+		if v == nil || *v == nil {
+			return "{}", nil
 		}
 		return sqlx.StringArray(*v).Value()
 	case sqlx.StringArray:
+		if v == nil {
+			return "{}", nil
+		}
 		return v.Value()
 	case *sqlx.StringArray:
-		if v == nil {
-			return nil, nil
+		if v == nil || *v == nil {
+			return "{}", nil
 		}
 		return v.Value()
 	default:
 		rv := reflect.ValueOf(fieldValue)
 		if rv.Kind() == reflect.Slice && rv.Type().Elem().Kind() == reflect.String {
+			if rv.Len() == 0 {
+				return "{}", nil
+			}
 			out := make(sqlx.StringArray, rv.Len())
 			for i := 0; i < rv.Len(); i++ {
 				out[i] = rv.Index(i).String()
