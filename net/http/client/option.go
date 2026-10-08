@@ -51,12 +51,6 @@ func SetCookie(cookie string) HttpRequestOption {
 	}
 }
 
-// TODO
-// tag :`request:"uri:xxx;query:xxx;header:xxx;body:xxx"`
-func setRequest(p any, req *http.Request) {
-
-}
-
 type HttpClientOption func(client *http.Client)
 
 type RequestOption func(req *Request)
