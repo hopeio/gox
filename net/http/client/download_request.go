@@ -405,5 +405,5 @@ func ImageOption(req *http.Request) {
 
 // DownloadToDir executes the operation.
 func DownloadToDir(dir, url string) error {
-	return NewDownloadReq(url).Download(dir + fs.PathSeparator + urlx.URIBase(url))
+	return NewDownloadReq(url).Download(dir + fs.PathSeparator + urlx.BaseName(url))
 }

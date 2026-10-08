@@ -156,11 +156,11 @@ func bufApp(buf *[]byte, s string, w int, c byte) {
 
 // Base returns the result.
 func Base(url string) string {
-	return stringsx.CutPart(stringsx.CutPart(url, "#"), "?")
+	return stringsx.CutPart(url, "?")
 }
 
-// URIBase returns the result.
-func URIBase(url string) string {
+// BaseName returns the last path segment of url, ignoring query and fragment.
+func BaseName(url string) string {
 	return stringsx.ReverseCutPart(Base(url), "/")
 }
 

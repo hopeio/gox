@@ -64,7 +64,7 @@ func DocList(w http.ResponseWriter, r *http.Request) {
 	for i := range fileInfos {
 		if strings.HasSuffix(fileInfos[i].Name(), JsonEXT) {
 			mod := strings.TrimSuffix(fileInfos[i].Name(), JsonEXT)
-			buff.Write([]byte(`<a href="` + r.RequestURI + "/" + mod + `"> ` + mod + `</a><br>`))
+			buff.Write([]byte(`<a href="` + r.URL.Path + "/" + mod + `"> ` + mod + `</a><br>`))
 		}
 	}
 	w.Write(buff.Bytes())

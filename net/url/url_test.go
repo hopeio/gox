@@ -151,5 +151,5 @@ func BenchmarkPathCleanLong(b *testing.B) {
 func TestUrlFileName(t *testing.T) {
 	url, _ := url2.Parse("https://hlsx.izpc.me/videos2/3c1d1985aba6dc02a45604f718fdd376/3c1d1985aba6dc02a45604f718fdd376.m3u8?auth_key=1680491566-642a442e32d50-0-eaf1ed50e28f46c64b6545c7fa5da4a7&v=2")
 	t.Log(url)
-	t.Log(URIBase("https://hlsx.izpc.me/videos2/3c1d1985aba6dc02a45604f718fdd376/3c1d1985aba6dc02a45604f718fdd376.m3u8?auth_key=1680491566-642a442e32d50-0-eaf1ed50e28f46c64b6545c7fa5da4a7&v=2"))
+	t.Log(BaseName("https://hlsx.izpc.me/videos2/3c1d1985aba6dc02a45604f718fdd376/3c1d1985aba6dc02a45604f718fdd376.m3u8?auth_key=1680491566-642a442e32d50-0-eaf1ed50e28f46c64b6545c7fa5da4a7&v=2"))
 }
