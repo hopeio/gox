@@ -23,7 +23,7 @@ import (
 
 // Directory layout: ./api/mod/mod.openapi.json
 // Routes: /openapi /openapi/mod.openapi.json
-var UriPrefix = "/openapi"
+var PathPrefix = "/openapi"
 var DocDir = "./apidoc/"
 
 const TypeOpenapi = "openapi"
@@ -33,9 +33,9 @@ const JsonEXT = ".json"
 
 // OpenApi creates and returns a new instance.
 func OpenApi(w http.ResponseWriter, r *http.Request) {
-	prefixUri := UriPrefix + "/"
+	pathPrefix := PathPrefix + "/"
 	if r.RequestURI[len(r.RequestURI)-5:] == ".json" {
-		b, err := os.ReadFile(DocDir + r.RequestURI[len(prefixUri):])
+		b, err := os.ReadFile(DocDir + r.RequestURI[len(pathPrefix):])
 		if err != nil {
 			w.Write([]byte(err.Error()))
 			return
@@ -45,10 +45,10 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 		return
 	}
-	mod := r.RequestURI[len(prefixUri):]
+	mod := r.RequestURI[len(pathPrefix):]
 	Redoc(RedocOpts{
-		BasePath: prefixUri,
-		SpecURL:  path.Join(prefixUri, mod+JsonEXT),
+		BasePath: pathPrefix,
+		SpecURL:  path.Join(pathPrefix, mod+JsonEXT),
 		Path:     mod,
 	}, http.NotFoundHandler()).ServeHTTP(w, r)
 }
@@ -71,7 +71,7 @@ func DocList(w http.ResponseWriter, r *http.Request) {
 }
 
 // Openapi creates and returns a new instance.
-func Openapi(mux *http.ServeMux, uriPrefix, dir string) {
+func Openapi(mux *http.ServeMux, pathPrefix, dir string) {
 	if dir != "" {
 		if b := dir[len(dir)-1:]; b == "/" || b == "\\" {
 			DocDir = dir
@@ -79,11 +79,11 @@ func Openapi(mux *http.ServeMux, uriPrefix, dir string) {
 			DocDir = dir + fs.PathSeparator
 		}
 	}
-	if uriPrefix != "" {
-		UriPrefix = uriPrefix
+	if pathPrefix != "" {
+		PathPrefix = pathPrefix
 	}
-	mux.HandleFunc(UriPrefix, DocList)
-	mux.HandleFunc(UriPrefix+"/{file...}", OpenApi)
+	mux.HandleFunc(PathPrefix, DocList)
+	mux.HandleFunc(PathPrefix+"/{file...}", OpenApi)
 }
 
 // WriteToFile performs the operation.
