@@ -34,8 +34,8 @@ const JsonEXT = ".json"
 // OpenApi creates and returns a new instance.
 func OpenApi(w http.ResponseWriter, r *http.Request) {
 	pathPrefix := PathPrefix + "/"
-	if r.RequestURI[len(r.RequestURI)-5:] == ".json" {
-		b, err := os.ReadFile(DocDir + r.RequestURI[len(pathPrefix):])
+	if strings.HasSuffix(r.URL.Path, JsonEXT) {
+		b, err := os.ReadFile(DocDir + strings.TrimPrefix(r.URL.Path, pathPrefix))
 		if err != nil {
 			w.Write([]byte(err.Error()))
 			return
@@ -45,7 +45,7 @@ func OpenApi(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 		return
 	}
-	mod := r.RequestURI[len(pathPrefix):]
+	mod := strings.TrimPrefix(r.URL.Path, pathPrefix)
 	Redoc(RedocOpts{
 		BasePath: pathPrefix,
 		SpecURL:  path.Join(pathPrefix, mod+JsonEXT),
