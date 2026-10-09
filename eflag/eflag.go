@@ -1,4 +1,4 @@
-package flag
+package eflag
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ const flagTagName = "flag"
 type flagTagSettings struct {
 	Name    string `meta:"name"`
 	Short   string `meta:"short"`
-	Env     string `meta:"env" comment:"read from environment variable"`
+	Env     string `meta:"env"` // read from environment variable
 	Default string `meta:"default"`
 	Usage   string `meta:"usage"`
 }
