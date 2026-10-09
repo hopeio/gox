@@ -95,7 +95,8 @@ func TestAllowPrefixOverridesBuiltinRules(t *testing.T) {
 	if err := p.IPAllowed(netip.MustParseAddr("192.168.31.5")); !errors.Is(err, ErrPrivate) {
 		t.Fatalf("IPAllowed(192.168.31.5) = %v, want ErrPrivate (outside Allow)", err)
 	}
-	// 白名单也覆盖内置必拦项之外的场景：私网在 AllowPrivate=false 时经 Allow 放行
+	// Allow also covers cases the built-in rules would reject: a private
+	// address passes via Allow even when AllowPrivate=false
 	if err := (Policy{Allow: p.Allow}).IPAllowed(netip.MustParseAddr("10.1.2.3")); err != nil {
 		t.Fatalf("Allow should bypass AllowPrivate=false, got %v", err)
 	}
@@ -109,7 +110,7 @@ func TestDenyOverridesBuiltinAllow(t *testing.T) {
 	if err := p.IPAllowed(netip.MustParseAddr("8.8.4.4")); err != nil {
 		t.Fatalf("IPAllowed(8.8.4.4) = %v, want nil (outside Deny)", err)
 	}
-	// Deny 也拦得住 AllowPrivate 放行的私网
+	// Deny also blocks private addresses that AllowPrivate would let through
 	p2 := Policy{AllowPrivate: true, Deny: []netip.Prefix{netip.MustParsePrefix("10.233.0.0/16")}}
 	if err := p2.IPAllowed(netip.MustParseAddr("10.233.1.1")); !errors.Is(err, ErrDenied) {
 		t.Fatalf("IPAllowed(10.233.1.1) = %v, want ErrDenied", err)
@@ -145,7 +146,7 @@ func TestAllowFuncTakesOverButAllowDenyStillApply(t *testing.T) {
 	if err := p.IPAllowed(netip.MustParseAddr("8.8.8.8")); err != nil {
 		t.Fatalf("AllowFunc nil result should pass: %v", err)
 	}
-	// Allow 命中时不走 AllowFunc
+	// Allow hits bypass AllowFunc entirely
 	p2 := Policy{
 		AllowFunc: func(netip.Addr) error { return custom },
 		Allow:     []netip.Prefix{netip.MustParsePrefix("9.9.9.9/32")},

@@ -4,12 +4,15 @@
  * @Created by jyb
  */
 
-// Package safedial 给“服务端按用户/运维填写的 URL 主动出站”加地址闸门。
+// Package safedial adds an address gate to outbound HTTP requests whose
+// target URLs are supplied by users or operators.
 //
-// 探活、回调、拉远端资源若把 URL 直接交给 http.Client，再把响应体回吐，
-// 就等于开了一个读服务器内网的口子（云厂商元数据 169.254.169.254 最典型）。
-// 只校验 URL 不够：重定向和 DNS rebinding 都能绕过。闸门放在 Dialer.Control——
-// 那时拿到的才是真正要连的 IP。
+// Probing, callbacks, and fetching remote resources hand the URL straight
+// to http.Client and feed the response body back, which opens a hole into
+// the server's internal network (cloud metadata at 169.254.169.254 being
+// the classic case). Validating the URL alone is not enough: redirects and
+// DNS rebinding both bypass it. The gate therefore sits in Dialer.Control,
+// where the address is the IP actually about to be dialed.
 package safedial
 
 import (
@@ -24,17 +27,20 @@ import (
 	"time"
 )
 
-// Policy 决定哪些目标地址可以连。
+// Policy decides which destination addresses may be connected.
 type Policy struct {
-	// AllowPrivate 允许 RFC1918 / ULA。局域网 Agent 探活常要打开；
-	// 回环与链路本地无论如何都拦。
+	// AllowPrivate permits RFC1918 / ULA ranges. Probing agents on a LAN
+	// usually needs it on; loopback and link-local are always blocked.
 	AllowPrivate bool
-	// Allow 命中即放行，优先于内置规则与 Deny（如只放行 10.0.0.0/8）。
+	// Allow entries pass immediately, overriding the built-in rules and
+	// Deny (e.g. allow only 10.0.0.0/8).
 	Allow []netip.Prefix
-	// Deny 追加黑名单，优先于内置规则的放行（如拦某个公网网段）。
+	// Deny entries are an extra blocklist that wins over built-in allow
+	// (e.g. block a public range).
 	Deny []netip.Prefix
-	// AllowFunc 完全接管判断：非 nil 时替代内置规则（Allow/Deny 仍先于它生效）。
-	// 入参是已 Unmap 的地址。
+	// AllowFunc fully replaces the built-in rules when non-nil
+	// (Allow/Deny still take precedence over it).
+	// It receives the Unmapped address.
 	AllowFunc func(ip netip.Addr) error
 }
 
@@ -47,7 +53,7 @@ var (
 	ErrDenied   = errors.New("address is denied by policy")
 )
 
-// ValidateURL 只做能静态判断的部分：协议与是否带 host。
+// ValidateURL checks only what can be decided statically: scheme and host presence.
 func ValidateURL(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -62,8 +68,9 @@ func ValidateURL(raw string) error {
 	return nil
 }
 
-// IPAllowed 判断某个具体 IP 是否可连。
-// 判定顺序：Allow 白名单 > Deny 黑名单 > AllowFunc（接管内置规则）> 内置规则。
+// IPAllowed reports whether a specific IP may be connected.
+// Decision order: Allow allowlist > Deny blocklist > AllowFunc (replaces
+// built-in rules) > built-in rules.
 func (p Policy) IPAllowed(ip netip.Addr) error {
 	ip = ip.Unmap()
 	if matchAny(ip, p.Allow) {
@@ -107,7 +114,8 @@ func matchAny(ip netip.Addr, prefixes []netip.Prefix) bool {
 	return false
 }
 
-// Control 传给 net.Dialer.Control，在建立连接前拦下不允许的目标。
+// Control is passed to net.Dialer.Control and blocks disallowed targets
+// before the connection is established.
 func (p Policy) Control(_, address string, _ syscall.RawConn) error {
 	host, _, err := net.SplitHostPort(address)
 	if err != nil {
@@ -120,7 +128,8 @@ func (p Policy) Control(_, address string, _ syscall.RawConn) error {
 	return p.IPAllowed(ip)
 }
 
-// Client 返回一个带地址闸门、且不跟随重定向的 http.Client。
+// Client returns an http.Client with the address gate that does not
+// follow redirects.
 func (p Policy) Client(timeout time.Duration) *http.Client {
 	dialer := &net.Dialer{Timeout: timeout, Control: p.Control}
 	return &http.Client{
