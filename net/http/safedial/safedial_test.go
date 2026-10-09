@@ -86,3 +86,71 @@ func TestMappedV4IsUnwrapped(t *testing.T) {
 		t.Fatalf("mapped loopback slipped through: %v", err)
 	}
 }
+
+func TestAllowPrefixOverridesBuiltinRules(t *testing.T) {
+	p := Policy{Allow: []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8")}}
+	if err := p.IPAllowed(netip.MustParseAddr("10.1.2.3")); err != nil {
+		t.Fatalf("IPAllowed(10.1.2.3) with Allow 10.0.0.0/8 = %v, want nil", err)
+	}
+	if err := p.IPAllowed(netip.MustParseAddr("192.168.31.5")); !errors.Is(err, ErrPrivate) {
+		t.Fatalf("IPAllowed(192.168.31.5) = %v, want ErrPrivate (outside Allow)", err)
+	}
+	// 白名单也覆盖内置必拦项之外的场景：私网在 AllowPrivate=false 时经 Allow 放行
+	if err := (Policy{Allow: p.Allow}).IPAllowed(netip.MustParseAddr("10.1.2.3")); err != nil {
+		t.Fatalf("Allow should bypass AllowPrivate=false, got %v", err)
+	}
+}
+
+func TestDenyOverridesBuiltinAllow(t *testing.T) {
+	p := Policy{Deny: []netip.Prefix{netip.MustParsePrefix("8.8.8.0/24")}}
+	if err := p.IPAllowed(netip.MustParseAddr("8.8.8.8")); !errors.Is(err, ErrDenied) {
+		t.Fatalf("IPAllowed(8.8.8.8) with Deny = %v, want ErrDenied", err)
+	}
+	if err := p.IPAllowed(netip.MustParseAddr("8.8.4.4")); err != nil {
+		t.Fatalf("IPAllowed(8.8.4.4) = %v, want nil (outside Deny)", err)
+	}
+	// Deny 也拦得住 AllowPrivate 放行的私网
+	p2 := Policy{AllowPrivate: true, Deny: []netip.Prefix{netip.MustParsePrefix("10.233.0.0/16")}}
+	if err := p2.IPAllowed(netip.MustParseAddr("10.233.1.1")); !errors.Is(err, ErrDenied) {
+		t.Fatalf("IPAllowed(10.233.1.1) = %v, want ErrDenied", err)
+	}
+}
+
+func TestAllowWinsOverDeny(t *testing.T) {
+	p := Policy{
+		Allow: []netip.Prefix{netip.MustParsePrefix("8.8.8.8/32")},
+		Deny:  []netip.Prefix{netip.MustParsePrefix("8.8.8.0/24")},
+	}
+	if err := p.IPAllowed(netip.MustParseAddr("8.8.8.8")); err != nil {
+		t.Fatalf("IPAllowed(8.8.8.8) = %v, want nil (Allow takes precedence)", err)
+	}
+	if err := p.IPAllowed(netip.MustParseAddr("8.8.8.9")); !errors.Is(err, ErrDenied) {
+		t.Fatalf("IPAllowed(8.8.8.9) = %v, want ErrDenied", err)
+	}
+}
+
+func TestAllowFuncTakesOverButAllowDenyStillApply(t *testing.T) {
+	custom := errors.New("custom")
+	p := Policy{
+		AllowFunc: func(ip netip.Addr) error {
+			if ip.IsLoopback() {
+				return custom
+			}
+			return nil
+		},
+	}
+	if err := p.IPAllowed(netip.MustParseAddr("127.0.0.1")); !errors.Is(err, custom) {
+		t.Fatalf("AllowFunc not used: %v", err)
+	}
+	if err := p.IPAllowed(netip.MustParseAddr("8.8.8.8")); err != nil {
+		t.Fatalf("AllowFunc nil result should pass: %v", err)
+	}
+	// Allow 命中时不走 AllowFunc
+	p2 := Policy{
+		AllowFunc: func(netip.Addr) error { return custom },
+		Allow:     []netip.Prefix{netip.MustParsePrefix("9.9.9.9/32")},
+	}
+	if err := p2.IPAllowed(netip.MustParseAddr("9.9.9.9")); err != nil {
+		t.Fatalf("Allow should take precedence over AllowFunc, got %v", err)
+	}
+}
