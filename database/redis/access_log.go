@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	logx "github.com/hopeio/gox/log"
 	"github.com/redis/go-redis/v9"
@@ -129,13 +130,32 @@ func (h *AccessHook) write(ce *zapcore.CheckedEntry, ctx context.Context, elapse
 	)
 }
 
-func formatCmd(cmd redis.Cmder) string {
+func formatCmd(cmd redis.Cmder) string { return SafeCommandString(cmd) }
+
+func formatCmds(cmds []redis.Cmder) string { return SafeCommandStrings(cmds) }
+
+// Caps for rendered commands. A SET carrying a megabyte payload must not become a
+// megabyte log line, and a single huge argument must not hide the rest of the command.
+const (
+	maxCmdLen = 1024
+	maxArgLen = 256
+)
+
+// SafeCommandString renders a command as valid UTF-8 with a bounded length.
+//
+// Redis arguments are frequently binary - protobuf blobs, compressed values, hashes.
+// Writing them verbatim produced access-log lines containing invalid UTF-8: unreadable
+// here, and OTLP exporters reject such strings wholesale ("string field contains invalid
+// UTF-8"), which surfaced as an OTel SDK error per command. Non-UTF-8 arguments are
+// rendered as "<binary:N B>" instead.
+func SafeCommandString(cmd redis.Cmder) string {
 	var b strings.Builder
 	appendCmd(&b, cmd)
-	return b.String()
+	return truncateCmd(b.String())
 }
 
-func formatCmds(cmds []redis.Cmder) string {
+// SafeCommandStrings renders a pipeline (or transaction) as one bounded line.
+func SafeCommandStrings(cmds []redis.Cmder) string {
 	var b strings.Builder
 	for i, cmd := range cmds {
 		if i > 0 {
@@ -143,7 +163,53 @@ func formatCmds(cmds []redis.Cmder) string {
 		}
 		appendCmd(&b, cmd)
 	}
-	return b.String()
+	return truncateCmd(b.String())
+}
+
+// truncateCmd cuts s at maxCmdLen on a UTF-8 boundary and marks the cut.
+func truncateCmd(s string) string {
+	if len(s) <= maxCmdLen {
+		return s
+	}
+	n := maxCmdLen
+	for n > 0 && !utf8.ValidString(s[:n]) {
+		n--
+	}
+	return s[:n] + "…"
+}
+
+// safeArg renders one argument: valid UTF-8, capped at maxArgLen, binary stubbed out.
+func safeArg(v any) string {
+	switch v := v.(type) {
+	case string:
+		return safeText(v)
+	case []byte:
+		// Valid UTF-8 byte slices are still worth showing (keys, JSON, small text
+		// values); anything else is a payload whose text form is meaningless.
+		return safeText(string(v))
+	case int:
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case bool:
+		return strconv.FormatBool(v)
+	default:
+		return safeText(fmt.Sprint(v))
+	}
+}
+
+func safeText(s string) string {
+	if !utf8.ValidString(s) {
+		return "<binary:" + strconv.Itoa(len(s)) + " B>"
+	}
+	if len(s) <= maxArgLen {
+		return s
+	}
+	n := maxArgLen
+	for n > 0 && !utf8.ValidString(s[:n]) {
+		n--
+	}
+	return s[:n] + "…"
 }
 
 // appendCmd writes "name arg…" avoiding fmt for the types go-redis passes most.
@@ -157,20 +223,7 @@ func appendCmd(b *strings.Builder, cmd redis.Cmder) {
 		if i > 0 {
 			b.WriteByte(' ')
 		}
-		switch v := arg.(type) {
-		case string:
-			b.WriteString(v)
-		case []byte:
-			b.Write(v)
-		case int:
-			b.WriteString(strconv.Itoa(v))
-		case int64:
-			b.WriteString(strconv.FormatInt(v, 10))
-		case bool:
-			b.WriteString(strconv.FormatBool(v))
-		default:
-			fmt.Fprint(b, arg)
-		}
+		b.WriteString(safeArg(arg))
 	}
 }
 
