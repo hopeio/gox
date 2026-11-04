@@ -104,3 +104,16 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (string, 
 	entry := l.Check(zapcore.Level(4-level), msg)
 	entry.Write(fields...)
 }
+
+// ParamsFilter implements gorm's optional logger.ParamsFilter (checked by type
+// assertion in gorm/callbacks.go): with ParameterizedQueries enabled, bound values
+// are dropped so the SQL log keeps only placeholders. Statements without bound
+// variables are unaffected either way.
+//
+// Without the flag this is a passthrough, so existing output stays identical.
+func (l *Logger) ParamsFilter(_ context.Context, sql string, params ...any) (string, []any) {
+	if l.Config == nil || !l.Config.ParameterizedQueries {
+		return sql, params
+	}
+	return sql, nil
+}
