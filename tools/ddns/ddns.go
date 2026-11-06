@@ -12,7 +12,7 @@ import (
 	"github.com/hopeio/gox/scheduler"
 )
 
-// docker run --restart=always --name=ddns --net=host -d jybl/ddns --token=<token> --domain=<domain> --name=<name> --name=<name>
+// docker run --restart=always --name=ddns --net=host -d jybl/ddns --token=<token> --domain=<domain> --name=<name>
 func main() {
 	var token, domain string
 	var names []string

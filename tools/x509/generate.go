@@ -25,8 +25,8 @@ func main() {
 	subject := pkix.Name{
 		Country:            []string{"CN"},
 		Province:           []string{"SX"},
-		Organization:       []string{"Hoper"},
-		OrganizationalUnit: []string{"certHoper"},
+		Organization:       []string{"gox"},
+		OrganizationalUnit: []string{"certGox"},
 		CommonName:         "127.0.0.1",
 	}
 
